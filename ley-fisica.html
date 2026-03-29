@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Qué es una Ley Física? | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #03050f;
+      --bg2: #070d1f;
+      --blue: #1a6cf5;
+      --blue-dim: #0d3a8a;
+      --cyan: #00d4ff;
+      --white: #eef2ff;
+      --gray: #8892b0;
+      --accent: #f5a623;
+      --card-bg: rgba(13, 25, 60, 0.6);
+      --border: rgba(26, 108, 245, 0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    #stars-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      background: rgba(3, 5, 15, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+    .nav-logo span { color: var(--cyan); }
+
+    .nav-back {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--gray);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--cyan); }
+
+    .article-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 9rem 2rem 6rem;
+    }
+
+    .article-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--cyan);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .article-meta::before {
+      content: '';
+      display: block;
+      width: 2rem;
+      height: 1px;
+      background: var(--cyan);
+    }
+
+    .article-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+    }
+
+    .article-subtitle {
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.3rem;
+      font-style: italic;
+      color: var(--gray);
+      font-weight: 300;
+      margin-bottom: 3rem;
+    }
+
+    .article-divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 3rem;
+      position: relative;
+    }
+    .article-divider::after {
+      content: 'o';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg);
+      padding: 0 1rem;
+      color: var(--blue-dim);
+      font-size: 0.6rem;
+    }
+
+    .article-body p {
+      color: rgba(238, 242, 255, 0.85);
+      font-size: 1.15rem;
+      line-height: 1.9;
+      margin-bottom: 1.6rem;
+    }
+
+    .article-body h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: var(--white);
+      margin: 3rem 0 1rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .article-body h2::before {
+      content: '';
+      display: block;
+      width: 1.5rem;
+      height: 2px;
+      background: var(--cyan);
+      flex-shrink: 0;
+    }
+
+    .quote-block {
+      margin: 2.5rem 0;
+      padding: 1.75rem 2rem 1.75rem 2.5rem;
+      border-left: 3px solid var(--cyan);
+      background: rgba(0, 212, 255, 0.04);
+      font-style: italic;
+      font-size: 1.15rem;
+      color: rgba(238, 242, 255, 0.75);
+    }
+
+    .highlight-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      margin: 2.5rem 0;
+      position: relative;
+    }
+    .highlight-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(to right, var(--blue), var(--cyan));
+    }
+    .highlight-box p {
+      margin-bottom: 1rem;
+      color: rgba(238, 242, 255, 0.85);
+    }
+
+    .math-list {
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+    .math-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 1.25rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.05rem;
+      color: rgba(238, 242, 255, 0.8);
+    }
+    .math-list li:last-child { border-bottom: none; }
+    .math-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--cyan);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: 6rem;
+    }
+    .math-formula {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 1.25rem;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      margin: 2.5rem 0;
+      border: 1px solid var(--border);
+    }
+    .comp-cell {
+      background: var(--bg2);
+      padding: 1.75rem;
+    }
+    .comp-cell-header {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--cyan);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .comp-cell h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+    .comp-cell p {
+      font-size: 0.95rem;
+      color: var(--gray);
+      line-height: 1.6;
+      margin-bottom: 0 !important;
+    }
+
+    .closing-box {
+      margin-top: 4rem;
+      padding: 2rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .closing-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .closing-box p {
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--gray);
+      margin-bottom: 0 !important;
+    }
+
+    .article-footer {
+      position: relative;
+      z-index: 1;
+      padding: 2rem 4rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .article-footer p {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--gray);
+      letter-spacing: 0.05em;
+    }
+    .article-footer a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 1rem 1.5rem; }
+      .article-wrapper { padding: 7rem 1.5rem 4rem; }
+      .comparison { grid-template-columns: 1fr; }
+      .article-footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <a href="index.html#divulgacion" class="nav-back">&#8592; Divulgación</a>
+</nav>
+
+<article class="article-wrapper">
+
+  <header class="fade-in">
+    <div class="article-meta">Divulgación · Fundamentos</div>
+    <h1 class="article-title">¿Qué es una<br>Ley Física?</h1>
+    <p class="article-subtitle">El Código Oculto de la Realidad</p>
+    <div class="article-divider"></div>
+  </header>
+
+  <div class="article-body">
+
+    <p class="fade-in">Imaginate que aparecés frente a un tablero de ajedrez sin conocer absolutamente nada del juego. Al observar con atención, notás patrones: los alfiles siempre se desplazan por diagonales, los peones nunca retroceden. Estas no son sugerencias, sino <strong>reglas inquebrantables</strong>.</p>
+
+    <p class="fade-in">Si ampliamos esta analogía a la escala cósmica, nos enfrentamos a preguntas fundamentales: ¿Por qué una manzana cae invariablemente hacia el suelo? ¿Por qué la velocidad de la luz permanece constante independientemente del observador? Vivimos en una realidad que sigue un guion invisible, compuesto por las líneas de código que mantienen unido al cosmos.</p>
+
+    <h2 class="fade-in">Definiendo la frontera científica</h2>
+
+    <p class="fade-in">En el lenguaje cotidiano, solemos confundir una "ley" con una verdad absoluta o una simple opinión científica. Sin embargo, en física, una ley es una <strong>descripción verbal o matemática</strong> de un fenómeno que sucede siempre bajo las mismas condiciones.</p>
+
+    <div class="highlight-box fade-in">
+      <p>A menudo recurrimos a expresiones matemáticas para sintetizar este orden:</p>
+      <ul class="math-list">
+        <li>
+          <span class="math-tag">Newton II</span>
+          <span class="math-formula">F = ma</span>
+        </li>
+        <li>
+          <span class="math-tag">Einstein</span>
+          <span class="math-formula">E = mc²</span>
+        </li>
+        <li>
+          <span class="math-tag">Gravitación</span>
+          <span class="math-formula">F = G · m₁m₂ / r²</span>
+        </li>
+      </ul>
+    </div>
+
+    <h2 class="fade-in">La Ley vs. La Teoría: El Mapa y el Territorio</h2>
+
+    <p class="fade-in">Existe una distinción crucial que separa al entusiasta del científico: entender que una ley no es una "teoría joven" que espera crecer.</p>
+
+    <div class="comparison fade-in">
+      <div class="comp-cell">
+        <div class="comp-cell-header">// La Ley</div>
+        <h4>El "Qué"</h4>
+        <p>Describe el fenómeno. Si soltás un objeto, cae. Es como el mapa de una ciudad: preciso, verificable, útil.</p>
+      </div>
+      <div class="comp-cell">
+        <div class="comp-cell-header">// La Teoría</div>
+        <h4>El "Cómo" y el "Por qué"</h4>
+        <p>Explica el mecanismo subyacente. La Relatividad General explica que el objeto cae por la curvatura del espacio-tiempo.</p>
+      </div>
+    </div>
+
+    <h2 class="fade-in">Simetría: El origen de la armonía</h2>
+
+    <p class="fade-in">Desde una perspectiva rigurosa, las leyes físicas modernas descansan sobre el <strong>Teorema de Noether</strong>. Este pilar establece que cada ley de conservación proviene de una simetría fundamental de la naturaleza.</p>
+
+    <div class="quote-block fade-in">
+      La ley de conservación de la energía existe porque las leyes de la física son las mismas hoy que mañana — es decir, porque el universo tiene simetría temporal.
+    </div>
+
+    <p class="fade-in">Esto nos revela que las leyes no son arbitrarias, sino el resultado de la consistencia del espacio y el tiempo. No las inventamos: las descubrimos.</p>
+
+    <h2 class="fade-in">Una reflexión final</h2>
+
+    <p class="fade-in">Las leyes físicas son nuestra mejor traducción del lenguaje de la naturaleza, permitiéndonos desde enviar naves a Plutón hasta comprender el interior de un átomo.</p>
+
+    <p class="fade-in">Pero, ¿qué ocurriría si encontráramos una zona del universo donde nuestras leyes no se cumplen? ¿Significaría que la ley es falsa, o que simplemente habitamos un rincón con reglas especiales en un cosmos mucho más extraño de lo que imaginamos?</p>
+
+    <div class="closing-box fade-in">
+      <div class="closing-tag">// Mundo Quarks</div>
+      <p>Sigamos hackeando el código del universo.</p>
+    </div>
+
+  </div>
+</article>
+
+<footer class="article-footer">
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p><a href="index.html#divulgacion">&#8592; Volver a Divulgación</a></p>
+</footer>
+
+<script>
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function createParticles() {
+  particles = [];
+  const count = Math.floor((W * H) / 8000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.15,
+      alpha: Math.random() * 0.6 + 0.2,
+      blue: Math.random() > 0.85
+    });
+  }
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.blue
+      ? `rgba(0, 212, 255, ${p.alpha})`
+      : `rgba(180, 195, 240, ${p.alpha})`;
+    ctx.fill();
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+  }
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(26, 108, 245, ${0.08 * (1 - dist/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+
+resize();
+createParticles();
+drawParticles();
+window.addEventListener('resize', () => { resize(); createParticles(); });
+
+const faders = document.querySelectorAll('.fade-in');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 100);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+faders.forEach(fader => observer.observe(fader));
+</script>
+
+</body>
+</html>

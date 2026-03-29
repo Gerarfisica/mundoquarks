@@ -52,7 +52,16 @@ function resize(){{W=canvas.width=window.innerWidth;H=canvas.height=window.inner
 function createParticles(){{particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85}});}}
 function draw(){{ctx.clearRect(0,0,W,H);for(const p of particles){{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${{p.alpha}})`:`rgba(180,195,240,${{p.alpha}})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){{const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){{ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${{.08*(1-d/120)}})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}}}requestAnimationFrame(draw);}}
 resize();createParticles();draw();window.addEventListener('resize',()=>{{resize();createParticles();}});
-const faders=document.querySelectorAll('.fade-in'),obs=new IntersectionObserver((e)=>{{e.forEach((en,i)=>{{if(en.isIntersecting){{setTimeout(()=>en.target.classList.add('visible'),i*100);obs.unobserve(en.target);}}}});}}),{{threshold:0.08}});faders.forEach(f=>obs.observe(f));
+const faders=document.querySelectorAll('.fade-in');
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach((entry,i)=>{
+    if(entry.isIntersecting){
+      setTimeout(()=>entry.target.classList.add('visible'),i*100);
+      obs.unobserve(entry.target);
+    }
+  });
+},{threshold:0.08});
+faders.forEach(f=>obs.observe(f));
 </script>
 </body>
 </html>

@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Oscilador Longitudinal | Mundo Quarks</title>
-    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
         body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
-        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
-        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0 20px; }
-        .panel-sim { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; position: sticky; top: 20px; height: fit-content; }
-        canvas { background: #000; border-radius: 10px; width: 100%; height: auto; border: 1px solid #1a2a4a; }
-        .controls { margin-top: 25px; }
-        .control-group { margin-bottom: 20px; }
-        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
         input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
-        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 15px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 20px; border-radius: 8px; }
-        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; }
-        .plots-container { display: flex; flex-direction: column; gap: 15px; }
-        .plot-div { height: 220px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid var(--border); }
-        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; }
-        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .panel-sim { position: static; } }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.85rem; }
+        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        .plot-canvas { height: 160px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -29,8 +28,9 @@
 <div class="container">
     <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
     <h1>Oscilador Longitudinal RK4</h1>
-    <div class="panel-sim">
-        <canvas id="simCanvas"></canvas>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="200"></canvas>
         <div class="controls">
             <div id="freqDisplay" class="freq-box">ω₀ = --- rad/s</div>
             <div class="control-group">
@@ -38,112 +38,104 @@
                 <input type="range" id="mSlider" min="0.1" max="5.0" step="0.1" value="1.0">
             </div>
             <div class="control-group">
-                <label>k₁ (Izquierda) <span><span id="k1Val">5.0</span> N/m</span></label>
+                <label>k₁ (Izq) <span><span id="k1Val">5.0</span> N/m</span></label>
                 <input type="range" id="k1Slider" min="0.5" max="30.0" step="0.5" value="5.0">
             </div>
             <div class="control-group">
-                <label>k₂ (Derecha) <span><span id="k2Val">5.0</span> N/m</span></label>
+                <label>k₂ (Der) <span><span id="k2Val">5.0</span> N/m</span></label>
                 <input type="range" id="k2Slider" min="0.5" max="30.0" step="0.5" value="5.0">
             </div>
-            <button class="btn-restart" onclick="fullRestart()">REINICIAR TODO</button>
+            <button class="btn-restart" onclick="restart()">REINICIAR TODO</button>
         </div>
     </div>
-    <div class="plots-container">
-        <div id="plotP" class="plot-div"></div>
-        <div id="plotV" class="plot-div"></div>
-        <div id="plotA" class="plot-div"></div>
+
+    <div class="plots-column">
+        <canvas id="canvasP" class="plot-canvas" height="160"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="160"></canvas>
+        <canvas id="canvasA" class="plot-canvas" height="160"></canvas>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('simCanvas');
-    const ctx = canvas.getContext('2d');
-    let m = 1.0, k1 = 5.0, k2 = 5.0, x = 0.8, v = 0.0, t_real = 0;
-    const dt = 0.016, L_vis = 140, T_WINDOW = 10.0;
-    let historyT = [], historyX = [], historyV = [], historyA = [];
-    let lastPlotUpdate = 0;
+    const simC = document.getElementById('simCanvas'), ctxS = simC.getContext('2d');
+    const canP = document.getElementById('canvasP'), ctxP = canP.getContext('2d');
+    const canV = document.getElementById('canvasV'), ctxV = canV.getContext('2d');
+    const canA = document.getElementById('canvasA'), ctxA = canA.getContext('2d');
 
-    function accel(pos) { return (-(k1 + k2) * pos) / m; }
+    let m = 1.0, k1 = 5.0, k2 = 5.0, x = 0.8, v = 0.0, t = 0;
+    const dt = 0.016, T_MAX = 10.0;
+    let history = [];
+
+    function accel(p) { return (-(k1 + k2) * p) / m; }
 
     function solveRK4() {
         let k1v = accel(x), k1x = v;
-        let k2v = accel(x + 0.5 * dt * k1x), k2x = v + 0.5 * dt * k1v;
-        let k3v = accel(x + 0.5 * dt * k2x), k3x = v + 0.5 * dt * k2v;
-        let k4v = accel(x + dt * k3x), k4x = v + dt * k3v;
-        v += (dt / 6) * (k1v + 2 * k2v + 2 * k3v + k4v);
-        x += (dt / 6) * (k1x + 2 * k2x + 2 * k3x + k4x);
-        t_real += dt;
-        let t_graph = t_real % T_WINDOW;
-        if (historyT.length > 0 && t_graph < historyT[historyT.length - 1]) {
-            historyT = []; historyX = []; historyV = []; historyA = [];
-        }
-        historyT.push(t_graph);
-        historyX.push(x);
-        historyV.push(v);
-        historyA.push(accel(x));
+        let k2v = accel(x + 0.5*dt*k1x), k2x = v + 0.5*dt*k1v;
+        let k3v = accel(x + 0.5*dt*k2x), k3x = v + 0.5*dt*k2v;
+        let k4v = accel(x + dt*k3x), k4x = v + dt*k3v;
+        v += (dt/6)*(k1v + 2*k2v + 2*k3v + k4v);
+        x += (dt/6)*(k1x + 2*k2x + 2*k3x + k4x);
+        t += dt;
+        if (t > T_MAX) { t = 0; history = []; }
+        history.push({t: t, x: x, v: v, a: accel(x)});
     }
 
-    function drawSpring(xStart, yStart, xEnd, yEnd) {
+    function drawSpring(ctx, xS, yS, xE, yE) {
         ctx.beginPath(); ctx.strokeStyle = '#4e5b7e'; ctx.lineWidth = 2;
-        ctx.moveTo(xStart, yStart);
-        const nodes = 15; // Reducido para performance
-        for (let i = 1; i < nodes; i++) {
-            const px = xStart + (xEnd - xStart) * (i / nodes);
-            const py = yStart + (i % 2 === 0 ? -7 : 7);
+        ctx.moveTo(xS, yS);
+        const nodes = 20;
+        for(let i=1; i<nodes; i++) {
+            const px = xS + (xE-xS)*(i/nodes);
+            const py = yS + (i%2===0 ? -8 : 8);
             ctx.lineTo(px, py);
         }
-        ctx.lineTo(xEnd, yEnd); ctx.stroke();
+        ctx.lineTo(xE, yE); ctx.stroke();
     }
 
-    function render() {
+    function drawPlot(canvas, ctx, dataKey, label, color, minMax) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const midY = canvas.height / 2, midX = canvas.width / 2, posX = midX + x * 90;
-        ctx.fillStyle = '#1a6cf5';
-        ctx.fillRect(midX - L_vis - 4, midY - 30, 4, 60);
-        ctx.fillRect(midX + L_vis, midY - 30, 4, 60);
-        drawSpring(midX - L_vis, midY, posX, midY);
-        drawSpring(midX + L_vis, midY, posX, midY);
-        ctx.beginPath(); ctx.arc(posX, midY, 15, 0, 7);
-        ctx.fillStyle = '#00d4ff'; ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff';
-        ctx.fill(); ctx.shadowBlur = 0;
-    }
-
-    function updatePlots() {
-        const layout = (title, color) => ({
-            title: { text: title, font: { size: 12, color: '#fff' }, x: 0.05 },
-            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-            margin: { t: 40, b: 30, l: 45, r: 15 },
-            xaxis: { range: [0, T_WINDOW], gridcolor: '#16203a', tickfont: {color: '#8892b0'} },
-            yaxis: { autorange: true, gridcolor: '#16203a', tickfont: {color: color} }
-        });
-        const config = { staticPlot: true, responsive: true };
-        Plotly.react('plotP', [{ x: historyT, y: historyX, line: { color: '#00FF7F'} }], layout('Posición x(t)', '#00FF7F'), config);
-        Plotly.react('plotV', [{ x: historyT, y: historyV, line: { color: '#FFD700'} }], layout('Velocidad v(t)', '#FFD700'), config);
-        Plotly.react('plotA', [{ x: historyT, y: historyA, line: { color: '#FF4500'} }], layout('Aceleración a(t)', '#FF4500'), config);
-    }
-
-    function fullRestart() {
-        t_real = 0; x = 0.8; v = 0; historyT = []; historyX = []; historyV = []; historyA = [];
-        document.getElementById('freqDisplay').innerHTML = `ω₀ = ${Math.sqrt((k1 + k2) / m).toFixed(3)} rad/s`;
-    }
-
-    function mainLoop(timestamp) {
-        solveRK4(); 
-        render();
-        if (timestamp - lastPlotUpdate > 150) { // Frecuencia de gráfico reducida para estabilidad
-            updatePlots();
-            lastPlotUpdate = timestamp;
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        for(let i=1; i<10; i++) { // Grilla
+            let gx = (i/10)*canvas.width;
+            ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, canvas.height); ctx.stroke();
         }
-        requestAnimationFrame(mainLoop);
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0'; ctx.fillText(label, 10, 20);
+        
+        if (history.length < 2) return;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+        history.forEach((p, i) => {
+            const px = (p.t / T_MAX) * canvas.width;
+            const py = (canvas.height/2) - (p[dataKey] * (canvas.height/minMax));
+            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
     }
 
-    document.getElementById('mSlider').oninput = e => { m = parseFloat(e.target.value); document.getElementById('mVal').innerText = m; fullRestart(); };
-    document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1; fullRestart(); };
-    document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2; fullRestart(); };
+    function loop() {
+        solveRK4();
+        // Render Sim
+        ctxS.clearRect(0,0,simC.width, simC.height);
+        const midY = 100, midX = simC.width/2, posX = midX + x*100;
+        ctxS.fillStyle = '#1a6cf5'; ctxS.fillRect(midX-144, midY-30, 4, 60); ctxS.fillRect(midX+140, midY-30, 4, 60);
+        drawSpring(ctxS, midX-140, midY, posX, midY); drawSpring(ctxS, midX+140, midY, posX, midY);
+        ctxS.beginPath(); ctxS.arc(posX, midY, 15, 0, 7); ctxS.fillStyle = '#00d4ff'; ctxS.shadowBlur=15; ctxS.shadowColor='#00d4ff'; ctxS.fill(); ctxS.shadowBlur=0;
 
-    canvas.width = 500; canvas.height = 200;
-    fullRestart();
-    requestAnimationFrame(mainLoop);
+        // Render Plots (Usa escalas automáticas basadas en amplitudes teóricas aproximadas)
+        drawPlot(canP, ctxP, 'x', 'Posición x(t)', '#00FF7F', 2.5);
+        drawPlot(canV, ctxV, 'v', 'Velocidad v(t)', '#FFD700', 8);
+        drawPlot(canA, ctxA, 'a', 'Aceleración a(t)', '#FF4500', 25);
+        
+        requestAnimationFrame(loop);
+    }
+
+    function restart() { t=0; x=0.8; v=0; history=[]; document.getElementById('freqDisplay').innerText = `ω₀ = ${Math.sqrt((k1+k2)/m).toFixed(3)} rad/s`; }
+
+    document.getElementById('mSlider').oninput = e => { m = parseFloat(e.target.value); document.getElementById('mVal').innerText = m; restart(); };
+    document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1; restart(); };
+    document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2; restart(); };
+
+    [simC, canP, canV, canA].forEach(c => c.width = c.offsetWidth);
+    restart(); loop();
 </script>
 </body>
 </html>

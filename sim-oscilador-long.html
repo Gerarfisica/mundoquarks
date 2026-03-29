@@ -1,82 +1,22 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Simulador: Oscilador Longitudinal | Mundo Quarks</title>
-    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --bg: #03050f; --bg-panel: #070d1f;
-            --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0;
-            --border: rgba(26, 108, 245, 0.2); 
-        }
-        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
-        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
-        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0 20px; }
-        .panel-sim { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; position: sticky; top: 20px; height: fit-content; }
-        canvas { background: #000; border-radius: 10px; width: 100%; height: auto; border: 1px solid #1a2a4a; }
-        .controls { margin-top: 25px; }
-        .control-group { margin-bottom: 20px; }
-        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; }
-        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
-        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 15px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 20px; border-radius: 8px; }
-        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; }
-        .plots-container { display: flex; flex-direction: column; gap: 15px; }
-        .plot-div { height: 220px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid var(--border); }
-        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; }
-        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .panel-sim { position: static; } }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
-    <h1>Oscilador Longitudinal</h1>
-
-    <div class="panel-sim">
-        <canvas id="simCanvas"></canvas>
-        <div class="controls">
-            <div id="freqDisplay" class="freq-box">FRECUENCIA PROPIA: <br> ω₀ = --- rad/s</div>
-            <div class="control-group">
-                <label>Masa (m) <span><span id="mVal">1.0</span> kg</span></label>
-                <input type="range" id="mSlider" min="0.1" max="5.0" step="0.1" value="1.0">
-            </div>
-            <div class="control-group">
-                <label>k₁ (Izquierda) <span><span id="k1Val">5.0</span> N/m</span></label>
-                <input type="range" id="k1Slider" min="0.5" max="30.0" step="0.5" value="5.0">
-            </div>
-            <div class="control-group">
-                <label>k₂ (Derecha) <span><span id="k2Val">5.0</span> N/m</span></label>
-                <input type="range" id="k2Slider" min="0.5" max="30.0" step="0.5" value="5.0">
-            </div>
-            <button class="btn-restart" onclick="fullRestart()">REINICIAR TODO</button>
-        </div>
-    </div>
-
-    <div class="plots-container">
-        <div id="plotP" class="plot-div"></div>
-        <div id="plotV" class="plot-div"></div>
-        <div id="plotA" class="plot-div"></div>
-    </div>
-</div>
-
 <script>
     const canvas = document.getElementById('simCanvas');
     const ctx = canvas.getContext('2d');
     
+    // Configuración Física
     let m = 1.0, k1 = 5.0, k2 = 5.0;
-    let x = 0.8, v = 0.0, t = 0;
+    let x = 0.8, v = 0.0, t_real = 0; // Tiempo real para la física
     const dt = 0.016; 
     const L_vis = 140; 
-    const MAX_POINTS = 200; // Cuántos puntos mostrar en pantalla
+    const T_WINDOW = 10.0; // El ancho fijo del gráfico en segundos
     
+    // Buffers para los gráficos
     let historyT = [], historyX = [], historyV = [], historyA = [];
     let lastPlotUpdate = 0;
 
     function accel(pos) { return (-(k1 + k2) * pos) / m; }
 
     function solveRK4() {
+        // La física sigue su curso normal
         let k1v = accel(x), k1x = v;
         let k2v = accel(x + 0.5 * dt * k1x), k2x = v + 0.5 * dt * k1v;
         let k3v = accel(x + 0.5 * dt * k2x), k3x = v + 0.5 * dt * k2v;
@@ -84,33 +24,20 @@
 
         v += (dt / 6) * (k1v + 2 * k2v + 2 * k3v + k4v);
         x += (dt / 6) * (k1x + 2 * k2x + 2 * k3x + k4x);
-        t += dt;
+        t_real += dt;
 
-        historyT.push(t);
+        // TIEMPO PARA EL GRÁFICO (Módulo 10)
+        let t_graph = t_real % T_WINDOW;
+
+        // Si el tiempo "reinicia" el ciclo, limpiamos los puntos que queden adelante
+        if (historyT.length > 0 && t_graph < historyT[historyT.length - 1]) {
+            historyT = []; historyX = []; historyV = []; historyA = [];
+        }
+
+        historyT.push(t_graph);
         historyX.push(x);
         historyV.push(v);
         historyA.push(accel(x));
-
-        // MANTENER VENTANA DESLIZANTE
-        if (historyT.length > MAX_POINTS) {
-            historyT.shift(); historyX.shift(); historyV.shift(); historyA.shift();
-        }
-    }
-
-    function drawSpring(xStart, yStart, xEnd, yEnd, nodes = 20) {
-        ctx.beginPath();
-        ctx.strokeStyle = '#4e5b7e';
-        ctx.lineWidth = 2;
-        ctx.moveTo(xStart, yStart);
-        for (let i = 0; i <= nodes; i++) {
-            let px = xStart + (xEnd - xStart) * (i / nodes);
-            let py = yStart + (yEnd - yStart) * (i / nodes);
-            if (i > 0 && i < nodes) {
-                let offset = (i % 2 === 0 ? 1 : -1) * 8;
-                ctx.lineTo(px, py + offset);
-            } else { ctx.lineTo(px, py); }
-        }
-        ctx.stroke();
     }
 
     function render() {
@@ -123,9 +50,11 @@
         ctx.fillRect(midX - L_vis - 4, midY - 40, 4, 80);
         ctx.fillRect(midX + L_vis, midY - 40, 4, 80);
 
+        // Dibujo de resortes
         drawSpring(midX - L_vis, midY, posX, midY);
         drawSpring(midX + L_vis, midY, posX, midY);
 
+        // Masa
         ctx.beginPath();
         ctx.arc(posX, midY, 16, 0, Math.PI * 2);
         let grad = ctx.createRadialGradient(posX, midY, 2, posX, midY, 16);
@@ -135,16 +64,30 @@
         ctx.fill(); ctx.shadowBlur = 0;
     }
 
-    function updatePlots() {
-        // Encontrar el rango de tiempo actual para que el eje X se mueva
-        const tMin = historyT[0];
-        const tMax = historyT[historyT.length - 1];
+    function drawSpring(xStart, yStart, xEnd, yEnd, nodes = 20) {
+        ctx.beginPath(); ctx.strokeStyle = '#4e5b7e'; ctx.lineWidth = 2;
+        ctx.moveTo(xStart, yStart);
+        for (let i = 0; i <= nodes; i++) {
+            let px = xStart + (xEnd - xStart) * (i / nodes);
+            let py = yStart + (yEnd - yStart) * (i / nodes);
+            if (i > 0 && i < nodes) {
+                let offset = (i % 2 === 0 ? 1 : -1) * 8;
+                ctx.lineTo(px, py + offset);
+            } else { ctx.lineTo(px, py); }
+        }
+        ctx.stroke();
+    }
 
+    function updatePlots() {
         const layout = (title, color) => ({
             title: { text: title, font: { size: 12, color: '#eef2ff', family: 'Space Mono' }, x: 0.05 },
             paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
             margin: { t: 40, b: 30, l: 45, r: 15 },
-            xaxis: { range: [tMin, tMax], gridcolor: '#16203a', tickfont: {color: '#8892b0', size: 10} },
+            xaxis: { 
+                range: [0, T_WINDOW], // EJE FIJO SIEMPRE
+                gridcolor: '#16203a', 
+                tickfont: {color: '#8892b0', size: 10} 
+            },
             yaxis: { gridcolor: '#16203a', tickfont: {color: color, size: 10}, zerolinecolor: '#444' }
         });
 
@@ -155,8 +98,8 @@
         Plotly.react('plotA', [{ x: historyT, y: historyA, line: { color: '#FF4500', width: 2 } }], layout('Aceleración a(t)', '#FF4500'), config);
     }
 
-    function fullRestart() {
-        t = 0; x = 0.8; v = 0;
+    function restart() {
+        t_real = 0; x = 0.8; v = 0;
         historyT = []; historyX = []; historyV = []; historyA = [];
         const w0 = Math.sqrt((k1 + k2) / m);
         document.getElementById('freqDisplay').innerHTML = `FRECUENCIA PROPIA: <br> ω₀ = ${w0.toFixed(3)} rad/s`;
@@ -165,20 +108,19 @@
     function mainLoop(timestamp) {
         solveRK4(); 
         render();
-        if (timestamp - lastPlotUpdate > 100) { // Actualiza gráficos cada 100ms
+        if (timestamp - lastPlotUpdate > 100) { 
             updatePlots();
             lastPlotUpdate = timestamp;
         }
         requestAnimationFrame(mainLoop);
     }
 
-    document.getElementById('mSlider').oninput = e => { m = parseFloat(e.target.value); document.getElementById('mVal').innerText = m; fullRestart(); };
-    document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1; fullRestart(); };
-    document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2; fullRestart(); };
+    // Sliders
+    document.getElementById('mSlider').oninput = e => { m = parseFloat(e.target.value); document.getElementById('mVal').innerText = m; restart(); };
+    document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1; restart(); };
+    document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2; restart(); };
 
     canvas.width = 500; canvas.height = 250;
-    fullRestart();
+    restart();
     requestAnimationFrame(mainLoop);
 </script>
-</body>
-</html>

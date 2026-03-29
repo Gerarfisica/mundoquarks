@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador: Oscilador Longitudinal | Mundo Quarks</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --cyan: #00d4ff; --white: #eef2ff; --panel: rgba(255,255,255,0.05); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; font-size: 1.8rem; }
+        .panel { background: var(--panel); border: 1px solid rgba(26, 108, 245, 0.2); padding: 20px; border-radius: 12px; }
+        canvas { background: #000; border-radius: 8px; width: 100%; height: 250px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-family: 'Space Mono'; font-size: 0.8rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); }
+        .freq-box { background: #151515; border: 1px solid #444; padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 5px; }
+        .btn-restart { width: 100%; padding: 10px; background: #444; color: white; border: none; font-family: 'Space Mono'; cursor: pointer; border-radius: 5px; transition: 0.3s; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots { display: flex; flex-direction: column; gap: 10px; }
+        .plot-div { height: 200px; background: white; border-radius: 8px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--cyan); text-decoration: none; font-family: 'Space Mono'; margin-bottom: 10px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← Volver a Física 2</a>
+    <h1>Oscilador Longitudinal Definitivo</h1>
+
+    <div class="panel">
+        <canvas id="simCanvas"></canvas>
+        <div class="controls">
+            <div id="freqDisplay" class="freq-box">FRECUENCIA PROPIA: <br> ω₀ = --- rad/s</div>
+            
+            <div class="control-group">
+                <label>Masa (m): <span id="mVal">1.0</span> kg</label>
+                <input type="range" id="mSlider" min="0.1" max="5.0" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>k₁ (Izquierda): <span id="k1Val">5.0</span> N/m</label>
+                <input type="range" id="k1Slider" min="0.5" max="30.0" step="0.5" value="5.0">
+            </div>
+            <div class="control-group">
+                <label>k₂ (Derecha): <span id="k2Val">5.0</span> N/m</label>
+                <input type="range" id="k2Slider" min="0.5" max="30.0" step="0.5" value="5.0">
+            </div>
+            <button class="btn-restart" onclick="restart()">RESTART</button>
+        </div>
+    </div>
+
+    <div class="plots">
+        <div id="plotP" class="plot-div"></div>
+        <div id="plotV" class="plot-div"></div>
+        <div id="plotA" class="plot-div"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Parámetros Físicos
+    let m = 1.0, k1 = 5.0, k2 = 5.0;
+    let x = 0.8, v = 0.0, t = 0;
+    const dt = 0.01;
+    const L = 150; // Visual length
+    const initial_x_val = 0.8;
+    
+    let historyT = [], historyX = [], historyV = [], historyA = [];
+
+    function accel(pos) { return (-(k1 + k2) * pos) / m; }
+
+    function step() {
+        // Runge-Kutta 4
+        let k1v = accel(x), k1x = v;
+        let k2v = accel(x + 0.5 * dt * k1x), k2x = v + 0.5 * dt * k1v;
+        let k3v = accel(x + 0.5 * dt * k2x), k3x = v + 0.5 * dt * k2v;
+        let k4v = accel(x + dt * k3x), k4x = v + dt * k3v;
+
+        v += (dt / 6) * (k1v + 2 * k2v + 2 * k3v + k4v);
+        x += (dt / 6) * (k1x + 2 * k2x + 2 * k3x + k4x);
+        t += dt;
+
+        historyT.push(t);
+        historyX.push(x);
+        historyV.push(v);
+        historyA.push(accel(x));
+
+        if (t > 10.0) { t = 0; historyT = []; historyX = []; historyV = []; historyA = []; }
+    }
+
+    function drawSpring(xStart, yStart, xEnd, yEnd, nodes = 15) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'silver';
+        ctx.lineWidth = 2;
+        ctx.moveTo(xStart, yStart);
+        for (let i = 0; i <= nodes; i++) {
+            let px = xStart + (xEnd - xStart) * (i / nodes);
+            let py = yStart + (yEnd - yStart) * (i / nodes);
+            if (i > 0 && i < nodes) {
+                let offset = (i % 2 === 0 ? 1 : -1) * 10;
+                ctx.lineTo(px, py + offset);
+            } else {
+                ctx.lineTo(px, py);
+            }
+        }
+        ctx.stroke();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const midY = canvas.height / 2;
+        const midX = canvas.width / 2;
+        const posX = midX + x * 80;
+
+        // Paredes
+        ctx.fillStyle = 'gray';
+        ctx.fillRect(midX - L - 5, midY - 30, 10, 60);
+        ctx.fillRect(midX + L - 5, midY - 30, 10, 60);
+
+        // Resortes
+        drawSpring(midX - L, midY, posX, midY);
+        drawSpring(midX + L, midY, posX, midY);
+
+        // Masa
+        ctx.beginPath();
+        ctx.arc(posX, midY, 15, 0, Math.PI * 2);
+        ctx.fillStyle = 'cyan';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'cyan';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+
+    function updatePlots() {
+        const layout = (title, color) => ({
+            title: { text: title, font: { size: 12 } },
+            margin: { t: 30, b: 30, l: 40, r: 10 },
+            xaxis: { title: 't (s)', range: [0, 10] },
+            yaxis: { color: color }
+        });
+
+        Plotly.react('plotP', [{ x: historyT, y: historyX, line: { color: '#00FF7F' } }], layout('Posición (x)', '#00FF7F'));
+        Plotly.react('plotV', [{ x: historyT, y: historyV, line: { color: '#FFD700' } }], layout('Velocidad (v)', '#FFD700'));
+        Plotly.react('plotA', [{ x: historyT, y: historyA, line: { color: '#FF4500' } }], layout('Aceleración (a)', '#FF4500'));
+    }
+
+    function restart() {
+        x = initial_x_val; v = 0; t = 0;
+        historyT = []; historyX = []; historyV = []; historyA = [];
+        const w0 = Math.sqrt((k1 + k2) / m);
+        document.getElementById('freqDisplay').innerHTML = `FRECUENCIA PROPIA: <br> ω₀ = ${w0.toFixed(3)} rad/s`;
+    }
+
+    function loop() {
+        step(); draw(); updatePlots();
+        requestAnimationFrame(loop);
+    }
+
+    // Sliders
+    document.getElementById('mSlider').oninput = e => { m = parseFloat(e.target.value); document.getElementById('mVal').innerText = m; restart(); };
+    document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1; restart(); };
+    document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2; restart(); };
+
+    canvas.width = 500; canvas.height = 250;
+    restart();
+    loop();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
     <style>
         :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
         body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
-        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
         h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; }
         .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
         canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
@@ -19,7 +19,7 @@
         .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; }
         .btn-restart:hover { background: #ff4500; }
         .plots-column { display: flex; flex-direction: column; gap: 15px; }
-        .plot-canvas { height: 160px; }
+        .plot-canvas { height: 180px; }
         .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
@@ -30,7 +30,7 @@
     <h1>Oscilador Longitudinal RK4</h1>
 
     <div class="panel-left">
-        <canvas id="simCanvas" height="200"></canvas>
+        <canvas id="simCanvas" height="220"></canvas>
         <div class="controls">
             <div id="freqDisplay" class="freq-box">ω₀ = --- rad/s</div>
             <div class="control-group">
@@ -50,9 +50,9 @@
     </div>
 
     <div class="plots-column">
-        <canvas id="canvasP" class="plot-canvas" height="160"></canvas>
-        <canvas id="canvasV" class="plot-canvas" height="160"></canvas>
-        <canvas id="canvasA" class="plot-canvas" height="160"></canvas>
+        <canvas id="canvasP" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasA" class="plot-canvas" height="180"></canvas>
     </div>
 </div>
 
@@ -80,50 +80,72 @@
         history.push({t: t, x: x, v: v, a: accel(x)});
     }
 
+    function drawPlot(canvas, ctx, dataKey, label, color, limit) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const margin = { left: 40, right: 20, top: 20, bottom: 30 };
+        const w = canvas.width - margin.left - margin.right;
+        const h = canvas.height - margin.top - margin.bottom;
+        const midY = margin.top + h/2;
+
+        // Ejes y Grilla
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0';
+
+        // Grilla Vertical (Tiempo) y Números X
+        for(let i=0; i<=10; i++) {
+            let gx = margin.left + (i/10)*w;
+            ctx.beginPath(); ctx.moveTo(gx, margin.top); ctx.lineTo(gx, margin.top + h); ctx.stroke();
+            if(i%2===0) ctx.fillText(i+'s', gx - 5, margin.top + h + 15);
+        }
+
+        // Grilla Horizontal (Amplitud) y Números Y
+        ctx.fillText(limit, 5, margin.top + 5);
+        ctx.fillText('0', 5, midY + 4);
+        ctx.fillText('-' + limit, 5, margin.top + h);
+        
+        ctx.beginPath(); ctx.strokeStyle = '#2a3a5a';
+        ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY); // Eje Central
+        ctx.stroke();
+
+        // Título del gráfico
+        ctx.fillStyle = color; ctx.fillText(label, margin.left, margin.top - 8);
+
+        // Curva
+        if (history.length < 2) return;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+        history.forEach((p, i) => {
+            const px = margin.left + (p.t / T_MAX) * w;
+            const py = midY - (p[dataKey] * (h / (limit * 2)));
+            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+    }
+
     function drawSpring(ctx, xS, yS, xE, yE) {
         ctx.beginPath(); ctx.strokeStyle = '#4e5b7e'; ctx.lineWidth = 2;
         ctx.moveTo(xS, yS);
         const nodes = 20;
         for(let i=1; i<nodes; i++) {
             const px = xS + (xE-xS)*(i/nodes);
-            const py = yS + (i%2===0 ? -8 : 8);
+            const py = yS + (i%2===0 ? -10 : 10);
             ctx.lineTo(px, py);
         }
         ctx.lineTo(xE, yE); ctx.stroke();
     }
 
-    function drawPlot(canvas, ctx, dataKey, label, color, minMax) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
-        for(let i=1; i<10; i++) { // Grilla
-            let gx = (i/10)*canvas.width;
-            ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, canvas.height); ctx.stroke();
-        }
-        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0'; ctx.fillText(label, 10, 20);
-        
-        if (history.length < 2) return;
-        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
-        history.forEach((p, i) => {
-            const px = (p.t / T_MAX) * canvas.width;
-            const py = (canvas.height/2) - (p[dataKey] * (canvas.height/minMax));
-            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-        });
-        ctx.stroke();
-    }
-
     function loop() {
         solveRK4();
-        // Render Sim
+        // Simulación
         ctxS.clearRect(0,0,simC.width, simC.height);
-        const midY = 100, midX = simC.width/2, posX = midX + x*100;
-        ctxS.fillStyle = '#1a6cf5'; ctxS.fillRect(midX-144, midY-30, 4, 60); ctxS.fillRect(midX+140, midY-30, 4, 60);
-        drawSpring(ctxS, midX-140, midY, posX, midY); drawSpring(ctxS, midX+140, midY, posX, midY);
-        ctxS.beginPath(); ctxS.arc(posX, midY, 15, 0, 7); ctxS.fillStyle = '#00d4ff'; ctxS.shadowBlur=15; ctxS.shadowColor='#00d4ff'; ctxS.fill(); ctxS.shadowBlur=0;
+        const mY = 110, mX = simC.width/2, pX = mX + x*100;
+        ctxS.fillStyle = '#1a6cf5'; ctxS.fillRect(mX-144, mY-40, 4, 80); ctxS.fillRect(mX+140, mY-40, 4, 80);
+        drawSpring(ctxS, mX-140, mY, pX, mY); drawSpring(ctxS, mX+140, mY, pX, mY);
+        ctxS.beginPath(); ctxS.arc(pX, mY, 18, 0, 7); ctxS.fillStyle = '#00d4ff'; ctxS.shadowBlur=20; ctxS.shadowColor='#00d4ff'; ctxS.fill(); ctxS.shadowBlur=0;
 
-        // Render Plots (Usa escalas automáticas basadas en amplitudes teóricas aproximadas)
-        drawPlot(canP, ctxP, 'x', 'Posición x(t)', '#00FF7F', 2.5);
-        drawPlot(canV, ctxV, 'v', 'Velocidad v(t)', '#FFD700', 8);
-        drawPlot(canA, ctxA, 'a', 'Aceleración a(t)', '#FF4500', 25);
+        // Gráficos con escalas fijas representativas
+        drawPlot(canP, ctxP, 'x', 'Posición x (m)', '#00FF7F', 1.0);
+        drawPlot(canV, ctxV, 'v', 'Velocidad v (m/s)', '#FFD700', 5.0);
+        drawPlot(canA, ctxA, 'a', 'Aceleración a (m/s²)', '#FF4500', 20.0);
         
         requestAnimationFrame(loop);
     }
@@ -134,7 +156,8 @@
     document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1; restart(); };
     document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2; restart(); };
 
-    [simC, canP, canV, canA].forEach(c => c.width = c.offsetWidth);
+    function resize() { [simC, canP, canV, canA].forEach(c => c.width = c.offsetWidth); }
+    window.onresize = resize; resize();
     restart(); loop();
 </script>
 </body>

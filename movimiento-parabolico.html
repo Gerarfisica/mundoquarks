@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movimiento Parabólico: La Geometría del Vuelo | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .eq-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-size:0.9rem;color:var(--cyan);position:relative;text-align:center;}.eq-block::before{content:'ECUACION';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGIA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TECNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="index.html#divulgacion" class="nav-back">Mecanica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Mecanica <span>·</span> Cinematica del Proyectil y Caida Libre</div>
+  <h1>Movimiento<br><span class="hl">Parabolico</span></h1>
+  <p class="article-subtitle">La superposicion de dos movimientos independientes genera la curva mas elegante de la mecanica clasica, y en su limite extremo, la orbita de un satelite</p>
+  <div class="article-tags"><span class="tag active">// Mecanica</span><span class="tag">Cinematica</span><span class="tag">Proyectil</span><span class="tag">Caida Libre</span><span class="tag">Orbita</span></div>
+</div>
+<div class="article-container">
+  <p>Una flecha disparada por un arquero, una piedra lanzada desde un acantilado, la lava eyectada por un volcan, un balon de basketball en el instante en que abandona las manos del jugador: todos estos objetos, tan distintos en masa, forma y origen, comparten una misma geometria de vuelo. Una vez que pierden el contacto con la superficie que los lanza, quedan bajo la influencia exclusiva de la gravedad (ignorando por el momento la resistencia del aire) y su trayectoria se convierte invariablemente en una parabola. Esta universalidad no es casual: es la consecuencia directa de que la gravedad es una fuerza constante en la escala de los proyectiles cotidianos, y de un principio que tardo siglos en articularse correctamente: la independencia de los movimientos en direcciones perpendiculares.</p>
+  <p>La fisica del movimiento parabolico fue una de las grandes conquistas de Galileo Galilei a principios del siglo XVII. Antes de Galileo, el pensamiento aristotelico afirmaba que un proyectil se movia horizontalmente mientras era "empujado" por el impulso inicial, y solo comenzaba a caer cuando ese impulso se agotaba. La trayectoria era vista como dos movimientos secuenciales, no simultaneos. Galileo, a traves de experimentos cuidadosamente diseñados con planos inclinados y observacion de proyectiles, demostro que los movimientos horizontal y vertical son completamente independientes entre si y ocurren de manera simultanea desde el primer instante de vuelo.</p>
+
+  <h2>El Principio de Superposicion: Dos Mundos que no se Hablan</h2>
+  <p>El corazon conceptual del movimiento parabolico es el <strong>principio de independencia de movimientos perpendiculares</strong>. En ausencia de resistencia del aire, las unicas fuerza que actua sobre un proyectil en vuelo es la gravedad, dirigida verticalmente hacia abajo. Esta fuerza no tiene componente horizontal, y por tanto no puede modificar la velocidad horizontal del proyectil. La componente horizontal del movimiento es, por consiguiente, un movimiento rectilineo uniforme: la velocidad horizontal permanece constante durante todo el vuelo, exactamente como si la gravedad no existiera.</p>
+  <p>Simultaneamente, en la direccion vertical, el proyectil experimenta la aceleracion gravitacional \(g\) hacia abajo, independientemente de su velocidad horizontal. El movimiento vertical es identico al de un objeto en caida libre (o en tiro vertical), con aceleracion constante \(g\). La trayectoria real del proyectil es la superposicion vectorial de estos dos movimientos independientes: se mueve horizontalmente con velocidad constante y verticalmente con aceleracion constante, y la curva resultante es exactamente una parabola.</p>
+  <div class="analogy-box">
+    <p><strong>La bala y la manzana caen juntas:</strong> Uno de los experimentos mentales mas elegantes de la fisica introductoria: si en el mismo instante disparas una bala horizontalmente desde un punto A y dejas caer verticalmente una manzana desde la misma altura, ¿cual llega primero al suelo? La respuesta, verificada experimentalmente, es que ambas tocan el suelo en exactamente el mismo instante, independientemente de la velocidad horizontal de la bala. La razon es el principio de independencia: la velocidad horizontal no afecta en absoluto al movimiento vertical. La bala y la manzana caen identicamente bajo la accion de la gravedad en la direccion vertical, mientras que horizontalmente la bala recorre grandes distancias y la manzana cae practicamente en vertical. La gravedad no "sabe" si un objeto se mueve horizontalmente.</p>
+  </div>
+
+  <h2>Las Ecuaciones Parametricas del Vuelo</h2>
+  <p>Si un proyectil se lanza desde el origen de coordenadas con velocidad inicial \(v_0\) formando un angulo \(\theta\) con la horizontal, las ecuaciones parametricas de su posicion en funcion del tiempo son la descomposicion directa del movimiento en sus dos componentes independientes:</p>
+  <div class="eq-block">
+    \[ x(t) = v_0 \cos\theta \cdot t \qquad\qquad y(t) = v_0 \sin\theta \cdot t - \frac{1}{2}gt^2 \]
+    <br>
+    <small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">v₀: rapidez inicial · θ: angulo de lanzamiento con la horizontal · g ≈ 9.8 m/s² (aceleracion gravitacional) · Las ecuaciones son validas mientras el proyectil esta en vuelo libre (sin contacto con superficies)</small>
+  </div>
+  <p>Eliminando el parametro \(t\) entre las dos ecuaciones (de la primera: \(t = x / (v_0\cos\theta)\), sustituyendo en la segunda), se obtiene la ecuacion de la trayectoria en el plano xy:</p>
+  <div class="eq-block">
+    \[ y = x\tan\theta - \frac{g}{2v_0^2\cos^2\theta}\,x^2 \]
+    <br>
+    <small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">Ecuacion de la trayectoria en forma explicita · Es una ecuacion cuadratica en x, es decir, una parabola con la abertura hacia abajo · Los coeficientes dependen de v₀ y θ</small>
+  </div>
+  <p>De estas ecuaciones se derivan las expresiones para las magnitudes de mayor interes practico. El <strong>alcance horizontal</strong> (distancia horizontal hasta el punto de aterrizaje, asumiendo que el suelo esta al mismo nivel que el punto de lanzamiento) es \(R = v_0^2 \sin(2\theta) / g\). Esta expresion revela algo notable: el alcance maximo se logra con \(\theta = 45°\), ya que \(\sin(90°) = 1\) es el maximo del seno. Para angulos complementarios (por ejemplo, 30° y 60°), el alcance horizontal es identico, aunque las trayectorias son completamente diferentes en forma.</p>
+  <div class="math-block">Datos cuantitativos para θ = 45°, v₀ = 20 m/s: Alcance maximo R = v₀²/g = 400/9.8 ≈ 40.8 m · Altura maxima H = v₀²/(4g) ≈ 10.2 m · Tiempo de vuelo T = √(2v₀²/g) / √g × 2 = 2v₀sinθ/g ≈ 2.89 s · Velocidad al impacto: igual en magnitud a v₀ = 20 m/s (conservacion de energia mecanica) pero con direccion simetrica respecto al punto de maxima altura</div>
+
+  <h2>La Resistencia del Aire: La Parabola que no Existe en la Realidad</h2>
+  <p>La trayectoria parabolica perfecta es una idealizacion que asume ausencia total de resistencia aerodinamica. En la realidad, todos los proyectiles que se mueven a velocidades significativas experimentan una fuerza de arrastre que depende de la velocidad, la densidad del fluido, el area frontal del objeto y un coeficiente de arrastre que depende de la geometria. Para velocidades bajas, la resistencia es proporcional a la velocidad; para velocidades altas (regimen turbulento), es proporcional al cuadrado de la velocidad.</p>
+  <p>La consecuencia de la resistencia del aire es que la trayectoria real nunca es una parabola perfecta: la rama descendente es mas empinada que la ascendente, el alcance es menor que el previsto por la formula ideal, y el angulo de alcance maximo es inferior a 45° (tipicamente entre 30° y 40° segun la relacion entre la fuerza de arrastre y el peso). Para proyectiles deportivos (balones, pelotas de tenis, jabalinas), la diferencia puede ser dramatica: una pelota de golf sin spin tiene un alcance real de ~200 m, mientras que la formula ideal para su velocidad de lanzamiento tipica (~60 m/s a 45°) predice ~370 m. El efecto Magnus del spin, que genera sustentacion aerodinamica, introduce aun mas complejidad y es lo que permite las curvas en futbol o el efecto en beisbol.</p>
+  <div class="tech-note">
+    <p><strong>La balistica exterior: cuando la curvatura terrestre importa:</strong> Para proyectiles de muy largo alcance, como los obuses de artilleria de alcance superior a 40 km, la aproximacion de superficie plana falla: la curvatura de la Tierra produce una desviacion significativa. Ademas, la variacion de \(g\) con la altitud, la rotacion de la Tierra (fuerza de Coriolis), las variaciones de densidad atmosferica, y el viento en distintas capas hacen que el problema de balistica exterior sea un problema de alto costo computacional. Las tablas de balistica historicas calculadas por Oswald Veblen en la Primera Guerra Mundial para la artilleria aliada fueron uno de los primeros grandes proyectos de calculo numerico de la historia, y la necesidad de computarlas mas rapidamente fue uno de los motivadores del desarrollo de los primeros ordenadores electronicos (ENIAC) en la Segunda Guerra Mundial.</p>
+  </div>
+
+  <h2>El Limite Orbital: La Parabola que se Cierra</h2>
+  <p>El movimiento parabolico contiene en si mismo el germen de una idea cosmologica. Imagina que lanzas horizontalmente un proyectil desde la cima de una montana de altura suficiente para ignorar la atmosfera. A medida que aumentas la velocidad de lanzamiento, el alcance aumenta. La Tierra es esferica, y su superficie "se curva" alejandose. Llegara un momento en que la curvatura de la trayectoria del proyectil (debida a la gravedad) coincida exactamente con la curvatura de la superficie terrestre: el proyectil "cae" continuamente, pero la Tierra curva se aleja bajo el a la misma tasa. En ese momento, el proyectil ha entrado en orbita circular.</p>
+  <div class="eq-block">
+    \[ v_{orbital} = \sqrt{\frac{GM}{R}} \approx 7{,}9 \;\text{km/s} \quad \text{(orbita baja terrestre)} \]
+    <br>
+    <small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">G = 6.674×10⁻¹¹ N·m²/kg² · M = 5.97×10²⁴ kg (masa de la Tierra) · R ≈ 6.371×10⁶ m (radio medio de la Tierra) · A esta velocidad horizontal, la caida libre iguala exactamente la curvatura terrestre</small>
+  </div>
+  <p>Un satelite en orbita baja terrestre no esta "fuera de la gravedad": la gravedad es casi tan intensa ahi como en la superficie (solo un ~10% menor a 400 km de altitud). El satelite esta en caida libre continua, exactamente como el proyectil. La diferencia es que se mueve tan rapido horizontalmente (7.9 km/s ≈ 28 000 km/h) que la Tierra "se escapa" bajo el a la misma velocidad que el cae. Los astronautas en la Estacion Espacial Internacional no flotan porque no hay gravedad, sino porque estan en caida libre permanente junto con la estacion. La microgravedad es caida libre.</p>
+  <div class="info-box">
+    <h4>El pensamiento experimental de Newton: el canon en la cima del mundo</h4>
+    <p>Newton visualizo este concepto con un experimento mental en el <em>Principia</em>: un canon en la cima de una montana imaginariamente alta, dispara proyectiles con velocidades horizontales crecientes. Con velocidad suficiente, el proyectil orbita. Con velocidad aun mayor (la velocidad de escape, \(v_{esc} = \sqrt{2GM/R} \approx 11.2\) km/s desde la superficie terrestre), la trayectoria se convierte en una parabola abierta o una hiperbola, y el proyectil no regresa jamas. La secuencia circulo - elipse - parabola - hiperbola es la familia completa de conicas que Newton demostro matematicamente como posibles trayectorias gravitacionales: exactamente las curvas que Kepler habia encontrado empiricamente para los planetas medio siglo antes.</p>
+  </div>
+  <div class="closing">
+    <p>El movimiento parabolico es uno de esos conceptos fisicos donde la matematica mas simple genera predicciones de una profundidad inesperada. Desde las ecuaciones parametricas elementales del lanzamiento de un proyectil hasta la derivacion de las velocidades orbital y de escape, pasando por la conexion con las conicas y la mecanica orbital, la parabola es el hilo conductor que enlaza la mecanica cotidiana con la mecanica celeste. Galileo intuyo esta conexion, Newton la demostro con rigor matematico, y hoy la seguimos utilizando para calcular trayectorias balisticas, lanzar cohetes y diseñar trayectorias de sondas interplanetarias que aprovechan la gravedad de los planetas como frondas cosmicas para ganar velocidad sin consumir combustible.</p>
+  </div>
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> En la Luna, la aceleracion gravitacional es \(g_{Luna} \approx 1.62\) m/s², aproximadamente un sexto de la terrestre, y no hay atmosfera. Si lanzas un proyectil con la misma velocidad inicial y el mismo angulo que en la Tierra, ¿como se comparan el alcance horizontal y la altura maxima en la Luna respecto a la Tierra? ¿La trayectoria sigue siendo una parabola? Y una pregunta mas desafiante: ¿cual es la velocidad orbital circular en la superficie de la Luna (radio lunar ~1 740 km), y que significaria fisicamente esa orbita rasante?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el codigo del universo.</p>
+  <a href="index.html#divulgacion" class="back-btn">← Volver a Mecanica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

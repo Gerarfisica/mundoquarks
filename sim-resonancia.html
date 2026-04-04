@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resonancia | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.78rem; line-height: 1.8; white-space: pre-line; }
+        .freq-box.resonance { background: rgba(0,255,127,0.08); border-color: #00FF7F; color: #00FF7F; }
+        .freq-box.outrange  { background: rgba(100,100,100,0.08); border-color: #555; color: #8892b0; }
+        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        .plot-canvas { height: 180px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        label#labelNu.resonance { color: #00FF7F; }
+        label#labelNu.outrange  { color: #8892b0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Resonancia por Armónicos — Pulsos Cuadrados — RK4</h1>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="220"></canvas>
+        <div class="controls">
+            <div id="freqDisplay" class="freq-box">ν₀ = 10.0 Hz  |  ν_f = --- Hz\nRelación ν₀/ν_f = ---</div>
+
+            <div class="control-group">
+                <label id="labelNu">Freq. pulsos ν_f <span><span id="nuVal">2.00</span> Hz</span></label>
+                <input type="range" id="nuSlider" min="1.0" max="11.0" step="0.05" value="2.0">
+            </div>
+
+            <button class="btn-restart" onclick="restart()">REINICIAR TODO</button>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canvasP" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasF" class="plot-canvas" height="180"></canvas>
+    </div>
+</div>
+
+<script>
+    const simC = document.getElementById('simCanvas'), ctxS = simC.getContext('2d');
+    const canP = document.getElementById('canvasP'), ctxP = canP.getContext('2d');
+    const canV = document.getElementById('canvasV'), ctxV = canV.getContext('2d');
+    const canF = document.getElementById('canvasF'), ctxF = canF.getContext('2d');
+
+    // Parámetros fijos
+    const NU0   = 10.0;
+    const M     = 1.0;
+    const B     = 0.4;
+    const K     = M * Math.pow(2 * Math.PI * NU0, 2);
+    const TAU   = 0.02;   // ancho del pulso (s)
+    const FMAG  = 40.0;   // magnitud del pulso (N)
+    const T_MAX = 4.0;
+    const dt    = 0.002;
+
+    let nu_f = 2.0;
+    let x = 0.0, v = 0.0, t = 0.0;
+    let history = [];
+
+    // Estado del régimen
+    let regime = 'forced'; // 'resonance' | 'forced' | 'outrange'
+
+    function getForce(time) {
+        const T_f = 1.0 / nu_f;
+        return (time % T_f) < TAU ? FMAG : 0.0;
+    }
+
+    function accel(pos, vel, force) {
+        return (-K * pos - B * vel + force) / M;
+    }
+
+    function solveRK4() {
+        const f = getForce(t);
+        let k1v = accel(x, v, f),                      k1x = v;
+        let k2v = accel(x+0.5*dt*k1x, v+0.5*dt*k1v, f), k2x = v + 0.5*dt*k1v;
+        let k3v = accel(x+0.5*dt*k2x, v+0.5*dt*k2v, f), k3x = v + 0.5*dt*k2v;
+        let k4v = accel(x+dt*k3x,     v+dt*k3v,     f), k4x = v + dt*k3v;
+        v += (dt/6)*(k1v + 2*k2v + 2*k3v + k4v);
+        x += (dt/6)*(k1x + 2*k2x + 2*k3x + k4x);
+        t += dt;
+        if (t > T_MAX) { t = 0; history = []; }
+        const fNow = getForce(t);
+        history.push({ t: t, x: x, v: v, f: fNow });
+    }
+
+    function drawPlot(canvas, ctx, dataKey, label, color, limitPos, limitNeg) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const margin = { left: 40, right: 20, top: 20, bottom: 30 };
+        const w = canvas.width - margin.left - margin.right;
+        const h = canvas.height - margin.top - margin.bottom;
+
+        const limTop = limitPos, limBot = limitNeg !== undefined ? limitNeg : limitPos;
+        const totalRange = limTop + limBot;
+        const midY = margin.top + (limTop / totalRange) * h;
+
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0';
+
+        for(let i=0; i<=10; i++) {
+            let gx = margin.left + (i/10)*w;
+            ctx.beginPath(); ctx.moveTo(gx, margin.top); ctx.lineTo(gx, margin.top + h); ctx.stroke();
+            if(i%2===0) ctx.fillText((i * T_MAX/10).toFixed(1)+'s', gx - 7, margin.top + h + 15);
+        }
+
+        ctx.fillText(limTop, 5, margin.top + 5);
+        ctx.fillText('0', 5, midY + 4);
+        ctx.fillText('-' + limBot, 5, margin.top + h);
+
+        ctx.beginPath(); ctx.strokeStyle = '#2a3a5a';
+        ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY);
+        ctx.stroke();
+
+        ctx.fillStyle = color; ctx.fillText(label, margin.left, margin.top - 8);
+
+        if (history.length < 2) return;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+        history.forEach((p, i) => {
+            const px = margin.left + (p.t / T_MAX) * w;
+            const py = midY - (p[dataKey] / totalRange) * h * (limTop <= limBot ? 2 : 1);
+            // Generic mapping: val=limTop → margin.top, val=-limBot → margin.top+h
+            const pyG = margin.top + (limTop - p[dataKey]) / totalRange * h;
+            if(i === 0) ctx.moveTo(px, pyG); else ctx.lineTo(px, pyG);
+        });
+        ctx.stroke();
+    }
+
+    function drawSpring(ctx, x0, y0, x1, y1) {
+        const nodes = 20;
+        const dx = x1 - x0, dy = y1 - y0;
+        const len = Math.sqrt(dx*dx + dy*dy);
+        if (len === 0) return;
+        const px = -dy/len, py = dx/len;
+        const amp = 10;
+        ctx.beginPath(); ctx.strokeStyle = '#4e5b7e'; ctx.lineWidth = 2;
+        ctx.moveTo(x0, y0);
+        for(let i = 1; i < nodes; i++) {
+            const tt = i / nodes;
+            const bx = x0 + dx * tt, by = y0 + dy * tt;
+            const offset = (i % 2 === 0 ? amp : -amp);
+            ctx.lineTo(bx + px * offset, by + py * offset);
+        }
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+    }
+
+    function updateRegime() {
+        const ratio = NU0 / nu_f;
+        const rounded = Math.round(ratio);
+        const isHarmonic = Math.abs(ratio - rounded) < 0.05 && rounded >= 1;
+        const isOutRange = nu_f > NU0;
+
+        const box   = document.getElementById('freqDisplay');
+        const label = document.getElementById('labelNu');
+
+        if (isOutRange) {
+            regime = 'outrange';
+            box.className = 'freq-box outrange';
+            box.innerText = `ν₀ = ${NU0} Hz  |  ν_f = ${nu_f.toFixed(2)} Hz\nRelación ν₀/ν_f = ${ratio.toFixed(2)}\nFUERA DE RANGO (ν_f > ν₀)`;
+            label.className = 'outrange';
+        } else if (isHarmonic) {
+            regime = 'resonance';
+            box.className = 'freq-box resonance';
+            box.innerText = `ν₀ = ${NU0} Hz  |  ν_f = ${nu_f.toFixed(2)} Hz\nRelación ν₀/ν_f = ${ratio.toFixed(2)}\n⚡ RESONANCIA — Armónico n = ${rounded}`;
+            label.className = 'resonance';
+        } else {
+            regime = 'forced';
+            box.className = 'freq-box';
+            box.innerText = `ν₀ = ${NU0} Hz  |  ν_f = ${nu_f.toFixed(2)} Hz\nRelación ν₀/ν_f = ${ratio.toFixed(2)}\nOscilación forzada`;
+            label.className = '';
+        }
+    }
+
+    function loop() {
+        // Run multiple physics steps per frame to match dt=0.002
+        for (let i = 0; i < 3; i++) solveRK4();
+
+        ctxS.clearRect(0, 0, simC.width, simC.height);
+        const W = simC.width, H = simC.height;
+        const wallX   = 30;
+        const anchorY = H / 2;
+        const eqX     = W * 0.45;
+        const scale   = regime === 'resonance' ? 180 : 300;
+
+        const massX = Math.max(wallX + 25, Math.min(W - 25, eqX + x * scale));
+        const massY = anchorY;
+
+        // Pared
+        ctxS.fillStyle = '#1a6cf5';
+        ctxS.fillRect(wallX - 4, anchorY - 50, 4, 100);
+
+        // Equilibrio punteado
+        ctxS.save();
+        ctxS.setLineDash([4, 6]);
+        ctxS.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctxS.lineWidth = 1;
+        ctxS.beginPath();
+        ctxS.moveTo(eqX, anchorY - 30);
+        ctxS.lineTo(eqX, anchorY + 30);
+        ctxS.stroke();
+        ctxS.restore();
+
+        // Resorte
+        drawSpring(ctxS, wallX, anchorY, massX, massY);
+
+        // Flecha de fuerza (pulso)
+        const fNow = getForce(t);
+        if (fNow > 0) {
+            const arrowLen = 40;
+            const ax0 = massX + 22, ax1 = massX + 22 + arrowLen;
+            ctxS.beginPath();
+            ctxS.strokeStyle = '#FF4500'; ctxS.lineWidth = 2.5;
+            ctxS.moveTo(ax0, anchorY); ctxS.lineTo(ax1, anchorY); ctxS.stroke();
+            ctxS.beginPath();
+            ctxS.fillStyle = '#FF4500';
+            ctxS.moveTo(ax1, anchorY);
+            ctxS.lineTo(ax1 - 8, anchorY - 5);
+            ctxS.lineTo(ax1 - 8, anchorY + 5);
+            ctxS.closePath(); ctxS.fill();
+        }
+
+        // Masa
+        const massColor = regime === 'resonance' ? '#00FF7F' : '#00d4ff';
+        ctxS.beginPath();
+        ctxS.arc(massX, massY, 18, 0, Math.PI * 2);
+        ctxS.fillStyle = massColor;
+        ctxS.shadowBlur = 20; ctxS.shadowColor = massColor;
+        ctxS.fill(); ctxS.shadowBlur = 0;
+
+        // Escalas dinámicas
+        const limX = regime === 'resonance' ? 0.4 : 0.15;
+        const limV = limX * 10;
+
+        drawPlot(canP, ctxP, 'x', 'Posición x (m)',          '#00FF7F', limX,   limX);
+        drawPlot(canV, ctxV, 'v', 'Velocidad v (m/s)',        '#FFD700', limV,   limV);
+        drawPlot(canF, ctxF, 'f', 'Tren de pulsos F (N)',     '#FF4500', FMAG * 1.2, 5);
+
+        requestAnimationFrame(loop);
+    }
+
+    function restart() {
+        t = 0; x = 0.0; v = 0; history = [];
+        updateRegime();
+    }
+
+    document.getElementById('nuSlider').oninput = e => {
+        nu_f = parseFloat(e.target.value);
+        document.getElementById('nuVal').innerText = nu_f.toFixed(2);
+        restart();
+    };
+
+    function resize() { [simC, canP, canV, canF].forEach(c => c.width = c.offsetWidth); }
+    window.onresize = resize; resize();
+    restart(); loop();
+</script>
+</body>
+</html>

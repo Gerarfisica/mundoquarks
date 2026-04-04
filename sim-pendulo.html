@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Péndulo Simple | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.85rem; line-height: 1.6; }
+        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        .plot-canvas { height: 180px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        /* Selector de gravedad */
+        .gravity-group { margin-bottom: 15px; }
+        .gravity-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .gravity-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .gravity-btn {
+            background: rgba(0,212,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            font-family: 'Space Mono';
+            font-size: 0.6rem;
+            padding: 6px 4px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .gravity-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .gravity-btn.active { background: rgba(0,212,255,0.15); border-color: var(--cyan); color: var(--cyan); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Péndulo Simple RK4</h1>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="220"></canvas>
+        <div class="controls">
+            <div id="freqDisplay" class="freq-box">T = --- s &nbsp;|&nbsp; f = --- Hz</div>
+
+            <div class="gravity-group">
+                <span class="gravity-label">Gravedad (g)</span>
+                <div class="gravity-options">
+                    <button class="gravity-btn active" data-g="9.81">🌍 Tierra (9.81)</button>
+                    <button class="gravity-btn" data-g="1.62">🌙 Luna (1.62)</button>
+                    <button class="gravity-btn" data-g="3.71">🔴 Marte (3.71)</button>
+                    <button class="gravity-btn" data-g="24.79">🟠 Júpiter (24.79)</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Longitud (L) <span><span id="lVal">1.5</span> m</span></label>
+                <input type="range" id="lSlider" min="0.5" max="3.0" step="0.05" value="1.5">
+            </div>
+            <div class="control-group">
+                <label>Masa (m) <span><span id="mVal">1.0</span> kg</span></label>
+                <input type="range" id="mSlider" min="0.1" max="5.0" step="0.1" value="1.0">
+            </div>
+            <button class="btn-restart" onclick="restart()">REINICIAR TODO</button>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canvasP" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasA" class="plot-canvas" height="180"></canvas>
+    </div>
+</div>
+
+<script>
+    const simC = document.getElementById('simCanvas'), ctxS = simC.getContext('2d');
+    const canP = document.getElementById('canvasP'), ctxP = canP.getContext('2d');
+    const canV = document.getElementById('canvasV'), ctxV = canV.getContext('2d');
+    const canA = document.getElementById('canvasA'), ctxA = canA.getContext('2d');
+
+    let L = 1.5, m = 1.0, g = 9.81;
+    let theta = Math.PI / 3, omega = 0.0, t = 0; // theta0 = 60°
+    const THETA0 = Math.PI / 3;
+    const dt = 0.016, T_MAX = 10.0;
+    let history = [];
+
+    function accel(th) { return -(g / L) * Math.sin(th); }
+
+    function solveRK4() {
+        let k1v = accel(theta), k1t = omega;
+        let k2v = accel(theta + 0.5*dt*k1t), k2t = omega + 0.5*dt*k1v;
+        let k3v = accel(theta + 0.5*dt*k2t), k3t = omega + 0.5*dt*k2v;
+        let k4v = accel(theta + dt*k3t),     k4t = omega + dt*k3v;
+        omega += (dt/6)*(k1v + 2*k2v + 2*k3v + k4v);
+        theta += (dt/6)*(k1t + 2*k2t + 2*k3t + k4t);
+        t += dt;
+        if (t > T_MAX) { t = 0; history = []; }
+        history.push({ t: t, x: theta, v: omega, a: accel(theta) });
+    }
+
+    function drawPlot(canvas, ctx, dataKey, label, color, limit) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const margin = { left: 40, right: 20, top: 20, bottom: 30 };
+        const w = canvas.width - margin.left - margin.right;
+        const h = canvas.height - margin.top - margin.bottom;
+        const midY = margin.top + h/2;
+
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0';
+
+        for(let i=0; i<=10; i++) {
+            let gx = margin.left + (i/10)*w;
+            ctx.beginPath(); ctx.moveTo(gx, margin.top); ctx.lineTo(gx, margin.top + h); ctx.stroke();
+            if(i%2===0) ctx.fillText(i+'s', gx - 5, margin.top + h + 15);
+        }
+
+        ctx.fillText(limit, 5, margin.top + 5);
+        ctx.fillText('0', 5, midY + 4);
+        ctx.fillText('-' + limit, 5, margin.top + h);
+
+        ctx.beginPath(); ctx.strokeStyle = '#2a3a5a';
+        ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY);
+        ctx.stroke();
+
+        ctx.fillStyle = color; ctx.fillText(label, margin.left, margin.top - 8);
+
+        if (history.length < 2) return;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+        history.forEach((p, i) => {
+            const px = margin.left + (p.t / T_MAX) * w;
+            const py = midY - (p[dataKey] * (h / (limit * 2)));
+            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+    }
+
+    function loop() {
+        solveRK4();
+
+        ctxS.clearRect(0, 0, simC.width, simC.height);
+        const W = simC.width, H = simC.height;
+
+        // Pivot en la parte superior central
+        const pivotX = W / 2;
+        const pivotY = 28;
+        const scale = Math.min(W, H * 1.5) * 0.28; // escala dinámica según L
+
+        // Posición de la masa
+        const massX = pivotX + Math.sin(theta) * L * scale;
+        const massY = pivotY + Math.cos(theta) * L * scale;
+
+        // Soporte horizontal
+        ctxS.fillStyle = '#1a6cf5';
+        ctxS.fillRect(pivotX - 50, pivotY - 6, 100, 6);
+
+        // Línea de equilibrio punteada
+        ctxS.save();
+        ctxS.setLineDash([4, 6]);
+        ctxS.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctxS.lineWidth = 1;
+        ctxS.beginPath();
+        ctxS.moveTo(pivotX, pivotY);
+        ctxS.lineTo(pivotX, pivotY + L * scale + 5);
+        ctxS.stroke();
+        ctxS.restore();
+
+        // Hilo
+        ctxS.beginPath();
+        ctxS.moveTo(pivotX, pivotY);
+        ctxS.lineTo(massX, massY);
+        ctxS.strokeStyle = '#4e5b7e';
+        ctxS.lineWidth = 2;
+        ctxS.stroke();
+
+        // Punto de pivot
+        ctxS.beginPath();
+        ctxS.arc(pivotX, pivotY, 4, 0, Math.PI * 2);
+        ctxS.fillStyle = '#8892b0';
+        ctxS.fill();
+
+        // Masa
+        ctxS.beginPath();
+        ctxS.arc(massX, massY, 18, 0, Math.PI * 2);
+        ctxS.fillStyle = '#00d4ff';
+        ctxS.shadowBlur = 20; ctxS.shadowColor = '#00d4ff';
+        ctxS.fill(); ctxS.shadowBlur = 0;
+
+        // Escalas dinámicas según parámetros
+        const w0 = Math.sqrt(g / L);
+        const limTheta = Math.max(THETA0 * 1.05, 0.1).toFixed(2);
+        const limOmega = Math.max(THETA0 * w0 * 1.1, 0.1).toFixed(2);
+        const limAlpha = Math.max(THETA0 * w0 * w0 * 1.1, 0.1).toFixed(2);
+
+        drawPlot(canP, ctxP, 'x', 'Ángulo θ (rad)',         '#00FF7F', parseFloat(limTheta));
+        drawPlot(canV, ctxV, 'v', 'Vel. angular ω (rad/s)', '#FFD700', parseFloat(limOmega));
+        drawPlot(canA, ctxA, 'a', 'Ace. angular α (rad/s²)','#FF4500', parseFloat(limAlpha));
+
+        requestAnimationFrame(loop);
+    }
+
+    function updateFreqBox() {
+        const T = 2 * Math.PI * Math.sqrt(L / g);
+        const f = 1 / T;
+        document.getElementById('freqDisplay').innerText = `T = ${T.toFixed(3)} s  |  f = ${f.toFixed(3)} Hz`;
+    }
+
+    function restart() {
+        t = 0; theta = THETA0; omega = 0; history = [];
+        updateFreqBox();
+    }
+
+    // Sliders
+    document.getElementById('lSlider').oninput = e => { L = parseFloat(e.target.value); document.getElementById('lVal').innerText = L.toFixed(2); restart(); };
+    document.getElementById('mSlider').oninput = e => { m = parseFloat(e.target.value); document.getElementById('mVal').innerText = m.toFixed(1); restart(); };
+
+    // Gravedad
+    document.querySelectorAll('.gravity-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.gravity-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            g = parseFloat(btn.dataset.g);
+            restart();
+        });
+    });
+
+    function resize() { [simC, canP, canV, canA].forEach(c => c.width = c.offsetWidth); }
+    window.onresize = resize; resize();
+    restart(); loop();
+</script>
+</body>
+</html>

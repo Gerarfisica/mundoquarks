@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Transformada de Laplace: El Bisturí de las Ecuaciones | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$']],
+    displayMath: [['\\[', '\\]']]
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .eq-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-size:0.9rem;color:var(--cyan);position:relative;text-align:center;}.eq-block::before{content:'ECUACION';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGIA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TECNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Análisis de Sistemas · Control</div>
+  <h1>La Transformada de Laplace:<br><span class="hl">El Bisturí de las Ecuaciones</span></h1>
+  <p class="article-subtitle">La herramienta que convierte ecuaciones diferenciales en álgebra: cómo resolver circuitos, osciladores y sistemas de control sin integrar ni una vez</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Laplace</span><span class="tag">EDO</span><span class="tag">Función de Transferencia</span><span class="tag">Control</span><span class="tag">Polos y Ceros</span></div>
+</div>
+<div class="article-container">
+
+  <p>Hay una clase de problemas en física e ingeniería que la Transformada de Fourier no puede resolver de manera natural: los sistemas que arrancan desde un estado inicial conocido en \( t = 0 \) y evolucionan hacia el futuro. El circuito que se conecta a una fuente en \( t = 0 \). El oscilador que se libera desde una posición inicial. La temperatura de un objeto que empieza a enfriarse. Para estos sistemas, con condiciones iniciales explícitas y evolución causal, existe una herramienta más adecuada: la Transformada de Laplace. Si Fourier es el lente que descompone señales en frecuencias, Laplace es el bisturí que convierte ecuaciones diferenciales en ecuaciones algebraicas, resuelve la ecuación con álgebra, y devuelve la solución al dominio del tiempo.</p>
+  <p>Pierre-Simon Laplace (1749–1827) desarrolló la transformada que lleva su nombre como herramienta para resolver ecuaciones en diferencias finitas en probabilidad. Su aplicación sistemática a ecuaciones diferenciales ordinarias fue desarrollada posteriormente por Heaviside, Bromwich y Carson a principios del siglo XX, en el contexto del análisis de circuitos eléctricos. Hoy es una de las herramientas centrales de la ingeniería de sistemas, el control automático, la electrónica y la física teórica.</p>
+
+  <h2>La Definición: una Integral con Memoria</h2>
+  <p>La Transformada de Laplace de una función \( f(t) \) definida para \( t \geq 0 \) es:</p>
+  <div class="eq-block">
+    \[ \mathcal{L}\{f(t)\} = F(s) = \int_0^{\infty} f(t)\, e^{-st}\, dt \]
+    <br>
+    <small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">F(s): Transformada de Laplace de f(t) · s = σ + iω: variable compleja (frecuencia compleja) · σ: factor de amortiguamiento · ω: frecuencia angular · El factor e^{−st} garantiza convergencia para Re(s) suficientemente grande · La integral va de 0 a ∞: solo importa el pasado y el futuro a partir del instante inicial</small>
+  </div>
+  <div class="analogy-box">
+    <p><strong>El contador que descuenta con el tiempo:</strong> El factor \( e^{-st} \) actúa como un "descuento temporal": le da menos peso a los valores de \( f(t) \) que ocurren muy tarde. Esto hace que la integral converja incluso para funciones que crecen con el tiempo (como \( e^{at} \)), siempre que el factor de amortiguamiento \( \sigma \) sea suficientemente grande. Es la diferencia clave con Fourier: Laplace puede manejar funciones que "explotan" con el tiempo, porque las amortigua con \( e^{-\sigma t} \). Eso la hace ideal para analizar sistemas potencialmente inestables.</p>
+  </div>
+
+  <h2>La Propiedad Clave: Derivadas en Álgebra</h2>
+  <p>La razón por la que la Transformada de Laplace es tan poderosa para resolver ecuaciones diferenciales es su propiedad de derivación: la transformada de la derivada de \( f \) incorpora automáticamente las condiciones iniciales.</p>
+  <div class="eq-block">
+    \[ \mathcal{L}\{f'(t)\} = s\,F(s) - f(0) \]
+    \[ \mathcal{L}\{f''(t)\} = s^2 F(s) - s\,f(0) - f'(0) \]
+    <br>
+    <small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">f(0), f'(0): condiciones iniciales del sistema · Derivar en tiempo = multiplicar por s en el dominio de Laplace (más corrección por condiciones iniciales) · Una EDO de orden n se convierte en una ecuación algebraica de grado n en la variable s</small>
+  </div>
+  <div class="math-block">Ejemplo: oscilador amortiguado mx'' + bx' + kx = F(t), con x(0) = x₀, x'(0) = v₀
+Aplicando Laplace:
+  m[s²X(s) − sx₀ − v₀] + b[sX(s) − x₀] + kX(s) = F(s)
+  X(s)[ms² + bs + k] = F(s) + m(sx₀ + v₀) + bx₀
+  X(s) = [F(s) + m(sx₀ + v₀) + bx₀] / [ms² + bs + k]
+La solución es x(t) = L⁻¹{X(s)}: una transformada inversa (fracciones parciales + tabla)</div>
+
+  <h2>Tabla de Transformadas Esenciales</h2>
+  <div class="math-block">Pares de Laplace fundamentales (f(t) → F(s)):
+· δ(t) [impulso unitario]        →  1
+· u(t) [escalón unitario]        →  1/s
+· t                               →  1/s²
+· tⁿ                              →  n!/s^{n+1}
+· e^{at}                          →  1/(s−a)
+· sin(ωt)                         →  ω/(s²+ω²)
+· cos(ωt)                         →  s/(s²+ω²)
+· e^{at}sin(ωt)                   →  ω/[(s−a)²+ω²]
+· e^{at}cos(ωt)                   →  (s−a)/[(s−a)²+ω²]</div>
+
+  <h2>Función de Transferencia y Sistemas de Control</h2>
+  <p>La aplicación más poderosa de la Transformada de Laplace en ingeniería es el concepto de <strong>función de transferencia</strong>. Si un sistema lineal e invariante en el tiempo tiene entrada \( u(t) \) y salida \( y(t) \), su función de transferencia es \( H(s) = Y(s)/U(s) \) con condiciones iniciales nulas. Esta función encapsula completamente el comportamiento dinámico del sistema y permite analizar estabilidad, respuesta en frecuencia y diseñar controladores sin resolver la EDO original.</p>
+  <div class="eq-block">
+    \[ H(s) = \frac{Y(s)}{U(s)} = \frac{b_m s^m + \cdots + b_0}{a_n s^n + \cdots + a_0} \]
+    <br>
+    <small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">H(s): función de transferencia · Polos: raíces del denominador (determinan estabilidad) · Ceros: raíces del numerador (determinan la forma de la respuesta) · Sistema estable ↔ todos los polos tienen parte real negativa (están en el semiplano izquierdo del plano s)</small>
+  </div>
+  <div class="tech-note">
+    <p><strong>Laplace vs. Fourier: cuándo usar cada una:</strong> Ambas transformadas convierten ecuaciones diferenciales en algebraicas, pero tienen dominios de aplicación distintos. Fourier analiza señales estacionarias y periódicas — es natural para el análisis espectral de sonido, luz e imágenes. Laplace analiza sistemas causales con condiciones iniciales — es natural para circuitos eléctricos, sistemas mecánicos, control automático y cualquier problema donde haya un "instante inicial" y un estado que evoluciona. Fourier opera con frecuencias reales (eje \( i\omega \)); Laplace opera con frecuencias complejas (plano \( s = \sigma + i\omega \)), lo que añade información sobre crecimiento o decaimiento exponencial. De hecho, la Transformada de Fourier es un caso especial de Laplace evaluada sobre el eje imaginario (\( s = i\omega, \sigma = 0 \)), siempre que la función sea absolutamente integrable.</p>
+  </div>
+  <div class="info-box">
+    <h4>Laplace en el análisis de circuitos RLC</h4>
+    <p>Un circuito RLC serie con resistencia R, inductancia L y capacitancia C satisface la EDO: \( L q'' + R q' + q/C = V(t) \), donde \( q(t) \) es la carga. En el dominio de Laplace, la impedancia del inductor es \( sL \), la del capacitor es \( 1/(sC) \), y la de la resistencia sigue siendo \( R \). La función de transferencia del circuito es \( H(s) = 1/(LCs^2 + RCs + 1) \). Los polos son \( s = -R/(2L) \pm \sqrt{(R/2L)^2 - 1/(LC)} \): si son complejos (subamortiguado), el circuito oscila; si son reales negativos (sobreamortiguado), decae sin oscilar; si son imaginarios puros (sin amortiguamiento), oscila indefinidamente. Todo el análisis dinámico del circuito está codificado en la posición de los polos en el plano \( s \).</p>
+  </div>
+  <div class="closing">
+    <p>La Transformada de Laplace es la herramienta algebraica de las ecuaciones diferenciales: convierte el cálculo en álgebra, las condiciones iniciales en términos de una ecuación, y la dinámica de un sistema en la geometría de sus polos y ceros en el plano complejo. Junto con la Transformada de Fourier, forma el núcleo del análisis de sistemas lineales — esa clase de sistemas que incluye la mayor parte de los modelos físicos en su aproximación de primer orden. Entender Laplace es entender cómo los físicos y los ingenieros pasan de una ecuación diferencial a una solución analítica, y cómo la estabilidad de un sistema queda codificada en la posición de unos pocos puntos en el plano complejo.</p>
+  </div>
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> La Transformada de Fourier evalúa la Transformada de Laplace sobre el eje imaginario (\( s = i\omega \)). ¿Qué significa físicamente que los polos de un sistema estén a la izquierda del eje imaginario? ¿Y qué pasaría si un polo cruzara al semiplano derecho — qué le ocurriría al sistema físico representado? Pensalo en términos de un circuito RLC o de un péndulo con amortiguamiento negativo.</p>
+  </div>
+
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el codigo del universo.</p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

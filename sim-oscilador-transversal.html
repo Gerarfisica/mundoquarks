@@ -2,568 +2,204 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oscilador Transversal (G1-P1) | Mundo Quarks</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Mono:wght@400;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <title>Oscilador Transversal | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #03050f;
-            --bg2: #070b1a;
-            --cyan: #00d4ff;
-            --green: #00ff7f;
-            --gold: #ffd700;
-            --red: #ff4500;
-            --white: #eef2ff;
-            --muted: #8892b0;
-            --border: rgba(26, 108, 245, 0.2);
-            --panel: rgba(255,255,255,0.03);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background: var(--bg);
-            color: var(--white);
-            font-family: 'Crimson Pro', serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        .header {
-            padding: 20px 30px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: rgba(0,0,0,0.3);
-        }
-        .btn-volver {
-            color: var(--cyan);
-            text-decoration: none;
-            font-family: 'Space Mono';
-            font-size: 0.75rem;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-        .btn-volver:hover { opacity: 1; }
-        .header-title {
-            font-family: 'Syne';
-            font-size: 1.1rem;
-            color: var(--white);
-            flex: 1;
-        }
-        .header-badge {
-            font-family: 'Space Mono';
-            font-size: 0.6rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            background: var(--cyan);
-            color: var(--bg);
-            font-weight: bold;
-        }
-
-        /* Main layout */
-        .main {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            grid-template-rows: auto 1fr;
-            gap: 0;
-            height: calc(100vh - 65px);
-        }
-
-        /* Left panel: sim + controls */
-        .left-panel {
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            background: var(--bg2);
-        }
-
-        canvas#simCanvas {
-            width: 100%;
-            background: #010208;
-            border-bottom: 1px solid var(--border);
-            display: block;
-        }
-
-        .freq-box {
-            background: rgba(0, 212, 255, 0.05);
-            border: 1px solid rgba(0,212,255,0.2);
-            margin: 14px 14px 0;
-            border-radius: 8px;
-            padding: 10px 14px;
-            text-align: center;
-        }
-        .freq-label { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-        .freq-value { font-family: 'Space Mono'; font-size: 1.1rem; color: var(--cyan); font-weight: bold; margin-top: 4px; }
-
-        .controls {
-            padding: 14px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .slider-group { display: flex; flex-direction: column; gap: 5px; }
-        .slider-header { display: flex; justify-content: space-between; align-items: center; }
-        .slider-name { font-family: 'Space Mono'; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; }
-        .slider-val { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--white); font-weight: bold; }
-
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            outline: none;
-            cursor: pointer;
-        }
-        input[type=range].green { background: linear-gradient(to right, var(--green) 0%, var(--green) var(--pct, 50%), #1a2a3a var(--pct, 50%), #1a2a3a 100%); }
-        input[type=range].silver { background: linear-gradient(to right, #aaa 0%, #aaa var(--pct, 50%), #1a2a3a var(--pct, 50%), #1a2a3a 100%); }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background: var(--white);
-            border: 2px solid var(--bg);
-            box-shadow: 0 0 6px rgba(0,212,255,0.4);
-        }
-
-        .btn-restart {
-            margin-top: auto;
-            background: #2a1a1a;
-            border: 1px solid #ff4500;
-            color: white;
-            font-family: 'Space Mono';
-            font-size: 0.7rem;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: background 0.2s;
-            width: 100%;
-        }
-        .btn-restart:hover { background: var(--red); }
-
-        /* Right panel: plots */
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            background: var(--bg);
-        }
-
-        .plot-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-bottom: 1px solid var(--border);
-            padding: 10px 16px 6px;
-            position: relative;
-        }
-        .plot-container:last-child { border-bottom: none; }
-
-        .plot-title {
-            font-family: 'Space Mono';
-            font-size: 0.62rem;
-            color: var(--white);
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-        .plot-ylabel {
-            position: absolute;
-            left: 4px;
-            top: 50%;
-            transform: translateY(-50%) rotate(-90deg);
-            font-family: 'Space Mono';
-            font-size: 0.55rem;
-            color: var(--muted);
-            white-space: nowrap;
-        }
-
-        canvas.plot {
-            width: 100%;
-            flex: 1;
-            display: block;
-        }
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.85rem; }
+        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        .plot-canvas { height: 180px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <a href="fisica2.html" class="btn-volver">← Volver</a>
-    <div class="header-title">Oscilador Transversal — G1 · P1</div>
-    <span class="header-badge">DISPONIBLE</span>
-</div>
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Oscilador Transversal RK4</h1>
 
-<div class="main">
-
-    <!-- LEFT: Simulation + Controls -->
-    <div class="left-panel">
+    <div class="panel-left">
         <canvas id="simCanvas" height="220"></canvas>
-
-        <div class="freq-box">
-            <div class="freq-label">Frecuencia propia transversal</div>
-            <div class="freq-value" id="freqDisplay">ω₀ = — rad/s</div>
-        </div>
-
         <div class="controls">
-            <!-- Masa -->
-            <div class="slider-group">
-                <div class="slider-header">
-                    <span class="slider-name">Masa m</span>
-                    <span class="slider-val" id="valM">1.0 kg</span>
-                </div>
-                <input type="range" id="sliderM" class="green" min="0.1" max="5.0" step="0.05" value="1.0">
+            <div id="freqDisplay" class="freq-box">ω₀ = --- rad/s</div>
+            <div class="control-group">
+                <label>Masa (m) <span><span id="mVal">1.0</span> kg</span></label>
+                <input type="range" id="mSlider" min="0.1" max="5.0" step="0.1" value="1.0">
             </div>
-            <!-- k1 -->
-            <div class="slider-group">
-                <div class="slider-header">
-                    <span class="slider-name">k₁ (Izq)</span>
-                    <span class="slider-val" id="valK1">5.0 N/m</span>
-                </div>
-                <input type="range" id="sliderK1" class="silver" min="0.5" max="30.0" step="0.5" value="5.0">
+            <div class="control-group">
+                <label>k₁ (Izq) <span><span id="k1Val">5.0</span> N/m</span></label>
+                <input type="range" id="k1Slider" min="0.5" max="30.0" step="0.5" value="5.0">
             </div>
-            <!-- k2 -->
-            <div class="slider-group">
-                <div class="slider-header">
-                    <span class="slider-name">k₂ (Der)</span>
-                    <span class="slider-val" id="valK2">5.0 N/m</span>
-                </div>
-                <input type="range" id="sliderK2" class="silver" min="0.5" max="30.0" step="0.5" value="5.0">
+            <div class="control-group">
+                <label>k₂ (Der) <span><span id="k2Val">5.0</span> N/m</span></label>
+                <input type="range" id="k2Slider" min="0.5" max="30.0" step="0.5" value="5.0">
             </div>
-
-            <button class="btn-restart" id="btnRestart">↺ Restart</button>
+            <button class="btn-restart" onclick="restart()">REINICIAR TODO</button>
         </div>
     </div>
 
-    <!-- RIGHT: Graphs -->
-    <div class="right-panel">
-        <div class="plot-container">
-            <div class="plot-title">Posición (y) vs Tiempo</div>
-            <span class="plot-ylabel">y (m)</span>
-            <canvas class="plot" id="plotPos"></canvas>
-        </div>
-        <div class="plot-container">
-            <div class="plot-title">Velocidad (v) vs Tiempo</div>
-            <span class="plot-ylabel">v (m/s)</span>
-            <canvas class="plot" id="plotVel"></canvas>
-        </div>
-        <div class="plot-container">
-            <div class="plot-title">Aceleración (a) vs Tiempo</div>
-            <span class="plot-ylabel">a (m/s²)</span>
-            <canvas class="plot" id="plotAcc"></canvas>
-        </div>
+    <div class="plots-column">
+        <canvas id="canvasP" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasA" class="plot-canvas" height="180"></canvas>
     </div>
-
 </div>
 
 <script>
-// ─── PHYSICS PARAMS ───────────────────────────────────────────────────────────
-const L = 2.0;       // half-distance to walls (in physics units)
-const DT = 0.01;
-const T_MAX = 10.0;
-const INITIAL_Y = 1.0;
+    const simC = document.getElementById('simCanvas'), ctxS = simC.getContext('2d');
+    const canP = document.getElementById('canvasP'), ctxP = canP.getContext('2d');
+    const canV = document.getElementById('canvasV'), ctxV = canV.getContext('2d');
+    const canA = document.getElementById('canvasA'), ctxA = canA.getContext('2d');
 
-let m, k1, k2;
-let state = { y: INITIAL_Y, v: 0.0, t: 0.0 };
-let history = { t: [], y: [], v: [], a: [] };
+    let m = 1.0, k1 = 5.0, k2 = 5.0, y = 1.0, v = 0.0, t = 0;
+    const dt = 0.016, T_MAX = 10.0;
+    let history = [];
 
-// ─── CANVAS REFS ──────────────────────────────────────────────────────────────
-const simCanvas   = document.getElementById('simCanvas');
-const simCtx      = simCanvas.getContext('2d');
-const plotPosEl   = document.getElementById('plotPos');
-const plotVelEl   = document.getElementById('plotVel');
-const plotAccEl   = document.getElementById('plotAcc');
+    // Fuerza restauradora transversal: F = -(k1+k2)*y / m
+    function accel(p) { return (-(k1 + k2) * p) / m; }
 
-// ─── SLIDER REFS ──────────────────────────────────────────────────────────────
-const sliderM  = document.getElementById('sliderM');
-const sliderK1 = document.getElementById('sliderK1');
-const sliderK2 = document.getElementById('sliderK2');
-const valM     = document.getElementById('valM');
-const valK1    = document.getElementById('valK1');
-const valK2    = document.getElementById('valK2');
-const freqDisp = document.getElementById('freqDisplay');
-const btnRestart = document.getElementById('btnRestart');
-
-// ─── SLIDER VISUAL FILL ───────────────────────────────────────────────────────
-function updateSliderFill(slider) {
-    const min = parseFloat(slider.min);
-    const max = parseFloat(slider.max);
-    const val = parseFloat(slider.value);
-    const pct = ((val - min) / (max - min)) * 100;
-    slider.style.setProperty('--pct', pct + '%');
-}
-
-function readSliders() {
-    m  = parseFloat(sliderM.val  || sliderM.value);
-    k1 = parseFloat(sliderK1.val || sliderK1.value);
-    k2 = parseFloat(sliderK2.val || sliderK2.value);
-    m  = parseFloat(sliderM.value);
-    k1 = parseFloat(sliderK1.value);
-    k2 = parseFloat(sliderK2.value);
-
-    valM.textContent  = m.toFixed(1) + ' kg';
-    valK1.textContent = k1.toFixed(1) + ' N/m';
-    valK2.textContent = k2.toFixed(1) + ' N/m';
-
-    updateSliderFill(sliderM);
-    updateSliderFill(sliderK1);
-    updateSliderFill(sliderK2);
-
-    const omega = Math.sqrt((k1 + k2) / m);
-    freqDisp.textContent = `ω₀ = ${omega.toFixed(3)} rad/s`;
-}
-
-function restart() {
-    readSliders();
-    state = { y: INITIAL_Y, v: 0.0, t: 0.0 };
-    history = { t: [], y: [], v: [], a: [] };
-}
-
-// ─── PHYSICS: RK4 ─────────────────────────────────────────────────────────────
-function accel(y) {
-    return -(k1 + k2) * y / m;
-}
-
-function rk4Step() {
-    const y = state.y, v = state.v;
-    const k1v = accel(y),          k1y = v;
-    const k2v = accel(y + 0.5*DT*k1y), k2y = v + 0.5*DT*k1v;
-    const k3v = accel(y + 0.5*DT*k2y), k3y = v + 0.5*DT*k2v;
-    const k4v = accel(y + DT*k3y),     k4y = v + DT*k3v;
-
-    state.v += (DT/6)*(k1v + 2*k2v + 2*k3v + k4v);
-    state.y += (DT/6)*(k1y + 2*k2y + 2*k3y + k4y);
-    state.t += DT;
-
-    history.t.push(state.t);
-    history.y.push(state.y);
-    history.v.push(state.v);
-    history.a.push(accel(state.y));
-
-    if (state.t > T_MAX) {
-        state.t = 0;
-        history = { t: [], y: [], v: [], a: [] };
+    function solveRK4() {
+        let k1v = accel(y), k1y = v;
+        let k2v = accel(y + 0.5*dt*k1y), k2y = v + 0.5*dt*k1v;
+        let k3v = accel(y + 0.5*dt*k2y), k3y = v + 0.5*dt*k2v;
+        let k4v = accel(y + dt*k3y),     k4y = v + dt*k3v;
+        v += (dt/6)*(k1v + 2*k2v + 2*k3v + k4v);
+        y += (dt/6)*(k1y + 2*k2y + 2*k3y + k4y);
+        t += dt;
+        if (t > T_MAX) { t = 0; history = []; }
+        history.push({ t: t, x: y, v: v, a: accel(y) });
     }
-}
 
-// ─── DRAW SIMULATION ──────────────────────────────────────────────────────────
-function getZigzag(x0, y0, x1, y1, nodes, width) {
-    const pts = [];
-    for (let i = 0; i < nodes; i++) {
-        const t = i / (nodes - 1);
-        const bx = x0 + t*(x1 - x0);
-        const by = y0 + t*(y1 - y0);
+    function drawPlot(canvas, ctx, dataKey, label, color, limit) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const margin = { left: 40, right: 20, top: 20, bottom: 30 };
+        const w = canvas.width - margin.left - margin.right;
+        const h = canvas.height - margin.top - margin.bottom;
+        const midY = margin.top + h/2;
+
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0';
+
+        for(let i=0; i<=10; i++) {
+            let gx = margin.left + (i/10)*w;
+            ctx.beginPath(); ctx.moveTo(gx, margin.top); ctx.lineTo(gx, margin.top + h); ctx.stroke();
+            if(i%2===0) ctx.fillText(i+'s', gx - 5, margin.top + h + 15);
+        }
+
+        ctx.fillText(limit, 5, margin.top + 5);
+        ctx.fillText('0', 5, midY + 4);
+        ctx.fillText('-' + limit, 5, margin.top + h);
+
+        ctx.beginPath(); ctx.strokeStyle = '#2a3a5a';
+        ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY);
+        ctx.stroke();
+
+        ctx.fillStyle = color; ctx.fillText(label, margin.left, margin.top - 8);
+
+        if (history.length < 2) return;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+        history.forEach((p, i) => {
+            const px = margin.left + (p.t / T_MAX) * w;
+            const py = midY - (p[dataKey] * (h / (limit * 2)));
+            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+    }
+
+    // Resorte en zigzag entre dos puntos arbitrarios en el canvas
+    function drawSpring(ctx, x0, y0, x1, y1) {
+        const nodes = 20;
         const dx = x1 - x0, dy = y1 - y0;
         const len = Math.sqrt(dx*dx + dy*dy);
-        const px = -dy/len, py = dx/len;
-        let offset = 0;
-        if (i > 0 && i < nodes - 1) offset = (i % 2 === 0 ? width : -width);
-        pts.push([bx + px*offset, by + py*offset]);
-    }
-    return pts;
-}
+        if (len === 0) return;
+        // vector perpendicular unitario
+        const px = -dy / len, py = dx / len;
+        const amp = 10;
 
-function drawSim() {
-    const W = simCanvas.width, H = simCanvas.height;
-    simCtx.clearRect(0, 0, W, H);
-
-    // Background
-    simCtx.fillStyle = '#010208';
-    simCtx.fillRect(0, 0, W, H);
-
-    // Physics → canvas coords
-    // x: [-L-0.5, L+0.5] → [0, W]
-    // y: [-1.2, 1.2] → [H, 0] (flipped)
-    const xRange = 2*(L + 0.5);
-    const yRange = 2.4;
-    function px(xPhys) { return (xPhys + L + 0.5) / xRange * W; }
-    function py(yPhys) { return H/2 - (yPhys / yRange * H); }
-
-    // Walls
-    const wallLeft  = px(-L);
-    const wallRight = px(L);
-    const wallW = 10;
-
-    simCtx.fillStyle = '#334';
-    simCtx.fillRect(wallLeft - wallW, 0, wallW, H);
-    simCtx.fillRect(wallRight, 0, wallW, H);
-
-    // Wall detail lines
-    simCtx.strokeStyle = '#556';
-    simCtx.lineWidth = 1;
-    for (let i = 0; i < H; i += 12) {
-        simCtx.beginPath();
-        simCtx.moveTo(wallLeft - wallW, i);
-        simCtx.lineTo(wallLeft, i + 8);
-        simCtx.stroke();
-        simCtx.beginPath();
-        simCtx.moveTo(wallRight, i);
-        simCtx.lineTo(wallRight + wallW, i + 8);
-        simCtx.stroke();
+        ctx.beginPath(); ctx.strokeStyle = '#4e5b7e'; ctx.lineWidth = 2;
+        ctx.moveTo(x0, y0);
+        for(let i = 1; i < nodes; i++) {
+            const tt = i / nodes;
+            const bx = x0 + dx * tt;
+            const by = y0 + dy * tt;
+            const offset = (i % 2 === 0 ? amp : -amp);
+            ctx.lineTo(bx + px * offset, by + py * offset);
+        }
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
     }
 
-    // Spring attachment points (center of walls)
-    const anchorLX = wallLeft;
-    const anchorRX = wallRight;
-    const anchorY  = py(0);   // walls attach at y=0
-    const massX    = px(0);
-    const massY    = py(state.y);
+    function loop() {
+        solveRK4();
 
-    // Draw springs (zigzag)
-    const nodes = 17, zigW = 12;
+        ctxS.clearRect(0, 0, simC.width, simC.height);
 
-    function drawSpring(x0, y0, x1, y1) {
-        const pts = getZigzag(x0, y0, x1, y1, nodes, zigW);
-        simCtx.beginPath();
-        simCtx.moveTo(pts[0][0], pts[0][1]);
-        for (let i = 1; i < pts.length; i++) simCtx.lineTo(pts[i][0], pts[i][1]);
-        simCtx.strokeStyle = '#aab';
-        simCtx.lineWidth = 2;
-        simCtx.stroke();
+        const W = simC.width, H = simC.height;
+        const cx = W / 2;
+        const cy = H / 2;
+        const wallDist = 130; // distancia horizontal desde centro a cada pared (px)
+        const scale = 70;     // px por metro de desplazamiento vertical
+
+        const massX = cx;
+        const massY = cy - y * scale;
+
+        // Paredes verticales (misma estética que longitudinal)
+        ctxS.fillStyle = '#1a6cf5';
+        ctxS.fillRect(cx - wallDist - 2, cy - 40, 4, 80);
+        ctxS.fillRect(cx + wallDist - 2, cy - 40, 4, 80);
+
+        // Resortes diagonales (desde punto medio de cada pared hacia la masa)
+        drawSpring(ctxS, cx - wallDist, cy, massX, massY);
+        drawSpring(ctxS, cx + wallDist, cy, massX, massY);
+
+        // Línea de equilibrio punteada
+        ctxS.save();
+        ctxS.setLineDash([4, 6]);
+        ctxS.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctxS.lineWidth = 1;
+        ctxS.beginPath();
+        ctxS.moveTo(cx - wallDist + 5, cy);
+        ctxS.lineTo(cx + wallDist - 5, cy);
+        ctxS.stroke();
+        ctxS.restore();
+
+        // Masa
+        ctxS.beginPath();
+        ctxS.arc(massX, massY, 18, 0, 7);
+        ctxS.fillStyle = '#00d4ff';
+        ctxS.shadowBlur = 20; ctxS.shadowColor = '#00d4ff';
+        ctxS.fill(); ctxS.shadowBlur = 0;
+
+        drawPlot(canP, ctxP, 'x', 'Posición y (m)',        '#00FF7F', 1.0);
+        drawPlot(canV, ctxV, 'v', 'Velocidad v (m/s)',     '#FFD700', 5.0);
+        drawPlot(canA, ctxA, 'a', 'Aceleración a (m/s²)', '#FF4500', 20.0);
+
+        requestAnimationFrame(loop);
     }
 
-    drawSpring(anchorLX, anchorY, massX, massY);
-    drawSpring(anchorRX, anchorY, massX, massY);
-
-    // Glow under mass
-    const grd = simCtx.createRadialGradient(massX, massY, 0, massX, massY, 22);
-    grd.addColorStop(0, 'rgba(0,212,255,0.35)');
-    grd.addColorStop(1, 'rgba(0,212,255,0)');
-    simCtx.beginPath();
-    simCtx.arc(massX, massY, 22, 0, Math.PI*2);
-    simCtx.fillStyle = grd;
-    simCtx.fill();
-
-    // Mass dot
-    simCtx.beginPath();
-    simCtx.arc(massX, massY, 14, 0, Math.PI*2);
-    simCtx.fillStyle = '#00d4ff';
-    simCtx.fill();
-    simCtx.strokeStyle = 'white';
-    simCtx.lineWidth = 2;
-    simCtx.stroke();
-
-    // Equilibrium dashed line
-    simCtx.setLineDash([4, 4]);
-    simCtx.strokeStyle = 'rgba(255,255,255,0.12)';
-    simCtx.lineWidth = 1;
-    simCtx.beginPath();
-    simCtx.moveTo(wallLeft, anchorY);
-    simCtx.lineTo(wallRight, anchorY);
-    simCtx.stroke();
-    simCtx.setLineDash([]);
-}
-
-// ─── DRAW PLOTS ───────────────────────────────────────────────────────────────
-function resizePlot(canvas) {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width  = Math.floor(rect.width);
-    canvas.height = Math.floor(rect.height - 26); // subtract title height
-}
-
-function drawPlot(canvas, dataY, color, maxVal) {
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-
-    // Background
-    ctx.fillStyle = '#010208';
-    ctx.fillRect(0, 0, W, H);
-
-    // Grid
-    ctx.strokeStyle = 'rgba(100,100,140,0.2)';
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 4; i++) {
-        const y = H/2 + (i/4)*H/2;
-        const y2 = H/2 - (i/4)*H/2;
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, y2); ctx.lineTo(W, y2); ctx.stroke();
+    function restart() {
+        t = 0; y = 1.0; v = 0; history = [];
+        document.getElementById('freqDisplay').innerText = `ω₀ = ${Math.sqrt((k1+k2)/m).toFixed(3)} rad/s`;
     }
-    // Center line
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
 
-    const dataT = history.t;
-    if (dataY.length < 2) return;
+    document.getElementById('mSlider').oninput  = e => { m  = parseFloat(e.target.value); document.getElementById('mVal').innerText  = m;  restart(); };
+    document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1; restart(); };
+    document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2; restart(); };
 
-    // Map t → x, val → y
-    function mapX(t) { return (t / T_MAX) * W; }
-    function mapY(v) { return H/2 - (v / (maxVal * 1.3)) * H/2; }
-
-    // Glow pass
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 6;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(mapX(dataT[0]), mapY(dataY[0]));
-    for (let i = 1; i < dataT.length; i++) {
-        ctx.lineTo(mapX(dataT[i]), mapY(dataY[i]));
-    }
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Current time marker
-    if (dataT.length > 0) {
-        const tx = mapX(dataT[dataT.length - 1]);
-        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([3,3]);
-        ctx.beginPath(); ctx.moveTo(tx, 0); ctx.lineTo(tx, H); ctx.stroke();
-        ctx.setLineDash([]);
-    }
-}
-
-// ─── RESIZE ───────────────────────────────────────────────────────────────────
-function resizeAll() {
-    // Sim canvas
-    simCanvas.width = simCanvas.parentElement.clientWidth;
-    simCanvas.height = 220;
-
-    resizePlot(plotPosEl);
-    resizePlot(plotVelEl);
-    resizePlot(plotAccEl);
-}
-
-// ─── ANIMATION LOOP ───────────────────────────────────────────────────────────
-let lastTime = null;
-const STEPS_PER_FRAME = 2; // run 2 physics steps per frame for smoothness
-
-function loop(timestamp) {
-    if (!lastTime) lastTime = timestamp;
-    lastTime = timestamp;
-
-    readSliders();
-
-    for (let i = 0; i < STEPS_PER_FRAME; i++) rk4Step();
-
-    const omega = Math.sqrt((k1 + k2) / m);
-    const maxY = INITIAL_Y;
-    const maxV = INITIAL_Y * omega;
-    const maxA = INITIAL_Y * omega * omega;
-
-    drawSim();
-    drawPlot(plotPosEl, history.y, '#00ff7f', maxY);
-    drawPlot(plotVelEl, history.v, '#ffd700', maxV);
-    drawPlot(plotAccEl, history.a, '#ff4500', maxA);
-
-    requestAnimationFrame(loop);
-}
-
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-[sliderM, sliderK1, sliderK2].forEach(s => {
-    updateSliderFill(s);
-    s.addEventListener('input', () => { readSliders(); restart(); });
-});
-btnRestart.addEventListener('click', restart);
-window.addEventListener('resize', () => { resizeAll(); });
-
-resizeAll();
-restart();
-requestAnimationFrame(loop);
+    function resize() { [simC, canP, canV, canA].forEach(c => c.width = c.offsetWidth); }
+    window.onresize = resize; resize();
+    restart(); loop();
 </script>
 </body>
 </html>

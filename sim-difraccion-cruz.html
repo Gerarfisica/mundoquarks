@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Difracción en Cruz | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.4fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.75rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        .mode-group { margin-bottom: 15px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            font-family: 'Space Mono';
+            font-size: 0.62rem;
+            padding: 8px 4px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn[data-mode="rect4"].active { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+        .mode-btn[data-mode="cruz"].active  { background: rgba(255,100,50,0.12); color: #ff8866; border-color: #ff8866; font-weight: bold; }
+
+        .sliders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+        .right-col { display: grid; grid-template-rows: 1fr 1fr; gap: 15px; }
+        #canvasPattern  { height: 320px; }
+        #canvasAperture { height: 200px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Difracción — Aberturas Complejas: 4 Rectángulos y Cruz</h1>
+
+    <div class="panel-left">
+        <div class="controls">
+            <div id="infoDisplay" class="freq-box">Patrón de difracción de Fraunhofer</div>
+
+            <div class="mode-group">
+                <span class="mode-label">Tipo de abertura</span>
+                <div class="mode-options">
+                    <button class="mode-btn active" data-mode="rect4">4 Rectángulos<br>(interferencia)</button>
+                    <button class="mode-btn" data-mode="cruz">La Cruz<br>(superposición)</button>
+                </div>
+            </div>
+
+            <div class="sliders-grid">
+                <div class="control-group">
+                    <label>Dim a <span><span id="aVal">4</span></span></label>
+                    <input type="range" id="aSlider" min="1" max="10" step="0.5" value="4">
+                </div>
+                <div class="control-group" id="groupB">
+                    <label>Dim b <span><span id="bVal">8</span></span></label>
+                    <input type="range" id="bSlider" min="1" max="15" step="0.5" value="8">
+                </div>
+            </div>
+            <div class="sliders-grid" id="groupDC">
+                <div class="control-group">
+                    <label>Sep. d <span><span id="dVal">15</span></span></label>
+                    <input type="range" id="dSlider" min="5" max="30" step="1" value="15">
+                </div>
+                <div class="control-group">
+                    <label>Sep. c <span><span id="cVal">20</span></span></label>
+                    <input type="range" id="cSlider" min="5" max="30" step="1" value="20">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="canvasPattern"  height="320"></canvas>
+        <canvas id="canvasAperture" height="200"></canvas>
+    </div>
+</div>
+
+<script>
+    const canPat = document.getElementById('canvasPattern'),  ctxPat = canPat.getContext('2d');
+    const canAp  = document.getElementById('canvasAperture'), ctxAp  = canAp.getContext('2d');
+
+    const WAV = 550e-9;
+    const D   = 1.0;
+    const N   = 300;          // grid resolution
+    const LIM = 0.02;         // ±2 cm in metres
+
+    let currentMode = 'rect4';
+    let a_val = 4, b_val = 8, d_val = 15, c_val = 20;
+
+    // sinc(x) = sin(x)/x
+    function sinc(x) {
+        if (Math.abs(x) < 1e-12) return 1.0;
+        return Math.sin(x) / x;
+    }
+
+    // Compute diffraction intensity on NxN grid, returns Float32Array length N*N
+    function computeIntensity() {
+        const result = new Float32Array(N * N);
+        const k = 2 * Math.PI / WAV;
+
+        for (let iy = 0; iy < N; iy++) {
+            const y = -LIM + (2 * LIM * iy / (N - 1));
+            const fy = k * y / (2 * D);
+
+            for (let ix = 0; ix < N; ix++) {
+                const x = -LIM + (2 * LIM * ix / (N - 1));
+                const fx = k * x / (2 * D);
+
+                let I;
+                if (currentMode === 'rect4') {
+                    const a_m = a_val * 1e-4, b_m = b_val * 1e-4;
+                    const d_m = d_val * 1e-4, c_m = c_val * 1e-4;
+                    const Eblock = sinc(a_m * fx) * sinc(b_m * fy);
+                    const Interf = 4 * Math.cos(d_m * fx) * Math.cos(c_m * fy);
+                    const E = Eblock * Interf;
+                    I = E * E;
+                } else {
+                    // Cruz: vertical bar + two side arms (complex fields)
+                    const a_m = a_val * 1e-4;
+                    // Vertical bar: width a, height 3a
+                    const Ev_re = sinc(a_m * fx) * sinc(3 * a_m * fy);
+                    const Ev_im = 0;
+                    // Left arm displaced +a in x: multiply by exp(+i*k*a*x/D)
+                    const phase = k * a_m * x / D;
+                    const El_re = sinc(a_m * fx) * sinc(a_m * fy) * Math.cos(phase);
+                    const El_im = sinc(a_m * fx) * sinc(a_m * fy) * Math.sin(phase);
+                    // Right arm displaced -a in x
+                    const Er_re = sinc(a_m * fx) * sinc(a_m * fy) * Math.cos(-phase);
+                    const Er_im = sinc(a_m * fx) * sinc(a_m * fy) * Math.sin(-phase);
+
+                    const tot_re = Ev_re + El_re + Er_re;
+                    const tot_im = Ev_im + El_im + Er_im;
+                    I = tot_re * tot_re + tot_im * tot_im;
+                }
+                result[iy * N + ix] = I;
+            }
+        }
+
+        // Normalize
+        let maxI = 0;
+        for (let i = 0; i < result.length; i++) if (result[i] > maxI) maxI = result[i];
+        if (maxI > 0) for (let i = 0; i < result.length; i++) result[i] /= maxI;
+        return result;
+    }
+
+    // Inferno colormap approximation
+    function inferno(t) {
+        // Key stops: black → purple → red → orange → yellow-white
+        const stops = [
+            [0,   0,   4],
+            [40,  11, 84],
+            [101,  21,110],
+            [159,  42, 99],
+            [212,  72, 66],
+            [245, 125, 21],
+            [252, 180,  25],
+            [252, 254, 164]
+        ];
+        const idx = t * (stops.length - 1);
+        const lo  = Math.floor(idx), hi = Math.min(lo + 1, stops.length - 1);
+        const f   = idx - lo;
+        return stops[lo].map((v, i) => Math.round(v + f * (stops[hi][i] - v)));
+    }
+
+    function drawPattern(intensity) {
+        const W = canPat.width, H = canPat.height;
+        if (!W || !H) return;
+        const imgData = ctxPat.createImageData(W, H);
+
+        for (let py = 0; py < H; py++) {
+            const iy = Math.floor(py / H * N);
+            for (let px = 0; px < W; px++) {
+                const ix  = Math.floor(px / W * N);
+                const raw = intensity[iy * N + ix];
+                // Gamma 0.5 for secondary lobe visibility
+                const t   = Math.pow(Math.max(0, raw), 0.5);
+                const [r, g, b] = inferno(Math.min(1, t));
+                const idx = (py * W + px) * 4;
+                imgData.data[idx]   = r;
+                imgData.data[idx+1] = g;
+                imgData.data[idx+2] = b;
+                imgData.data[idx+3] = 255;
+            }
+        }
+        ctxPat.putImageData(imgData, 0, 0);
+
+        // Title
+        ctxPat.fillStyle = 'rgba(0,0,0,0.6)'; ctxPat.fillRect(0, 0, W, 22);
+        ctxPat.fillStyle = '#00d4ff'; ctxPat.font = '10px Space Mono'; ctxPat.textAlign = 'center';
+        const title = currentMode === 'rect4'
+            ? `PATRÓN E² — 4 RECTÁNGULOS  a=${a_val}  b=${b_val}  d=${d_val}  c=${c_val}`
+            : `PATRÓN E² — CRUZ  a=${a_val}`;
+        ctxPat.fillText(title, W/2, 14);
+        ctxPat.textAlign = 'left';
+        ctxPat.fillStyle = '#8892b0'; ctxPat.font = '9px Space Mono';
+        ctxPat.fillText('±2 cm en pantalla', 4, H - 4);
+    }
+
+    // Draw aperture geometry
+    function drawAperture() {
+        const W = canAp.width, H = canAp.height;
+        if (!W || !H) return;
+        ctxAp.clearRect(0, 0, W, H);
+        ctxAp.fillStyle = '#000';
+        ctxAp.fillRect(0, 0, W, H);
+
+        const cx = W / 2, cy = H / 2;
+
+        // Scale: map aperture units to pixels. Max aperture ~30+10 = 40 units wide
+        const scale = Math.min(W, H) / 55;
+
+        function rect(xc, yc, w, h) {
+            ctxAp.fillStyle = '#fff';
+            ctxAp.fillRect(cx + (xc - w/2)*scale, cy - (yc + h/2)*scale, w*scale, h*scale);
+        }
+
+        if (currentMode === 'rect4') {
+            const hd = d_val/2, hc = c_val/2;
+            rect(-hd, -hc, a_val, b_val);
+            rect( hd, -hc, a_val, b_val);
+            rect(-hd,  hc, a_val, b_val);
+            rect( hd,  hc, a_val, b_val);
+        } else {
+            // vertical bar: width a, height 3a
+            rect(0, 0, a_val, 3*a_val);
+            // left arm
+            rect(-a_val, 0, a_val, a_val);
+            // right arm
+            rect( a_val, 0, a_val, a_val);
+        }
+
+        // Title
+        ctxAp.fillStyle = 'rgba(0,0,0,0.6)'; ctxAp.fillRect(0, 0, W, 20);
+        ctxAp.fillStyle = '#8892b0'; ctxAp.font = '10px Space Mono'; ctxAp.textAlign = 'center';
+        ctxAp.fillText('GEOMETRÍA DE LA ABERTURA', W/2, 13);
+        ctxAp.textAlign = 'left';
+    }
+
+    function update() {
+        const intensity = computeIntensity();
+        drawPattern(intensity);
+        drawAperture();
+
+        const info = currentMode === 'rect4'
+            ? `4 Rectángulos: E = sinc(a·fx)·sinc(b·fy) × 4cos(d·fx)cos(c·fy)\na=${a_val}  b=${b_val}  d=${d_val}  c=${c_val}`
+            : `Cruz: E = E_vert + E_brazo_izq·e^(+iφ) + E_brazo_der·e^(−iφ)\na=${a_val}  (barra: a×3a, brazos: a×a)`;
+        document.getElementById('infoDisplay').innerText = info;
+    }
+
+    // Mode buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+            const isCruz = currentMode === 'cruz';
+            document.getElementById('groupB').style.display  = isCruz ? 'none' : '';
+            document.getElementById('groupDC').style.display = isCruz ? 'none' : '';
+            update();
+        });
+    });
+
+    document.getElementById('aSlider').oninput = e => { a_val = parseFloat(e.target.value); document.getElementById('aVal').innerText = a_val; update(); };
+    document.getElementById('bSlider').oninput = e => { b_val = parseFloat(e.target.value); document.getElementById('bVal').innerText = b_val; update(); };
+    document.getElementById('dSlider').oninput = e => { d_val = parseFloat(e.target.value); document.getElementById('dVal').innerText = d_val; update(); };
+    document.getElementById('cSlider').oninput = e => { c_val = parseFloat(e.target.value); document.getElementById('cVal').innerText = c_val; update(); };
+
+    function resize() {
+        canPat.width  = canPat.offsetWidth;
+        canPat.height = canPat.offsetHeight || 320;
+        canAp.width   = canAp.offsetWidth;
+        canAp.height  = canAp.offsetHeight || 200;
+        update();
+    }
+    window.onresize = resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ángulo de Brewster | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; border: 1px solid #1a2a4a; display: block; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--cyan); }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        #canSetup { width: 100%; height: 400px; }
+        #canGraph { width: 100%; height: 400px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Ángulo de Brewster — Coeficientes de Fresnel</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">θ_B = ---°\nRs = ---  Rp = ---</div>
+        <div class="controls">
+            <div class="control-group">
+                <label>n₁ (medio incidente) <span><span id="n1Val">1.5</span></span></label>
+                <input type="range" id="n1Slider" min="1.0" max="2.0" step="0.01" value="1.5">
+            </div>
+            <div class="control-group">
+                <label>n₂ (medio refractado) <span><span id="n2Val">1.0</span></span></label>
+                <input type="range" id="n2Slider" min="1.0" max="2.0" step="0.01" value="1.0">
+            </div>
+            <div class="control-group">
+                <label style="color:#ffdd00;">Ángulo de incidencia θᵢ <span><span id="angVal">33.7</span>°</span></label>
+                <input type="range" id="angSlider" min="0" max="89" step="0.5" value="33.7" style="accent-color:#ffdd00;">
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="canSetup" height="400"></canvas>
+        <canvas id="canGraph" height="400"></canvas>
+    </div>
+</div>
+
+<script>
+    const canS = document.getElementById('canSetup'), ctxS = canS.getContext('2d');
+    const canG = document.getElementById('canGraph'), ctxG = canG.getContext('2d');
+
+    let n1 = 1.5, n2 = 1.0, theta_i_deg = 33.7;
+
+    // ── HELPERS ──────────────────────────────────────────────────────────────
+    function arrowLine(ctx, x0, y0, x1, y1, color, lw) {
+        const dx=x1-x0, dy=y1-y0, len=Math.sqrt(dx*dx+dy*dy);
+        if(len<1) return;
+        const ux=dx/len, uy=dy/len, hw=lw*4;
+        ctx.beginPath(); ctx.moveTo(x0,y0);
+        ctx.lineTo(x1-ux*hw, y1-uy*hw);
+        ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x1-ux*hw*2-uy*hw, y1-uy*hw*2+ux*hw);
+        ctx.lineTo(x1-ux*hw*2+uy*hw, y1-uy*hw*2-ux*hw);
+        ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+    }
+
+    // Draw S (circles) and P (transverse bars) field vectors along a ray
+    function drawVectors(ctx, ox, oy, dirX, dirY, ampS, ampP, color, scale) {
+        const len = Math.sqrt(dirX*dirX+dirY*dirY);
+        if(len<0.01||scale<1) return;
+        const ux=dirX/len, uy=dirY/len;
+        const px=-uy, py=ux; // perpendicular
+
+        [0.35,0.70,1.05].forEach(d=>{
+            const ex=ox+ux*d*scale, ey=oy+uy*d*scale;
+            // P component: bar perpendicular to ray
+            if(ampP>0.02) {
+                const bLen = ampP * 12;
+                ctx.beginPath(); ctx.moveTo(ex-px*bLen, ey-py*bLen); ctx.lineTo(ex+px*bLen, ey+py*bLen);
+                ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+            }
+            // S component: circle
+            if(ampS>0.02) {
+                ctx.beginPath(); ctx.arc(ex, ey, ampS*6, 0, Math.PI*2);
+                ctx.strokeStyle=color; ctx.lineWidth=1; ctx.stroke();
+                ctx.beginPath(); ctx.arc(ex, ey, 1.5, 0, Math.PI*2);
+                ctx.fillStyle=color; ctx.fill();
+            }
+        });
+    }
+
+    function computeFresnel() {
+        const th_i = theta_i_deg * Math.PI/180;
+        const th_B = Math.atan(n2/n1);
+        const sin_t = (n1/n2)*Math.sin(th_i);
+        const is_tir = sin_t > 1.0;
+
+        let Rs=1, Rp=1, Ts=0, Tp=0, th_t=null, rs=1, rp=1, ts=0, tp=0;
+        if(!is_tir) {
+            th_t = Math.asin(sin_t);
+            const ci=Math.cos(th_i), ct=Math.cos(th_t);
+            rs = (n1*ci - n2*ct)/(n1*ci + n2*ct);
+            rp = (n2*ci - n1*ct)/(n2*ci + n1*ct);
+            ts = (2*n1*ci)/(n1*ci + n2*ct);
+            tp = (2*n1*ci)/(n2*ci + n1*ct);
+            Rs=rs*rs; Rp=rp*rp;
+            Ts = (n2*ct)/(n1*ci)*ts*ts;
+            Tp = (n2*ct)/(n1*ci)*tp*tp;
+        }
+        return {th_i, th_B, th_t, rs,rp,ts,tp, Rs,Rp,Ts,Tp, is_tir};
+    }
+
+    // ── DRAW SETUP ────────────────────────────────────────────────────────────
+    function drawSetup() {
+        const W=canS.width, H=canS.height;
+        if(!W||!H) return;
+        ctxS.clearRect(0,0,W,H);
+
+        const {th_i,th_B,th_t,rs,rp,ts,tp,Rs,Rp,is_tir} = computeFresnel();
+
+        const cx=W*0.45, cy=H*0.5;
+        const rayLen = Math.min(W,H)*0.38;
+
+        // Interface line
+        ctxS.strokeStyle='rgba(0,212,255,0.3)'; ctxS.lineWidth=1.5;
+        ctxS.beginPath(); ctxS.moveTo(0,cy); ctxS.lineTo(W,cy); ctxS.stroke();
+
+        // Normal (dashed)
+        ctxS.strokeStyle='rgba(255,255,255,0.15)'; ctxS.lineWidth=1; ctxS.setLineDash([6,5]);
+        ctxS.beginPath(); ctxS.moveTo(cx,cy-rayLen*1.1); ctxS.lineTo(cx,cy+rayLen*1.1); ctxS.stroke();
+        ctxS.setLineDash([]);
+
+        // Medium labels
+        ctxS.fillStyle='rgba(0,212,255,0.4)'; ctxS.fillRect(0,cy,W,H-cy);
+        ctxS.fillStyle='#00d4ff'; ctxS.font='bold 10px Space Mono'; ctxS.textAlign='right';
+        ctxS.fillText(`n₁ = ${n1.toFixed(2)}`, W-10, cy-8);
+        ctxS.fillText(`n₂ = ${n2.toFixed(2)}`, W-10, cy+18);
+        ctxS.textAlign='left';
+
+        // Incident ray direction: goes toward origin from upper-left
+        const dirIX = Math.sin(th_i), dirIY = Math.cos(th_i); // downward
+        const startX = cx - dirIX*rayLen, startY = cy - dirIY*rayLen;
+        arrowLine(ctxS, startX, startY, cx, cy, '#ffdd00', 2);
+        drawVectors(ctxS, startX, startY, dirIX, dirIY, 1.0, 1.0, '#ffdd00', rayLen*0.9);
+
+        // Reflected ray: symmetric about normal
+        const dirRX = Math.sin(th_i), dirRY = -Math.cos(th_i); // upward
+        arrowLine(ctxS, cx, cy, cx+dirRX*rayLen, cy+dirRY*rayLen, 'orange', 2);
+        drawVectors(ctxS, cx, cy, dirRX, dirRY, Math.abs(rs), Math.abs(rp), 'orange', rayLen*0.9);
+
+        // Transmitted ray
+        if(!is_tir && th_t !== null) {
+            const dirTX = Math.sin(th_t), dirTY = Math.cos(th_t);
+            arrowLine(ctxS, cx, cy, cx+dirTX*rayLen, cy+dirTY*rayLen, '#fff', 2);
+            drawVectors(ctxS, cx, cy, dirTX, dirTY, Math.abs(ts)*0.7, Math.abs(tp)*0.7, '#fff', rayLen*0.9);
+        }
+
+        // Brewster angle marker
+        const bX = cx - Math.sin(th_B)*40, bY = cy - Math.cos(th_B)*40;
+        ctxS.strokeStyle='#ff44ff'; ctxS.lineWidth=1; ctxS.setLineDash([3,3]);
+        ctxS.beginPath(); ctxS.arc(cx,cy,40,-(Math.PI/2+th_B),-Math.PI/2); ctxS.stroke();
+        ctxS.setLineDash([]);
+        ctxS.fillStyle='#ff44ff'; ctxS.font='bold 9px Space Mono'; ctxS.textAlign='center';
+        ctxS.fillText(`θ_B=${(th_B*180/Math.PI).toFixed(1)}°`, bX-18, bY-8);
+
+        // Angle of incidence arc
+        ctxS.strokeStyle='rgba(255,221,0,0.5)'; ctxS.lineWidth=1; ctxS.setLineDash([3,3]);
+        ctxS.beginPath(); ctxS.arc(cx,cy,55,-(Math.PI/2+th_i),-Math.PI/2); ctxS.stroke();
+        ctxS.setLineDash([]);
+        ctxS.fillStyle='#ffdd00'; ctxS.font='9px Space Mono';
+        ctxS.fillText(`θᵢ=${theta_i_deg.toFixed(1)}°`, cx-Math.sin(th_i)*65-10, cy-Math.cos(th_i)*65);
+
+        // TIR label
+        if(is_tir) {
+            ctxS.fillStyle='#ff4444'; ctxS.font='bold 11px Space Mono'; ctxS.textAlign='center';
+            ctxS.fillText('REFLEXIÓN TOTAL INTERNA', W/2, 22);
+        } else {
+            ctxS.fillStyle='#ff44ff'; ctxS.font='bold 10px Space Mono'; ctxS.textAlign='center';
+            ctxS.fillText(`Ángulo de Brewster: ${(th_B*180/Math.PI).toFixed(2)}°`, W/2, 18);
+        }
+        ctxS.textAlign='left';
+
+        // Legend
+        ctxS.font='9px Space Mono';
+        ctxS.fillStyle='#ffdd00'; ctxS.fillText('─ Incidente', 8, H-42);
+        ctxS.fillStyle='orange';  ctxS.fillText('─ Reflejado', 8, H-28);
+        ctxS.fillStyle='#fff';    ctxS.fillText('─ Transmitido', 8, H-14);
+        ctxS.fillStyle='#8892b0'; ctxS.fillText('○ S (perp.)  — P (paral.)', W/2, H-10);
+    }
+
+    // ── DRAW FRESNEL GRAPH ────────────────────────────────────────────────────
+    function drawGraph() {
+        const W=canG.width, H=canG.height;
+        if(!W||!H) return;
+        ctxG.clearRect(0,0,W,H);
+
+        const margin={left:48,right:16,top:28,bottom:40};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+
+        const th_B = Math.atan(n2/n1)*180/Math.PI;
+        const th_c = n1>n2 ? Math.asin(n2/n1)*180/Math.PI : null;
+
+        // Grid
+        ctxG.strokeStyle='#16203a'; ctxG.lineWidth=1;
+        ctxG.font='10px Space Mono'; ctxG.fillStyle='#8892b0';
+        for(let i=0;i<=5;i++){
+            const gy=margin.top+(1-i/5)*h;
+            ctxG.beginPath(); ctxG.moveTo(margin.left,gy); ctxG.lineTo(margin.left+w,gy); ctxG.stroke();
+            ctxG.fillText((i/5).toFixed(1),4,gy+4);
+        }
+        for(let deg=0;deg<=90;deg+=15){
+            const gx=margin.left+deg/90*w;
+            ctxG.beginPath(); ctxG.moveTo(gx,margin.top); ctxG.lineTo(gx,margin.top+h); ctxG.stroke();
+            ctxG.fillText(`${deg}°`,gx-8,margin.top+h+14);
+        }
+        ctxG.fillText('θᵢ (°)',margin.left+w/2-12,margin.top+h+30);
+        ctxG.fillText('R',4,margin.top-8);
+        ctxG.fillStyle='#fff'; ctxG.font='10px Space Mono';
+        ctxG.fillText(`REFLECTANCIA  n₁=${n1.toFixed(2)}→n₂=${n2.toFixed(2)}`,margin.left,margin.top-10);
+
+        // Compute Rs and Rp curves
+        const NANG=400;
+        const rsArr=[], rpArr=[], angArr=[];
+        for(let i=0;i<=NANG;i++){
+            const deg=89.9*i/NANG;
+            const th=deg*Math.PI/180;
+            const st=(n1/n2)*Math.sin(th);
+            if(st>1){ rsArr.push(1); rpArr.push(1); angArr.push(deg); continue; }
+            const ci=Math.cos(th), ct=Math.sqrt(1-st*st);
+            const rs_v=((n1*ci-n2*ct)/(n1*ci+n2*ct))**2;
+            const rp_v=((n2*ci-n1*ct)/(n2*ci+n1*ct))**2;
+            rsArr.push(rs_v); rpArr.push(rp_v); angArr.push(deg);
+        }
+
+        const mapX=deg=>margin.left+deg/90*w;
+        const mapY=R=>margin.top+(1-Math.min(1,R))*h;
+
+        // Rs (blue)
+        ctxG.beginPath(); ctxG.strokeStyle='#4488ff'; ctxG.lineWidth=2;
+        angArr.forEach((d,i)=>{ i===0?ctxG.moveTo(mapX(d),mapY(rsArr[i])):ctxG.lineTo(mapX(d),mapY(rsArr[i])); });
+        ctxG.stroke();
+
+        // Rp (red)
+        ctxG.beginPath(); ctxG.strokeStyle='#ff4444'; ctxG.lineWidth=2;
+        angArr.forEach((d,i)=>{ i===0?ctxG.moveTo(mapX(d),mapY(rpArr[i])):ctxG.lineTo(mapX(d),mapY(rpArr[i])); });
+        ctxG.stroke();
+
+        // Brewster line
+        ctxG.strokeStyle='#ff44ff'; ctxG.lineWidth=1.5; ctxG.setLineDash([5,4]);
+        ctxG.beginPath(); ctxG.moveTo(mapX(th_B),margin.top); ctxG.lineTo(mapX(th_B),margin.top+h); ctxG.stroke();
+
+        // Critical angle line
+        if(th_c){
+            ctxG.strokeStyle='#ff8800'; ctxG.setLineDash([3,4]);
+            ctxG.beginPath(); ctxG.moveTo(mapX(th_c),margin.top); ctxG.lineTo(mapX(th_c),margin.top+h); ctxG.stroke();
+            ctxG.fillStyle='#ff8800'; ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+            ctxG.fillText(`θ_c=${th_c.toFixed(1)}°`,mapX(th_c),margin.top+h-8);
+        }
+        ctxG.setLineDash([]);
+
+        // Current angle marker
+        const {Rs,Rp} = computeFresnel();
+        const curX=mapX(theta_i_deg);
+        ctxG.strokeStyle='rgba(255,221,0,0.5)'; ctxG.lineWidth=1.5;
+        ctxG.beginPath(); ctxG.moveTo(curX,margin.top); ctxG.lineTo(curX,margin.top+h); ctxG.stroke();
+        ctxG.beginPath(); ctxG.arc(curX,mapY(Rs),5,0,Math.PI*2);
+        ctxG.fillStyle='#4488ff'; ctxG.fill();
+        ctxG.beginPath(); ctxG.arc(curX,mapY(Rp),5,0,Math.PI*2);
+        ctxG.fillStyle='#ff4444'; ctxG.fill();
+
+        // Brewster label
+        ctxG.fillStyle='#ff44ff'; ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillText(`θ_B=${th_B.toFixed(1)}°`,mapX(th_B),margin.top+14);
+        ctxG.textAlign='left';
+
+        // Legend
+        ctxG.font='9px Space Mono';
+        ctxG.fillStyle='#4488ff'; ctxG.fillText('─ Rs (perp / S)', margin.left+4, margin.top+18);
+        ctxG.fillStyle='#ff4444'; ctxG.fillText('─ Rp (paral / P)', margin.left+4, margin.top+30);
+        ctxG.fillStyle='#ff44ff'; ctxG.fillText('╌ θ Brewster', margin.left+4, margin.top+42);
+    }
+
+    function update() {
+        const {th_B,Rs,Rp,Ts,Tp,is_tir,th_t} = computeFresnel();
+        drawSetup();
+        drawGraph();
+        const tir_str = is_tir ? '  ⚠ REFLEXIÓN TOTAL' : '';
+        const th_t_str = th_t !== null ? `θ_t = ${(th_t*180/Math.PI).toFixed(2)}°` : '─';
+        document.getElementById('infoDisplay').innerText =
+            `θ_Brewster = arctan(n₂/n₁) = ${(th_B*180/Math.PI).toFixed(2)}°\nθᵢ = ${theta_i_deg.toFixed(1)}°  ${th_t_str}${tir_str}\nRs = ${Rs.toFixed(4)}   Rp = ${Rp.toFixed(4)}\nEn Brewster: Rp = 0  →  luz reflejada 100% S`;
+    }
+
+    document.getElementById('n1Slider').oninput=e=>{ n1=parseFloat(e.target.value); document.getElementById('n1Val').innerText=n1.toFixed(2); update(); };
+    document.getElementById('n2Slider').oninput=e=>{ n2=parseFloat(e.target.value); document.getElementById('n2Val').innerText=n2.toFixed(2); update(); };
+    document.getElementById('angSlider').oninput=e=>{ theta_i_deg=parseFloat(e.target.value); document.getElementById('angVal').innerText=theta_i_deg.toFixed(1); update(); };
+
+    function resize() {
+        canS.width=canS.offsetWidth; canS.height=canS.offsetHeight||400;
+        canG.width=canG.offsetWidth; canG.height=canG.offsetHeight||400;
+        update();
+    }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

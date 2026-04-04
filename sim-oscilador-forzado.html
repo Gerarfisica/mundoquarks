@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Oscilador Forzado | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.78rem; line-height: 1.8; }
+        .freq-box.resonance { background: rgba(255, 215, 0, 0.08); border-color: #FFD700; color: #FFD700; }
+        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        .plot-canvas { height: 180px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        /* Slider especial para frecuencia externa */
+        label.fext { color: var(--cyan); }
+        label.fext.resonance { color: #FFD700; }
+        input#fSlider { accent-color: var(--cyan); }
+        input#fSlider.resonance { accent-color: #FFD700; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Oscilador Forzado — RK4</h1>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="220"></canvas>
+        <div class="controls">
+            <div id="freqDisplay" class="freq-box">ω₀ = --- rad/s &nbsp;|&nbsp; ω_ext = --- rad/s</div>
+
+            <div class="control-group">
+                <label id="labelF" class="fext">Freq. motor f_ext <span><span id="fVal">0.70</span> Hz</span></label>
+                <input type="range" id="fSlider" min="0.1" max="3.0" step="0.01" value="0.7">
+            </div>
+            <div class="control-group">
+                <label style="color: #FF4500;">Fuerza F₀ <span><span id="F0Val">5.0</span> N</span></label>
+                <input type="range" id="F0Slider" min="0.0" max="20.0" step="0.5" value="5.0" style="accent-color:#FF4500;">
+            </div>
+            <div class="control-group">
+                <label style="color: #00FF7F;">Amortiguamiento (b) <span><span id="bVal">0.5</span> kg/s</span></label>
+                <input type="range" id="bSlider" min="0.0" max="5.0" step="0.05" value="0.5" style="accent-color:#00FF7F;">
+            </div>
+            <div class="control-group">
+                <label style="color: #FFD700;">Masa (m) <span><span id="mVal">1.0</span> kg</span></label>
+                <input type="range" id="mSlider" min="0.5" max="5.0" step="0.1" value="1.0" style="accent-color:#FFD700;">
+            </div>
+            <button class="btn-restart" onclick="restart()">REINICIAR TODO</button>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canvasP" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasA" class="plot-canvas" height="180"></canvas>
+    </div>
+</div>
+
+<script>
+    const simC = document.getElementById('simCanvas'), ctxS = simC.getContext('2d');
+    const canP = document.getElementById('canvasP'), ctxP = canP.getContext('2d');
+    const canV = document.getElementById('canvasV'), ctxV = canV.getContext('2d');
+    const canA = document.getElementById('canvasA'), ctxA = canA.getContext('2d');
+
+    const K = 20.0; // constante del resorte fija
+    let m = 1.0, b = 0.5, F0 = 5.0, fext = 0.7;
+    let x = 0.0, v = 0.0, t = 0;
+    const dt = 0.016, T_MAX = 20.0;
+    let history = [];
+    let isResonance = false;
+
+    function accel(pos, vel, time) {
+        const wext = 2 * Math.PI * fext;
+        return (F0 * Math.cos(wext * time) - K * pos - b * vel) / m;
+    }
+
+    function solveRK4() {
+        const wext = 2 * Math.PI * fext;
+        let k1v = accel(x, v, t),                          k1x = v;
+        let k2v = accel(x+0.5*dt*k1x, v+0.5*dt*k1v, t+0.5*dt), k2x = v + 0.5*dt*k1v;
+        let k3v = accel(x+0.5*dt*k2x, v+0.5*dt*k2v, t+0.5*dt), k3x = v + 0.5*dt*k2v;
+        let k4v = accel(x+dt*k3x,     v+dt*k3v,     t+dt),      k4x = v + dt*k3v;
+        v += (dt/6)*(k1v + 2*k2v + 2*k3v + k4v);
+        x += (dt/6)*(k1x + 2*k2x + 2*k3x + k4x);
+        t += dt;
+        if (t > T_MAX) { t = 0; history = []; }
+        history.push({ t: t, x: x, v: v, a: accel(x, v, t) });
+    }
+
+    function drawPlot(canvas, ctx, dataKey, label, color, limit) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const margin = { left: 40, right: 20, top: 20, bottom: 30 };
+        const w = canvas.width - margin.left - margin.right;
+        const h = canvas.height - margin.top - margin.bottom;
+        const midY = margin.top + h/2;
+
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0';
+
+        for(let i=0; i<=10; i++) {
+            let gx = margin.left + (i/10)*w;
+            ctx.beginPath(); ctx.moveTo(gx, margin.top); ctx.lineTo(gx, margin.top + h); ctx.stroke();
+            if(i%2===0) ctx.fillText((i * T_MAX/10).toFixed(0)+'s', gx - 5, margin.top + h + 15);
+        }
+
+        ctx.fillText(limit, 5, margin.top + 5);
+        ctx.fillText('0', 5, midY + 4);
+        ctx.fillText('-' + limit, 5, margin.top + h);
+
+        ctx.beginPath(); ctx.strokeStyle = '#2a3a5a';
+        ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY);
+        ctx.stroke();
+
+        ctx.fillStyle = color; ctx.fillText(label, margin.left, margin.top - 8);
+
+        if (history.length < 2) return;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+        history.forEach((p, i) => {
+            const px = margin.left + (p.t / T_MAX) * w;
+            const py = midY - (p[dataKey] * (h / (limit * 2)));
+            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+    }
+
+    function drawSpring(ctx, x0, y0, x1, y1) {
+        const nodes = 20;
+        const dx = x1 - x0, dy = y1 - y0;
+        const len = Math.sqrt(dx*dx + dy*dy);
+        if (len === 0) return;
+        const px = -dy/len, py = dx/len;
+        const amp = 10;
+        ctx.beginPath(); ctx.strokeStyle = '#4e5b7e'; ctx.lineWidth = 2;
+        ctx.moveTo(x0, y0);
+        for(let i = 1; i < nodes; i++) {
+            const tt = i / nodes;
+            const bx = x0 + dx * tt, by = y0 + dy * tt;
+            const offset = (i % 2 === 0 ? amp : -amp);
+            ctx.lineTo(bx + px * offset, by + py * offset);
+        }
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+    }
+
+    function loop() {
+        solveRK4();
+
+        ctxS.clearRect(0, 0, simC.width, simC.height);
+        const W = simC.width, H = simC.height;
+        const wallX = 30;
+        const anchorY = H / 2;
+        const equilibriumX = W * 0.45;
+        const scale = 70;
+
+        const massX = equilibriumX + x * scale;
+        const massY = anchorY;
+
+        // Pared
+        ctxS.fillStyle = '#1a6cf5';
+        ctxS.fillRect(wallX - 4, anchorY - 50, 4, 100);
+
+        // Flecha de fuerza externa
+        const wext = 2 * Math.PI * fext;
+        const Fnow = F0 * Math.cos(wext * t);
+        if (Math.abs(Fnow) > 0.05) {
+            const arrowLen = Math.min(45, Math.abs(Fnow) * 5);
+            const dir = Fnow > 0 ? 1 : -1;
+            const ax0 = massX + dir * 22;
+            const ax1 = massX + dir * (22 + arrowLen);
+            ctxS.beginPath();
+            ctxS.strokeStyle = isResonance ? '#FFD700' : '#FF4500';
+            ctxS.lineWidth = 2.5;
+            ctxS.moveTo(ax0, anchorY);
+            ctxS.lineTo(ax1, anchorY);
+            ctxS.stroke();
+            // Punta de flecha
+            ctxS.beginPath();
+            ctxS.fillStyle = isResonance ? '#FFD700' : '#FF4500';
+            ctxS.moveTo(ax1, anchorY);
+            ctxS.lineTo(ax1 - dir*8, anchorY - 5);
+            ctxS.lineTo(ax1 - dir*8, anchorY + 5);
+            ctxS.closePath();
+            ctxS.fill();
+        }
+
+        // Línea de equilibrio punteada
+        ctxS.save();
+        ctxS.setLineDash([4, 6]);
+        ctxS.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctxS.lineWidth = 1;
+        ctxS.beginPath();
+        ctxS.moveTo(equilibriumX, anchorY - 30);
+        ctxS.lineTo(equilibriumX, anchorY + 30);
+        ctxS.stroke();
+        ctxS.restore();
+
+        // Resorte
+        drawSpring(ctxS, wallX, anchorY, massX, massY);
+
+        // Masa con glow según régimen
+        ctxS.beginPath();
+        ctxS.arc(massX, massY, 18, 0, Math.PI * 2);
+        ctxS.fillStyle = isResonance ? '#FFD700' : '#00d4ff';
+        ctxS.shadowBlur = 20;
+        ctxS.shadowColor = isResonance ? '#FFD700' : '#00d4ff';
+        ctxS.fill(); ctxS.shadowBlur = 0;
+
+        const limX = isResonance ? 2.5 : 1.5;
+        drawPlot(canP, ctxP, 'x', 'Posición x (m)',       '#00FF7F', limX);
+        drawPlot(canV, ctxV, 'v', 'Velocidad v (m/s)',    '#FFD700', limX * 6);
+        drawPlot(canA, ctxA, 'a', 'Aceleración a (m/s²)', '#FF4500', limX * 30);
+
+        requestAnimationFrame(loop);
+    }
+
+    function updateInfoBox() {
+        const w0 = Math.sqrt(K / m);
+        const wext = 2 * Math.PI * fext;
+        const diff = Math.abs(wext - w0);
+        isResonance = diff < 0.6;
+
+        const box = document.getElementById('freqDisplay');
+        const labelF = document.getElementById('labelF');
+        const fSlider = document.getElementById('fSlider');
+
+        if (isResonance) {
+            box.className = 'freq-box resonance';
+            box.innerText = `ω₀ = ${w0.toFixed(3)} rad/s  |  ω_ext = ${wext.toFixed(3)} rad/s\n⚠ RESONANCIA`;
+            labelF.className = 'fext resonance';
+            fSlider.className = 'resonance';
+        } else {
+            box.className = 'freq-box';
+            box.innerText = `ω₀ = ${w0.toFixed(3)} rad/s  |  ω_ext = ${wext.toFixed(3)} rad/s\nMovimiento forzado`;
+            labelF.className = 'fext';
+            fSlider.className = '';
+        }
+    }
+
+    function restart() {
+        t = 0; x = 0.0; v = 0; history = [];
+        updateInfoBox();
+    }
+
+    document.getElementById('fSlider').oninput  = e => { fext = parseFloat(e.target.value); document.getElementById('fVal').innerText  = fext.toFixed(2); restart(); };
+    document.getElementById('F0Slider').oninput = e => { F0   = parseFloat(e.target.value); document.getElementById('F0Val').innerText = F0.toFixed(1);   restart(); };
+    document.getElementById('bSlider').oninput  = e => { b    = parseFloat(e.target.value); document.getElementById('bVal').innerText  = b.toFixed(2);    restart(); };
+    document.getElementById('mSlider').oninput  = e => { m    = parseFloat(e.target.value); document.getElementById('mVal').innerText  = m.toFixed(1);    restart(); };
+
+    function resize() { [simC, canP, canV, canA].forEach(c => c.width = c.offsetWidth); }
+    window.onresize = resize; resize();
+    restart(); loop();
+</script>
+</body>
+</html>

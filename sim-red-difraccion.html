@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Red de Difracción | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.75rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .plots-column { display: flex; flex-direction: column; gap: 12px; }
+        #canvasPlot    { height: 300px; }
+        #canvasPattern { height: 70px; }
+
+        .mode-group { margin-bottom: 15px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            font-family: 'Space Mono';
+            font-size: 0.62rem;
+            padding: 8px 4px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn[data-mode="mono"].active  { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+        .mode-btn[data-mode="white"].active { background: rgba(255,255,200,0.10); color: #ffffaa; border-color: #ffffaa; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Espectroscopio — Red de Difracción</h1>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="160"></canvas>
+        <div class="controls">
+            <div id="infoDisplay" class="freq-box">I = sinc²(β)·[sin(Nγ)/N·sin(γ)]²</div>
+
+            <div class="mode-group">
+                <span class="mode-label">Tipo de luz</span>
+                <div class="mode-options">
+                    <button class="mode-btn active" data-mode="mono">Monocromática</button>
+                    <button class="mode-btn" data-mode="white">Luz Blanca</button>
+                </div>
+            </div>
+
+            <div class="control-group" id="groupWav">
+                <label id="wavLabel" style="color:#00ff99;">Longitud de onda λ <span><span id="wavVal">550</span> nm</span></label>
+                <input type="range" id="wavSlider" min="380" max="750" step="1" value="550">
+            </div>
+            <div class="control-group">
+                <label style="color:orange;">N líneas iluminadas <span><span id="NVal">20</span></span></label>
+                <input type="range" id="NSlider" min="2" max="100" step="1" value="20" style="accent-color:orange;">
+            </div>
+            <div class="control-group">
+                <label style="color:#ff88ff;">Paso d <span><span id="dVal">10</span> µm</span></label>
+                <input type="range" id="dSlider" min="2" max="30" step="0.5" value="10" style="accent-color:#ff88ff;">
+            </div>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canvasPlot"    height="300"></canvas>
+        <canvas id="canvasPattern" height="70"></canvas>
+    </div>
+</div>
+
+<script>
+    const simC   = document.getElementById('simCanvas'),     ctxS   = simC.getContext('2d');
+    const canPl  = document.getElementById('canvasPlot'),    ctxPl  = canPl.getContext('2d');
+    const canPat = document.getElementById('canvasPattern'), ctxPat = canPat.getContext('2d');
+
+    const F    = 0.5;    // focal (m)
+    const XLIM = 100;    // ±100 mm
+    const NPTS = 1500;
+
+    let wav_nm = 550, N_lines = 20, d_um = 10;
+    let currentMode = 'mono';
+
+    function wavToRGB(w) {
+        let r, g, b;
+        if      (w < 440) { r = (440-w)/(440-380);      g = 0;                 b = 1; }
+        else if (w < 490) { r = 0;                       g = (w-440)/(490-440); b = 1; }
+        else if (w < 510) { r = 0;                       g = 1;                 b = (510-w)/(510-490); }
+        else if (w < 580) { r = (w-510)/(580-510);       g = 1;                 b = 0; }
+        else if (w < 645) { r = 1;                       g = (645-w)/(645-580); b = 0; }
+        else              { r = 1;                       g = 0;                 b = 0; }
+        return [r, g, b];
+    }
+
+    function sinc(x) {
+        if (Math.abs(x) < 1e-12) return 1.0;
+        return Math.sin(x) / x;
+    }
+
+    // Grating intensity for one wavelength: returns Float64Array of length NPTS
+    function gratingI(wav_m, d_m) {
+        const b_m = d_m * 0.25; // slit width = d/4
+        const result = new Float64Array(NPTS);
+        for (let i = 0; i < NPTS; i++) {
+            const th = -0.25 + 0.5 * i / (NPTS - 1);
+            const sinTh = Math.sin(th);
+            const beta  = (Math.PI * b_m * sinTh) / wav_m;
+            const gamma = (Math.PI * d_m * sinTh) / wav_m;
+            const env   = sinc(beta) ** 2;
+            let grat;
+            if (Math.abs(Math.sin(gamma)) < 1e-10) {
+                grat = 1.0;
+            } else {
+                const val = Math.sin(N_lines * gamma) / (N_lines * Math.sin(gamma));
+                grat = val * val;
+            }
+            result[i] = env * grat;
+        }
+        return result;
+    }
+
+    // theta → y_mm mapping
+    function thetaToY(i) {
+        const th = -0.25 + 0.5 * i / (NPTS - 1);
+        return F * Math.tan(th) * 1000;
+    }
+
+    // Compute all data
+    function compute() {
+        const d_m   = d_um  * 1e-6;
+        const wav_m = wav_nm * 1e-9;
+        const wavelengths = currentMode === 'mono' ? [wav_nm] : Array.from({length: 40}, (_, i) => 390 + i * (720-390)/39);
+
+        // Total intensity (sum over wavelengths)
+        const totalI = new Float64Array(NPTS);
+        // RGB image row
+        const imgR = new Float64Array(NPTS), imgG = new Float64Array(NPTS), imgB = new Float64Array(NPTS);
+
+        for (const w of wavelengths) {
+            const wm   = w * 1e-9;
+            const dm   = d_um * 1e-6;
+            const iArr = gratingI(wm, dm);
+            const [r,g,b] = wavToRGB(w);
+            for (let i = 0; i < NPTS; i++) {
+                totalI[i] += iArr[i];
+                imgR[i]   += iArr[i] * r;
+                imgG[i]   += iArr[i] * g;
+                imgB[i]   += iArr[i] * b;
+            }
+        }
+
+        // Normalize image
+        let maxImg = 0;
+        for (let i = 0; i < NPTS; i++) {
+            const mx = Math.max(imgR[i], imgG[i], imgB[i]);
+            if (mx > maxImg) maxImg = mx;
+        }
+        if (maxImg > 0) {
+            for (let i = 0; i < NPTS; i++) { imgR[i] /= maxImg; imgG[i] /= maxImg; imgB[i] /= maxImg; }
+        }
+
+        // Normalize plot
+        let maxI = 0;
+        for (let i = 0; i < NPTS; i++) if (totalI[i] > maxI) maxI = totalI[i];
+        if (maxI > 0) for (let i = 0; i < NPTS; i++) totalI[i] /= maxI;
+
+        return { totalI, imgR, imgG, imgB };
+    }
+
+    // Draw grating schematic
+    function drawSchematic() {
+        const W = simC.width, H = simC.height;
+        if (!W || !H) return;
+        ctxS.clearRect(0, 0, W, H);
+
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = currentMode === 'mono'
+            ? `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`
+            : '#fff';
+        const gratingX = W * 0.32, cy = H / 2;
+        const slitW = Math.max(2, 6 - d_um/8);
+        const nVis  = Math.min(8, Math.round(d_um));
+
+        // Incident rays
+        ctxS.globalAlpha = 0.4; ctxS.strokeStyle = col; ctxS.lineWidth = 1.2;
+        for (let y = 6; y < H; y += 14) {
+            ctxS.beginPath(); ctxS.moveTo(6, y); ctxS.lineTo(gratingX - 4, y); ctxS.stroke();
+        }
+        ctxS.globalAlpha = 1;
+
+        // Grating lines
+        const lineSpacing = Math.max(6, H / (nVis + 1));
+        for (let i = 0; i <= nVis; i++) {
+            const ly = (H / 2) - (nVis/2)*lineSpacing + i*lineSpacing;
+            ctxS.fillStyle = '#2a3a5a';
+            ctxS.fillRect(gratingX - 3, ly - 2, 6, 4);
+        }
+        // Grating body
+        ctxS.strokeStyle = '#334'; ctxS.lineWidth = 1;
+        ctxS.beginPath(); ctxS.moveTo(gratingX - 3, 0); ctxS.lineTo(gratingX - 3, H); ctxS.stroke();
+        ctxS.beginPath(); ctxS.moveTo(gratingX + 3, 0); ctxS.lineTo(gratingX + 3, H); ctxS.stroke();
+
+        // Diffraction orders
+        ctxS.globalAlpha = 0.18;
+        const d_m = d_um * 1e-6, wav_m = wav_nm * 1e-9;
+        for (let m = -3; m <= 3; m++) {
+            const sinTh = m * wav_m / d_m;
+            if (Math.abs(sinTh) > 0.9) continue;
+            const th = Math.asin(sinTh);
+            ctxS.strokeStyle = col; ctxS.lineWidth = 1.5;
+            ctxS.beginPath();
+            ctxS.moveTo(gratingX, cy);
+            ctxS.lineTo(gratingX + Math.cos(th)*W*0.55, cy + Math.sin(th)*W*0.55);
+            ctxS.stroke();
+        }
+        ctxS.globalAlpha = 1;
+
+        // Lens
+        const lensX = W * 0.72;
+        ctxS.strokeStyle = '#555'; ctxS.lineWidth = 2;
+        ctxS.beginPath(); ctxS.ellipse(lensX, cy, 5, H*0.38, 0, 0, Math.PI*2); ctxS.stroke();
+
+        // Screen
+        ctxS.fillStyle = '#1a2a4a'; ctxS.fillRect(W*0.91, 4, 5, H - 8);
+
+        // Labels
+        ctxS.font = '9px Space Mono'; ctxS.textAlign = 'center';
+        ctxS.fillStyle = col;
+        ctxS.fillText(currentMode === 'mono' ? `λ=${wav_nm}nm` : 'Luz blanca', gratingX, 12);
+        ctxS.fillStyle = '#8892b0';
+        ctxS.fillText(`N=${N_lines}  d=${d_um}µm`, gratingX, 24);
+        ctxS.textAlign = 'left';
+    }
+
+    function drawPlot(data) {
+        const W = canPl.width, H = canPl.height;
+        if (!W || !H) return;
+        ctxPl.clearRect(0, 0, W, H);
+
+        const margin = { left: 50, right: 20, top: 28, bottom: 38 };
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = currentMode === 'mono'
+            ? `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`
+            : '#fff';
+
+        // Grid
+        ctxPl.strokeStyle = '#16203a'; ctxPl.lineWidth = 1;
+        ctxPl.font = '10px Space Mono'; ctxPl.fillStyle = '#8892b0';
+
+        for (let i = 0; i <= 5; i++) {
+            const gy = margin.top + (1 - i/5) * h;
+            ctxPl.beginPath(); ctxPl.moveTo(margin.left, gy); ctxPl.lineTo(margin.left + w, gy); ctxPl.stroke();
+            ctxPl.fillText((i/5).toFixed(1), 4, gy + 4);
+        }
+        for (let i = -4; i <= 4; i++) {
+            const gx = margin.left + (i/4 + 1)/2 * w;
+            ctxPl.beginPath(); ctxPl.moveTo(gx, margin.top); ctxPl.lineTo(gx, margin.top + h); ctxPl.stroke();
+            if (i % 2 === 0) ctxPl.fillText(`${i*25}`, gx - 8, margin.top + h + 14);
+        }
+        ctxPl.fillText('Posición (mm)', margin.left + w/2 - 45, margin.top + h + 30);
+        ctxPl.fillText('I / I₀', 4, margin.top - 10);
+
+        // Title
+        ctxPl.fillStyle = '#00d4ff'; ctxPl.font = '10px Space Mono';
+        ctxPl.fillText(`ESPECTRO DE LA RED  N=${N_lines}  d=${d_um}µm  b=d/4`, margin.left, margin.top - 10);
+
+        const mapX = ym => margin.left + (ym + XLIM) / (2*XLIM) * w;
+        const mapY = I  => margin.top + (1 - Math.min(1, I)) * h;
+
+        // Fill
+        if (currentMode === 'mono') {
+            ctxPl.beginPath();
+            let started = false;
+            for (let i = 0; i < NPTS; i++) {
+                const ym = thetaToY(i);
+                if (ym < -XLIM || ym > XLIM) continue;
+                const px = mapX(ym), py = mapY(data.totalI[i]);
+                if (!started) { ctxPl.moveTo(px, margin.top + h); ctxPl.lineTo(px, py); started = true; }
+                else ctxPl.lineTo(px, py);
+            }
+            ctxPl.lineTo(mapX(XLIM), margin.top + h);
+            ctxPl.closePath();
+            ctxPl.fillStyle = `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},0.2)`;
+            ctxPl.fill();
+        }
+
+        // Line
+        ctxPl.beginPath(); ctxPl.strokeStyle = col; ctxPl.lineWidth = 1.5;
+        let started = false;
+        for (let i = 0; i < NPTS; i++) {
+            const ym = thetaToY(i);
+            if (ym < -XLIM || ym > XLIM) continue;
+            const px = mapX(ym), py = mapY(data.totalI[i]);
+            if (!started) { ctxPl.moveTo(px, py); started = true; }
+            else ctxPl.lineTo(px, py);
+        }
+        ctxPl.stroke();
+
+        // Order labels (only mono mode)
+        if (currentMode === 'mono') {
+            const d_m = d_um * 1e-6, b_m = d_m * 0.25, wav_m = wav_nm * 1e-9;
+            ctxPl.font = 'bold 9px Space Mono'; ctxPl.fillStyle = '#FFD700';
+            for (let m = -5; m <= 5; m++) {
+                const sinTh = m * wav_m / d_m;
+                if (Math.abs(sinTh) >= 0.24) continue;
+                const th   = Math.asin(sinTh);
+                const ym   = F * Math.tan(th) * 1000;
+                if (ym < -XLIM || ym > XLIM) continue;
+                const betaM = m !== 0 ? (Math.PI * b_m * sinTh) / wav_m : 0;
+                const Ipeak = m !== 0 ? (Math.abs(betaM) < 1e-10 ? 1 : (Math.sin(betaM)/betaM)**2) : 1;
+                if (Ipeak < 0.01) continue;
+                const px = mapX(ym), py = mapY(Ipeak) - 10;
+                ctxPl.textAlign = 'center';
+                ctxPl.fillText(`m=${m}`, px, py);
+            }
+            ctxPl.textAlign = 'left';
+        }
+    }
+
+    function drawPattern(data) {
+        const W = canPat.width, H = canPat.height;
+        if (!W || !H) return;
+        const imgData = ctxPat.createImageData(W, H);
+
+        for (let px = 0; px < W; px++) {
+            const ym = -XLIM + (2*XLIM * px / W);
+            const ii = Math.round((ym + XLIM) / (2*XLIM) * (NPTS - 1));
+            const ic = Math.max(0, Math.min(NPTS-1, ii));
+            const rv = Math.round(Math.min(1, data.imgR[ic]) * 255);
+            const gv = Math.round(Math.min(1, data.imgG[ic]) * 255);
+            const bv = Math.round(Math.min(1, data.imgB[ic]) * 255);
+            for (let py = 0; py < H; py++) {
+                const idx = (py * W + px) * 4;
+                imgData.data[idx]   = rv;
+                imgData.data[idx+1] = gv;
+                imgData.data[idx+2] = bv;
+                imgData.data[idx+3] = 255;
+            }
+        }
+        ctxPat.putImageData(imgData, 0, 0);
+        ctxPat.fillStyle = 'rgba(0,0,0,0.5)'; ctxPat.fillRect(0, 0, 200, 15);
+        ctxPat.fillStyle = '#8892b0'; ctxPat.font = '9px Space Mono';
+        ctxPat.fillText('Patrón en pantalla (±100 mm)', 4, 11);
+    }
+
+    function update() {
+        const data = compute();
+        drawSchematic();
+        drawPlot(data);
+        drawPattern(data);
+
+        const d_m   = d_um  * 1e-6;
+        const wav_m = wav_nm * 1e-9;
+        const resolving = N_lines; // R = mN, for m=1
+        const dispersion = (1 / (d_m * Math.cos(0))) * 1e-9; // dθ/dλ at θ=0, rad/nm
+        document.getElementById('infoDisplay').innerText =
+            `I = sinc²(β)·[sin(Nγ)/N·sin(γ)]²\nd·sin(θ) = m·λ  |  Paso d = ${d_um} µm  |  b = d/4\nPoder resolvente R = mN = ${N_lines} (m=1)`;
+    }
+
+    // Mode buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+            document.getElementById('groupWav').style.display = currentMode === 'mono' ? '' : 'none';
+            update();
+        });
+    });
+
+    document.getElementById('wavSlider').oninput = e => {
+        wav_nm = parseInt(e.target.value);
+        document.getElementById('wavVal').innerText = wav_nm;
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+        e.target.style.accentColor = col;
+        document.getElementById('wavLabel').style.color = col;
+        update();
+    };
+    document.getElementById('NSlider').oninput = e => {
+        N_lines = parseInt(e.target.value);
+        document.getElementById('NVal').innerText = N_lines;
+        update();
+    };
+    document.getElementById('dSlider').oninput = e => {
+        d_um = parseFloat(e.target.value);
+        document.getElementById('dVal').innerText = d_um;
+        update();
+    };
+
+    function resize() {
+        simC.width    = simC.offsetWidth;
+        canPl.width   = canPl.offsetWidth;
+        canPl.height  = 300;
+        canPat.width  = canPat.offsetWidth;
+        canPat.height = 70;
+        update();
+    }
+    window.onresize = resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

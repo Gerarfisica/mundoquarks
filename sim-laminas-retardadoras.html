@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Láminas Retardadoras | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; border: 1px solid #1a2a4a; display: block; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 13px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: #ffdd00; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        .mode-group { margin-bottom: 12px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .mode-options { display: flex; flex-direction: column; gap: 4px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.58rem;
+            padding: 6px 8px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: left;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn.light.active  { background: rgba(255,221,0,0.1);   color: #ffdd00; border-color: #ffdd00; font-weight: bold; }
+        .mode-btn.plate.active  { background: rgba(0,212,255,0.1);   color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+
+        /* Right: top row = 3 panels, bottom = 3D view */
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
+        .top-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .panel-wrap { display: flex; flex-direction: column; gap: 3px; }
+        .panel-wrap canvas { width: 100%; height: 180px; }
+        .panel-label { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--gray); text-align: center; }
+        #can3d { width: 100%; height: 240px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Láminas Retardadoras — λ/4 y λ/2</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">δ_entrada = ---\nδ_salida  = ---</div>
+        <div class="controls">
+            <div class="mode-group">
+                <span class="mode-label">Luz incidente</span>
+                <div class="mode-options">
+                    <button class="mode-btn light active" data-mode="lineal">Lineal (ángulo α)</button>
+                    <button class="mode-btn light" data-mode="circular">Circular (δ=+π/2)</button>
+                    <button class="mode-btn light" data-mode="eliptica">Elíptica (δ=+π/4)</button>
+                    <button class="mode-btn light" data-mode="natural">Natural / Blanca</button>
+                </div>
+            </div>
+            <div class="mode-group">
+                <span class="mode-label">Lámina retardadora</span>
+                <div class="mode-options">
+                    <button class="mode-btn plate active" data-plate="none">Sin lámina</button>
+                    <button class="mode-btn plate" data-plate="quarter">λ/4 — Cuarto de onda (δ=π/2)</button>
+                    <button class="mode-btn plate" data-plate="half">λ/2 — Media onda (δ=π)</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Ángulo α (luz lineal) <span><span id="alphaVal">45</span>°</span></label>
+                <input type="range" id="alphaSlider" min="0" max="90" step="1" value="45">
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="top-row">
+            <div class="panel-wrap">
+                <div class="panel-label" id="labelIn">INCIDENTE</div>
+                <canvas id="canIn"  height="180"></canvas>
+            </div>
+            <div class="panel-wrap">
+                <div class="panel-label">PROPAGACIÓN 3D</div>
+                <canvas id="can3d"  height="180"></canvas>
+            </div>
+            <div class="panel-wrap">
+                <div class="panel-label" id="labelOut">SALIDA</div>
+                <canvas id="canOut" height="180"></canvas>
+            </div>
+        </div>
+        <!-- 3D wide view -->
+        <canvas id="can3dWide" height="240"></canvas>
+    </div>
+</div>
+
+<script>
+    const canIn   = document.getElementById('canIn'),      ctxIn   = canIn.getContext('2d');
+    const can3d   = document.getElementById('can3d'),      ctx3d   = can3d.getContext('2d');
+    const canOut  = document.getElementById('canOut'),     ctxOut  = canOut.getContext('2d');
+    const canWide = document.getElementById('can3dWide'),  ctxWide = canWide.getContext('2d');
+
+    const Z_MAX = 10, Z_NPTS = 200, Z_PLATE = 5.0;
+    let lightMode = 'lineal', plateMode = 'none', alpha_deg = 45, t = 0;
+    let randDelta = 0; // for natural light
+
+    function getParams(tVal) {
+        let Ax, Ay, deltaIn;
+        if (lightMode === 'lineal') {
+            const a = alpha_deg * Math.PI / 180;
+            Ax = Math.cos(a); Ay = Math.sin(a); deltaIn = 0;
+        } else if (lightMode === 'circular') {
+            Ax = 0.707; Ay = 0.707; deltaIn = Math.PI/2;
+        } else if (lightMode === 'eliptica') {
+            Ax = 0.8; Ay = 0.4; deltaIn = Math.PI/4;
+        } else { // natural
+            Ax = 0.7; Ay = 0.7; deltaIn = randDelta;
+        }
+        const deltaPlate = plateMode === 'quarter' ? Math.PI/2 : plateMode === 'half' ? Math.PI : 0;
+        return { Ax, Ay, deltaIn, deltaPlate };
+    }
+
+    // ── 2D POLARIZATION DIAGRAM ───────────────────────────────────────────────
+    function drawPolarDiagram(ctx, W, H, Ax, Ay, delta, color, title) {
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+        const cx=W/2, cy=H/2, sc=Math.min(W,H)*0.36;
+
+        // Axes
+        ctx.strokeStyle='#2a3a5a'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(cx-sc*1.3,cy); ctx.lineTo(cx+sc*1.3,cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx,cy-sc*1.3); ctx.lineTo(cx,cy+sc*1.3); ctx.stroke();
+        ctx.fillStyle='#8892b0'; ctx.font='9px Space Mono';
+        ctx.fillText('Ex',cx+sc*1.2,cy-4);
+        ctx.fillText('Ey',cx+4,cy-sc*1.2);
+
+        // Trace
+        const NPTS=150;
+        ctx.beginPath(); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+        for(let i=0;i<=NPTS;i++){
+            const tt=i/NPTS*2*Math.PI;
+            const x=cx+Ax*Math.cos(tt)*sc, y=cy-Ay*Math.cos(tt+delta)*sc;
+            i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+
+        // Current vector
+        const ex=Ax*Math.cos(-t), ey=Ay*Math.cos(-t+delta);
+        const px=cx+ex*sc, py=cy-ey*sc;
+
+        // Components
+        ctx.strokeStyle='#ff4444'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,cy); ctx.stroke();
+        ctx.strokeStyle='#4488ff';
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,py); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Resultant arrow
+        ctx.strokeStyle=color; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+        ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+
+        // Title
+        ctx.fillStyle=color; ctx.font='bold 9px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(title, cx, H-6); ctx.textAlign='left';
+    }
+
+    // ── 3D OBLIQUE PROJECTION ─────────────────────────────────────────────────
+    function project(z, x, y, W, H) {
+        const mL=40, mR=15, mT=20, mB=25;
+        const uw=W-mL-mR, uh=H-mT-mB;
+        const zSc=uw/Z_MAX, xySc=Math.min(uw,uh)*0.2;
+        const px=mL+z*zSc+x*xySc*0.4;
+        const py=mT+uh/2-y*xySc-x*xySc*0.2;
+        return [px,py];
+    }
+
+    function draw3dView(ctx, W, H, Ex, Ey, zArr, wide) {
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        // Z axis
+        const [z0x,z0y]=project(0,0,0,W,H), [z1x,z1y]=project(Z_MAX,0,0,W,H);
+        ctx.strokeStyle='#2a3a5a'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(z0x,z0y); ctx.lineTo(z1x,z1y); ctx.stroke();
+
+        // X axis at z=0
+        const [xa,ya]=project(0,-1.3,0,W,H), [xb,yb]=project(0,1.3,0,W,H);
+        ctx.beginPath(); ctx.moveTo(xa,ya); ctx.lineTo(xb,yb); ctx.stroke();
+        // Y axis at z=0
+        const [yxa,yya]=project(0,0,-1.3,W,H), [yxb,yyb]=project(0,0,1.3,W,H);
+        ctx.beginPath(); ctx.moveTo(yxa,yya); ctx.lineTo(yxb,yyb); ctx.stroke();
+
+        // Plate
+        const plateZ = Z_PLATE;
+        const [p0x,p0y]=project(plateZ,-1.3,-1.3,W,H), [p1x,p1y]=project(plateZ,1.3,-1.3,W,H);
+        const [p2x,p2y]=project(plateZ,1.3,1.3,W,H), [p3x,p3y]=project(plateZ,-1.3,1.3,W,H);
+        ctx.beginPath(); ctx.moveTo(p0x,p0y); ctx.lineTo(p1x,p1y); ctx.lineTo(p2x,p2y); ctx.lineTo(p3x,p3y); ctx.closePath();
+        ctx.fillStyle='rgba(0,212,255,0.12)'; ctx.fill();
+        ctx.strokeStyle='rgba(0,212,255,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
+        const [plx,ply]=project(plateZ,0,1.5,W,H);
+        ctx.fillStyle='#00d4ff'; ctx.font='bold 8px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(plateMode==='none'?'':plateMode==='quarter'?'λ/4':'λ/2', plx, ply-2);
+        ctx.textAlign='left';
+
+        // Ex wave (red)
+        ctx.beginPath(); ctx.strokeStyle='rgba(255,68,68,0.5)'; ctx.lineWidth=1.5;
+        zArr.forEach((z,i)=>{ const [px,py]=project(z,Ex[i],0,W,H); i===0?ctx.moveTo(px,py):ctx.lineTo(px,py); });
+        ctx.stroke();
+
+        // Ey wave (blue)
+        ctx.beginPath(); ctx.strokeStyle='rgba(68,136,255,0.5)'; ctx.lineWidth=1.5;
+        zArr.forEach((z,i)=>{ const [px,py]=project(z,0,Ey[i],W,H); i===0?ctx.moveTo(px,py):ctx.lineTo(px,py); });
+        ctx.stroke();
+
+        // Resultant (white)
+        ctx.beginPath(); ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+        zArr.forEach((z,i)=>{ const [px,py]=project(z,Ex[i],Ey[i],W,H); i===0?ctx.moveTo(px,py):ctx.lineTo(px,py); });
+        ctx.stroke();
+
+        // Axis labels
+        ctx.fillStyle='#8892b0'; ctx.font='9px Space Mono';
+        ctx.fillText('z',z1x+4,z1y+4);
+        ctx.fillStyle='#ff4444'; ctx.fillText('Ex',xb+4,yb);
+        ctx.fillStyle='#4488ff'; ctx.fillText('Ey',yxb+4,yyb);
+    }
+
+    function updateInfoBox(Ax, Ay, deltaIn, deltaPlate) {
+        const dIn  = (deltaIn  * 180/Math.PI).toFixed(0);
+        const dOut = ((deltaIn+deltaPlate) * 180/Math.PI).toFixed(0);
+        const lightStr = {lineal:`Lineal α=${alpha_deg}°`,circular:'Circular',eliptica:'Elíptica',natural:'Natural'}[lightMode];
+        const plateStr = {none:'Sin lámina',quarter:'λ/4 (δ=90°)',half:'λ/2 (δ=180°)'}[plateMode];
+        document.getElementById('infoDisplay').innerText =
+            `Luz: ${lightStr}\nLámina: ${plateStr}\nAx=${Ax.toFixed(2)}  Ay=${Ay.toFixed(2)}\nδ_entrada=${dIn}°  →  δ_salida=${dOut}°`;
+        document.getElementById('labelIn').innerText  = `INCIDENTE — ${lightStr}`;
+        document.getElementById('labelOut').innerText = `SALIDA — ${plateStr}`;
+    }
+
+    function loop() {
+        t += 0.06;
+        if(lightMode==='natural') randDelta = (t*0.13)%(2*Math.PI);
+
+        const {Ax,Ay,deltaIn,deltaPlate} = getParams(t);
+        const deltaOut = deltaIn + deltaPlate;
+
+        // Build wave arrays
+        const zArr=[], Ex=[], Ey=[];
+        for(let i=0;i<Z_NPTS;i++){
+            const z=Z_MAX*i/(Z_NPTS-1);
+            const ex=Ax*Math.cos(z-t);
+            const dUse=z>=Z_PLATE ? deltaIn+deltaPlate : deltaIn;
+            const ey=Ay*Math.cos(z-t+dUse);
+            zArr.push(z); Ex.push(ex); Ey.push(ey);
+        }
+
+        // Resize
+        [canIn,can3d,canOut,canWide].forEach(c=>{
+            if(c.offsetWidth!==c.width) c.width=c.offsetWidth;
+        });
+
+        drawPolarDiagram(ctxIn,  canIn.width,  canIn.height,  Ax, Ay, deltaIn,  '#ffdd00', 'Incidente');
+        drawPolarDiagram(ctxOut, canOut.width, canOut.height, Ax, Ay, deltaOut, '#ff44ff', 'Salida');
+        draw3dView(ctx3d,  can3d.width,  can3d.height,  Ex, Ey, zArr, false);
+        draw3dView(ctxWide, canWide.width, canWide.height, Ex, Ey, zArr, true);
+
+        updateInfoBox(Ax, Ay, deltaIn, deltaPlate);
+        requestAnimationFrame(loop);
+    }
+
+    // Controls
+    document.querySelectorAll('.mode-btn.light').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.mode-btn.light').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); lightMode=btn.dataset.mode;
+        });
+    });
+    document.querySelectorAll('.mode-btn.plate').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.mode-btn.plate').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); plateMode=btn.dataset.plate;
+        });
+    });
+    document.getElementById('alphaSlider').oninput=e=>{
+        alpha_deg=parseInt(e.target.value);
+        document.getElementById('alphaVal').innerText=alpha_deg;
+    };
+
+    function resize(){
+        [canIn,can3d,canOut].forEach(c=>{ c.width=c.offsetWidth; c.height=c.offsetHeight||180; });
+        canWide.width=canWide.offsetWidth; canWide.height=canWide.offsetHeight||240;
+    }
+    window.onresize=resize; resize();
+    loop();
+</script>
+</body>
+</html>

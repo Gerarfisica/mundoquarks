@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ondas Polarizadas | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.6fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; display: block; }
+        .controls { margin-top: 20px; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.75rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        .mode-group { margin-bottom: 15px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            font-family: 'Space Mono';
+            font-size: 0.6rem;
+            padding: 8px 4px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn.active { background: rgba(255,0,255,0.12); color: #ff88ff; border-color: #ff88ff; font-weight: bold; }
+
+        .right-col { display: grid; grid-template-columns: 1fr 1.6fr; gap: 15px; }
+        #canvas2d  { height: 280px; }
+        #canvas3d  { height: 280px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Polarización de Ondas Electromagnéticas — Animación</h1>
+
+    <div class="panel-left">
+        <div class="controls">
+            <div id="infoDisplay" class="freq-box">Ex = Ax·cos(kz−t)\nEy = Ay·cos(kz−t+δ)</div>
+
+            <div class="mode-group">
+                <span class="mode-label">Tipo de polarización</span>
+                <div class="mode-options">
+                    <button class="mode-btn active" data-mode="lineal">Lineal</button>
+                    <button class="mode-btn" data-mode="circ-anti">Circular<br>Antihoraria</button>
+                    <button class="mode-btn" data-mode="circ-hora">Circular<br>Horaria</button>
+                    <button class="mode-btn" data-mode="elip">Elíptica<br>Antihoraria</button>
+                </div>
+            </div>
+
+            <!-- 2D front view -->
+            <div class="mode-label" style="margin-top:10px;">Vista frontal — plano XY</div>
+            <canvas id="canvas2d" height="280"></canvas>
+        </div>
+    </div>
+
+    <!-- 3D propagation view -->
+    <div style="display:flex; flex-direction:column; gap:10px;">
+        <canvas id="canvas3d" height="400" style="height:400px;"></canvas>
+        <!-- Legend -->
+        <div style="font-family:'Space Mono'; font-size:0.65rem; display:flex; gap:20px; padding: 4px 8px;">
+            <span style="color:#ff4444;">─ Ex (Horizontal)</span>
+            <span style="color:#4488ff;">─ Ey (Vertical)</span>
+            <span style="color:#fff;">─ E resultante</span>
+            <span style="color:#ff88ff;">● Punto frontal</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const can2d = document.getElementById('canvas2d'), ctx2 = can2d.getContext('2d');
+    const can3d = document.getElementById('canvas3d'), ctx3 = can3d.getContext('2d');
+
+    // Modes: {Ax, Ay, delta}
+    const MODES = {
+        'lineal':    { Ax: 1.0, Ay: 1.0, delta: 0,           label: 'Lineal  (δ=0)' },
+        'circ-anti': { Ax: 1.0, Ay: 1.0, delta:  Math.PI/2,  label: 'Circular Antihoraria  (δ=+π/2)' },
+        'circ-hora': { Ax: 1.0, Ay: 1.0, delta: -Math.PI/2,  label: 'Circular Horaria  (δ=−π/2)' },
+        'elip':      { Ax: 1.2, Ay: 0.7, delta:  Math.PI/4,  label: 'Elíptica Antihoraria  (δ=+π/4)' },
+    };
+
+    let currentMode = 'lineal';
+    let t = 0;
+    const K = 1.2;
+    const Z_MAX = 15, Z_NPTS = 300;
+
+    // ── 2D FRONT VIEW ────────────────────────────────────────────────────────
+    function draw2d() {
+        const W = can2d.width, H = can2d.height;
+        if (!W || !H) return;
+        ctx2.clearRect(0, 0, W, H);
+        const cx = W/2, cy = H/2;
+        const scale = Math.min(W, H) * 0.38;
+        const { Ax, Ay, delta } = MODES[currentMode];
+
+        // Axes
+        ctx2.strokeStyle = '#2a3a5a'; ctx2.lineWidth = 1;
+        ctx2.beginPath(); ctx2.moveTo(cx - scale*1.5, cy); ctx2.lineTo(cx + scale*1.5, cy); ctx2.stroke();
+        ctx2.beginPath(); ctx2.moveTo(cx, cy - scale*1.5); ctx2.lineTo(cx, cy + scale*1.5); ctx2.stroke();
+
+        // Axis labels
+        ctx2.fillStyle = '#8892b0'; ctx2.font = '10px Space Mono';
+        ctx2.fillText('Ex', cx + scale*1.4, cy - 6);
+        ctx2.fillText('Ey', cx + 4, cy - scale*1.4);
+
+        // Trace (Lissajous ellipse/line)
+        const TRACE_NPTS = 200;
+        ctx2.beginPath(); ctx2.strokeStyle = 'rgba(255,255,255,0.18)'; ctx2.lineWidth = 1.5;
+        for (let i = 0; i <= TRACE_NPTS; i++) {
+            const tt = i / TRACE_NPTS * 2 * Math.PI;
+            const ex = Ax * Math.cos(tt) * scale + cx;
+            const ey = cy - Ay * Math.cos(tt + delta) * scale;
+            i === 0 ? ctx2.moveTo(ex, ey) : ctx2.lineTo(ex, ey);
+        }
+        ctx2.stroke();
+
+        // Current point
+        const ex0 = Ax * Math.cos(-t);
+        const ey0 = Ay * Math.cos(-t + delta);
+
+        // Ex component (red)
+        ctx2.strokeStyle = '#ff4444'; ctx2.lineWidth = 2; ctx2.setLineDash([4,4]);
+        ctx2.beginPath(); ctx2.moveTo(cx, cy); ctx2.lineTo(cx + ex0*scale, cy); ctx2.stroke();
+        // Ey component (blue)
+        ctx2.strokeStyle = '#4488ff';
+        ctx2.beginPath(); ctx2.moveTo(cx, cy); ctx2.lineTo(cx, cy - ey0*scale); ctx2.stroke();
+        ctx2.setLineDash([]);
+
+        // Resultant vector (magenta)
+        const px = cx + ex0 * scale, py = cy - ey0 * scale;
+        ctx2.strokeStyle = '#ff44ff'; ctx2.lineWidth = 2.5;
+        ctx2.beginPath(); ctx2.moveTo(cx, cy); ctx2.lineTo(px, py); ctx2.stroke();
+        // Arrowhead
+        const ang = Math.atan2(-(py - cy), px - cx);
+        const al = 10;
+        ctx2.beginPath();
+        ctx2.moveTo(px, py);
+        ctx2.lineTo(px - al*Math.cos(ang - 0.4), py + al*Math.sin(ang - 0.4));
+        ctx2.lineTo(px - al*Math.cos(ang + 0.4), py + al*Math.sin(ang + 0.4));
+        ctx2.closePath(); ctx2.fillStyle = '#ff44ff'; ctx2.fill();
+
+        // Dot at tip
+        ctx2.beginPath(); ctx2.arc(px, py, 5, 0, Math.PI*2);
+        ctx2.fillStyle = '#ff88ff'; ctx2.fill();
+
+        // Label
+        ctx2.fillStyle = '#ff88ff'; ctx2.font = '9px Space Mono';
+        ctx2.fillText(`Ex=${ex0.toFixed(2)}  Ey=${ey0.toFixed(2)}`, 6, H - 6);
+    }
+
+    // ── 3D ISOMETRIC PROJECTION ───────────────────────────────────────────────
+    // Simple oblique projection: z→right, x→horiz offset, y→vert
+    function project3d(z, x, y, W, H) {
+        // Map z: 0→left, Z_MAX→right
+        // We do an oblique projection: z goes right, x adds a small horizontal offset, y goes up
+        const marginL = 50, marginR = 30, marginT = 30, marginB = 50;
+        const uw = W - marginL - marginR;
+        const uh = H - marginT - marginB;
+        const zScale = uw / Z_MAX;
+        const xyScale = Math.min(uw, uh) * 0.22;
+
+        // Oblique: x contributes horizontal, y contributes vertical, z is the depth axis
+        const px = marginL + z * zScale + x * xyScale * 0.5;
+        const py = marginT + uh/2 - y * xyScale - x * xyScale * 0.25;
+        return [px, py];
+    }
+
+    function draw3dAxis(W, H) {
+        const { Ax, Ay, delta } = MODES[currentMode];
+        ctx3.strokeStyle = '#2a3a5a'; ctx3.lineWidth = 1;
+
+        // Z axis (propagation)
+        const [z0x, z0y] = project3d(0,    0, 0, W, H);
+        const [z1x, z1y] = project3d(Z_MAX,0, 0, W, H);
+        ctx3.beginPath(); ctx3.moveTo(z0x, z0y); ctx3.lineTo(z1x, z1y); ctx3.stroke();
+
+        // X axis (Ex) at z=0
+        const [xa, ya] = project3d(0, -1.5, 0, W, H);
+        const [xb, yb] = project3d(0,  1.5, 0, W, H);
+        ctx3.beginPath(); ctx3.moveTo(xa, ya); ctx3.lineTo(xb, yb); ctx3.stroke();
+
+        // Y axis (Ey) at z=0
+        const [yxa, yya] = project3d(0, 0, -1.5, W, H);
+        const [yxb, yyb] = project3d(0, 0,  1.5, W, H);
+        ctx3.beginPath(); ctx3.moveTo(yxa, yya); ctx3.lineTo(yxb, yyb); ctx3.stroke();
+
+        // Labels
+        ctx3.fillStyle = '#8892b0'; ctx3.font = '10px Space Mono';
+        ctx3.fillText('z', z1x + 4, z1y + 4);
+        ctx3.fillStyle = '#ff4444'; ctx3.fillText('Ex', xb + 4, yb);
+        ctx3.fillStyle = '#4488ff'; ctx3.fillText('Ey', yxb + 4, yyb);
+    }
+
+    function draw3d() {
+        const W = can3d.width, H = can3d.height;
+        if (!W || !H) return;
+        ctx3.clearRect(0, 0, W, H);
+
+        const { Ax, Ay, delta } = MODES[currentMode];
+
+        draw3dAxis(W, H);
+
+        // Build wave arrays
+        const Ex = [], Ey = [], pts3 = [];
+        for (let i = 0; i < Z_NPTS; i++) {
+            const z = Z_MAX * i / (Z_NPTS - 1);
+            const ex = Ax * Math.cos(K * z - t);
+            const ey = Ay * Math.cos(K * z - t + delta);
+            Ex.push([z, ex, 0]);
+            Ey.push([z, 0, ey]);
+            pts3.push([z, ex, ey]);
+        }
+
+        // Ex wave (red, in XZ plane)
+        ctx3.beginPath(); ctx3.strokeStyle = '#ff4444'; ctx3.lineWidth = 1.5;
+        Ex.forEach(([z, x, y], i) => {
+            const [px, py] = project3d(z, x, y, W, H);
+            i === 0 ? ctx3.moveTo(px, py) : ctx3.lineTo(px, py);
+        });
+        ctx3.stroke();
+
+        // Ey wave (blue, in YZ plane)
+        ctx3.beginPath(); ctx3.strokeStyle = '#4488ff'; ctx3.lineWidth = 1.5;
+        Ey.forEach(([z, x, y], i) => {
+            const [px, py] = project3d(z, x, y, W, H);
+            i === 0 ? ctx3.moveTo(px, py) : ctx3.lineTo(px, py);
+        });
+        ctx3.stroke();
+
+        // Resultant (white)
+        ctx3.beginPath(); ctx3.strokeStyle = '#fff'; ctx3.lineWidth = 2;
+        pts3.forEach(([z, x, y], i) => {
+            const [px, py] = project3d(z, x, y, W, H);
+            i === 0 ? ctx3.moveTo(px, py) : ctx3.lineTo(px, py);
+        });
+        ctx3.stroke();
+
+        // Front point (z=0)
+        const ex0 = Ax * Math.cos(-t), ey0 = Ay * Math.cos(-t + delta);
+        const [fpx, fpy] = project3d(0, ex0, ey0, W, H);
+        ctx3.beginPath(); ctx3.arc(fpx, fpy, 7, 0, Math.PI*2);
+        ctx3.fillStyle = '#ff88ff'; ctx3.shadowBlur = 12; ctx3.shadowColor = '#ff88ff';
+        ctx3.fill(); ctx3.shadowBlur = 0;
+
+        // Title overlay
+        ctx3.fillStyle = 'rgba(0,0,0,0.55)'; ctx3.fillRect(0, 0, W, 20);
+        ctx3.fillStyle = '#00d4ff'; ctx3.font = '10px Space Mono'; ctx3.textAlign = 'center';
+        ctx3.fillText(`PROPAGACIÓN 3D — ${MODES[currentMode].label}`, W/2, 13);
+        ctx3.textAlign = 'left';
+    }
+
+    function updateInfoBox() {
+        const { Ax, Ay, delta } = MODES[currentMode];
+        const deltaDeg = (delta * 180 / Math.PI).toFixed(0);
+        document.getElementById('infoDisplay').innerText =
+            `Ex = ${Ax}·cos(kz−t)   Ey = ${Ay}·cos(kz−t+δ)\nδ = ${deltaDeg}°   Ax = ${Ax}   Ay = ${Ay}\n${MODES[currentMode].label}`;
+    }
+
+    function loop() {
+        t += 0.06;
+        draw2d();
+        draw3d();
+        requestAnimationFrame(loop);
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+            updateInfoBox();
+        });
+    });
+
+    function resize() {
+        can2d.width  = can2d.offsetWidth;
+        can2d.height = can2d.offsetHeight || 280;
+        can3d.width  = can3d.offsetWidth;
+        can3d.height = can3d.offsetHeight || 400;
+    }
+    window.onresize = resize;
+    resize();
+    updateInfoBox();
+    loop();
+</script>
+</body>
+</html>

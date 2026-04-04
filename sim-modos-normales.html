@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modos Normales | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.78rem; line-height: 1.8; white-space: pre-line; }
+        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; margin-top: 4px; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        .plot-canvas { height: 180px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        /* Selector de modo */
+        .mode-group { margin-bottom: 15px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            font-family: 'Space Mono';
+            font-size: 0.55rem;
+            padding: 7px 3px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn[data-mode="sync"].active   { background: rgba(0,255,127,0.12); color: #00FF7F; border-color: #00FF7F; font-weight: bold; }
+        .mode-btn[data-mode="async"].active  { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+        .mode-btn[data-mode="free"].active   { background: rgba(255,215,0,0.12); color: #FFD700; border-color: #FFD700; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Sistema Acoplado de 2 Masas — Modos Normales — RK4</h1>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="260"></canvas>
+        <div class="controls">
+            <div id="freqDisplay" class="freq-box">ω₁ = --- rad/s  |  ω₂ = --- rad/s</div>
+
+            <div class="mode-group">
+                <span class="mode-label">Condición inicial</span>
+                <div class="mode-options">
+                    <button class="mode-btn" data-mode="sync">Sincrónico<br>(Modo 1)</button>
+                    <button class="mode-btn" data-mode="async">Antisincrónico<br>(Modo 2)</button>
+                    <button class="mode-btn active" data-mode="free">Evolución<br>Libre</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label style="color:#FFD700;">k₁ (techo) <span><span id="k1Val">10.0</span> N/m</span></label>
+                <input type="range" id="k1Slider" min="1.0" max="30.0" step="0.5" value="10.0" style="accent-color:#FFD700;">
+            </div>
+            <div class="control-group">
+                <label style="color:#FF8C00;">k₂ (medio) <span><span id="k2Val">5.0</span> N/m</span></label>
+                <input type="range" id="k2Slider" min="1.0" max="30.0" step="0.5" value="5.0" style="accent-color:#FF8C00;">
+            </div>
+            <div class="control-group">
+                <label style="color:#00FF7F;">m₁ <span><span id="m1Val">1.0</span> kg</span></label>
+                <input type="range" id="m1Slider" min="0.5" max="5.0" step="0.1" value="1.0" style="accent-color:#00FF7F;">
+            </div>
+            <div class="control-group">
+                <label style="color:#3CB371;">m₂ <span><span id="m2Val">1.5</span> kg</span></label>
+                <input type="range" id="m2Slider" min="0.5" max="5.0" step="0.1" value="1.5" style="accent-color:#3CB371;">
+            </div>
+            <button class="btn-restart" onclick="restart()">REINICIAR TODO</button>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canvasP" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasA" class="plot-canvas" height="180"></canvas>
+    </div>
+</div>
+
+<script>
+    const simC = document.getElementById('simCanvas'), ctxS = simC.getContext('2d');
+    const canP = document.getElementById('canvasP'), ctxP = canP.getContext('2d');
+    const canV = document.getElementById('canvasV'), ctxV = canV.getContext('2d');
+    const canA = document.getElementById('canvasA'), ctxA = canA.getContext('2d');
+
+    let k1 = 10.0, k2 = 5.0, m1 = 1.0, m2 = 1.5;
+    let ya, yb, va, vb, t;
+    const dt = 0.01, T_MAX = 10.0;
+    let history = [];
+    let currentMode = 'free';
+
+    function getAccel(ya_, yb_) {
+        const aa = (-k1 * ya_ + k2 * (yb_ - ya_)) / m1;
+        const ab = (-k2 * (yb_ - ya_)) / m2;
+        return [aa, ab];
+    }
+
+    function solveRK4() {
+        const deriv = (s) => {
+            const [pya, pyb, pva, pvb] = s;
+            const [aa, ab] = getAccel(pya, pyb);
+            return [pva, pvb, aa, ab];
+        };
+        const s = [ya, yb, va, vb];
+        const k1r = deriv(s);
+        const k2r = deriv(s.map((v2, i) => v2 + 0.5*dt*k1r[i]));
+        const k3r = deriv(s.map((v2, i) => v2 + 0.5*dt*k2r[i]));
+        const k4r = deriv(s.map((v2, i) => v2 + dt*k3r[i]));
+        [ya, yb, va, vb] = s.map((v2, i) => v2 + (dt/6)*(k1r[i] + 2*k2r[i] + 2*k3r[i] + k4r[i]));
+        t += dt;
+        if (t > T_MAX) { t = 0; history = []; }
+        const [aa, ab] = getAccel(ya, yb);
+        history.push({ t, ya, yb, va, vb, aa, ab });
+    }
+
+    function getOmegas() {
+        // eigenvalues of [[( k1+k2)/m1, -k2/m1], [-k2/m2, k2/m2]]
+        const a = (k1+k2)/m1, b2 = -k2/m1, c = -k2/m2, d = k2/m2;
+        const tr = a + d, det = a*d - b2*c;
+        const disc = Math.sqrt(Math.max(0, tr*tr/4 - det));
+        const lam1 = tr/2 - disc, lam2 = tr/2 + disc;
+        return [Math.sqrt(Math.max(0, lam1)), Math.sqrt(Math.max(0, lam2))];
+    }
+
+    function getInitialConditions() {
+        if (currentMode === 'sync')  return { ya: 0.5, yb: 0.8, va: 0, vb: 0 };
+        if (currentMode === 'async') return { ya: 0.5, yb: -0.5, va: 0, vb: 0 };
+        return { ya: 1.0, yb: 0.0, va: 0, vb: 0 };
+    }
+
+    function drawPlot(canvas, ctx, keyA, keyB, labelA, labelB, colorA, colorB, limit) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const margin = { left: 40, right: 20, top: 20, bottom: 30 };
+        const w = canvas.width - margin.left - margin.right;
+        const h = canvas.height - margin.top - margin.bottom;
+        const midY = margin.top + h/2;
+
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0';
+
+        for(let i=0; i<=10; i++) {
+            let gx = margin.left + (i/10)*w;
+            ctx.beginPath(); ctx.moveTo(gx, margin.top); ctx.lineTo(gx, margin.top + h); ctx.stroke();
+            if(i%2===0) ctx.fillText(i+'s', gx - 5, margin.top + h + 15);
+        }
+        ctx.fillText(limit, 5, margin.top + 5);
+        ctx.fillText('0', 5, midY + 4);
+        ctx.fillText('-' + limit, 5, margin.top + h);
+
+        ctx.beginPath(); ctx.strokeStyle = '#2a3a5a';
+        ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY); ctx.stroke();
+
+        // Labels
+        ctx.fillStyle = colorA; ctx.fillText(labelA, margin.left, margin.top - 8);
+        ctx.fillStyle = colorB; ctx.fillText(labelB, margin.left + 60, margin.top - 8);
+
+        if (history.length < 2) return;
+
+        // Curve A
+        ctx.beginPath(); ctx.strokeStyle = colorA; ctx.lineWidth = 2;
+        history.forEach((p, i) => {
+            const px = margin.left + (p.t / T_MAX) * w;
+            const py = midY - (p[keyA] * (h / (limit * 2)));
+            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+
+        // Curve B
+        ctx.beginPath(); ctx.strokeStyle = colorB; ctx.lineWidth = 2; ctx.setLineDash([5, 3]);
+        history.forEach((p, i) => {
+            const px = margin.left + (p.t / T_MAX) * w;
+            const py = midY - (p[keyB] * (h / (limit * 2)));
+            if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function drawSpring(ctx, x0, y0, x1, y1) {
+        const nodes = 16;
+        const dx = x1 - x0, dy = y1 - y0;
+        const len = Math.sqrt(dx*dx + dy*dy);
+        if (len < 1) return;
+        const px = -dy/len, py = dx/len;
+        const amp = 8;
+        ctx.beginPath(); ctx.strokeStyle = '#4e5b7e'; ctx.lineWidth = 2;
+        ctx.moveTo(x0, y0);
+        for(let i = 1; i < nodes; i++) {
+            const tt = i / nodes;
+            const bx = x0 + dx*tt, by = y0 + dy*tt;
+            const offset = (i % 2 === 0 ? amp : -amp);
+            ctx.lineTo(bx + px*offset, by + py*offset);
+        }
+        ctx.lineTo(x1, y1); ctx.stroke();
+    }
+
+    function loop() {
+        solveRK4();
+
+        ctxS.clearRect(0, 0, simC.width, simC.height);
+        const W = simC.width, H = simC.height;
+
+        // Layout: techo en top, dos masas colgando verticalmente
+        const ceilX = W / 2;
+        const ceilY = 28;
+        const scale = 55; // px per meter
+
+        // Posición de equilibrio de cada masa (relativa al techo)
+        const eqA = 80;   // px de equilibrio para masa A desde techo
+        const eqB = 160;  // px de equilibrio para masa B desde techo
+
+        const massAY = ceilY + eqA - ya * scale;
+        const massBY = ceilY + eqB - yb * scale;
+
+        // Barra de techo
+        ctxS.fillStyle = '#888';
+        ctxS.fillRect(ceilX - 55, ceilY - 8, 110, 8);
+
+        // Resorte 1: techo → masa A
+        drawSpring(ctxS, ceilX, ceilY, ceilX, massAY);
+
+        // Resorte 2: masa A → masa B
+        drawSpring(ctxS, ceilX, massAY + 16, ceilX, massBY - 16);
+
+        // Masa A
+        ctxS.beginPath();
+        ctxS.arc(ceilX, massAY, 16, 0, Math.PI*2);
+        ctxS.fillStyle = '#00FF7F';
+        ctxS.shadowBlur = 18; ctxS.shadowColor = '#00FF7F';
+        ctxS.fill(); ctxS.shadowBlur = 0;
+
+        // Masa B
+        ctxS.beginPath();
+        ctxS.arc(ceilX, massBY, 14, 0, Math.PI*2);
+        ctxS.fillStyle = '#FFD700';
+        ctxS.shadowBlur = 18; ctxS.shadowColor = '#FFD700';
+        ctxS.fill(); ctxS.shadowBlur = 0;
+
+        // Labels de masas
+        ctxS.font = '10px Space Mono';
+        ctxS.fillStyle = '#03050f';
+        ctxS.textAlign = 'center';
+        ctxS.fillText('m₁', ceilX, massAY + 4);
+        ctxS.fillText('m₂', ceilX, massBY + 4);
+        ctxS.textAlign = 'left';
+
+        // Líneas de equilibrio punteadas
+        ctxS.save();
+        ctxS.setLineDash([4, 5]);
+        ctxS.strokeStyle = 'rgba(0,255,127,0.15)';
+        ctxS.lineWidth = 1;
+        ctxS.beginPath(); ctxS.moveTo(ceilX - 40, ceilY + eqA); ctxS.lineTo(ceilX + 40, ceilY + eqA); ctxS.stroke();
+        ctxS.strokeStyle = 'rgba(255,215,0,0.15)';
+        ctxS.beginPath(); ctxS.moveTo(ceilX - 40, ceilY + eqB); ctxS.lineTo(ceilX + 40, ceilY + eqB); ctxS.stroke();
+        ctxS.restore();
+
+        // Compute dynamic limits
+        const [w1, w2] = getOmegas();
+        const ic = getInitialConditions();
+        const maxP = Math.max(Math.abs(ic.ya), Math.abs(ic.yb), 0.5) * 1.5;
+        const maxV = maxP * w2 * 1.2;
+        const maxA = maxP * w2 * w2 * 1.2;
+
+        drawPlot(canP, ctxP, 'ya', 'yb', 'ψa (m)', 'ψb (m)',   '#00FF7F', '#FFD700', parseFloat(maxP.toFixed(2)));
+        drawPlot(canV, ctxV, 'va', 'vb', 'va (m/s)', 'vb (m/s)', '#00FF7F', '#FFD700', parseFloat(maxV.toFixed(2)));
+        drawPlot(canA, ctxA, 'aa', 'ab', 'aa (m/s²)', 'ab (m/s²)', '#00FF7F', '#FFD700', parseFloat(maxA.toFixed(2)));
+
+        requestAnimationFrame(loop);
+    }
+
+    function updateFreqBox() {
+        const [w1, w2] = getOmegas();
+        document.getElementById('freqDisplay').innerText =
+            `FRECUENCIAS PROPIAS\nω₁ = ${w1.toFixed(3)} rad/s  |  ω₂ = ${w2.toFixed(3)} rad/s`;
+    }
+
+    function restart() {
+        const ic = getInitialConditions();
+        ya = ic.ya; yb = ic.yb; va = ic.va; vb = ic.vb;
+        t = 0; history = [];
+        updateFreqBox();
+    }
+
+    // Sliders
+    document.getElementById('k1Slider').oninput = e => { k1 = parseFloat(e.target.value); document.getElementById('k1Val').innerText = k1.toFixed(1); restart(); };
+    document.getElementById('k2Slider').oninput = e => { k2 = parseFloat(e.target.value); document.getElementById('k2Val').innerText = k2.toFixed(1); restart(); };
+    document.getElementById('m1Slider').oninput = e => { m1 = parseFloat(e.target.value); document.getElementById('m1Val').innerText = m1.toFixed(1); restart(); };
+    document.getElementById('m2Slider').oninput = e => { m2 = parseFloat(e.target.value); document.getElementById('m2Val').innerText = m2.toFixed(1); restart(); };
+
+    // Botones de modo
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+            restart();
+        });
+    });
+
+    function resize() { [simC, canP, canV, canA].forEach(c => c.width = c.offsetWidth); }
+    window.onresize = resize; resize();
+    restart(); loop();
+</script>
+</body>
+</html>

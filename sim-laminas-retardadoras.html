@@ -251,11 +251,6 @@
             zArr.push(z); Ex.push(ex); Ey.push(ey);
         }
 
-        // Resize
-        [canIn,can3d,canOut,canWide].forEach(c=>{
-            if(c.offsetWidth!==c.width) c.width=c.offsetWidth;
-        });
-
         drawPolarDiagram(ctxIn,  canIn.width,  canIn.height,  Ax, Ay, deltaIn,  '#ffdd00', 'Incidente');
         drawPolarDiagram(ctxOut, canOut.width, canOut.height, Ax, Ay, deltaOut, '#ff44ff', 'Salida');
         draw3dView(ctx3d,  can3d.width,  can3d.height,  Ex, Ey, zArr, false);
@@ -284,11 +279,15 @@
     };
 
     function resize(){
-        [canIn,can3d,canOut].forEach(c=>{ c.width=c.offsetWidth; c.height=c.offsetHeight||180; });
-        canWide.width=canWide.offsetWidth; canWide.height=canWide.offsetHeight||240;
+        // Use clientWidth to avoid triggering layout thrash
+        const topW = canIn.parentElement.clientWidth;
+        const wideW = canWide.parentElement.clientWidth;
+        [canIn, can3d, canOut].forEach(c=>{ c.width=topW; c.height=180; });
+        canWide.width = wideW; canWide.height = 240;
     }
-    window.onresize=resize; resize();
-    loop();
+    window.onresize=resize;
+    // Wait one frame for layout to settle before measuring
+    requestAnimationFrame(()=>{ resize(); loop(); });
 </script>
 </body>
 </html>

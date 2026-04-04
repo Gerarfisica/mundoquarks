@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Red de Difracción por Reflexión | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.75rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .plots-column { display: flex; flex-direction: column; gap: 12px; }
+        #canvasGeom { height: 180px; }
+        #canvasPlot { height: 280px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Red de Reflexión Tallada — Blazed Grating</h1>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="160"></canvas>
+        <div class="controls">
+            <div id="infoDisplay" class="freq-box">I = [sin(Nγ)/N·sin(γ)]² · sinc²(β)\nβ = π·d·cos(φ)·sin(θ−2φ)/λ</div>
+
+            <div class="control-group">
+                <label>Ángulo de faceta φ <span><span id="phiVal">8.4</span>°</span></label>
+                <input type="range" id="phiSlider" min="0" max="30" step="0.1" value="8.35">
+            </div>
+            <div class="control-group">
+                <label id="wavLabel" style="color:#ff6644;">Longitud de onda λ <span><span id="wavVal">600</span> nm</span></label>
+                <input type="range" id="wavSlider" min="400" max="750" step="1" value="600" style="accent-color:#ff6644;">
+            </div>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canvasGeom" height="180"></canvas>
+        <canvas id="canvasPlot" height="280"></canvas>
+    </div>
+</div>
+
+<script>
+    const simC   = document.getElementById('simCanvas'),  ctxS  = simC.getContext('2d');
+    const canG   = document.getElementById('canvasGeom'), ctxG  = canG.getContext('2d');
+    const canPl  = document.getElementById('canvasPlot'), ctxPl = canPl.getContext('2d');
+
+    const D_NM = 2000;  // grating period in nm (fixed)
+    const N_SLITS = 20;
+    const NPTS  = 1500;
+    const XLIM  = 60;   // ±60 degrees
+
+    let phi_deg = 8.35, wav_nm = 600;
+
+    function wavToRGB(w) {
+        let r, g, b;
+        if      (w < 440) { r = (440-w)/(440-380); g = 0;                 b = 1; }
+        else if (w < 490) { r = 0;                  g = (w-440)/(490-440); b = 1; }
+        else if (w < 510) { r = 0;                  g = 1;                 b = (510-w)/(510-490); }
+        else if (w < 580) { r = (w-510)/(580-510);  g = 1;                 b = 0; }
+        else if (w < 645) { r = 1;                  g = (645-w)/(645-580); b = 0; }
+        else              { r = 1;                  g = 0;                 b = 0; }
+        return [r, g, b];
+    }
+
+    function sinc(x) {
+        if (Math.abs(x) < 1e-12) return 1.0;
+        return Math.sin(x) / x;
+    }
+
+    function compute() {
+        const phi   = phi_deg * Math.PI / 180;
+        const d     = D_NM;   // nm
+        const wav   = wav_nm; // nm (same units as d)
+
+        const totalI = new Float64Array(NPTS);
+        const env    = new Float64Array(NPTS);
+        const thArr  = new Float64Array(NPTS);
+
+        for (let i = 0; i < NPTS; i++) {
+            const th = (-XLIM + 2*XLIM * i / (NPTS-1)) * Math.PI / 180;
+            thArr[i] = th;
+            const gamma = (Math.PI * d * Math.sin(th)) / wav;
+            let interf;
+            if (Math.abs(Math.sin(gamma)) < 1e-10) {
+                interf = 1.0;
+            } else {
+                const v = Math.sin(N_SLITS * gamma) / (N_SLITS * Math.sin(gamma));
+                interf = v * v;
+            }
+            const beta = (Math.PI * d * Math.cos(phi) * Math.sin(th - 2*phi)) / wav;
+            const e = sinc(beta / Math.PI) ** 2;
+            env[i]    = e;
+            totalI[i] = interf * e;
+        }
+        return { totalI, env, thArr };
+    }
+
+    // Blaze order and wavelength info
+    function blazeInfo() {
+        const phi = phi_deg * Math.PI / 180;
+        const d   = D_NM;
+        // Blaze condition: d·sin(2φ) = m·λ → for m=1: λ_blaze = d·sin(2φ)
+        const lambda_blaze = d * Math.sin(2 * phi);
+        // Which order is blazed at current λ?
+        const m_blaze = lambda_blaze > 0 ? Math.round(lambda_blaze / wav_nm) : 0;
+        return { lambda_blaze: lambda_blaze.toFixed(1), m_blaze };
+    }
+
+    // Draw schematic in left panel
+    function drawSchematic() {
+        const W = simC.width, H = simC.height;
+        if (!W || !H) return;
+        ctxS.clearRect(0, 0, W, H);
+
+        const phi = phi_deg * Math.PI / 180;
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        // Draw 5 blazed facets
+        const nFacets = 5;
+        const facetW  = (W * 0.7) / nFacets;
+        const startX  = W * 0.05;
+        const baseY   = H * 0.65;
+        const riseMax = H * 0.25;
+
+        ctxS.strokeStyle = '#00d4ff'; ctxS.lineWidth = 2.5;
+        for (let i = 0; i < nFacets; i++) {
+            const x0 = startX + i * facetW;
+            const x1 = x0 + facetW;
+            const rise = facetW * Math.tan(phi);
+            const y0 = baseY;
+            const y1 = baseY - Math.min(rise, riseMax);
+            ctxS.beginPath(); ctxS.moveTo(x0, y0); ctxS.lineTo(x1, y1); ctxS.stroke();
+            // Vertical drop
+            ctxS.strokeStyle = '#334'; ctxS.lineWidth = 1;
+            ctxS.beginPath(); ctxS.moveTo(x1, y1); ctxS.lineTo(x1, baseY); ctxS.stroke();
+            ctxS.strokeStyle = '#00d4ff'; ctxS.lineWidth = 2.5;
+        }
+
+        // Normal to a facet (middle one)
+        const mx = startX + 2.5 * facetW;
+        const my = baseY - Math.min(facetW*Math.tan(phi), riseMax) * 0.5;
+        const normalLen = 35;
+        // Normal to facet surface: perpendicular to slope direction
+        const nx = Math.sin(phi), ny = -Math.cos(phi);
+        ctxS.strokeStyle = 'rgba(255,255,255,0.4)'; ctxS.lineWidth = 1; ctxS.setLineDash([4,4]);
+        ctxS.beginPath(); ctxS.moveTo(mx - nx*normalLen, my - ny*normalLen); ctxS.lineTo(mx + nx*normalLen, my + ny*normalLen); ctxS.stroke();
+        ctxS.setLineDash([]);
+
+        // Incident ray (vertical)
+        ctxS.strokeStyle = col; ctxS.lineWidth = 2; ctxS.globalAlpha = 0.8;
+        ctxS.beginPath(); ctxS.moveTo(mx, my - 40); ctxS.lineTo(mx, my); ctxS.stroke();
+        // Arrow head
+        ctxS.beginPath(); ctxS.moveTo(mx, my); ctxS.lineTo(mx-5, my-10); ctxS.lineTo(mx+5, my-10); ctxS.closePath();
+        ctxS.fillStyle = col; ctxS.fill();
+        ctxS.globalAlpha = 1;
+
+        // Reflected ray (at 2φ from normal)
+        const refAngle = 2 * phi;
+        ctxS.strokeStyle = col; ctxS.lineWidth = 2; ctxS.globalAlpha = 0.6;
+        ctxS.beginPath();
+        ctxS.moveTo(mx, my);
+        ctxS.lineTo(mx + Math.sin(refAngle)*50, my - Math.cos(refAngle)*50);
+        ctxS.stroke();
+        ctxS.globalAlpha = 1;
+
+        // Labels
+        ctxS.font = '9px Space Mono'; ctxS.fillStyle = '#00d4ff';
+        ctxS.fillText(`φ = ${phi_deg.toFixed(1)}°`, startX + 2, baseY + 14);
+        ctxS.fillStyle = '#8892b0';
+        ctxS.fillText(`d = ${D_NM} nm`, startX + 2, baseY + 26);
+        ctxS.fillStyle = col;
+        ctxS.fillText(`λ = ${wav_nm} nm`, W * 0.6, 14);
+    }
+
+    // Draw facet geometry (right top canvas)
+    function drawGeometry() {
+        const W = canG.width, H = canG.height;
+        if (!W || !H) return;
+        ctxG.clearRect(0, 0, W, H);
+
+        const phi = phi_deg * Math.PI / 180;
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        // Draw 6 blazed facets across full width
+        const nFacets = 6;
+        const facetW  = W / nFacets;
+        const baseY   = H * 0.7;
+        const riseMax = H * 0.45;
+
+        for (let i = 0; i < nFacets; i++) {
+            const x0 = i * facetW;
+            const x1 = x0 + facetW;
+            const rise = Math.min(facetW * Math.tan(phi), riseMax);
+            const y0 = baseY, y1 = baseY - rise;
+
+            // Facet surface
+            ctxG.strokeStyle = '#00d4ff'; ctxG.lineWidth = 2.5;
+            ctxG.beginPath(); ctxG.moveTo(x0, y0); ctxG.lineTo(x1, y1); ctxG.stroke();
+
+            // Vertical drop
+            ctxG.strokeStyle = '#334'; ctxG.lineWidth = 1;
+            ctxG.beginPath(); ctxG.moveTo(x1, y1); ctxG.lineTo(x1, y0); ctxG.stroke();
+
+            // Incident ray
+            const midX = (x0 + x1)/2, midY = (y0 + y1)/2;
+            ctxG.strokeStyle = col; ctxG.lineWidth = 1.5; ctxG.globalAlpha = 0.7;
+            ctxG.beginPath(); ctxG.moveTo(midX, midY - 35); ctxG.lineTo(midX, midY); ctxG.stroke();
+
+            // Reflected ray at 2φ
+            const refLen = 35;
+            ctxG.beginPath();
+            ctxG.moveTo(midX, midY);
+            ctxG.lineTo(midX + Math.sin(2*phi)*refLen, midY - Math.cos(2*phi)*refLen);
+            ctxG.stroke();
+            ctxG.globalAlpha = 1;
+        }
+
+        // Angle arc label on middle facet
+        const mx = 3.5 * facetW;
+        const my = baseY - Math.min(facetW * Math.tan(phi), riseMax) * 0.5;
+        ctxG.strokeStyle = 'rgba(255,255,0,0.5)'; ctxG.lineWidth = 1; ctxG.setLineDash([3,3]);
+        ctxG.beginPath(); ctxG.moveTo(mx, my - 30); ctxG.lineTo(mx, my + 5); ctxG.stroke();
+        ctxG.setLineDash([]);
+        ctxG.fillStyle = '#FFD700'; ctxG.font = 'bold 10px Space Mono';
+        ctxG.fillText(`φ=${phi_deg.toFixed(1)}°`, mx + 5, my - 15);
+
+        // Title overlay
+        ctxG.fillStyle = 'rgba(0,0,0,0.55)'; ctxG.fillRect(0, 0, W, 20);
+        ctxG.fillStyle = '#00d4ff'; ctxG.font = '10px Space Mono'; ctxG.textAlign = 'center';
+        ctxG.fillText(`GEOMETRÍA DE FACETAS  d=${D_NM}nm  φ=${phi_deg.toFixed(1)}°`, W/2, 13);
+        ctxG.textAlign = 'left';
+    }
+
+    function drawPlot(data) {
+        const W = canPl.width, H = canPl.height;
+        if (!W || !H) return;
+        ctxPl.clearRect(0, 0, W, H);
+
+        const margin = { left: 50, right: 20, top: 28, bottom: 40 };
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        // Grid
+        ctxPl.strokeStyle = '#16203a'; ctxPl.lineWidth = 1;
+        ctxPl.font = '10px Space Mono'; ctxPl.fillStyle = '#8892b0';
+
+        for (let i = 0; i <= 5; i++) {
+            const gy = margin.top + (1 - i/5) * h;
+            ctxPl.beginPath(); ctxPl.moveTo(margin.left, gy); ctxPl.lineTo(margin.left + w, gy); ctxPl.stroke();
+            ctxPl.fillText((i/5).toFixed(1), 4, gy + 4);
+        }
+        // X axis: ±60°
+        for (let deg = -60; deg <= 60; deg += 20) {
+            const gx = margin.left + (deg + XLIM) / (2*XLIM) * w;
+            ctxPl.beginPath(); ctxPl.moveTo(gx, margin.top); ctxPl.lineTo(gx, margin.top + h); ctxPl.stroke();
+            ctxPl.fillText(`${deg}°`, gx - 8, margin.top + h + 14);
+        }
+        ctxPl.fillText('Ángulo emergencia θ (°)', margin.left + w/2 - 70, margin.top + h + 32);
+        ctxPl.fillText('I / I₀', 4, margin.top - 10);
+
+        // Title
+        ctxPl.fillStyle = '#fff'; ctxPl.font = '10px Space Mono';
+        ctxPl.fillText(`PATRÓN BLAZED  φ=${phi_deg.toFixed(1)}°  λ=${wav_nm}nm  d=${D_NM}nm`, margin.left, margin.top - 10);
+
+        const mapX = th_rad => margin.left + (th_rad * 180/Math.PI + XLIM) / (2*XLIM) * w;
+        const mapY = I => margin.top + (1 - Math.min(1, I)) * h;
+
+        // Envelope (red dashed)
+        ctxPl.beginPath(); ctxPl.strokeStyle = 'rgba(255,80,80,0.6)'; ctxPl.lineWidth = 1.5; ctxPl.setLineDash([5,4]);
+        data.env.forEach((e, i) => {
+            const px = mapX(data.thArr[i]), py = mapY(e);
+            i===0 ? ctxPl.moveTo(px, py) : ctxPl.lineTo(px, py);
+        });
+        ctxPl.stroke(); ctxPl.setLineDash([]);
+
+        // Fill under total
+        ctxPl.beginPath();
+        ctxPl.moveTo(mapX(data.thArr[0]), margin.top + h);
+        data.totalI.forEach((I, i) => ctxPl.lineTo(mapX(data.thArr[i]), mapY(I)));
+        ctxPl.lineTo(mapX(data.thArr[NPTS-1]), margin.top + h);
+        ctxPl.closePath();
+        ctxPl.fillStyle = `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},0.18)`;
+        ctxPl.fill();
+
+        // Total intensity
+        ctxPl.beginPath(); ctxPl.strokeStyle = '#fff'; ctxPl.lineWidth = 1.5;
+        data.totalI.forEach((I, i) => {
+            const px = mapX(data.thArr[i]), py = mapY(I);
+            i===0 ? ctxPl.moveTo(px, py) : ctxPl.lineTo(px, py);
+        });
+        ctxPl.stroke();
+
+        // Blaze peak marker (2φ)
+        const phi = phi_deg * Math.PI / 180;
+        const blaze_th = 2 * phi;
+        const bx = mapX(blaze_th);
+        ctxPl.strokeStyle = '#FFD700'; ctxPl.lineWidth = 1; ctxPl.setLineDash([4,4]);
+        ctxPl.beginPath(); ctxPl.moveTo(bx, margin.top); ctxPl.lineTo(bx, margin.top + h); ctxPl.stroke();
+        ctxPl.setLineDash([]);
+        ctxPl.fillStyle = '#FFD700'; ctxPl.font = '9px Space Mono'; ctxPl.textAlign = 'center';
+        ctxPl.fillText(`2φ=${(phi_deg*2).toFixed(1)}°`, bx, margin.top + 13);
+
+        // Order markers (d·sinθ = m·λ → θ = arcsin(m·λ/d))
+        const d = D_NM, wav = wav_nm;
+        ctxPl.font = 'bold 9px Space Mono'; ctxPl.fillStyle = '#aaddff';
+        for (let m = -5; m <= 5; m++) {
+            const sinTh = m * wav / d;
+            if (Math.abs(sinTh) >= 1) continue;
+            const th_m = Math.asin(sinTh);
+            if (Math.abs(th_m) > XLIM * Math.PI / 180) continue;
+            const px = mapX(th_m);
+            ctxPl.fillText(`m=${m}`, px, margin.top + h - 5);
+        }
+        ctxPl.textAlign = 'left';
+
+        // Legend
+        ctxPl.font = '9px Space Mono';
+        ctxPl.fillStyle = '#fff'; ctxPl.fillText('─ Total', margin.left + w - 130, margin.top + 14);
+        ctxPl.fillStyle = 'rgba(255,80,80,0.8)'; ctxPl.fillText('╌ Envolvente (blazing)', margin.left + w - 130, margin.top + 26);
+    }
+
+    function update() {
+        const data = compute();
+        const { lambda_blaze, m_blaze } = blazeInfo();
+        drawSchematic();
+        drawGeometry();
+        drawPlot(data);
+
+        document.getElementById('infoDisplay').innerText =
+            `I = [sin(Nγ)/N·sin(γ)]² · sinc²(β)\nβ = π·d·cos(φ)·sin(θ−2φ)/λ\nλ_blaze = d·sin(2φ) = ${lambda_blaze} nm  →  orden m=${m_blaze} intensificado`;
+    }
+
+    document.getElementById('phiSlider').oninput = e => {
+        phi_deg = parseFloat(e.target.value);
+        document.getElementById('phiVal').innerText = phi_deg.toFixed(1);
+        update();
+    };
+    document.getElementById('wavSlider').oninput = e => {
+        wav_nm = parseInt(e.target.value);
+        document.getElementById('wavVal').innerText = wav_nm;
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+        e.target.style.accentColor = col;
+        document.getElementById('wavLabel').style.color = col;
+        update();
+    };
+
+    function resize() {
+        simC.width   = simC.offsetWidth;
+        canG.width   = canG.offsetWidth;
+        canG.height  = 180;
+        canPl.width  = canPl.offsetWidth;
+        canPl.height = 280;
+        update();
+    }
+    window.onresize = resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

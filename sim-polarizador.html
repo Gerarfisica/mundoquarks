@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Polarizador | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; border: 1px solid #1a2a4a; display: block; }
+        .controls { margin-top: 16px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: #ff44ff; cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.72rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .btn-reset { width: 100%; padding: 8px; background: #1a1a2a; border: 1px solid #ff44ff; color: #ff44ff; font-family: 'Space Mono'; font-size: 0.65rem; border-radius: 5px; cursor: pointer; margin-top: 6px; transition: 0.2s; }
+        .btn-reset:hover { background: rgba(255,68,255,0.15); }
+
+        .mode-group { margin-bottom: 14px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .mode-options { display: flex; flex-direction: column; gap: 5px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            font-family: 'Space Mono';
+            font-size: 0.62rem;
+            padding: 7px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn[data-mode="natural"].active { background: rgba(180,180,180,0.1); color: #ccc; border-color: #ccc; font-weight: bold; }
+        .mode-btn[data-mode="lineal"].active  { background: rgba(255,220,0,0.1); color: #ffdd00; border-color: #ffdd00; font-weight: bold; }
+        .mode-btn[data-mode="circular"].active{ background: rgba(0,212,255,0.1); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+
+        /* Right column: 4 canvases in a 2×2 grid */
+        .right-col { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; }
+        .canvas-wrap { display: flex; flex-direction: column; gap: 4px; }
+        .canvas-label { font-family: 'Space Mono'; font-size: 0.65rem; color: var(--gray); text-align: center; }
+        .right-col canvas { width: 100%; height: 220px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Polarizador — Ley de Malus — Registro I vs Ángulo</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">I_trans = ---\nLey de Malus: I = I₀·cos²(θ)</div>
+        <div class="controls">
+            <div class="mode-group">
+                <span class="mode-label">Tipo de luz incidente</span>
+                <div class="mode-options">
+                    <button class="mode-btn active" data-mode="natural">Luz Natural (I₀)</button>
+                    <button class="mode-btn" data-mode="lineal">Luz Lineal Vertical</button>
+                    <button class="mode-btn" data-mode="circular">Luz Circular</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Ángulo del polarizador <span><span id="thetaVal">90</span>°</span></label>
+                <input type="range" id="thetaSlider" min="0" max="180" step="1" value="90">
+            </div>
+            <button class="btn-reset" id="btnReset">↺ Borrar registro I vs θ</button>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="canvas-wrap">
+            <div class="canvas-label">LUZ INCIDENTE</div>
+            <canvas id="canIn"   height="220"></canvas>
+        </div>
+        <div class="canvas-wrap">
+            <div class="canvas-label">POLARIZADOR</div>
+            <canvas id="canFilt" height="220"></canvas>
+        </div>
+        <div class="canvas-wrap">
+            <div class="canvas-label">LUZ TRANSMITIDA</div>
+            <canvas id="canOut"  height="220"></canvas>
+        </div>
+        <div class="canvas-wrap">
+            <div class="canvas-label">REGISTRO: I vs ÁNGULO</div>
+            <canvas id="canGraph" height="220"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canIn    = document.getElementById('canIn'),    ctxIn    = canIn.getContext('2d');
+    const canFilt  = document.getElementById('canFilt'),  ctxFilt  = canFilt.getContext('2d');
+    const canOut   = document.getElementById('canOut'),   ctxOut   = canOut.getContext('2d');
+    const canGraph = document.getElementById('canGraph'), ctxGraph = canGraph.getContext('2d');
+
+    let currentMode = 'natural';
+    let theta_deg = 90;
+    let t = 0;
+    let histTheta = [], histI = [];
+    let frameCount = 0;
+
+    // ── HELPERS ──────────────────────────────────────────────────────────────
+    function circleClip(ctx, cx, cy, r) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.clip();
+    }
+
+    function arrow(ctx, x0, y0, x1, y1, color, lw) {
+        const dx = x1-x0, dy = y1-y0;
+        const len = Math.sqrt(dx*dx+dy*dy);
+        if (len < 1) return;
+        const ux = dx/len, uy = dy/len;
+        const hw = lw * 3;
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1 - ux*hw*1.5, y1 - uy*hw*1.5);
+        ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x1 - ux*hw*2 - uy*hw, y1 - uy*hw*2 + ux*hw);
+        ctx.lineTo(x1 - ux*hw*2 + uy*hw, y1 - uy*hw*2 - ux*hw);
+        ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+    }
+
+    // ── COMPUTE INTENSITY ────────────────────────────────────────────────────
+    function getIout() {
+        const theta_pol = theta_deg * Math.PI / 180;
+        if (currentMode === 'natural')  return 0.5;
+        if (currentMode === 'circular') return 0.5;
+        // lineal vertical (at 90°): delta = 90° - theta_pol
+        const delta_phi = Math.PI/2 - theta_pol;
+        return Math.cos(delta_phi) ** 2;
+    }
+
+    // ── DRAW INCIDENT ─────────────────────────────────────────────────────────
+    function drawIncident() {
+        const W = canIn.width, H = canIn.height;
+        if (!W || !H) return;
+        ctxIn.clearRect(0, 0, W, H);
+        const cx = W/2, cy = H/2, R = Math.min(W,H)*0.38;
+
+        // Circle border
+        ctxIn.beginPath(); ctxIn.arc(cx, cy, R, 0, Math.PI*2);
+        ctxIn.strokeStyle = '#2a3a5a'; ctxIn.lineWidth = 1; ctxIn.stroke();
+
+        if (currentMode === 'natural') {
+            // Multiple arrows in all directions
+            ctxIn.globalAlpha = 0.55;
+            for (let ang = 0; ang < Math.PI; ang += Math.PI/6) {
+                const dx = Math.cos(ang)*R*0.75, dy = Math.sin(ang)*R*0.75;
+                arrow(ctxIn, cx-dx, cy-dy, cx+dx, cy+dy, '#aaa', 2);
+            }
+            ctxIn.globalAlpha = 1;
+            ctxIn.fillStyle = '#ccc'; ctxIn.font = 'bold 11px Space Mono'; ctxIn.textAlign = 'center';
+            ctxIn.fillText('LUZ NATURAL', cx, cy + R + 16);
+
+        } else if (currentMode === 'lineal') {
+            // Single vertical arrow
+            arrow(ctxIn, cx, cy+R*0.75, cx, cy-R*0.75, '#ffdd00', 3);
+            ctxIn.fillStyle = '#ffdd00'; ctxIn.font = 'bold 10px Space Mono'; ctxIn.textAlign = 'center';
+            ctxIn.fillText('LINEAL (V)', cx, cy + R + 16);
+
+        } else { // circular
+            // Rotating arrow
+            const ex = Math.cos(-t) * R*0.7, ey = Math.sin(-t) * R*0.7;
+            // Trace
+            ctxIn.beginPath(); ctxIn.arc(cx, cy, R*0.7, 0, Math.PI*2);
+            ctxIn.strokeStyle = 'rgba(0,212,255,0.2)'; ctxIn.lineWidth = 1; ctxIn.setLineDash([3,4]); ctxIn.stroke(); ctxIn.setLineDash([]);
+            arrow(ctxIn, cx, cy, cx+ex, cy+ey, '#00d4ff', 3);
+            ctxIn.fillStyle = '#00d4ff'; ctxIn.font = 'bold 10px Space Mono'; ctxIn.textAlign = 'center';
+            ctxIn.fillText('CIRCULAR', cx, cy + R + 16);
+        }
+        ctxIn.textAlign = 'left';
+    }
+
+    // ── DRAW FILTER ───────────────────────────────────────────────────────────
+    function drawFilter() {
+        const W = canFilt.width, H = canFilt.height;
+        if (!W || !H) return;
+        ctxFilt.clearRect(0, 0, W, H);
+        const cx = W/2, cy = H/2, R = Math.min(W,H)*0.38;
+        const theta_pol = theta_deg * Math.PI / 180;
+
+        // Disk
+        ctxFilt.beginPath(); ctxFilt.arc(cx, cy, R, 0, Math.PI*2);
+        ctxFilt.fillStyle = 'rgba(255,68,255,0.06)'; ctxFilt.fill();
+        ctxFilt.strokeStyle = '#ff44ff'; ctxFilt.lineWidth = 1.5; ctxFilt.stroke();
+
+        // Transmission axis lines (stripes perpendicular to polarization direction)
+        ctxFilt.save();
+        circleClip(ctxFilt, cx, cy, R-2);
+        ctxFilt.strokeStyle = 'rgba(255,68,255,0.35)'; ctxFilt.lineWidth = 1;
+        const perpAngle = theta_pol + Math.PI/2;
+        for (let d = -R; d <= R; d += R/5) {
+            const sx = cx + Math.cos(theta_pol)*(-R) + Math.cos(perpAngle)*d;
+            const sy = cy + Math.sin(theta_pol)*(-R) + Math.sin(perpAngle)*d;
+            const ex2 = cx + Math.cos(theta_pol)*(R) + Math.cos(perpAngle)*d;
+            const ey2 = cy + Math.sin(theta_pol)*(R) + Math.sin(perpAngle)*d;
+            ctxFilt.beginPath(); ctxFilt.moveTo(sx, sy); ctxFilt.lineTo(ex2, ey2); ctxFilt.stroke();
+        }
+        ctxFilt.restore();
+
+        // Transmission axis arrow
+        const axLen = R*0.85;
+        arrow(ctxFilt, cx - Math.cos(theta_pol)*axLen, cy - Math.sin(theta_pol)*axLen,
+                       cx + Math.cos(theta_pol)*axLen, cy + Math.sin(theta_pol)*axLen, '#ff44ff', 2.5);
+
+        // Label
+        ctxFilt.fillStyle = '#ff44ff'; ctxFilt.font = 'bold 10px Space Mono'; ctxFilt.textAlign = 'center';
+        ctxFilt.fillText(`θ = ${theta_deg}°`, cx, cy + R + 16);
+        ctxFilt.textAlign = 'left';
+    }
+
+    // ── DRAW OUTPUT ───────────────────────────────────────────────────────────
+    function drawOutput() {
+        const W = canOut.width, H = canOut.height;
+        if (!W || !H) return;
+        ctxOut.clearRect(0, 0, W, H);
+        const cx = W/2, cy = H/2, R = Math.min(W,H)*0.38;
+        const theta_pol = theta_deg * Math.PI / 180;
+        const I_out = getIout();
+        const amp = Math.sqrt(I_out);
+
+        // Circle
+        ctxOut.beginPath(); ctxOut.arc(cx, cy, R, 0, Math.PI*2);
+        ctxOut.strokeStyle = '#2a3a5a'; ctxOut.lineWidth = 1; ctxOut.stroke();
+
+        if (I_out > 0.001) {
+            const axLen = R * amp * 0.85;
+            // Glow
+            ctxOut.shadowBlur = 18; ctxOut.shadowColor = 'orange';
+            arrow(ctxOut, cx - Math.cos(theta_pol)*axLen, cy - Math.sin(theta_pol)*axLen,
+                          cx + Math.cos(theta_pol)*axLen, cy + Math.sin(theta_pol)*axLen, 'orange', 3 + amp*2);
+            ctxOut.shadowBlur = 0;
+        }
+
+        // Intensity bar
+        const barW = R*1.4, barH = 12, barX = cx - barW/2, barY = cy + R + 8;
+        ctxOut.fillStyle = '#1a2a3a'; ctxOut.fillRect(barX, barY, barW, barH);
+        ctxOut.fillStyle = `rgba(255,140,0,${0.3 + I_out*0.7})`;
+        ctxOut.fillRect(barX, barY, barW * I_out, barH);
+        ctxOut.strokeStyle = '#555'; ctxOut.lineWidth = 1; ctxOut.strokeRect(barX, barY, barW, barH);
+
+        ctxOut.fillStyle = 'orange'; ctxOut.font = 'bold 10px Space Mono'; ctxOut.textAlign = 'center';
+        ctxOut.fillText(`I = ${I_out.toFixed(3)} I₀`, cx, barY + barH + 14);
+        ctxOut.textAlign = 'left';
+    }
+
+    // ── DRAW GRAPH ────────────────────────────────────────────────────────────
+    function drawGraph() {
+        const W = canGraph.width, H = canGraph.height;
+        if (!W || !H) return;
+        ctxGraph.clearRect(0, 0, W, H);
+
+        const margin = { left: 40, right: 15, top: 20, bottom: 35 };
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+
+        // Grid
+        ctxGraph.strokeStyle = '#16203a'; ctxGraph.lineWidth = 1;
+        ctxGraph.font = '9px Space Mono'; ctxGraph.fillStyle = '#8892b0';
+
+        for (let i = 0; i <= 4; i++) {
+            const gy = margin.top + (1-i/4)*h;
+            ctxGraph.beginPath(); ctxGraph.moveTo(margin.left, gy); ctxGraph.lineTo(margin.left+w, gy); ctxGraph.stroke();
+            ctxGraph.fillText((i/4).toFixed(2), 2, gy+4);
+        }
+        for (let deg = 0; deg <= 180; deg += 45) {
+            const gx = margin.left + deg/180*w;
+            ctxGraph.beginPath(); ctxGraph.moveTo(gx, margin.top); ctxGraph.lineTo(gx, margin.top+h); ctxGraph.stroke();
+            ctxGraph.fillText(`${deg}°`, gx-8, margin.top+h+14);
+        }
+        ctxGraph.fillText('Ángulo (°)', margin.left+w/2-25, margin.top+h+28);
+        ctxGraph.fillText('I/I₀', 2, margin.top-6);
+
+        // Theoretical curve
+        const I_out = getIout();
+        ctxGraph.beginPath(); ctxGraph.strokeStyle = 'rgba(255,255,255,0.15)'; ctxGraph.lineWidth = 1; ctxGraph.setLineDash([4,4]);
+        for (let deg = 0; deg <= 180; deg++) {
+            const th = deg * Math.PI/180;
+            let I_th;
+            if (currentMode === 'natural' || currentMode === 'circular') {
+                I_th = 0.5;
+            } else {
+                const df = Math.PI/2 - th;
+                I_th = Math.cos(df)**2;
+            }
+            const gx = margin.left + deg/180*w;
+            const gy = margin.top + (1-I_th)*h;
+            deg===0 ? ctxGraph.moveTo(gx,gy) : ctxGraph.lineTo(gx,gy);
+        }
+        ctxGraph.stroke(); ctxGraph.setLineDash([]);
+
+        // Recorded points
+        if (histTheta.length > 0) {
+            ctxGraph.fillStyle = 'rgba(255,140,0,0.6)';
+            histTheta.forEach((th, i) => {
+                const gx = margin.left + th/180*w;
+                const gy = margin.top + (1-histI[i])*h;
+                ctxGraph.beginPath(); ctxGraph.arc(gx, gy, 3, 0, Math.PI*2); ctxGraph.fill();
+            });
+        }
+
+        // Current point (highlighted)
+        const I_cur = getIout();
+        const curX = margin.left + theta_deg/180*w;
+        const curY = margin.top + (1-I_cur)*h;
+        ctxGraph.beginPath(); ctxGraph.arc(curX, curY, 6, 0, Math.PI*2);
+        ctxGraph.fillStyle = '#ff4444'; ctxGraph.fill();
+        ctxGraph.fillStyle = '#fff'; ctxGraph.font = 'bold 9px Space Mono'; ctxGraph.textAlign = 'center';
+        ctxGraph.fillText(I_cur.toFixed(2), curX, curY-10);
+        ctxGraph.textAlign = 'left';
+    }
+
+    function updateInfoBox() {
+        const I_out = getIout();
+        const modeStr = { natural: 'Luz Natural → I = I₀/2', lineal: 'Luz Lineal → I = I₀·cos²(θ-90°)', circular: 'Luz Circular → I = I₀/2' };
+        document.getElementById('infoDisplay').innerText =
+            `I_trans = ${I_out.toFixed(3)} · I₀\n${modeStr[currentMode]}\nθ polarizador = ${theta_deg}°`;
+    }
+
+    function loop() {
+        t += 0.06; frameCount++;
+        // Record every ~10 frames on slider change is handled separately
+        // Auto-record every 30 frames while animating
+        if (frameCount % 30 === 0) {
+            histTheta.push(theta_deg);
+            histI.push(getIout());
+            // Keep max 200 points
+            if (histTheta.length > 200) { histTheta.shift(); histI.shift(); }
+        }
+        resizeCanvases();
+        drawIncident();
+        drawFilter();
+        drawOutput();
+        drawGraph();
+        updateInfoBox();
+        requestAnimationFrame(loop);
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+            histTheta = []; histI = [];
+        });
+    });
+
+    document.getElementById('thetaSlider').oninput = e => {
+        theta_deg = parseInt(e.target.value);
+        document.getElementById('thetaVal').innerText = theta_deg;
+        // Record point on slider move
+        histTheta.push(theta_deg);
+        histI.push(getIout());
+        if (histTheta.length > 200) { histTheta.shift(); histI.shift(); }
+    };
+
+    document.getElementById('btnReset').onclick = () => { histTheta = []; histI = []; };
+
+    function resizeCanvases() {
+        [canIn, canFilt, canOut, canGraph].forEach(c => {
+            if (c.offsetWidth !== c.width) c.width = c.offsetWidth;
+            if (c.offsetHeight !== c.height) c.height = c.offsetHeight || 220;
+        });
+    }
+
+    window.onresize = resizeCanvases;
+    resizeCanvases();
+    loop();
+</script>
+</body>
+</html>

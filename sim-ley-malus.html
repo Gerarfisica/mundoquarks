@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ley de Malus | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; border: 1px solid #1a2a4a; display: block; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 13px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        .mode-group { margin-bottom: 14px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 7px; display: block; }
+        .mode-options { display: flex; flex-direction: column; gap: 5px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.6rem;
+            padding: 6px 8px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: left;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn[data-mode="natural"].active  { background: rgba(180,180,180,0.1); color: #ccc;     border-color: #ccc; font-weight: bold; }
+        .mode-btn[data-mode="circular"].active { background: rgba(0,212,255,0.1);   color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+        .mode-btn[data-mode="lineal"].active   { background: rgba(255,220,0,0.1);   color: #ffdd00; border-color: #ffdd00; font-weight: bold; }
+
+        /* Right: top row = 6 panels, bottom = bar chart */
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
+        .panels-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+        .panel-wrap { display: flex; flex-direction: column; gap: 3px; }
+        .panels-row canvas { width: 100%; height: 160px; }
+        .panel-label { font-family: 'Space Mono'; font-size: 0.55rem; color: var(--gray); text-align: center; }
+        #canBar { width: 100%; height: 160px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Experimento del Tercer Polarizador — Ley de Malus en Cascada</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">I₁ = ---  I₂ = ---  I_f = ---</div>
+        <div class="controls">
+            <div class="mode-group">
+                <span class="mode-label">Tipo de luz incidente</span>
+                <div class="mode-options">
+                    <button class="mode-btn active" data-mode="natural">Luz Natural (I₀)</button>
+                    <button class="mode-btn" data-mode="circular">Luz Circular</button>
+                    <button class="mode-btn" data-mode="lineal">Luz Lineal (V)</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label style="color:#ff44ff;">Ángulo Pol 1 <span><span id="th1Val">0</span>°</span></label>
+                <input type="range" id="th1Slider" min="0" max="180" step="1" value="0" style="accent-color:#ff44ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:#00d4ff;">Ángulo Pol 2 <span><span id="th2Val">45</span>°</span></label>
+                <input type="range" id="th2Slider" min="0" max="180" step="1" value="45" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:#00ff88;">Ángulo Pol 3 <span><span id="th3Val">90</span>°</span></label>
+                <input type="range" id="th3Slider" min="0" max="180" step="1" value="90" style="accent-color:#00ff88;">
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="panels-row">
+            <div class="panel-wrap"><div class="panel-label">FUENTE</div>      <canvas id="canSrc"  height="160"></canvas></div>
+            <div class="panel-wrap"><div class="panel-label">POL 1</div>       <canvas id="canP1"   height="160"></canvas></div>
+            <div class="panel-wrap"><div class="panel-label">TRAS POL 1</div>  <canvas id="canA1"   height="160"></canvas></div>
+            <div class="panel-wrap"><div class="panel-label">POL 2 (INT)</div> <canvas id="canP2"   height="160"></canvas></div>
+            <div class="panel-wrap"><div class="panel-label">POL 3</div>       <canvas id="canP3"   height="160"></canvas></div>
+            <div class="panel-wrap"><div class="panel-label">SALIDA FINAL</div><canvas id="canOut"  height="160"></canvas></div>
+        </div>
+        <canvas id="canBar" height="160"></canvas>
+    </div>
+</div>
+
+<script>
+    const canSrc = document.getElementById('canSrc'), ctxSrc = canSrc.getContext('2d');
+    const canP1  = document.getElementById('canP1'),  ctxP1  = canP1.getContext('2d');
+    const canA1  = document.getElementById('canA1'),  ctxA1  = canA1.getContext('2d');
+    const canP2  = document.getElementById('canP2'),  ctxP2  = canP2.getContext('2d');
+    const canP3  = document.getElementById('canP3'),  ctxP3  = canP3.getContext('2d');
+    const canOut = document.getElementById('canOut'), ctxOut = canOut.getContext('2d');
+    const canBar = document.getElementById('canBar'), ctxBar = canBar.getContext('2d');
+
+    let currentMode = 'natural';
+    let th1 = 0, th2 = 45, th3 = 90;
+    let t = 0;
+
+    function arrow(ctx, x0, y0, x1, y1, color, lw) {
+        const dx = x1-x0, dy = y1-y0, len = Math.sqrt(dx*dx+dy*dy);
+        if (len < 1) return;
+        const ux = dx/len, uy = dy/len, hw = lw*3;
+        ctx.beginPath(); ctx.moveTo(x0, y0);
+        ctx.lineTo(x1 - ux*hw*1.5, y1 - uy*hw*1.5);
+        ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x1 - ux*hw*2 - uy*hw, y1 - uy*hw*2 + ux*hw);
+        ctx.lineTo(x1 - ux*hw*2 + uy*hw, y1 - uy*hw*2 - ux*hw);
+        ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+    }
+
+    function clearCircle(ctx, W, H) {
+        ctx.clearRect(0,0,W,H);
+        const cx=W/2, cy=H/2, R=Math.min(W,H)*0.4;
+        ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+        ctx.strokeStyle='#2a3a5a'; ctx.lineWidth=1; ctx.stroke();
+        return {cx,cy,R};
+    }
+
+    function drawPolarizer(ctx, W, H, angle_deg, color, label) {
+        const {cx,cy,R} = clearCircle(ctx,W,H);
+        const th = angle_deg * Math.PI / 180;
+        // Disk fill
+        ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+        ctx.fillStyle = `rgba(${color === '#ff44ff' ? '255,68,255' : color === '#00d4ff' ? '0,212,255' : '0,255,136'},0.06)`;
+        ctx.fill();
+        // Stripes
+        ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
+        for (let d = -0.7; d <= 0.7; d += 0.7/3.5) {
+            const perpAng = th + Math.PI/2;
+            const sx = cx + Math.cos(th)*(-R*0.85) + Math.cos(perpAng)*d*R;
+            const sy = cy + Math.sin(th)*(-R*0.85) + Math.sin(perpAng)*d*R;
+            const ex = cx + Math.cos(th)*(R*0.85)  + Math.cos(perpAng)*d*R;
+            const ey = cy + Math.sin(th)*(R*0.85)  + Math.sin(perpAng)*d*R;
+            ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        // Axis arrow
+        arrow(ctx, cx-Math.cos(th)*R*0.8, cy-Math.sin(th)*R*0.8,
+                   cx+Math.cos(th)*R*0.8, cy+Math.sin(th)*R*0.8, color, 2);
+        // Label
+        ctx.fillStyle = color; ctx.font = 'bold 9px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(label, cx, cy+R+14); ctx.textAlign='left';
+    }
+
+    function drawBeam(ctx, W, H, angle_deg, intensity, color) {
+        const {cx,cy,R} = clearCircle(ctx,W,H);
+        if (intensity < 0.001) {
+            ctx.fillStyle='#333'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+            ctx.fillText('I = 0', cx, cy); ctx.textAlign='left'; return;
+        }
+        const th = angle_deg * Math.PI / 180;
+        const amp = Math.sqrt(intensity);
+        ctx.shadowBlur = 14; ctx.shadowColor = color;
+        arrow(ctx, cx-Math.cos(th)*R*amp*0.8, cy-Math.sin(th)*R*amp*0.8,
+                   cx+Math.cos(th)*R*amp*0.8, cy+Math.sin(th)*R*amp*0.8, color, 2+amp*3);
+        ctx.shadowBlur = 0;
+        // Intensity bar
+        const bw=R*1.5, bh=8, bx=cx-bw/2, by=cy+R+4;
+        ctx.fillStyle='#1a2a3a'; ctx.fillRect(bx,by,bw,bh);
+        ctx.fillStyle=color; ctx.globalAlpha=0.4+intensity*0.6;
+        ctx.fillRect(bx,by,bw*intensity,bh); ctx.globalAlpha=1;
+        ctx.fillStyle=color; ctx.font='8px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`I=${intensity.toFixed(3)}`, cx, by+bh+11); ctx.textAlign='left';
+    }
+
+    function drawSource(ctx, W, H) {
+        const {cx,cy,R} = clearCircle(ctx,W,H);
+        if (currentMode === 'natural') {
+            ctx.globalAlpha=0.55;
+            for (let ang=0; ang<Math.PI; ang+=Math.PI/6) {
+                arrow(ctx, cx-Math.cos(ang)*R*0.7, cy-Math.sin(ang)*R*0.7,
+                           cx+Math.cos(ang)*R*0.7, cy+Math.sin(ang)*R*0.7, '#aaa', 1.5);
+            }
+            ctx.globalAlpha=1;
+        } else if (currentMode === 'circular') {
+            ctx.beginPath(); ctx.arc(cx,cy,R*0.7,0,Math.PI*2);
+            ctx.strokeStyle='rgba(0,212,255,0.2)'; ctx.lineWidth=1; ctx.setLineDash([3,4]); ctx.stroke(); ctx.setLineDash([]);
+            arrow(ctx, cx, cy, cx+Math.cos(-t)*R*0.7, cy+Math.sin(-t)*R*0.7, '#00d4ff', 2.5);
+        } else {
+            arrow(ctx, cx, cy+R*0.75, cx, cy-R*0.75, '#ffdd00', 3);
+        }
+        ctx.fillStyle='#8892b0'; ctx.font='8px Space Mono'; ctx.textAlign='center';
+        ctx.fillText({natural:'Natural',circular:'Circular',lineal:'Lineal (V)'}[currentMode], cx, cy+R+14);
+        ctx.textAlign='left';
+    }
+
+    function drawBarChart(I0, I1, I2, If) {
+        const W = canBar.width, H = canBar.height;
+        if (!W||!H) return;
+        ctxBar.clearRect(0,0,W,H);
+        const margin={left:40,right:20,top:24,bottom:36};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+        const stages = [{label:'I₀',val:I0,color:'#fff'},{label:'I₁',val:I1,color:'#ff44ff'},
+                        {label:'I₂',val:I2,color:'#00d4ff'},{label:'I_f',val:If,color:'orange'}];
+        const bw = w/(stages.length*2);
+
+        // Grid
+        ctxBar.strokeStyle='#16203a'; ctxBar.lineWidth=1;
+        ctxBar.font='9px Space Mono'; ctxBar.fillStyle='#8892b0';
+        for(let i=0;i<=4;i++){
+            const gy=margin.top+(1-i/4)*h;
+            ctxBar.beginPath(); ctxBar.moveTo(margin.left,gy); ctxBar.lineTo(margin.left+w,gy); ctxBar.stroke();
+            ctxBar.fillText((i/4).toFixed(2), 2, gy+4);
+        }
+        ctxBar.fillText('FLUJO DE ENERGÍA', margin.left+w/2-55, margin.top-8);
+
+        stages.forEach(({label,val,color},i) => {
+            const bx = margin.left + i*(w/stages.length) + (w/stages.length - bw)/2;
+            const bh = val * h;
+            const by = margin.top + h - bh;
+            ctxBar.fillStyle = color; ctxBar.globalAlpha = 0.7;
+            ctxBar.fillRect(bx, by, bw, bh);
+            ctxBar.globalAlpha = 1;
+            ctxBar.strokeStyle = color; ctxBar.lineWidth = 1.5;
+            ctxBar.strokeRect(bx, by, bw, bh);
+            ctxBar.fillStyle = color; ctxBar.font = 'bold 9px Space Mono'; ctxBar.textAlign='center';
+            ctxBar.fillText(label, bx+bw/2, margin.top+h+14);
+            ctxBar.fillText(val.toFixed(3), bx+bw/2, by-4);
+        });
+        ctxBar.textAlign='left';
+    }
+
+    function compute() {
+        let I0 = 1.0, I1, I2, If;
+        if (currentMode === 'natural' || currentMode === 'circular') {
+            I1 = 0.5;
+        } else {
+            I1 = Math.cos((Math.PI/2 - th1*Math.PI/180)) ** 2;
+        }
+        I2 = I1 * Math.cos((th2 - th1) * Math.PI / 180) ** 2;
+        If = I2 * Math.cos((th3 - th2) * Math.PI / 180) ** 2;
+        return {I0, I1, I2, If};
+    }
+
+    function resizeAll() {
+        [canSrc,canP1,canA1,canP2,canP3,canOut].forEach(c=>{
+            c.width=c.offsetWidth; c.height=c.offsetHeight||160;
+        });
+        canBar.width=canBar.offsetWidth; canBar.height=canBar.offsetHeight||160;
+    }
+
+    function loop() {
+        t += 0.06;
+        resizeAll();
+        const {I0,I1,I2,If} = compute();
+
+        drawSource(ctxSrc, canSrc.width, canSrc.height);
+        drawPolarizer(ctxP1, canP1.width, canP1.height, th1, '#ff44ff', `${th1}°`);
+        drawBeam(ctxA1, canA1.width, canA1.height, th1, I1, '#ff44ff');
+        drawPolarizer(ctxP2, canP2.width, canP2.height, th2, '#00d4ff', `${th2}°`);
+        drawPolarizer(ctxP3, canP3.width, canP3.height, th3, '#00ff88', `${th3}°`);
+        drawBeam(ctxOut, canOut.width, canOut.height, th3, If, 'orange');
+        drawBarChart(I0, I1, I2, If);
+
+        document.getElementById('infoDisplay').innerText =
+            `I₁ = ${I1.toFixed(3)} I₀\nI₂ = ${I2.toFixed(3)} I₀\nI_final = ${If.toFixed(3)} I₀\nΔθ₁₂=${th2-th1}°  Δθ₂₃=${th3-th2}°`;
+
+        requestAnimationFrame(loop);
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); currentMode=btn.dataset.mode;
+        });
+    });
+    document.getElementById('th1Slider').oninput=e=>{ th1=parseInt(e.target.value); document.getElementById('th1Val').innerText=th1; };
+    document.getElementById('th2Slider').oninput=e=>{ th2=parseInt(e.target.value); document.getElementById('th2Val').innerText=th2; };
+    document.getElementById('th3Slider').oninput=e=>{ th3=parseInt(e.target.value); document.getElementById('th3Val').innerText=th3; };
+
+    window.onresize=resizeAll;
+    resizeAll(); loop();
+</script>
+</body>
+</html>

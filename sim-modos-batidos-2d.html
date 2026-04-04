@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modos Normales y Batidos 2D | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--cyan); padding: 10px 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.72rem; line-height: 1.7; white-space: pre-line; }
+        .btn-restart { width: 100%; padding: 12px; background: #1a6cf5; color: white; border: none; font-family: 'Space Mono'; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s; margin-top: 4px; }
+        .btn-restart:hover { background: #ff4500; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        .plot-canvas { height: 180px; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+
+        .mode-group { margin-bottom: 15px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .mode-section-label { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 4px; }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 4px; }
+        .mode-options-2 { display: grid; grid-template-columns: 1fr; gap: 5px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--gray);
+            font-family: 'Space Mono';
+            font-size: 0.5rem;
+            padding: 6px 2px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn.long.active  { background: rgba(100,200,255,0.12); color: #88ccff; border-color: #88ccff; font-weight: bold; }
+        .mode-btn.trans.active { background: rgba(0,255,127,0.12);   color: #00FF7F; border-color: #00FF7F; font-weight: bold; }
+        .mode-btn.batido.active{ background: rgba(255,165,0,0.12);   color: orange;  border-color: orange;  font-weight: bold; }
+
+        .sliders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Sistema 3 Masas 2D — Modos Normales y Batidos — RK4</h1>
+
+    <div class="panel-left">
+        <canvas id="simCanvas" height="240"></canvas>
+        <div class="controls">
+            <div id="freqDisplay" class="freq-box">m = 1.0 kg  |  k = 5.0 N/m  |  ω_base = --- rad/s</div>
+
+            <div class="mode-group">
+                <span class="mode-label">Modo / Condición inicial</span>
+                <div class="mode-section-label">Longitudinales</div>
+                <div class="mode-options">
+                    <button class="mode-btn long" data-mode="L1">Long 1<br>Fase</button>
+                    <button class="mode-btn long" data-mode="L2">Long 2<br>Centro Fijo</button>
+                    <button class="mode-btn long" data-mode="L3">Long 3<br>Contrafase</button>
+                </div>
+                <div class="mode-section-label">Transversales</div>
+                <div class="mode-options">
+                    <button class="mode-btn trans" data-mode="T4">Trans 4<br>Fase</button>
+                    <button class="mode-btn trans" data-mode="T5">Trans 5<br>Centro Fijo</button>
+                    <button class="mode-btn trans" data-mode="T6">Trans 6<br>Contrafase</button>
+                </div>
+                <div class="mode-section-label">Acoplado</div>
+                <div class="mode-options-2">
+                    <button class="mode-btn batido active" data-mode="B">Batido 2D Acoplado</button>
+                </div>
+            </div>
+
+            <div class="sliders-grid">
+                <div class="control-group">
+                    <label style="color:#00FF7F;">Masa m <span><span id="mVal">1.0</span> kg</span></label>
+                    <input type="range" id="mSlider" min="0.5" max="5.0" step="0.1" value="1.0" style="accent-color:#00FF7F;">
+                </div>
+                <div class="control-group">
+                    <label>Const. k <span><span id="kVal">5.0</span> N/m</span></label>
+                    <input type="range" id="kSlider" min="1.0" max="20.0" step="0.5" value="5.0">
+                </div>
+            </div>
+
+            <button class="btn-restart" onclick="restart()">REINICIAR TODO</button>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canvasX" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasY" class="plot-canvas" height="180"></canvas>
+        <canvas id="canvasV" class="plot-canvas" height="180"></canvas>
+    </div>
+</div>
+
+<script>
+    const simC  = document.getElementById('simCanvas'),  ctxS  = simC.getContext('2d');
+    const canX  = document.getElementById('canvasX'),    ctxX  = canX.getContext('2d');
+    const canY  = document.getElementById('canvasY'),    ctxY  = canY.getContext('2d');
+    const canVel= document.getElementById('canvasV'),    ctxV  = canVel.getContext('2d');
+
+    const D_EQ = 1.0;   // equilibrium spacing
+    const L_WALL = 1.0; // wall distance (physics units from centre of each mass row)
+    const T_MAX = 10.0;
+    const dt = 0.012;
+
+    let m = 1.0, k = 5.0;
+    // state: [x1,y1,x2,y2,x3,y3, vx1,vy1,vx2,vy2,vx3,vy3]
+    let state = new Float64Array(12);
+    let t = 0;
+    let history = { t:[], x:[[[],[],[]], [[],[],[]], [[],[],[]]], v:[] };
+    // history.x[axis][mass] where axis 0=X,1=Y, and v = speed per mass
+    let hX = [[],[],[]], hY = [[],[],[]], hV = [[],[],[]];
+    let currentMode = 'B';
+
+    const COLORS = ['#FF4500','#00d4ff','#FFA500'];
+
+    // Equilibrium x positions of 3 masses
+    const XEQ = [0, D_EQ, 2*D_EQ];
+
+    function getAccels(p) {
+        // p = [x1,y1,x2,y2,x3,y3]
+        const ax = new Float64Array(3), ay = new Float64Array(3);
+        ax[0] = (-k*p[0] + k*(p[2] - p[0])) / m;
+        ax[1] = (k*(p[0] - p[2]) + k*(p[4] - p[2])) / m;
+        ax[2] = (k*(p[2] - p[4]) - k*p[4]) / m;
+        ay[0] = (-2*k*p[1] + k*(p[3] - p[1])) / m;
+        ay[1] = (-2*k*p[3] + k*(p[1] - p[3]) + k*(p[5] - p[3])) / m;
+        ay[2] = (-2*k*p[5] + k*(p[3] - p[5])) / m;
+        return [ax[0],ay[0],ax[1],ay[1],ax[2],ay[2]];
+    }
+
+    function deriv(s) {
+        const acc = getAccels(s.slice(0,6));
+        return [...s.slice(6,12), ...acc];
+    }
+
+    function solveRK4() {
+        const s = Array.from(state);
+        const k1 = deriv(s);
+        const k2 = deriv(s.map((v,i) => v + 0.5*dt*k1[i]));
+        const k3 = deriv(s.map((v,i) => v + 0.5*dt*k2[i]));
+        const k4 = deriv(s.map((v,i) => v + dt*k3[i]));
+        for(let i=0; i<12; i++) state[i] = s[i] + (dt/6)*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+        t += dt;
+        if (t > T_MAX) { t = 0; hX=[[],[],[]]; hY=[[],[],[]]; hV=[[],[],[]]; }
+        const acc = getAccels(state.slice(0,6));
+        for(let i=0; i<3; i++) {
+            hX[i].push(state[i*2]);
+            hY[i].push(state[i*2+1]);
+            const speed = Math.sqrt(state[6+i*2]**2 + state[7+i*2]**2);
+            hV[i].push(speed);
+        }
+        // Store t
+        if (hX[0].length === 1 || t > dt*0.5) {
+            // keep t array in sync with hX[0]
+        }
+    }
+
+    // Separate t array
+    let hT = [];
+    function solveRK4_wt() {
+        solveRK4();
+        if (hX[0].length === 1 && hT.length === 0) hT = [t];
+        else hT.push(t > dt*0.5 ? t : t);
+    }
+
+    // Rewrite with clean history
+    let histT = [];
+    function step() {
+        const s = Array.from(state);
+        const k1 = deriv(s);
+        const k2 = deriv(s.map((v,i) => v + 0.5*dt*k1[i]));
+        const k3 = deriv(s.map((v,i) => v + 0.5*dt*k2[i]));
+        const k4 = deriv(s.map((v,i) => v + dt*k3[i]));
+        for(let i=0; i<12; i++) state[i] = s[i] + (dt/6)*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+        t += dt;
+        if (t > T_MAX + dt) { t = 0; hX=[[],[],[]]; hY=[[],[],[]]; hV=[[],[],[]]; histT=[]; }
+        histT.push(t);
+        const acc = getAccels(Array.from(state.slice(0,6)));
+        for(let i=0; i<3; i++) {
+            hX[i].push(state[i*2]);
+            hY[i].push(state[i*2+1]);
+            hV[i].push(Math.sqrt(state[6+i*2]**2 + state[7+i*2]**2));
+        }
+    }
+
+    function getIC() {
+        const a = 0.3;
+        const ic = new Float64Array(12);
+        if      (currentMode === 'L1') { ic[0]=a; ic[2]=a; ic[4]=a; }
+        else if (currentMode === 'L2') { ic[0]=a; ic[2]=0; ic[4]=-a; }
+        else if (currentMode === 'L3') { ic[0]=a/2; ic[2]=-a; ic[4]=a/2; }
+        else if (currentMode === 'T4') { ic[1]=a; ic[3]=a; ic[5]=a; }
+        else if (currentMode === 'T5') { ic[1]=a; ic[3]=0; ic[5]=-a; }
+        else if (currentMode === 'T6') { ic[1]=a/2; ic[3]=-a; ic[5]=a/2; }
+        else { ic[0]=0.3; ic[1]=0.4; ic[2]=0.0; ic[3]=-0.5; ic[4]=-0.3; ic[5]=0.4;
+               ic[6]=0.1; ic[7]=0.1; ic[8]=0.1; ic[9]=0.1; ic[10]=0.1; ic[11]=0.1; }
+        return ic;
+    }
+
+    function drawPlot(canvas, ctx, dataArrays, colors, label, limit, isSpeed) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const margin = { left: 40, right: 20, top: 20, bottom: 30 };
+        const w = canvas.width - margin.left - margin.right;
+        const h = canvas.height - margin.top - margin.bottom;
+        const midY = isSpeed ? margin.top + h : margin.top + h/2;
+
+        ctx.strokeStyle = '#16203a'; ctx.lineWidth = 1;
+        ctx.font = '10px Space Mono'; ctx.fillStyle = '#8892b0';
+
+        for(let i=0; i<=10; i++) {
+            const gx = margin.left + (i/10)*w;
+            ctx.beginPath(); ctx.moveTo(gx, margin.top); ctx.lineTo(gx, margin.top + h); ctx.stroke();
+            if(i%2===0) ctx.fillText((i * T_MAX/10).toFixed(0)+'s', gx - 5, margin.top + h + 15);
+        }
+
+        ctx.fillText(limit, 5, margin.top + 5);
+        if (!isSpeed) { ctx.fillText('0', 5, midY + 4); ctx.fillText('-'+limit, 5, margin.top + h); }
+
+        ctx.beginPath(); ctx.strokeStyle = '#2a3a5a';
+        ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY); ctx.stroke();
+
+        // Legend
+        colors.forEach((col, i) => { ctx.fillStyle = col; ctx.fillText(['M1','M2','M3'][i], margin.left + i*38, margin.top - 8); });
+
+        if (histT.length < 2) return;
+
+        const mapX = tp => margin.left + (tp / T_MAX) * w;
+        const mapY = isSpeed
+            ? val => margin.top + h - (val / limit) * h
+            : val => midY - (val * (h / (limit * 2)));
+
+        const dashes = [[], [5,3], [2,4]];
+        dataArrays.forEach((data, mi) => {
+            if (data.length < 2) return;
+            ctx.beginPath(); ctx.strokeStyle = colors[mi]; ctx.lineWidth = 2; ctx.setLineDash(dashes[mi]);
+            data.forEach((val, i) => {
+                const px = mapX(histT[i]), py = mapY(val);
+                i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+            });
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+    }
+
+    function drawSpring(ctx, x0, y0, x1, y1, color) {
+        const nodes = 14;
+        const dx = x1-x0, dy = y1-y0;
+        const len = Math.sqrt(dx*dx+dy*dy);
+        if (len < 1) return;
+        const px = -dy/len, py = dx/len;
+        const amp = 7;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+        ctx.moveTo(x0, y0);
+        for(let i=1; i<nodes; i++) {
+            const tt = i/nodes, bx = x0+dx*tt, by = y0+dy*tt;
+            ctx.lineTo(bx + px*(i%2===0?amp:-amp), by + py*(i%2===0?amp:-amp));
+        }
+        ctx.lineTo(x1, y1); ctx.stroke();
+    }
+
+    function loop() {
+        // 2 physics steps per frame
+        for(let i=0; i<2; i++) step();
+
+        ctxS.clearRect(0, 0, simC.width, simC.height);
+        const W = simC.width, H = simC.height;
+
+        // Physics coords: x in [-1.2, 3.2], y in [-1.3, 1.3]
+        const physX = 4.4, physY = 2.6;
+        const marginH = 20, marginV = 20;
+        const scaleX = (W - marginH*2) / physX;
+        const scaleY = (H - marginV*2) / physY;
+
+        function cx(xp) { return marginH + (xp + 1.2) * scaleX; }
+        function cy(yp) { return H/2 - yp * scaleY; }
+
+        // Walls
+        const wallTop = cy(L_WALL), wallBot = cy(-L_WALL);
+        const wallLeft = cx(-D_EQ), wallRight = cx(3*D_EQ);
+        ctxS.fillStyle = '#1a6cf5';
+        ctxS.fillRect(0, wallTop - 5, W, 5);
+        ctxS.fillRect(0, wallBot, W, 5);
+        ctxS.fillRect(wallLeft - 5, wallTop, 5, wallBot - wallTop);
+        ctxS.fillRect(wallRight, wallTop, 5, wallBot - wallTop);
+
+        // Current positions
+        const pos = [];
+        for(let i=0; i<3; i++) pos.push({ x: cx(XEQ[i] + state[i*2]), y: cy(state[i*2+1]) });
+
+        // Vertical springs (mass ↔ top/bottom walls)
+        for(let i=0; i<3; i++) {
+            drawSpring(ctxS, pos[i].x, wallTop, pos[i].x, pos[i].y, '#4e5b7e');
+            drawSpring(ctxS, pos[i].x, wallBot, pos[i].x, pos[i].y, '#4e5b7e');
+        }
+
+        // Horizontal springs (left wall → m1 → m2 → m3 → right wall)
+        const midY_px = cy(0);
+        drawSpring(ctxS, wallLeft, midY_px, pos[0].x, pos[0].y, '#4e5b7e');
+        drawSpring(ctxS, pos[0].x, pos[0].y, pos[1].x, pos[1].y, '#4e5b7e');
+        drawSpring(ctxS, pos[1].x, pos[1].y, pos[2].x, pos[2].y, '#4e5b7e');
+        drawSpring(ctxS, pos[2].x, pos[2].y, wallRight, midY_px, '#4e5b7e');
+
+        // Equilibrium markers
+        ctxS.save(); ctxS.setLineDash([3,5]);
+        ctxS.strokeStyle = 'rgba(255,255,255,0.06)'; ctxS.lineWidth = 1;
+        for(let i=0; i<3; i++) {
+            const ex = cx(XEQ[i]);
+            ctxS.beginPath(); ctxS.moveTo(ex, wallTop); ctxS.lineTo(ex, wallBot); ctxS.stroke();
+        }
+        ctxS.beginPath(); ctxS.moveTo(wallLeft, cy(0)); ctxS.lineTo(wallRight, cy(0)); ctxS.stroke();
+        ctxS.restore();
+
+        // Masses
+        COLORS.forEach((col, i) => {
+            ctxS.beginPath(); ctxS.arc(pos[i].x, pos[i].y, 13, 0, Math.PI*2);
+            ctxS.fillStyle = col; ctxS.shadowBlur = 16; ctxS.shadowColor = col;
+            ctxS.fill(); ctxS.shadowBlur = 0;
+        });
+
+        // Labels
+        ctxS.font = '9px Space Mono'; ctxS.fillStyle = '#03050f'; ctxS.textAlign = 'center';
+        ['m₁','m₂','m₃'].forEach((lbl, i) => ctxS.fillText(lbl, pos[i].x, pos[i].y + 3));
+        ctxS.textAlign = 'left';
+
+        const wBase = Math.sqrt(k/m);
+        drawPlot(canX,   ctxX,  hX, COLORS, 'X',     0.5,  false);
+        drawPlot(canY,   ctxY,  hY, COLORS, 'Y',     0.5,  false);
+        drawPlot(canVel, ctxV,  hV, COLORS, '|v|',   2.0,  true);
+
+        requestAnimationFrame(loop);
+    }
+
+    function updateFreqBox() {
+        const wBase = Math.sqrt(k/m);
+        const modeNames = {
+            L1:'Long 1 — Fase', L2:'Long 2 — Centro Fijo', L3:'Long 3 — Contrafase',
+            T4:'Trans 4 — Fase', T5:'Trans 5 — Centro Fijo', T6:'Trans 6 — Contrafase',
+            B:'Batido 2D Acoplado'
+        };
+        document.getElementById('freqDisplay').innerText =
+            `m = ${m.toFixed(1)} kg  |  k = ${k.toFixed(1)} N/m  |  ω_base = ${wBase.toFixed(3)} rad/s\n${modeNames[currentMode]}`;
+    }
+
+    function restart() {
+        state = getIC();
+        t = 0; histT = []; hX=[[],[],[]]; hY=[[],[],[]]; hV=[[],[],[]];
+        updateFreqBox();
+    }
+
+    document.getElementById('mSlider').oninput = e => { m = parseFloat(e.target.value); document.getElementById('mVal').innerText = m.toFixed(1); restart(); };
+    document.getElementById('kSlider').oninput = e => { k = parseFloat(e.target.value); document.getElementById('kVal').innerText = k.toFixed(1); restart(); };
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+            restart();
+        });
+    });
+
+    function resize() { [simC, canX, canY, canVel].forEach(c => c.width = c.offsetWidth); }
+    window.onresize = resize; resize();
+    restart(); loop();
+</script>
+</body>
+</html>

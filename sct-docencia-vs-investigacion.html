@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docencia vs. Investigación — Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #03050f;
+    --bg2: #070d1f;
+    --blue: #1a6cf5;
+    --blue-dim: #0d3a8a;
+    --cyan: #00d4ff;
+    --white: #eef2ff;
+    --gray: #8892b0;
+    --accent: #f5a623;
+    --card-bg: rgba(13, 25, 60, 0.6);
+    --border: rgba(26, 108, 245, 0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 19px;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+  #stars-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 4rem;
+    background: rgba(3, 5, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+  }
+  .nav-logo span { color: var(--cyan); }
+  .nav-back {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nav-back:hover { color: var(--cyan); }
+  .article-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10rem 2rem 6rem;
+  }
+  .article-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .article-label::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background: var(--cyan);
+  }
+  .article-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+  }
+  .article-subtitle {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--gray);
+    font-weight: 300;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .article-body h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--white);
+    margin: 2.5rem 0 1rem;
+    letter-spacing: -0.02em;
+  }
+  .article-body h2::before {
+    content: '// ';
+    color: var(--cyan);
+  }
+  .article-body p {
+    color: rgba(238, 242, 255, 0.85);
+    margin-bottom: 1.25rem;
+    font-size: 1.05rem;
+  }
+  .info-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .info-box-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .info-box p {
+    font-size: 0.95rem !important;
+    color: var(--gray) !important;
+    margin-bottom: 0 !important;
+  }
+  .dato-box {
+    background: rgba(26, 108, 245, 0.06);
+    border: 1px solid rgba(26, 108, 245, 0.25);
+    border-left: 3px solid var(--blue);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+  }
+  .dato-box-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--blue);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .dato-box p {
+    font-size: 0.95rem !important;
+    color: var(--gray) !important;
+    margin-bottom: 0 !important;
+  }
+  .links-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .links-section h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .links-section ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .ext-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .ext-link::before { content: '→'; color: var(--blue); }
+  .ext-link:hover { color: var(--cyan); }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 3rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  footer a { color: var(--gray); text-decoration: none; }
+  footer a:hover { color: var(--cyan); }
+  @media(max-width: 700px) {
+    nav { padding: 1rem 1.5rem; }
+    .article-wrap { padding: 8rem 1.5rem 4rem; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <a href="index.html#sistema-cientifico" class="nav-back">← Sistema Científico</a>
+</nav>
+
+<div class="article-wrap">
+  <div class="article-label">Sistema Científico · Orientación vocacional</div>
+  <h1 class="article-title">Docencia vs. Investigación</h1>
+  <p class="article-subtitle">¿Qué camino seguir tras el título?</p>
+
+  <div class="article-body">
+    <p>Una vez que obtenés tu título de grado o terminás el doctorado en física o química, surge la pregunta del millón: ¿me dedico a enseñar o a investigar? En el imaginario colectivo, parecen caminos separados, pero en el sistema científico argentino, la realidad es mucho más integrada de lo que parece.</p>
+    <p><h2>Las dos vocaciones</h2></p>
+<p>La docencia se centra en la transmisión del conocimiento, la formación de nuevas mentes y la transposición didáctica de conceptos complejos, mientras que la investigación busca generar conocimiento nuevo, publicar en revistas internacionales y resolver problemas que aún no tienen respuesta. Para un científico, elegir entre una u otra no siempre es una decisión tajante, sino más bien una cuestión de dónde poner el mayor peso de su energía diaria.</p>
+<p><div class="dato-box"><div class="dato-box-label">Dato clave</div><p>La mayoría de los físicos en Argentina tienen un cargo de investigador en el CONICET o la CNEA y, simultáneamente, una dedicación docente en una Universidad Nacional. Este modelo "docente-investigador" es un hito del sistema universitario argentino y de la Reforma Universitaria.</p></div></p>
+<p><h2>El modelo argentino del docente-investigador</h2></p>
+<p>Un hito del sistema argentino es que los investigadores más destacados suelen ser también profesores. Esto garantiza que lo que se enseña en las aulas no sea conocimiento "estático" de libros viejos, sino ciencia viva y de vanguardia. La docencia obliga al investigador a mantener una visión amplia y clara de las bases de su ciencia.</p>
+<p><h2>Reconocimiento internacional y economía</h2></p>
+<p>Los científicos argentinos que emigran o hacen estancias en el exterior suelen destacar por su capacidad para explicar conceptos abstractos, una habilidad pulida en los pasillos de nuestras facultades. La docencia forma la mano de obra calificada que necesita la industria y el Estado, mientras que la investigación genera la innovación técnica y las patentes que impulsan el desarrollo.</p>
+<p><div class="info-box"><div class="info-box-label">La mirada de Mundo Quarks</div><p>En Mundo Quarks creemos que no hay que elegir uno por descarte del otro. La verdadera magia ocurre cuando usamos la investigación para nutrir nuestras clases y la docencia para inspirar a la próxima generación de investigadores. El físico que enseña y el que investiga son, en el mejor de los casos, la misma persona.</p></div></p>
+  </div>
+
+  <div class="links-section">
+    <h3>// Referencias y sitios oficiales</h3>
+    <ul>
+      <li><a href="https://www.conicet.gov.ar/carrera-del-investigador-cientifico-y-tecnologico/" target="_blank" class="ext-link">Carrera del Investigador Científico — CONICET</a></li>
+<li><a href="https://www.argentina.gob.ar/educacion/universidades/spu/incentivos" target="_blank" class="ext-link">Categorización de Docentes Investigadores — Secretaría de Educación</a></li>
+    </ul>
+  </div>
+
+  <a href="index.html#sistema-cientifico" class="back-btn">← Volver al Sistema Científico</a>
+</div>
+
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="index.html">Inicio</a></p>
+</footer>
+
+<script>
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function createParticles() {
+  particles = [];
+  const count = Math.floor((W * H) / 10000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.12, vy: (Math.random() - 0.5) * 0.12,
+      alpha: Math.random() * 0.5 + 0.15,
+      blue: Math.random() > 0.85
+    });
+  }
+}
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.blue ? `rgba(0,212,255,${p.alpha})` : `rgba(180,195,240,${p.alpha})`;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+  }
+  requestAnimationFrame(drawParticles);
+}
+resize(); createParticles(); drawParticles();
+window.addEventListener('resize', () => { resize(); createParticles(); });
+</script>
+</body>
+</html>

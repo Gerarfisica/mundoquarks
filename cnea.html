@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNEA — Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #03050f;
+    --bg2: #070d1f;
+    --blue: #1a6cf5;
+    --blue-dim: #0d3a8a;
+    --cyan: #00d4ff;
+    --white: #eef2ff;
+    --gray: #8892b0;
+    --accent: #f5a623;
+    --card-bg: rgba(13, 25, 60, 0.6);
+    --border: rgba(26, 108, 245, 0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 19px;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+  #stars-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 4rem;
+    background: rgba(3, 5, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+  }
+  .nav-logo span { color: var(--cyan); }
+  .nav-back {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nav-back:hover { color: var(--cyan); }
+  .article-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10rem 2rem 6rem;
+  }
+  .article-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .article-label::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background: var(--cyan);
+  }
+  .article-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+  }
+  .article-subtitle {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--gray);
+    font-weight: 300;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .article-body h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--white);
+    margin: 2.5rem 0 1rem;
+    letter-spacing: -0.02em;
+  }
+  .article-body h2::before {
+    content: '// ';
+    color: var(--cyan);
+  }
+  .article-body p {
+    color: rgba(238, 242, 255, 0.85);
+    margin-bottom: 1.25rem;
+    font-size: 1.05rem;
+  }
+  .info-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .info-box-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .info-box p {
+    font-size: 0.95rem !important;
+    color: var(--gray) !important;
+    margin-bottom: 0 !important;
+  }
+  .dato-box {
+    background: rgba(26, 108, 245, 0.06);
+    border: 1px solid rgba(26, 108, 245, 0.25);
+    border-left: 3px solid var(--blue);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+  }
+  .dato-box-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--blue);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .dato-box p {
+    font-size: 0.95rem !important;
+    color: var(--gray) !important;
+    margin-bottom: 0 !important;
+  }
+  .links-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .links-section h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .links-section ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .ext-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .ext-link::before { content: '→'; color: var(--blue); }
+  .ext-link:hover { color: var(--cyan); }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 3rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  footer a { color: var(--gray); text-decoration: none; }
+  footer a:hover { color: var(--cyan); }
+  @media(max-width: 700px) {
+    nav { padding: 1rem 1.5rem; }
+    .article-wrap { padding: 8rem 1.5rem 4rem; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <a href="../index.html#sistema-cientifico" class="nav-back">← Sistema Científico</a>
+</nav>
+
+<div class="article-wrap">
+  <div class="article-label">Sistema Científico · Organismos</div>
+  <h1 class="article-title">CNEA</h1>
+  <p class="article-subtitle">Siete décadas de soberanía y vanguardia nuclear</p>
+
+  <div class="article-body">
+    <p>La Comisión Nacional de Energía Atómica (CNEA) es, posiblemente, la institución que mejor representa la capacidad de la Argentina para emprender proyectos de "ciencia mayor" con continuidad estatal. Creada en 1950, la CNEA es el organismo civil encargado de investigar, desarrollar y controlar el uso pacífico de la energía nuclear en todo el territorio.</p>
+    <p><h2>¿Qué es la CNEA?</h2></p>
+<p>Para un físico o un químico, entrar en la CNEA es acceder a un ecosistema de centros atómicos —Constituyentes, Ezeiza y Bariloche— donde se opera desde reactores de investigación hasta aceleradores de partículas, permitiendo una formación experimental que muy pocos países en el hemisferio sur pueden ofrecer.</p>
+<p><div class="dato-box"><div class="dato-box-label">Dato clave</div><p>Argentina es considerada un "país avanzado" en materia nuclear, siendo uno de los pocos países del mundo en dominar el ciclo completo del combustible nuclear, desde la minería de uranio hasta el reprocesamiento.</p></div></p>
+<p><h2>Hitos y proyectos estratégicos</h2></p>
+<p>La CNEA fue el semillero de donde brotaron instituciones como el Instituto Balseiro y empresas tecnológicas de clase mundial como INVAP. Entre sus hitos más disruptivos se encuentra el dominio del ciclo completo de combustible nuclear y la construcción de reactores experimentales que hoy se exportan a países como Holanda, Australia y Arabia Saudita.</p>
+<p>Actualmente, lidera el proyecto CAREM, el primer reactor de potencia 100% diseñado en Argentina, que posiciona al país en la carrera global por los reactores modulares pequeños (SMR), una tecnología clave para la transición energética mundial.</p>
+<p><h2>Impacto en la salud y la sociedad</h2></p>
+<p>Gracias a la CNEA, nuestro país es líder en Medicina Nuclear, produciendo los radioisótopos que se utilizan en miles de estudios diagnósticos y tratamientos oncológicos diarios en hospitales públicos y privados. También impulsa aplicaciones en la industria, la conservación de alimentos y el estudio del medio ambiente.</p>
+<p><div class="info-box"><div class="info-box-label">Para el estudiante de física</div><p>La CNEA ofrece becas propias para estudiantes avanzados y graduados. Trabajar en sus centros atómicos es una de las experiencias experimentales más ricas que puede tener un físico en el país.</p></div></p>
+  </div>
+
+  <div class="links-section">
+    <h3>// Referencias y sitios oficiales</h3>
+    <ul>
+      <li><a href="https://www.cnea.gov.ar" target="_blank" class="ext-link">CNEA — Sitio oficial</a></li>
+<li><a href="https://www.cnea.gov.ar/carem/" target="_blank" class="ext-link">Proyecto CAREM</a></li>
+<li><a href="https://www.invap.com.ar" target="_blank" class="ext-link">INVAP — Empresa de tecnología nuclear y espacial</a></li>
+    </ul>
+  </div>
+
+  <a href="../index.html#sistema-cientifico" class="back-btn">← Volver al Sistema Científico</a>
+</div>
+
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="../index.html">Inicio</a></p>
+</footer>
+
+<script>
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function createParticles() {
+  particles = [];
+  const count = Math.floor((W * H) / 10000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.12, vy: (Math.random() - 0.5) * 0.12,
+      alpha: Math.random() * 0.5 + 0.15,
+      blue: Math.random() > 0.85
+    });
+  }
+}
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.blue ? `rgba(0,212,255,${p.alpha})` : `rgba(180,195,240,${p.alpha})`;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+  }
+  requestAnimationFrame(drawParticles);
+}
+resize(); createParticles(); drawParticles();
+window.addEventListener('resize', () => { resize(); createParticles(); });
+</script>
+</body>
+</html>

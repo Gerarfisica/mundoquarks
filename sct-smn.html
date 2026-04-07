@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMN — Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #03050f;
+    --bg2: #070d1f;
+    --blue: #1a6cf5;
+    --blue-dim: #0d3a8a;
+    --cyan: #00d4ff;
+    --white: #eef2ff;
+    --gray: #8892b0;
+    --accent: #f5a623;
+    --card-bg: rgba(13, 25, 60, 0.6);
+    --border: rgba(26, 108, 245, 0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 19px;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+  #stars-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 4rem;
+    background: rgba(3, 5, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+  }
+  .nav-logo span { color: var(--cyan); }
+  .nav-back {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nav-back:hover { color: var(--cyan); }
+  .article-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10rem 2rem 6rem;
+  }
+  .article-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .article-label::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background: var(--cyan);
+  }
+  .article-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+  }
+  .article-subtitle {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--gray);
+    font-weight: 300;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .article-body h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--white);
+    margin: 2.5rem 0 1rem;
+    letter-spacing: -0.02em;
+  }
+  .article-body h2::before {
+    content: '// ';
+    color: var(--cyan);
+  }
+  .article-body p {
+    color: rgba(238, 242, 255, 0.85);
+    margin-bottom: 1.25rem;
+    font-size: 1.05rem;
+  }
+  .info-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .info-box-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .info-box p {
+    font-size: 0.95rem !important;
+    color: var(--gray) !important;
+    margin-bottom: 0 !important;
+  }
+  .dato-box {
+    background: rgba(26, 108, 245, 0.06);
+    border: 1px solid rgba(26, 108, 245, 0.25);
+    border-left: 3px solid var(--blue);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+  }
+  .dato-box-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--blue);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .dato-box p {
+    font-size: 0.95rem !important;
+    color: var(--gray) !important;
+    margin-bottom: 0 !important;
+  }
+  .links-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .links-section h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .links-section ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .ext-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .ext-link::before { content: '→'; color: var(--blue); }
+  .ext-link:hover { color: var(--cyan); }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 3rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  footer a { color: var(--gray); text-decoration: none; }
+  footer a:hover { color: var(--cyan); }
+  @media(max-width: 700px) {
+    nav { padding: 1rem 1.5rem; }
+    .article-wrap { padding: 8rem 1.5rem 4rem; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <a href="index.html#sistema-cientifico" class="nav-back">← Sistema Científico</a>
+</nav>
+
+<div class="article-wrap">
+
+  <div class="article-label">Sistema Científico · Organismos</div>
+  <h1 class="article-title">Servicio Meteorológico Nacional</h1>
+  <p class="article-subtitle">El guardián del cielo argentino: ciencia, soberanía y pronóstico</p>
+
+  <div class="article-body">
+
+    <p>Cada vez que mirás el pronóstico antes de salir, hay detrás una cadena de física atmosférica, modelos numéricos y datos satelitales que pocas personas conocen. El Servicio Meteorológico Nacional (SMN) es el organismo del Estado argentino encargado de observar, analizar y pronosticar el estado del tiempo y el clima en todo el territorio nacional, incluyendo la Antártida y el Atlántico Sur. Fundado en 1872 por el astrónomo y meteorólogo Benjamin Apthorp Gould —el mismo que organizó el Observatorio Astronómico de Córdoba— el SMN es una de las instituciones científicas más antiguas del país.</p>
+
+    <h2>¿Qué hace exactamente el SMN?</h2>
+
+    <p>El SMN opera una red de más de 100 estaciones meteorológicas distribuidas en todo el país, incluyendo bases antárticas, boyas oceánicas y radares de última generación. Cada estación mide en tiempo real temperatura, presión, humedad, viento y precipitaciones, enviando datos a una red global coordinada por la Organización Meteorológica Mundial (OMM). Con esa información, los meteorólogos del SMN alimentan modelos numéricos de predicción —sistemas de ecuaciones diferenciales que simulan la atmósfera— para generar los pronósticos que llegan a tu celular, a los pilotos de avión y a los productores agropecuarios.</p>
+
+    <div class="dato-box">
+      <div class="dato-box-label">Dato clave</div>
+      <p>El SMN fue fundado en 1872, convirtiéndolo en uno de los servicios meteorológicos más antiguos de América Latina. Opera bajo la órbita del Ministerio de Defensa y forma parte de la red global de la Organización Meteorológica Mundial (OMM), intercambiando datos en tiempo real con más de 190 países.</p>
+    </div>
+
+    <h2>La física detrás del pronóstico</h2>
+
+    <p>Un pronóstico meteorológico no es magia ni intuición: es física computacional aplicada a escala planetaria. Los modelos numéricos que usa el SMN resuelven las ecuaciones de Navier-Stokes para fluidos compresibles, combinadas con la termodinámica de la atmósfera, la transferencia radiativa del Sol y el intercambio de calor con los océanos y el suelo. El resultado es una simulación tridimensional de la atmósfera que se actualiza varias veces por día.</p>
+
+    <p>Argentina es uno de los pocos países de la región que posee capacidad de modelado propio: el SMN desarrolla y corre modelos de mesoescala adaptados a la geografía sudamericana, que capturan fenómenos locales como las tormentas del Litoral, el viento Zonda en Cuyo y los sistemas convectivos de la región pampeana. Esta soberanía en el modelado es estratégica: no depender exclusivamente de modelos extranjeros permite pronósticos más precisos para el territorio nacional.</p>
+
+    <div class="info-box">
+      <div class="info-box-label">Para el estudiante de física</div>
+      <p>La meteorología y la climatología son aplicaciones directas de la mecánica de fluidos, la termodinámica y la física estadística. Si te interesa la física computacional o la modelización numérica, el SMN y el CIMA (Centro de Investigaciones del Mar y la Atmósfera, CONICET-UBA) son destinos muy concretos para desarrollar una carrera en ciencias atmosféricas.</p>
+    </div>
+
+    <h2>Alertas, emergencias y soberanía territorial</h2>
+
+    <p>Más allá del pronóstico diario, el SMN cumple una función crítica para la seguridad de la población: emite alertas tempranas por eventos severos como tormentas eléctricas, granizo, vientos fuertes, sudestadas e inundaciones. Estas alertas se integran al Sistema Nacional para la Gestión del Riesgo de Desastres, coordinando con la Defensa Civil, el INDEC y los municipios para tomar decisiones que salvan vidas.</p>
+
+    <p>En el plano de la soberanía territorial, el SMN tiene un rol que pocas personas dimensionan: es el organismo que certifica las condiciones meteorológicas en la Antártida Argentina y en el Atlántico Sur, contribuyendo a la presencia científica continua del país en zonas estratégicas. Las bases antárticas argentinas dependen de los pronósticos del SMN para sus operaciones logísticas, y los datos que generan son de valor científico único para el estudio del clima global.</p>
+
+    <h2>Climatología y cambio climático</h2>
+
+    <p>El SMN no solo predice el tiempo de mañana: también custodia el registro histórico del clima argentino. Sus series de datos climáticos se remontan al siglo XIX y son fuente primaria para los estudios de cambio climático en la región. El SMN participa activamente en los informes del Panel Intergubernamental sobre Cambio Climático (IPCC) y produce los reportes de anomalías de temperatura y precipitación que permiten comprender cómo está cambiando el clima en Argentina.</p>
+
+    <div class="dato-box">
+      <div class="dato-box-label">Dato clave</div>
+      <p>Argentina tiene una de las redes de observación meteorológica más completas del hemisferio sur. Los datos del SMN son esenciales para calibrar los modelos climáticos globales, ya que el hemisferio sur —con su vasta extensión oceánica— está históricamente subrepresentado en las redes de observación mundiales.</p>
+    </div>
+
+    <h2>Impacto económico: el campo, la aviación y la energía</h2>
+
+    <p>El impacto económico del SMN es enorme aunque invisible. El sector agropecuario —columna vertebral de las exportaciones argentinas— toma decisiones de siembra, cosecha y riego con base en sus pronósticos estacionales. La aviación civil y comercial depende de sus servicios meteorológicos aeronáuticos para la seguridad de cada vuelo. Las empresas de energía utilizan sus predicciones de viento y radiación solar para optimizar la generación renovable. Un pronóstico errado no solo incomoda: puede costar millones de dólares o vidas humanas.</p>
+
+    <div class="info-box">
+      <div class="info-box-label">La mirada de Mundo Quarks</div>
+      <p>El SMN es un ejemplo perfecto de cómo la física más fundamental —ecuaciones de fluidos, termodinámica, radiación electromagnética— se convierte en una herramienta de uso diario con impacto directo en la vida de millones de personas. Es ciencia aplicada en su forma más pura: resolver un problema real con las mejores herramientas matemáticas disponibles.</p>
+    </div>
+
+    <h2>Impacto en la sociedad</h2>
+
+    <p>Sostener un Servicio Meteorológico Nacional robusto es una decisión de política pública con retorno garantizado. Cada peso invertido en observación, modelado y alerta temprana se multiplica en vidas protegidas, cosechas salvadas y vuelos seguros. En un contexto de cambio climático donde los eventos extremos son cada vez más frecuentes e intensos, tener un SMN fuerte no es un lujo científico: es una necesidad estratégica para un país que depende del clima tanto como Argentina.</p>
+
+  </div>
+
+  <div class="links-section">
+    <h3>// Referencias y sitios oficiales</h3>
+    <ul>
+      <li><a href="https://www.smn.gob.ar" target="_blank" class="ext-link">SMN — Sitio oficial</a></li>
+      <li><a href="https://www.smn.gob.ar/clima" target="_blank" class="ext-link">Climatología y registros históricos</a></li>
+      <li><a href="https://www.smn.gob.ar/antartida" target="_blank" class="ext-link">Meteorología Antártica — SMN</a></li>
+      <li><a href="https://www.cima.fcen.uba.ar" target="_blank" class="ext-link">CIMA — Centro de Investigaciones del Mar y la Atmósfera (CONICET-UBA)</a></li>
+      <li><a href="https://public.wmo.int/es" target="_blank" class="ext-link">Organización Meteorológica Mundial (OMM)</a></li>
+    </ul>
+  </div>
+
+  <a href="index.html#sistema-cientifico" class="back-btn">← Volver al Sistema Científico</a>
+
+</div>
+
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="index.html">Inicio</a></p>
+</footer>
+
+<script>
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function createParticles() {
+  particles = [];
+  const count = Math.floor((W * H) / 10000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.12, vy: (Math.random() - 0.5) * 0.12,
+      alpha: Math.random() * 0.5 + 0.15,
+      blue: Math.random() > 0.85
+    });
+  }
+}
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.blue ? `rgba(0,212,255,${p.alpha})` : `rgba(180,195,240,${p.alpha})`;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+  }
+  requestAnimationFrame(drawParticles);
+}
+resize(); createParticles(); drawParticles();
+window.addEventListener('resize', () => { resize(); createParticles(); });
+</script>
+
+</body>
+</html>

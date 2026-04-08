@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Interferómetro de Young | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; margin-bottom: 10px; display: block; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.75rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        #canScheme  { height: 320px; }
+        #canPattern { height: 320px; }
+
+        .mode-group { margin-bottom: 15px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 8px; display: block; }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.6rem;
+            padding: 7px 4px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn[data-mode="mono"].active  { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+        .mode-btn[data-mode="white"].active { background: rgba(255,255,220,0.10); color: #ffffaa; border-color: #ffffaa; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Interferómetro de Young — Doble Rendija con Desplazamiento</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">Δy = f·λ/d = --- mm\nDesplazamiento central: ---</div>
+
+        <div class="mode-group">
+            <span class="mode-label">Tipo de luz</span>
+            <div class="mode-options">
+                <button class="mode-btn active" data-mode="mono">Monocromática</button>
+                <button class="mode-btn" data-mode="white">Luz Blanca</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label id="wavLabel" style="color:#00ff99;">Longitud de onda λ <span><span id="wavVal">550</span> nm × 100</span></label>
+            <input type="range" id="wavSlider" min="4.0" max="7.5" step="0.05" value="5.5">
+        </div>
+        <div class="control-group">
+            <label style="color:#ff44ff;">Separación rendijas d <span><span id="dVal">15.0</span></span></label>
+            <input type="range" id="dSlider" min="5" max="30" step="0.5" value="15" style="accent-color:#ff44ff;">
+        </div>
+        <div class="control-group">
+            <label style="color:#00d4ff;">Índice material n <span><span id="nVal">1.00</span></span></label>
+            <input type="range" id="nSlider" min="1.0" max="1.8" step="0.01" value="1.0" style="accent-color:#00d4ff;">
+        </div>
+        <div class="control-group">
+            <label style="color:#ffdd00;">Posición fuente ys <span><span id="ysVal">0.0</span></span></label>
+            <input type="range" id="ysSlider" min="-35" max="35" step="0.5" value="0" style="accent-color:#ffdd00;">
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canScheme"  height="320"></canvas>
+        <canvas id="canPattern" height="320"></canvas>
+    </div>
+</div>
+
+<script>
+    const canSch = document.getElementById('canScheme'),  ctxSch = canSch.getContext('2d');
+    const canPat = document.getElementById('canPattern'), ctxPat = canPat.getContext('2d');
+
+    const L    = 100;   // screen distance
+    const L_F  = 40;    // source to slit distance
+    const T_MAT = 10;   // material thickness
+    const Y_SCREEN = 50; // half-screen size
+    const N_PTS = 600;
+
+    let currentMode = 'mono';
+    let wav = 5.5, d = 15, n_mat = 1.0, ys = 0.0;
+
+    function wavToRGB(w_raw) {
+        // w_raw is in units ×100 nm (4.0–7.5 → 400–750 nm)
+        const w = w_raw * 100;
+        let r, g, b;
+        if      (w < 440) { r=(440-w)/(440-380); g=0;                b=1; }
+        else if (w < 490) { r=0;                  g=(w-440)/(490-440); b=1; }
+        else if (w < 510) { r=0;                  g=1;                b=(510-w)/(510-490); }
+        else if (w < 580) { r=(w-510)/(580-510);  g=1;                b=0; }
+        else if (w < 645) { r=1;                  g=(645-w)/(645-580); b=0; }
+        else              { r=1;                  g=0;                b=0; }
+        return [r,g,b];
+    }
+
+    function getIntensity(wav_val, y_arr) {
+        const phi = y_arr.map(y =>
+            (2*Math.PI/wav_val) * (d*y/L + d*ys/L_F + (n_mat-1)*T_MAT)
+        );
+        return phi.map(p => Math.cos(p/2)**2);
+    }
+
+    // ── SCHEME ────────────────────────────────────────────────────────────────
+    function drawScheme() {
+        const W = canSch.width, H = canSch.height;
+        if(!W||!H) return;
+        ctxSch.clearRect(0,0,W,H);
+
+        // Map physics → canvas
+        // x: [-L_F-10, L] → [0,W]
+        // y: [-60,60] → [H,0]
+        const physW=L+L_F+10, physH=120;
+        function cx(xp) { return (xp+L_F+10)/physW*W; }
+        function cy(yp) { return H/2 - yp/physH*H; }
+
+        const [r,g,b] = wavToRGB(wav);
+        const col = currentMode==='mono' ? `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})` : '#fff';
+
+        // Reference line (y=0)
+        ctxSch.strokeStyle='rgba(255,255,255,0.2)'; ctxSch.lineWidth=1; ctxSch.setLineDash([5,5]);
+        ctxSch.beginPath(); ctxSch.moveTo(0,cy(0)); ctxSch.lineTo(W,cy(0)); ctxSch.stroke();
+        ctxSch.setLineDash([]);
+
+        // Slits barrier
+        const slitX=cx(0), slitW=6;
+        const dHalf=d/2;
+        ctxSch.fillStyle='#334';
+        ctxSch.fillRect(slitX, 0, slitW, cy(dHalf+2));             // top block
+        ctxSch.fillRect(slitX, cy(dHalf-2), slitW, cy(-dHalf+2)-cy(dHalf-2)); // middle
+        ctxSch.fillRect(slitX, cy(-dHalf-2), slitW, H-cy(-dHalf-2)); // bottom block
+
+        // Slit openings
+        ctxSch.strokeStyle=col; ctxSch.lineWidth=2;
+        ctxSch.beginPath(); ctxSch.moveTo(slitX,cy(dHalf)); ctxSch.lineTo(slitX,cy(dHalf-2)); ctxSch.stroke();
+        ctxSch.beginPath(); ctxSch.moveTo(slitX,cy(-dHalf+2)); ctxSch.lineTo(slitX,cy(-dHalf)); ctxSch.stroke();
+
+        // Source
+        ctxSch.beginPath(); ctxSch.arc(cx(-L_F),cy(ys),6,0,Math.PI*2);
+        ctxSch.fillStyle=col; ctxSch.shadowBlur=12; ctxSch.shadowColor=col; ctxSch.fill(); ctxSch.shadowBlur=0;
+
+        // Wave fronts from source
+        ctxSch.globalAlpha=0.12; ctxSch.strokeStyle=col; ctxSch.lineWidth=1;
+        for(let rr=5;rr<55;rr+=8){
+            ctxSch.beginPath(); ctxSch.arc(cx(-L_F),cy(ys),rr/physH*H*0.8,0,Math.PI*2); ctxSch.stroke();
+        }
+        // Wave fronts from each slit
+        for(let rr=5;rr<L*0.85;rr+=10){
+            ctxSch.beginPath(); ctxSch.arc(slitX,cy(dHalf-1), rr/physW*W, -Math.PI*0.6, Math.PI*0.6); ctxSch.stroke();
+            ctxSch.beginPath(); ctxSch.arc(slitX,cy(-dHalf+1),rr/physW*W, -Math.PI*0.6, Math.PI*0.6); ctxSch.stroke();
+        }
+        ctxSch.globalAlpha=1;
+
+        // Material on upper slit
+        if(n_mat>1.001){
+            ctxSch.fillStyle='rgba(0,212,255,0.3)';
+            ctxSch.fillRect(slitX, cy(dHalf+1), T_MAT/physW*W, cy(dHalf-3)-cy(dHalf+1));
+            ctxSch.fillStyle='#00d4ff'; ctxSch.font='8px Space Mono'; ctxSch.textAlign='center';
+            ctxSch.fillText(`n=${n_mat.toFixed(2)}`, slitX+T_MAT/physW*W/2, cy(dHalf+1)-4);
+        }
+
+        // Screen line
+        ctxSch.strokeStyle='#2a3a5a'; ctxSch.lineWidth=3;
+        ctxSch.beginPath(); ctxSch.moveTo(cx(L),0); ctxSch.lineTo(cx(L),H); ctxSch.stroke();
+
+        // Labels
+        ctxSch.fillStyle='#8892b0'; ctxSch.font='9px Space Mono'; ctxSch.textAlign='center';
+        ctxSch.fillText(`d=${d}`, slitX+3, cy(-dHalf)-8);
+        ctxSch.fillText(`L=${L}`, (cx(0)+cx(L))/2, cy(0)+14);
+        ctxSch.fillStyle=col; ctxSch.fillText(`λ≈${(wav*100).toFixed(0)}nm`, cx(-L_F)+30, cy(ys)-10);
+
+        // Title
+        ctxSch.fillStyle='rgba(0,0,0,0.5)'; ctxSch.fillRect(0,0,W,18);
+        ctxSch.fillStyle='#00d4ff'; ctxSch.font='10px Space Mono'; ctxSch.textAlign='center';
+        ctxSch.fillText('ESQUEMA ÓPTICO — INTERFERÓMETRO DE YOUNG', W/2, 13);
+        ctxSch.textAlign='left';
+    }
+
+    // ── PATTERN ───────────────────────────────────────────────────────────────
+    function drawPattern() {
+        const W = canPat.width, H = canPat.height;
+        if(!W||!H) return;
+        ctxPat.clearRect(0,0,W,H);
+
+        const margin={left:55,right:15,top:25,bottom:35};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+
+        // y_screen array
+        const yArr=[];
+        for(let i=0;i<N_PTS;i++) yArr.push(-Y_SCREEN+2*Y_SCREEN*i/(N_PTS-1));
+
+        // Grid
+        ctxPat.strokeStyle='#16203a'; ctxPat.lineWidth=1;
+        ctxPat.font='10px Space Mono'; ctxPat.fillStyle='#8892b0';
+        for(let i=0;i<=5;i++){
+            const gx=margin.left+(i/5)*w;
+            ctxPat.beginPath(); ctxPat.moveTo(gx,margin.top); ctxPat.lineTo(gx,margin.top+h); ctxPat.stroke();
+            ctxPat.fillText((i/5).toFixed(1),gx-8,margin.top+h+14);
+        }
+        const yTicks=[-40,-20,0,20,40];
+        yTicks.forEach(yt=>{
+            const gy=margin.top+(1-(yt+Y_SCREEN)/(2*Y_SCREEN))*h;
+            ctxPat.beginPath(); ctxPat.moveTo(margin.left,gy); ctxPat.lineTo(margin.left+w,gy); ctxPat.stroke();
+            ctxPat.fillText(`${yt}`,4,gy+4);
+        });
+        ctxPat.fillText('I/I₀',margin.left+w/2-10,margin.top+h+28);
+        ctxPat.fillText('y (mm)',4,margin.top-8);
+
+        // Reference line y=0
+        const y0px=margin.top+(1-Y_SCREEN/(2*Y_SCREEN))*h;
+        ctxPat.strokeStyle='rgba(255,255,255,0.2)'; ctxPat.lineWidth=1; ctxPat.setLineDash([4,4]);
+        ctxPat.beginPath(); ctxPat.moveTo(margin.left,y0px); ctxPat.lineTo(margin.left+w,y0px); ctxPat.stroke();
+        ctxPat.setLineDash([]);
+
+        const mapX=I=>margin.left+I*w;
+        const mapY=y=>margin.top+(1-(y+Y_SCREEN)/(2*Y_SCREEN))*h;
+
+        if(currentMode==='mono'){
+            const I=getIntensity(wav,yArr);
+            const [r,g,b]=wavToRGB(wav);
+            const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+            // Pattern image strip (left side, narrow)
+            const stripW=Math.min(30,w*0.15);
+            const imgData=ctxPat.createImageData(Math.ceil(stripW),Math.ceil(h));
+            for(let py=0;py<Math.ceil(h);py++){
+                const ii=Math.floor(py/h*(N_PTS-1));
+                const Iv=I[N_PTS-1-ii]||0;
+                for(let px=0;px<Math.ceil(stripW);px++){
+                    const idx=(py*Math.ceil(stripW)+px)*4;
+                    imgData.data[idx]  =Math.round(r*Iv*255);
+                    imgData.data[idx+1]=Math.round(g*Iv*255);
+                    imgData.data[idx+2]=Math.round(b*Iv*255);
+                    imgData.data[idx+3]=255;
+                }
+            }
+            ctxPat.putImageData(imgData,margin.left,margin.top);
+
+            // Intensity curve
+            ctxPat.beginPath(); ctxPat.strokeStyle=col; ctxPat.lineWidth=2;
+            yArr.forEach((y,i)=>{ const px=mapX(I[i]), py=mapY(y); i===0?ctxPat.moveTo(px,py):ctxPat.lineTo(px,py); });
+            ctxPat.stroke();
+
+        } else {
+            // White light
+            const wavs=Array.from({length:30},(_,i)=>4.0+i*3.5/29);
+            const totalI=new Float64Array(N_PTS);
+            const imgR=new Float64Array(N_PTS), imgG=new Float64Array(N_PTS), imgB=new Float64Array(N_PTS);
+            wavs.forEach(wv=>{
+                const Iv=getIntensity(wv,yArr);
+                const [r,g,b]=wavToRGB(wv);
+                Iv.forEach((v,i)=>{ totalI[i]+=v; imgR[i]+=v*r; imgG[i]+=v*g; imgB[i]+=v*b; });
+            });
+            const nw=wavs.length*0.7;
+            // Pattern strip
+            const stripW=Math.min(30,w*0.15);
+            const imgData=ctxPat.createImageData(Math.ceil(stripW),Math.ceil(h));
+            for(let py=0;py<Math.ceil(h);py++){
+                const ii=N_PTS-1-Math.floor(py/h*(N_PTS-1));
+                for(let px=0;px<Math.ceil(stripW);px++){
+                    const idx=(py*Math.ceil(stripW)+px)*4;
+                    imgData.data[idx]  =Math.min(255,Math.round(imgR[ii]/nw*255));
+                    imgData.data[idx+1]=Math.min(255,Math.round(imgG[ii]/nw*255));
+                    imgData.data[idx+2]=Math.min(255,Math.round(imgB[ii]/nw*255));
+                    imgData.data[idx+3]=255;
+                }
+            }
+            ctxPat.putImageData(imgData,margin.left,margin.top);
+            // Envelope
+            ctxPat.beginPath(); ctxPat.strokeStyle='#fff'; ctxPat.lineWidth=2;
+            yArr.forEach((y,i)=>{ const px=mapX(totalI[i]/wavs.length), py=mapY(y); i===0?ctxPat.moveTo(px,py):ctxPat.lineTo(px,py); });
+            ctxPat.stroke();
+        }
+
+        // Title
+        ctxPat.fillStyle='rgba(0,0,0,0.5)'; ctxPat.fillRect(0,0,W,18);
+        ctxPat.fillStyle='#00d4ff'; ctxPat.font='10px Space Mono'; ctxPat.textAlign='center';
+        const title=currentMode==='mono'
+            ? `PATRÓN — λ≈${(wav*100).toFixed(0)}nm  d=${d}  n=${n_mat.toFixed(2)}  ys=${ys}`
+            : `PATRÓN — LUZ BLANCA  d=${d}  n=${n_mat.toFixed(2)}  ys=${ys}`;
+        ctxPat.fillText(title,W/2,13); ctxPat.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        const fringe_mm = (L*wav/d).toFixed(2);
+        const shift_mm  = (d*ys/L_F + (n_mat-1)*T_MAT).toFixed(2);
+        const mode_str  = currentMode==='mono' ? `λ ≈ ${(wav*100).toFixed(0)} nm` : 'Luz Blanca';
+        document.getElementById('infoDisplay').innerText =
+            `${mode_str}  d=${d}  n=${n_mat.toFixed(2)}  ys=${ys}\nΔy = L·λ/d = ${fringe_mm} u\nφ extra = (n-1)·t + d·ys/Lf = ${shift_mm} u`;
+    }
+
+    function update() {
+        drawScheme();
+        drawPattern();
+        updateInfoBox();
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); currentMode=btn.dataset.mode; update();
+        });
+    });
+    document.getElementById('wavSlider').oninput=e=>{
+        wav=parseFloat(e.target.value);
+        document.getElementById('wavVal').innerText=(wav*100).toFixed(0);
+        const [r,g,b]=wavToRGB(wav);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+        e.target.style.accentColor=col;
+        document.getElementById('wavLabel').style.color=col;
+        update();
+    };
+    document.getElementById('dSlider').oninput=e=>{ d=parseFloat(e.target.value); document.getElementById('dVal').innerText=d.toFixed(1); update(); };
+    document.getElementById('nSlider').oninput=e=>{ n_mat=parseFloat(e.target.value); document.getElementById('nVal').innerText=n_mat.toFixed(2); update(); };
+    document.getElementById('ysSlider').oninput=e=>{ ys=parseFloat(e.target.value); document.getElementById('ysVal').innerText=ys.toFixed(1); update(); };
+
+    function resize(){
+        canSch.width=canSch.offsetWidth; canSch.height=320;
+        canPat.width=canPat.offsetWidth; canPat.height=320;
+        update();
+    }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

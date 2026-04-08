@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Espejos de Fresnel | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; display: block; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.75rem; color: var(--cyan); margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 15px; border-radius: 8px; font-size: 0.75rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        #canGeom   { height: 300px; }
+        #canScreen { height: 320px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Espejos de Fresnel — Fuentes Virtuales e Interferencia</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">d = 2·r·α = --- mm\ni = λ·D/d = --- mm</div>
+
+        <div class="control-group">
+            <label style="color:#ff44ff;">Ángulo α <span><span id="alphaVal">0.0687</span>°</span></label>
+            <input type="range" id="alphaSlider" min="0.01" max="0.15" step="0.0001" value="0.0687" style="accent-color:#ff44ff;">
+        </div>
+        <div class="control-group">
+            <label id="wavLabel" style="color:#00ff99;">Longitud de onda λ <span><span id="wavVal">400</span> nm</span></label>
+            <input type="range" id="wavSlider" min="380" max="750" step="1" value="400">
+        </div>
+        <div class="controls">
+            <div style="font-family:'Space Mono';font-size:0.65rem;color:var(--gray);line-height:1.9;">
+                <div>r = 20 cm &nbsp;(fuente → arista)</div>
+                <div>L = 100 cm &nbsp;(arista → pantalla)</div>
+                <div>D = r + L = 120 cm</div>
+                <div style="margin-top:8px;color:var(--cyan);">d = 2·r·α &nbsp;(sep. fuentes virt.)</div>
+                <div style="color:var(--cyan);">i = λ·D / d &nbsp;(interfranja)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canGeom"   height="300"></canvas>
+        <canvas id="canScreen" height="320"></canvas>
+    </div>
+</div>
+
+<script>
+    const canG = document.getElementById('canGeom'),   ctxG = canG.getContext('2d');
+    const canS = document.getElementById('canScreen'), ctxS = canS.getContext('2d');
+
+    // Fixed geometry
+    const R_CM = 20.0;   // source to mirror edge (cm)
+    const L_CM = 100.0;  // mirror edge to screen (cm)
+    const D_CM = R_CM + L_CM; // total distance (cm)
+
+    let alpha_deg = 0.0687, wav_nm = 400;
+
+    function wavToRGB(w) {
+        let r, g, b;
+        if      (w < 440) { r=(440-w)/(440-380); g=0;                b=1; }
+        else if (w < 490) { r=0;                  g=(w-440)/(490-440); b=1; }
+        else if (w < 510) { r=0;                  g=1;                b=(510-w)/(510-490); }
+        else if (w < 580) { r=(w-510)/(580-510);  g=1;                b=0; }
+        else if (w < 645) { r=1;                  g=(645-w)/(645-580); b=0; }
+        else              { r=1;                  g=0;                b=0; }
+        return [r,g,b];
+    }
+
+    // ── GEOMETRY DIAGRAM ──────────────────────────────────────────────────────
+    function drawGeometry() {
+        const W = canG.width, H = canG.height;
+        if(!W||!H) return;
+        ctxG.clearRect(0,0,W,H);
+
+        const alpha_rad = alpha_deg * Math.PI / 180;
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        // Visual exaggeration of angle for display (×15)
+        const alpha_viz = alpha_rad * 15;
+
+        // Layout: origin at center-left (mirror edge), screen at right
+        const cx = W * 0.35, cy = H / 2;
+        const mirrorLen = Math.min(W, H) * 0.38;
+        const screenX   = W * 0.92;
+
+        // Mirror 1 (horizontal)
+        ctxG.strokeStyle = '#888'; ctxG.lineWidth = 4;
+        ctxG.beginPath(); ctxG.moveTo(cx, cy); ctxG.lineTo(cx - mirrorLen, cy); ctxG.stroke();
+
+        // Mirror 2 (tilted by alpha_viz)
+        ctxG.beginPath();
+        ctxG.moveTo(cx, cy);
+        ctxG.lineTo(cx - mirrorLen*Math.cos(alpha_viz), cy - mirrorLen*Math.sin(alpha_viz));
+        ctxG.stroke();
+
+        // Mirror edge dot
+        ctxG.beginPath(); ctxG.arc(cx, cy, 4, 0, Math.PI*2);
+        ctxG.fillStyle='#fff'; ctxG.fill();
+
+        // Angle arc
+        ctxG.strokeStyle='#ff44ff'; ctxG.lineWidth=1; ctxG.setLineDash([2,3]);
+        ctxG.beginPath(); ctxG.arc(cx, cy, 35, -alpha_viz, 0); ctxG.stroke();
+        ctxG.setLineDash([]);
+        ctxG.fillStyle='#ff44ff'; ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillText(`α=${alpha_deg.toFixed(4)}°`, cx-50, cy-22);
+
+        // Real source D (to the left of mirror edge)
+        const srcX = cx - mirrorLen*0.65, srcY = cy;
+        ctxG.beginPath(); ctxG.arc(srcX, srcY, 7, 0, Math.PI*2);
+        ctxG.fillStyle='#ffdd00'; ctxG.shadowBlur=12; ctxG.shadowColor='#ffdd00'; ctxG.fill(); ctxG.shadowBlur=0;
+        ctxG.fillStyle='#ffdd00'; ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillText('D (fuente)', srcX, srcY-12);
+
+        // Virtual sources S1' and S2' (symmetric about mirror edge, exaggerated position)
+        const d_viz = mirrorLen * 0.22; // visual only
+        const s1x = srcX, s1y = cy - d_viz/2;
+        const s2x = srcX, s2y = cy + d_viz/2;
+
+        ctxG.beginPath(); ctxG.arc(s1x, s1y, 5, 0, Math.PI*2);
+        ctxG.fillStyle=col; ctxG.globalAlpha=0.6; ctxG.fill(); ctxG.globalAlpha=1;
+        ctxG.fillStyle=col; ctxG.font='8px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillText("S₁'", s1x, s1y-9);
+
+        ctxG.beginPath(); ctxG.arc(s2x, s2y, 5, 0, Math.PI*2);
+        ctxG.fillStyle=col; ctxG.globalAlpha=0.6; ctxG.fill(); ctxG.globalAlpha=1;
+        ctxG.fillText("S₂'", s2x, s2y+16);
+
+        // d arrow between virtual sources
+        ctxG.strokeStyle=col; ctxG.lineWidth=1;
+        ctxG.beginPath(); ctxG.moveTo(s1x+12, s1y); ctxG.lineTo(s1x+12, s2y); ctxG.stroke();
+        ctxG.fillStyle=col; ctxG.fillText('d', s1x+22, (s1y+s2y)/2+4);
+
+        // Rays from virtual sources to screen
+        ctxG.globalAlpha=0.2; ctxG.strokeStyle=col; ctxG.lineWidth=1;
+        [[s1x,s1y],[s2x,s2y]].forEach(([sx,sy])=>{
+            for(let yp=-H*0.3;yp<=H*0.3;yp+=H*0.12){
+                ctxG.beginPath(); ctxG.moveTo(sx,sy); ctxG.lineTo(screenX, H/2+yp); ctxG.stroke();
+            }
+        });
+        ctxG.globalAlpha=1;
+
+        // Screen
+        ctxG.strokeStyle='#2a3a5a'; ctxG.lineWidth=4;
+        ctxG.beginPath(); ctxG.moveTo(screenX,H*0.1); ctxG.lineTo(screenX,H*0.9); ctxG.stroke();
+
+        // Labels
+        ctxG.fillStyle='#8892b0'; ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillText(`r=${R_CM}cm`, (cx+srcX)/2, cy+14);
+        ctxG.fillText(`D=${D_CM}cm`, (cx+screenX)/2, cy+14);
+
+        // Title
+        ctxG.fillStyle='rgba(0,0,0,0.5)'; ctxG.fillRect(0,0,W,18);
+        ctxG.fillStyle='#00d4ff'; ctxG.font='10px Space Mono';
+        ctxG.fillText(`GEOMETRÍA ESPEJOS DE FRESNEL (ángulo ×15 exagerado)`, W/2, 13);
+        ctxG.textAlign='left';
+    }
+
+    // ── SCREEN PATTERN ────────────────────────────────────────────────────────
+    function drawScreen() {
+        const W = canS.width, H = canS.height;
+        if(!W||!H) return;
+        ctxS.clearRect(0,0,W,H);
+
+        const alpha_rad = alpha_deg * Math.PI / 180;
+        const wav_m     = wav_nm * 1e-9;
+        const d_m       = 2 * (R_CM/100) * alpha_rad;   // sep. fuentes virtuales (m)
+        const D_m       = D_CM / 100;                   // distancia total (m)
+        const interfranja_mm = (wav_m * D_m / d_m) * 1e3;
+
+        const [r,g,b] = wavToRGB(wav_nm);
+        const col = `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        const margin={left:55,right:15,top:28,bottom:38};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+
+        // Grid
+        ctxS.strokeStyle='#16203a'; ctxS.lineWidth=1;
+        ctxS.font='10px Space Mono'; ctxS.fillStyle='#8892b0';
+        for(let i=0;i<=5;i++){
+            const gx=margin.left+(i/5)*w;
+            ctxS.beginPath(); ctxS.moveTo(gx,margin.top); ctxS.lineTo(gx,margin.top+h); ctxS.stroke();
+            ctxS.fillText((i/5).toFixed(1),gx-8,margin.top+h+14);
+        }
+        // Y axis in mm
+        const Y_HALF_MM = 5;
+        const yTicks=[-4,-2,0,2,4];
+        yTicks.forEach(yt=>{
+            const gy=margin.top+(1-(yt+Y_HALF_MM)/(2*Y_HALF_MM))*h;
+            ctxS.beginPath(); ctxS.moveTo(margin.left,gy); ctxS.lineTo(margin.left+w,gy); ctxS.stroke();
+            ctxS.fillText(`${yt}mm`,4,gy+4);
+        });
+        ctxS.fillText('I/I₀',margin.left+w/2-10,margin.top+h+28);
+
+        // Reference lines ±0.5 mm
+        [0.5,-0.5].forEach(y=>{
+            const gy=margin.top+(1-(y+Y_HALF_MM)/(2*Y_HALF_MM))*h;
+            ctxS.strokeStyle='rgba(255,255,255,0.2)'; ctxS.lineWidth=1; ctxS.setLineDash([4,4]);
+            ctxS.beginPath(); ctxS.moveTo(margin.left,gy); ctxS.lineTo(margin.left+w,gy); ctxS.stroke();
+        });
+        ctxS.setLineDash([]);
+
+        // Pattern image strip
+        const N_PTS=600;
+        const imgData=ctxS.createImageData(Math.ceil(w*0.12),h);
+        const yArr=Array.from({length:N_PTS},(_,i)=>(-Y_HALF_MM+2*Y_HALF_MM*i/(N_PTS-1))*1e-3);
+        const I=yArr.map(y=>{
+            const phi=(2*Math.PI/wav_m)*(d_m*y/D_m);
+            return Math.cos(phi/2)**2;
+        });
+
+        for(let py=0;py<h;py++){
+            const ii=Math.floor((1-py/h)*(N_PTS-1));
+            const Iv=I[ii]||0;
+            for(let px=0;px<Math.ceil(w*0.12);px++){
+                const idx=(py*Math.ceil(w*0.12)+px)*4;
+                imgData.data[idx]  =Math.round(r*Iv*255);
+                imgData.data[idx+1]=Math.round(g*Iv*255);
+                imgData.data[idx+2]=Math.round(b*Iv*255);
+                imgData.data[idx+3]=255;
+            }
+        }
+        ctxS.putImageData(imgData,margin.left,margin.top);
+
+        // Intensity curve
+        ctxS.beginPath(); ctxS.strokeStyle=col; ctxS.lineWidth=2;
+        I.forEach((Iv,i)=>{
+            const px=margin.left+Iv*w;
+            const py=margin.top+(1-(yArr[i]*1e3+Y_HALF_MM)/(2*Y_HALF_MM))*h;
+            i===0?ctxS.moveTo(px,py):ctxS.lineTo(px,py);
+        });
+        ctxS.stroke();
+
+        // Interfringe marker
+        const gy0=margin.top+(1-Y_HALF_MM/(2*Y_HALF_MM))*h;
+        const gyI=margin.top+(1-(interfranja_mm+Y_HALF_MM)/(2*Y_HALF_MM))*h;
+        ctxS.strokeStyle='rgba(255,255,255,0.4)'; ctxS.lineWidth=1; ctxS.setLineDash([3,3]);
+        ctxS.beginPath(); ctxS.moveTo(margin.left,gyI); ctxS.lineTo(margin.left+w,gyI); ctxS.stroke();
+        ctxS.setLineDash([]);
+        ctxS.fillStyle='#fff'; ctxS.font='9px Space Mono'; ctxS.textAlign='right';
+        ctxS.fillText(`i=${interfranja_mm.toFixed(3)}mm`,margin.left+w-4,gyI-4);
+
+        // Title
+        ctxS.fillStyle='rgba(0,0,0,0.5)'; ctxS.fillRect(0,0,W,18);
+        ctxS.fillStyle='#fff'; ctxS.font='bold 11px Space Mono'; ctxS.textAlign='center';
+        ctxS.fillText(`PANTALLA  i = ${interfranja_mm.toFixed(3)} mm`, W/2, 13);
+        ctxS.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        const alpha_rad=alpha_deg*Math.PI/180;
+        const wav_m=wav_nm*1e-9;
+        const d_m=2*(R_CM/100)*alpha_rad;
+        const D_m=D_CM/100;
+        const i_mm=(wav_m*D_m/d_m)*1e3;
+        const d_mm=d_m*1e3;
+        document.getElementById('infoDisplay').innerText =
+            `d = 2·r·α = ${d_mm.toFixed(4)} mm\ni = λ·D/d = ${i_mm.toFixed(4)} mm\nλ=${wav_nm}nm  α=${alpha_deg.toFixed(4)}°\nr=${R_CM}cm  L=${L_CM}cm  D=${D_CM}cm`;
+    }
+
+    function update() {
+        drawGeometry();
+        drawScreen();
+        updateInfoBox();
+    }
+
+    document.getElementById('alphaSlider').oninput=e=>{
+        alpha_deg=parseFloat(e.target.value);
+        document.getElementById('alphaVal').innerText=alpha_deg.toFixed(4);
+        update();
+    };
+    document.getElementById('wavSlider').oninput=e=>{
+        wav_nm=parseInt(e.target.value);
+        document.getElementById('wavVal').innerText=wav_nm;
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+        e.target.style.accentColor=col;
+        document.getElementById('wavLabel').style.color=col;
+        update();
+    };
+
+    function resize(){
+        canG.width=canG.offsetWidth; canG.height=300;
+        canS.width=canS.offsetWidth; canS.height=320;
+        update();
+    }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

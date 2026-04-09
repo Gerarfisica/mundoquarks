@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lámina de Caras Paralelas | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; display: block; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.72rem; line-height: 1.8; white-space: pre-line; }
+        .stokes-box { background: rgba(255,165,0,0.07); border: 1px solid rgba(255,165,0,0.4); padding: 8px 12px; border-radius: 8px; font-family: 'Space Mono'; font-size: 0.68rem; color: orange; margin-bottom: 14px; line-height: 1.7; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        #canRays   { height: 280px; }
+        #canInterf { height: 300px; }
+        .section-sep { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px; }
+        .sliders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Lámina de Caras Paralelas — Saltos de Fase de Stokes</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">Δ = 2n₂·d·cos(θ₂) + δ·λ\n--- </div>
+        <div id="stokesBox" class="stokes-box">Salto sup: ---  |  Salto inf: ---</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label id="wavLabel" style="color:#00ff99;">λ <span><span id="wavVal">550</span> nm</span></label>
+                <input type="range" id="wavSlider" min="380" max="750" step="1" value="550">
+            </div>
+            <div class="control-group">
+                <label>Espesor d <span><span id="dVal">5.0</span> µm</span></label>
+                <input type="range" id="dSlider" min="0.1" max="15.0" step="0.1" value="5.0">
+            </div>
+            <div class="control-group">
+                <label style="color:orange;">Ángulo incidencia θ <span><span id="thetaVal">30</span>°</span></label>
+                <input type="range" id="thetaSlider" min="0" max="85" step="0.5" value="30" style="accent-color:orange;">
+            </div>
+
+            <div class="section-sep">// Índices de refracción</div>
+            <div class="control-group">
+                <label style="color:#ffdd00;">n₁ (medio superior) <span><span id="n1Val">1.00</span></span></label>
+                <input type="range" id="n1Slider" min="1.0" max="2.0" step="0.01" value="1.0" style="accent-color:#ffdd00;">
+            </div>
+            <div class="control-group">
+                <label style="color:#00d4ff;">n₂ (lámina) <span><span id="n2Val">1.50</span></span></label>
+                <input type="range" id="n2Slider" min="1.0" max="2.5" step="0.01" value="1.5" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label>n₃ (medio inferior) <span><span id="n3Val">1.00</span></span></label>
+                <input type="range" id="n3Slider" min="1.0" max="2.0" step="0.01" value="1.0">
+            </div>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canRays"   height="280"></canvas>
+        <canvas id="canInterf" height="300"></canvas>
+    </div>
+</div>
+
+<script>
+    const canR = document.getElementById('canRays'),   ctxR = canR.getContext('2d');
+    const canI = document.getElementById('canInterf'), ctxI = canI.getContext('2d');
+
+    let wav_nm=550, d_um=5.0, n1=1.0, n2=1.5, n3=1.0, theta_deg=30;
+
+    function wavToRGB(w) {
+        let r,g,b;
+        if      (w<440){r=(440-w)/(440-380);g=0;b=1;}
+        else if (w<490){r=0;g=(w-440)/(490-440);b=1;}
+        else if (w<510){r=0;g=1;b=(510-w)/(510-490);}
+        else if (w<580){r=(w-510)/(580-510);g=1;b=0;}
+        else if (w<645){r=1;g=(645-w)/(645-580);b=0;}
+        else           {r=1;g=0;b=0;}
+        return [r,g,b];
+    }
+
+    function compute() {
+        const wav_um = wav_nm/1000;
+        const theta1 = theta_deg*Math.PI/180;
+        const sinT2  = n1*Math.sin(theta1)/n2;
+        const tir    = sinT2>1;
+        const theta2 = tir ? Math.PI/2 : Math.asin(sinT2);
+
+        // Phase jumps (Stokes conditions)
+        const jumpTop = n2>n1 ? 0.5 : 0;  // λ/2 jump → adds 0.5 in units of λ
+        const jumpBot = n3>n2 ? 0.5 : 0;
+        const deltaFase = jumpTop+jumpBot;  // total extra in units of λ
+
+        // Optical path difference
+        const camino = 2*n2*d_um*Math.cos(theta2); // µm
+        const deltaTotal = camino + deltaFase*wav_um; // µm
+
+        // Intensity at current angle
+        const I_curr = 0.5*(1+Math.cos(2*Math.PI*deltaTotal/wav_um));
+
+        return {theta1,theta2,tir,jumpTop,jumpBot,deltaFase,camino,deltaTotal,wav_um,I_curr};
+    }
+
+    // ── RAY DIAGRAM ───────────────────────────────────────────────────────────
+    function drawRays() {
+        const W=canR.width, H=canR.height;
+        if(!W||!H) return;
+        ctxR.clearRect(0,0,W,H);
+
+        const {theta1,theta2,tir,jumpTop,jumpBot,camino,deltaTotal,wav_um,I_curr}=compute();
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        // Layout: top surface at H*0.25, bottom at H*0.65
+        const topY=H*0.25, botY=H*0.65;
+        const filmH=botY-topY;
+        const cx=W*0.45;
+
+        // Media labels
+        ctxR.fillStyle='rgba(255,255,255,0.05)'; ctxR.fillRect(0,topY,W,filmH);
+        ctxR.fillStyle='rgba(0,212,255,0.08)'; ctxR.fillRect(0,topY,W,filmH);
+
+        ctxR.font='10px Space Mono'; ctxR.textAlign='right';
+        ctxR.fillStyle='#ffdd00'; ctxR.fillText(`n₁ = ${n1.toFixed(2)}`, W-8, topY-8);
+        ctxR.fillStyle='#00d4ff'; ctxR.fillText(`n₂ = ${n2.toFixed(2)} (lámina)`, W-8, (topY+botY)/2);
+        ctxR.fillStyle='#fff'; ctxR.fillText(`n₃ = ${n3.toFixed(2)}`, W-8, botY+16);
+        ctxR.textAlign='left';
+
+        // Surface lines
+        ctxR.strokeStyle='rgba(255,255,255,0.3)'; ctxR.lineWidth=1.5;
+        ctxR.beginPath(); ctxR.moveTo(0,topY); ctxR.lineTo(W,topY); ctxR.stroke();
+        ctxR.beginPath(); ctxR.moveTo(0,botY); ctxR.lineTo(W,botY); ctxR.stroke();
+
+        // Normal lines (dashed)
+        ctxR.strokeStyle='rgba(255,255,255,0.15)'; ctxR.lineWidth=1; ctxR.setLineDash([5,5]);
+        ctxR.beginPath(); ctxR.moveTo(cx,topY-40); ctxR.lineTo(cx,topY+40); ctxR.stroke();
+        const x3=filmH*Math.tan(theta2), cx2=cx+x3;
+        ctxR.beginPath(); ctxR.moveTo(cx2,botY-30); ctxR.lineTo(cx2,botY+30); ctxR.stroke();
+        const cx3=cx2+x3;
+        ctxR.beginPath(); ctxR.moveTo(cx3,topY-40); ctxR.lineTo(cx3,topY+40); ctxR.stroke();
+        ctxR.setLineDash([]);
+
+        // Incident ray
+        const incLen=50;
+        const ix0=cx-Math.sin(theta1)*incLen, iy0=topY-Math.cos(theta1)*incLen;
+        ctxR.strokeStyle=col; ctxR.lineWidth=2.5;
+        ctxR.beginPath(); ctxR.moveTo(ix0,iy0); ctxR.lineTo(cx,topY); ctxR.stroke();
+        // Arrow
+        ctxR.fillStyle=col; ctxR.beginPath(); ctxR.arc(cx,topY,3,0,Math.PI*2); ctxR.fill();
+
+        if(!tir) {
+            // Refracted ray 1: cx → cx2 through film
+            ctxR.strokeStyle=col; ctxR.lineWidth=2; ctxR.globalAlpha=0.6;
+            ctxR.beginPath(); ctxR.moveTo(cx,topY); ctxR.lineTo(cx2,botY); ctxR.stroke();
+            // Internal reflection at bottom
+            ctxR.beginPath(); ctxR.moveTo(cx2,botY); ctxR.lineTo(cx3,topY); ctxR.stroke();
+            // Emergent ray 2
+            ctxR.globalAlpha=1;
+            const ex1=cx3+Math.sin(theta1)*incLen, ey1=topY-Math.cos(theta1)*incLen;
+            ctxR.beginPath(); ctxR.moveTo(cx3,topY); ctxR.lineTo(ex1,ey1); ctxR.stroke();
+
+            // Reflected ray 1 (from top surface)
+            ctxR.strokeStyle='rgba(255,255,255,0.45)'; ctxR.lineWidth=1.5; ctxR.setLineDash([4,4]);
+            const rx1=cx-Math.sin(theta1)*incLen, ry1=topY-Math.cos(theta1)*incLen;
+            ctxR.beginPath(); ctxR.moveTo(cx,topY); ctxR.lineTo(cx-(-rx1+cx)/1,ry1); ctxR.stroke();
+            // Actually draw it going up-right
+            ctxR.beginPath(); ctxR.moveTo(cx,topY); ctxR.lineTo(cx+Math.sin(theta1)*incLen,topY-Math.cos(theta1)*incLen); ctxR.stroke();
+            ctxR.setLineDash([]);
+
+            // Phase jump labels
+            const jTop=jumpTop>0?'π (salto λ/2)':'0 (sin salto)';
+            const jBot=jumpBot>0?'π (salto λ/2)':'0 (sin salto)';
+            ctxR.fillStyle='orange'; ctxR.font='bold 9px Space Mono'; ctxR.textAlign='center';
+            ctxR.fillText(`Sup: ${jTop}`,cx+x3/2,topY-6);
+            ctxR.fillText(`Inf: ${jBot}`,cx2,botY+14);
+        } else {
+            ctxR.fillStyle='#ff4444'; ctxR.font='bold 10px Space Mono'; ctxR.textAlign='center';
+            ctxR.fillText('REFLEXIÓN TOTAL INTERNA', W/2, (topY+botY)/2);
+        }
+
+        // Thickness arrow
+        ctxR.strokeStyle='rgba(0,212,255,0.5)'; ctxR.lineWidth=1;
+        ctxR.beginPath(); ctxR.moveTo(8,topY); ctxR.lineTo(8,botY); ctxR.stroke();
+        ctxR.fillStyle='#00d4ff'; ctxR.font='9px Space Mono'; ctxR.textAlign='left';
+        ctxR.fillText(`d=${d_um.toFixed(1)}µm`,12,(topY+botY)/2+4);
+
+        // Angle arcs
+        ctxR.strokeStyle='rgba(255,221,0,0.5)'; ctxR.lineWidth=1; ctxR.setLineDash([2,3]);
+        ctxR.beginPath(); ctxR.arc(cx,topY,28,-(Math.PI/2+theta1),-Math.PI/2); ctxR.stroke();
+        ctxR.setLineDash([]);
+        ctxR.fillStyle='#ffdd00'; ctxR.font='9px Space Mono'; ctxR.textAlign='center';
+        ctxR.fillText(`θ₁=${theta_deg}°`,cx-22,topY-18);
+        if(!tir){ ctxR.fillText(`θ₂=${(theta2*180/Math.PI).toFixed(1)}°`,cx+16,topY+22); }
+
+        // Title
+        ctxR.fillStyle='rgba(0,0,0,0.55)'; ctxR.fillRect(0,0,W,18);
+        ctxR.fillStyle='#00d4ff'; ctxR.font='10px Space Mono'; ctxR.textAlign='center';
+        ctxR.fillText(`LÁMINA  n₁=${n1.toFixed(2)} | n₂=${n2.toFixed(2)} | n₃=${n3.toFixed(2)}  d=${d_um.toFixed(1)}µm`,W/2,13);
+        ctxR.textAlign='left';
+    }
+
+    // ── INTERFERENCE PATTERN vs ANGLE ─────────────────────────────────────────
+    function drawInterference() {
+        const W=canI.width, H=canI.height;
+        if(!W||!H) return;
+        ctxI.clearRect(0,0,W,H);
+
+        const {jumpTop,jumpBot,deltaFase,wav_um}=compute();
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        const margin={left:50,right:15,top:25,bottom:38};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+        const N=600;
+
+        // Grid
+        ctxI.strokeStyle='#16203a'; ctxI.lineWidth=1;
+        ctxI.font='10px Space Mono'; ctxI.fillStyle='#8892b0';
+        for(let i=0;i<=5;i++){
+            const gx=margin.left+(i/5)*w;
+            ctxI.beginPath(); ctxI.moveTo(gx,margin.top); ctxI.lineTo(gx,margin.top+h); ctxI.stroke();
+            ctxI.fillText(`${i*12}°`,gx-8,margin.top+h+14);
+        }
+        for(let i=0;i<=4;i++){
+            const gy=margin.top+(1-i/4)*h;
+            ctxI.beginPath(); ctxI.moveTo(margin.left,gy); ctxI.lineTo(margin.left+w,gy); ctxI.stroke();
+            ctxI.fillText((i/4).toFixed(2),4,gy+4);
+        }
+        ctxI.fillText('θ (°)',margin.left+w/2-10,margin.top+h+30);
+        ctxI.fillText('I/I₀',4,margin.top-8);
+
+        // Compute I vs angle
+        const Iarr=[];
+        for(let i=0;i<N;i++){
+            const ang=60*i/(N-1)*Math.PI/180;
+            const sinT2=n1*Math.sin(ang)/n2;
+            if(sinT2>=1){Iarr.push(1); continue;} // TIR → total reflection
+            const t2=Math.asin(sinT2);
+            const cam=2*n2*d_um*Math.cos(t2);
+            const dt=cam+deltaFase*wav_um;
+            Iarr.push(0.5*(1+Math.cos(2*Math.PI*dt/wav_um)));
+        }
+
+        // Pattern strip
+        const stripW=Math.ceil(w*0.1);
+        const imgData=ctxI.createImageData(stripW,h);
+        for(let py=0;py<h;py++){
+            const ii=Math.floor(py/h*(N-1));
+            const Iv=Iarr[ii]||0;
+            for(let px=0;px<stripW;px++){
+                const idx=(py*stripW+px)*4;
+                imgData.data[idx]  =Math.round(r*Iv*255);
+                imgData.data[idx+1]=Math.round(g*Iv*255);
+                imgData.data[idx+2]=Math.round(b*Iv*255);
+                imgData.data[idx+3]=255;
+            }
+        }
+        ctxI.putImageData(imgData,margin.left,margin.top);
+
+        // Fill
+        ctxI.beginPath();
+        ctxI.moveTo(margin.left, margin.top+h);
+        Iarr.forEach((Iv,i)=>{
+            const px=margin.left+Iv*w, py=margin.top+(i/(N-1))*h;
+            i===0?ctxI.moveTo(px,py):ctxI.lineTo(px,py);
+        });
+        ctxI.lineTo(margin.left, margin.top+h);
+        ctxI.closePath();
+        ctxI.fillStyle=`rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},0.15)`;
+        ctxI.fill();
+
+        // Curve
+        ctxI.beginPath(); ctxI.strokeStyle=col; ctxI.lineWidth=2;
+        Iarr.forEach((Iv,i)=>{
+            const px=margin.left+Iv*w, py=margin.top+(i/(N-1))*h;
+            i===0?ctxI.moveTo(px,py):ctxI.lineTo(px,py);
+        });
+        ctxI.stroke();
+
+        // Current angle marker
+        const curPy=margin.top+(theta_deg/60)*h;
+        ctxI.strokeStyle='rgba(255,165,0,0.6)'; ctxI.lineWidth=1.5; ctxI.setLineDash([4,4]);
+        ctxI.beginPath(); ctxI.moveTo(margin.left,curPy); ctxI.lineTo(margin.left+w,curPy); ctxI.stroke();
+        ctxI.setLineDash([]);
+        const I_cur=Iarr[Math.round(theta_deg/60*(N-1))]||0;
+        ctxI.fillStyle='orange'; ctxI.font='bold 9px Space Mono'; ctxI.textAlign='right';
+        ctxI.fillText(`θ=${theta_deg}°  I=${I_cur.toFixed(3)}`,margin.left+w-4,curPy-5);
+        ctxI.textAlign='left';
+
+        // Title
+        ctxI.fillStyle='rgba(0,0,0,0.55)'; ctxI.fillRect(0,0,W,18);
+        ctxI.fillStyle='#fff'; ctxI.font='10px Space Mono'; ctxI.textAlign='center';
+        ctxI.fillText(`INTERFERENCIA vs ÁNGULO  λ=${wav_nm}nm  d=${d_um.toFixed(1)}µm`,W/2,13);
+        ctxI.textAlign='left';
+    }
+
+    function updateBoxes() {
+        const {jumpTop,jumpBot,deltaFase,camino,deltaTotal,wav_um,I_curr,tir}=compute();
+        const jTopStr=jumpTop>0?'π (λ/2 — reflexión densa)':'0 (sin salto)';
+        const jBotStr=jumpBot>0?'π (λ/2 — reflexión densa)':'0 (sin salto)';
+        document.getElementById('stokesBox').innerText =
+            `Salto superior (n₁→n₂): ${jTopStr}\nSalto inferior (n₂→n₃): ${jBotStr}\nδ_total = ${deltaFase===1?'λ (equivale a 0)':deltaFase===0?'0':deltaFase===0.5?'λ/2':'λ'}`;
+
+        const condStr = deltaFase===0||deltaFase===1
+            ? 'Máximos: 2n₂d·cos(θ₂) = m·λ'
+            : 'Máximos: 2n₂d·cos(θ₂) = (m+½)·λ';
+        document.getElementById('infoDisplay').innerText =
+            `Δ = 2n₂·d·cos(θ₂) + δ·λ\n= ${camino.toFixed(4)} + ${(deltaFase*wav_um).toFixed(4)} µm\n= ${deltaTotal.toFixed(4)} µm\nI(θ=${theta_deg}°) = ${I_curr.toFixed(4)}\n${condStr}`;
+    }
+
+    function update() { drawRays(); drawInterference(); updateBoxes(); }
+
+    document.getElementById('wavSlider').oninput=e=>{
+        wav_nm=parseInt(e.target.value); document.getElementById('wavVal').innerText=wav_nm;
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+        e.target.style.accentColor=col; document.getElementById('wavLabel').style.color=col; update();
+    };
+    document.getElementById('dSlider').oninput=e=>{ d_um=parseFloat(e.target.value); document.getElementById('dVal').innerText=d_um.toFixed(1); update(); };
+    document.getElementById('thetaSlider').oninput=e=>{ theta_deg=parseFloat(e.target.value); document.getElementById('thetaVal').innerText=theta_deg; update(); };
+    document.getElementById('n1Slider').oninput=e=>{ n1=parseFloat(e.target.value); document.getElementById('n1Val').innerText=n1.toFixed(2); update(); };
+    document.getElementById('n2Slider').oninput=e=>{ n2=parseFloat(e.target.value); document.getElementById('n2Val').innerText=n2.toFixed(2); update(); };
+    document.getElementById('n3Slider').oninput=e=>{ n3=parseFloat(e.target.value); document.getElementById('n3Val').innerText=n3.toFixed(2); update(); };
+
+    function resize(){
+        canR.width=canR.offsetWidth; canR.height=280;
+        canI.width=canI.offsetWidth; canI.height=300;
+        update();
+    }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

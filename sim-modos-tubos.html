@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modos Normales en Tubos de Aire | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .mode-options-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 14px; }
+        .mode-btn {
+            background: rgba(0,255,127,0.05); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.65rem;
+            padding: 7px 2px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .mode-btn:hover { border-color: #00ff7f; color: var(--white); }
+        .mode-btn.active { background: rgba(0,255,127,0.18); color: #00ff7f; border-color: #00ff7f; font-weight: bold; }
+
+        .cond-options { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .cond-btn {
+            background: rgba(0,212,255,0.04); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.6rem;
+            padding: 7px 8px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: left;
+        }
+        .cond-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .cond-btn.active { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
+        canvas { background: #000; border-radius: 10px; border: 1px solid #1a2a4a; display: block; width: 100%; }
+        #canWave { height: 180px; }
+        #canGas  { height: 240px; }
+
+        .ref-block { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--gray); line-height: 2.0; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Modos Normales en Tubos de Aire — Desplazamiento y Partículas</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">n = 1\nω = ---</div>
+
+        <span class="mode-label">Modo n</span>
+        <div class="mode-options-5">
+            <button class="mode-btn active" data-n="1">1</button>
+            <button class="mode-btn" data-n="2">2</button>
+            <button class="mode-btn" data-n="3">3</button>
+            <button class="mode-btn" data-n="4">4</button>
+            <button class="mode-btn" data-n="5">5</button>
+        </div>
+
+        <span class="mode-label">Condición de contorno</span>
+        <div class="cond-options">
+            <button class="cond-btn" data-cond="cc">Cerrado — Cerrado</button>
+            <button class="cond-btn" data-cond="ca">Cerrado — Abierto</button>
+            <button class="cond-btn active" data-cond="aa">Abierto — Abierto</button>
+        </div>
+
+        <div class="ref-block">
+            <span style="color:#00ff7f;">Cerrado-Cerrado (CC)</span>
+            <span style="padding-left:8px;">k = nπ/L  λ=2L/n</span>
+            <span style="padding-left:8px;">y=sin(kx)·cos(ωt)</span>
+            <span style="color:#00ff7f;margin-top:5px;">Cerrado-Abierto (CA)</span>
+            <span style="padding-left:8px;">k=(n−½)π/L  λ=4L/(2n−1)</span>
+            <span style="padding-left:8px;">y=sin(kx)·cos(ωt)</span>
+            <span style="color:#00ff7f;margin-top:5px;">Abierto-Abierto (AA)</span>
+            <span style="padding-left:8px;">k=nπ/L  λ=2L/n</span>
+            <span style="padding-left:8px;">y=cos(kx)·cos(ωt)</span>
+            <span style="margin-top:8px;color:var(--gray);">vs = 343 m/s</span>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="canWave" height="180"></canvas>
+        <canvas id="canGas"  height="240"></canvas>
+    </div>
+</div>
+
+<script>
+    const canW = document.getElementById('canWave'), ctxW = canW.getContext('2d');
+    const canG = document.getElementById('canGas'),  ctxG = canG.getContext('2d');
+
+    const L  = 1.0;
+    const VS = 343.0;
+    const NX = 200;
+    const SLOW = 0.005;
+    const N_PARTICLES = 3000;
+
+    let n = 1, cond = 'aa', t = 0;
+
+    // Pre-generate particle base positions
+    const pxBase = new Float32Array(N_PARTICLES).map(() => Math.random() * L);
+    const pyBase = new Float32Array(N_PARTICLES).map(() => (Math.random() - 0.5) * 0.36);
+    // (using map on typed array returns regular array — redo properly)
+    for (let i = 0; i < N_PARTICLES; i++) {
+        pxBase[i] = Math.random() * L;
+        pyBase[i] = (Math.random() - 0.5) * 0.36;
+    }
+
+    const xArr = Array.from({length: NX}, (_, i) => i / (NX - 1) * L);
+
+    let simData = buildSim();
+
+    function buildSim() {
+        let k, shape, titulo, wallL, wallR;
+        if (cond === 'cc') {
+            k = n * Math.PI / L;
+            shape = xArr.map(x => Math.sin(k * x));
+            titulo = `TUBO CERRADO-CERRADO — n=${n}`;
+            wallL = true; wallR = true;
+        } else if (cond === 'ca') {
+            k = (n - 0.5) * Math.PI / L;
+            shape = xArr.map(x => Math.sin(k * x));
+            titulo = `TUBO CERRADO-ABIERTO — n=${n}`;
+            wallL = true; wallR = false;
+        } else {
+            k = n * Math.PI / L;
+            shape = xArr.map(x => Math.cos(k * x));
+            titulo = `TUBO ABIERTO-ABIERTO — n=${n}`;
+            wallL = false; wallR = false;
+        }
+        const omega = k * VS;
+        const lambda = cond === 'ca' ? 4*L/(2*n-1) : 2*L/n;
+        return {k, shape, titulo, omega, wallL, wallR, lambda};
+    }
+
+    // ── WAVE PANEL ───────────────────────────────────────────────────────────
+    function drawWave() {
+        const W = canW.width, H = canW.height;
+        if (!W || !H) return;
+        ctxW.clearRect(0, 0, W, H);
+
+        const margin = {left: 36, right: 36, top: 28, bottom: 18};
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+        const midY = margin.top + h / 2;
+        const scaleY = h / 2 * 0.85;
+
+        // Tube outline
+        const tubeT = margin.top + 4, tubeB = margin.top + h - 4;
+
+        // Walls
+        if (simData.wallL) {
+            ctxW.fillStyle = '#666';
+            ctxW.fillRect(margin.left - 6, tubeT, 6, tubeB - tubeT);
+        }
+        if (simData.wallR) {
+            ctxW.fillStyle = '#666';
+            ctxW.fillRect(margin.left + w, tubeT, 6, tubeB - tubeT);
+        }
+        // Open ends (dashed)
+        ctxW.strokeStyle = 'rgba(255,255,255,0.25)'; ctxW.lineWidth = 1.5; ctxW.setLineDash([4,4]);
+        if (!simData.wallL) {
+            ctxW.beginPath(); ctxW.moveTo(margin.left, tubeT); ctxW.lineTo(margin.left, tubeB); ctxW.stroke();
+        }
+        if (!simData.wallR) {
+            ctxW.beginPath(); ctxW.moveTo(margin.left + w, tubeT); ctxW.lineTo(margin.left + w, tubeB); ctxW.stroke();
+        }
+        ctxW.setLineDash([]);
+
+        // Zero axis
+        ctxW.strokeStyle = 'rgba(255,255,255,0.08)'; ctxW.lineWidth = 1;
+        ctxW.beginPath(); ctxW.moveTo(margin.left, midY); ctxW.lineTo(margin.left + w, midY); ctxW.stroke();
+
+        // Envelope dashed
+        ctxW.strokeStyle = 'rgba(255,255,255,0.13)'; ctxW.lineWidth = 1; ctxW.setLineDash([5,5]);
+        [1,-1].forEach(sign => {
+            ctxW.beginPath();
+            simData.shape.forEach((s, i) => {
+                const px = margin.left + (i/(NX-1))*w;
+                const py = midY - sign * s * scaleY;
+                i===0?ctxW.moveTo(px,py):ctxW.lineTo(px,py);
+            });
+            ctxW.stroke();
+        });
+        ctxW.setLineDash([]);
+
+        // Animated displacement
+        const ampT = Math.cos(simData.omega * t * SLOW);
+        ctxW.beginPath(); ctxW.strokeStyle = '#00ff7f'; ctxW.lineWidth = 2.5;
+        ctxW.shadowBlur = 8; ctxW.shadowColor = '#00ff7f';
+        simData.shape.forEach((s, i) => {
+            const px = margin.left + (i/(NX-1))*w;
+            const py = midY - s * ampT * scaleY;
+            i===0?ctxW.moveTo(px,py):ctxW.lineTo(px,py);
+        });
+        ctxW.stroke(); ctxW.shadowBlur = 0;
+
+        // x labels
+        ctxW.fillStyle='rgba(255,255,255,0.3)'; ctxW.font='8px Space Mono';
+        ctxW.fillText('x=0', margin.left-12, H-2);
+        ctxW.fillText('x=L', margin.left+w-12, H-2);
+
+        // Title
+        ctxW.fillStyle='rgba(0,0,0,0.5)'; ctxW.fillRect(0,0,W,20);
+        ctxW.fillStyle='#00d4ff'; ctxW.font='10px Space Mono'; ctxW.textAlign='center';
+        ctxW.fillText(`${simData.titulo}  ω=${simData.omega.toFixed(2)} rad/s  λ=${simData.lambda.toFixed(3)}L`, W/2, 13);
+        ctxW.textAlign='left';
+    }
+
+    // ── GAS PARTICLE PANEL ────────────────────────────────────────────────────
+    function drawGas() {
+        const W = canG.width, H = canG.height;
+        if (!W || !H) return;
+        ctxG.clearRect(0, 0, W, H);
+
+        const margin = {left: 36, right: 36, top: 28, bottom: 18};
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+        const midY = margin.top + h / 2;
+
+        // Tube background
+        ctxG.fillStyle = 'rgba(0,20,40,0.5)';
+        ctxG.fillRect(margin.left, margin.top + 2, w, h - 4);
+
+        // Tube borders
+        ctxG.strokeStyle = 'rgba(255,255,255,0.2)'; ctxG.lineWidth = 1.5;
+        ctxG.beginPath(); ctxG.moveTo(margin.left, margin.top+2); ctxG.lineTo(margin.left+w, margin.top+2); ctxG.stroke();
+        ctxG.beginPath(); ctxG.moveTo(margin.left, margin.top+h-2); ctxG.lineTo(margin.left+w, margin.top+h-2); ctxG.stroke();
+
+        // Walls
+        if (simData.wallL) {
+            ctxG.fillStyle = '#777';
+            ctxG.fillRect(margin.left - 8, margin.top, 8, h);
+        }
+        if (simData.wallR) {
+            ctxG.fillStyle = '#777';
+            ctxG.fillRect(margin.left + w, margin.top, 8, h);
+        }
+        // Open ends dashed
+        ctxG.strokeStyle = 'rgba(255,255,255,0.25)'; ctxG.lineWidth = 1.5; ctxG.setLineDash([4,4]);
+        if (!simData.wallL) {
+            ctxG.beginPath(); ctxG.moveTo(margin.left, margin.top+2); ctxG.lineTo(margin.left, margin.top+h-2); ctxG.stroke();
+        }
+        if (!simData.wallR) {
+            ctxG.beginPath(); ctxG.moveTo(margin.left+w, margin.top+2); ctxG.lineTo(margin.left+w, margin.top+h-2); ctxG.stroke();
+        }
+        ctxG.setLineDash([]);
+
+        // Particles: longitudinal displacement
+        const ampT = Math.cos(simData.omega * t * SLOW);
+        const DISP_SCALE = 0.12; // fraction of L
+
+        // Draw as small dots
+        ctxG.fillStyle = 'rgba(255,255,255,0.7)';
+        for (let i = 0; i < N_PARTICLES; i++) {
+            // Interpolate shape at particle base position
+            const frac = pxBase[i] / L;
+            const idx  = Math.floor(frac * (NX - 1));
+            const idx2 = Math.min(idx + 1, NX - 1);
+            const f    = frac * (NX - 1) - idx;
+            const sVal = simData.shape[idx] * (1 - f) + simData.shape[idx2] * f;
+            const disp = DISP_SCALE * sVal * ampT; // in units of L
+
+            const px = margin.left + (pxBase[i] + disp) * w / L;
+            const py = midY + pyBase[i] * h / 0.4; // scale y to fill tube
+            if (px < margin.left || px > margin.left + w) continue; // clip
+            ctxG.beginPath(); ctxG.arc(px, py, 1.2, 0, Math.PI * 2); ctxG.fill();
+        }
+
+        // Title
+        ctxG.fillStyle='rgba(0,0,0,0.5)'; ctxG.fillRect(0,0,W,20);
+        ctxG.fillStyle='#00ff7f'; ctxG.font='10px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillText('DESPLAZAMIENTO LONGITUDINAL DE PARTÍCULAS', W/2, 13);
+        ctxG.textAlign='left';
+
+        // Node/antinode labels from wave shape
+        // Find approximate node positions (shape≈0) and mark them
+        for (let i = 1; i < NX - 1; i++) {
+            const s0 = simData.shape[i-1], s1 = simData.shape[i+1];
+            if (s0 * s1 < 0) { // sign change → node
+                const px = margin.left + (i/(NX-1))*w;
+                ctxG.strokeStyle='rgba(255,68,68,0.5)'; ctxG.lineWidth=1; ctxG.setLineDash([2,3]);
+                ctxG.beginPath(); ctxG.moveTo(px, margin.top+2); ctxG.lineTo(px, margin.top+h-2); ctxG.stroke();
+                ctxG.setLineDash([]);
+                ctxG.fillStyle='#ff4444'; ctxG.font='8px Space Mono'; ctxG.textAlign='center';
+                ctxG.fillText('N', px, margin.top+h+12);
+            }
+        }
+        ctxG.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        const condStr = {cc:'Cerrado-Cerrado', ca:'Cerrado-Abierto', aa:'Abierto-Abierto'}[cond];
+        document.getElementById('infoDisplay').innerText =
+            `n = ${n}  (${condStr})\nk = ${simData.k.toFixed(4)} rad/m\nω = ${simData.omega.toFixed(2)} rad/s\nλ = ${simData.lambda.toFixed(4)} L\nf = ${(simData.omega/(2*Math.PI)).toFixed(2)} Hz`;
+    }
+
+    function loop() {
+        t++;
+        drawWave();
+        drawGas();
+        requestAnimationFrame(loop);
+    }
+
+    // n buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            n = parseInt(btn.dataset.n); t = 0;
+            simData = buildSim(); updateInfoBox();
+        });
+    });
+
+    // condition buttons
+    document.querySelectorAll('.cond-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            cond = btn.dataset.cond; t = 0;
+            simData = buildSim(); updateInfoBox();
+        });
+    });
+
+    function resize() {
+        canW.width = canW.offsetWidth; canW.height = 180;
+        canG.width = canG.offsetWidth; canG.height = 240;
+    }
+    window.onresize = resize;
+    requestAnimationFrame(() => { resize(); updateInfoBox(); loop(); });
+</script>
+</body>
+</html>

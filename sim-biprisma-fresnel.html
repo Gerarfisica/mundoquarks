@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Biprisma de Fresnel | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; display: block; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.72rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        #canGeom   { height: 280px; }
+        #canScreen { height: 310px; }
+        .section-sep { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin: 12px 0 6px; }
+        .sliders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Biprisma de Fresnel — Asimetría y Cálculo de Interfranja</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">d_total = --- cm\ni = --- mm</div>
+        <div class="controls">
+            <div class="control-group">
+                <label id="wavLabel" style="color:#00ff99;">λ <span><span id="wavVal">400</span> nm</span></label>
+                <input type="range" id="wavSlider" min="380" max="750" step="1" value="400">
+            </div>
+
+            <div class="section-sep">// Prisma superior (cyan)</div>
+            <div class="sliders-grid">
+                <div class="control-group">
+                    <label style="color:#00d4ff;">n₁ <span><span id="n1Val">1.50</span></span></label>
+                    <input type="range" id="n1Slider" min="1.4" max="1.8" step="0.01" value="1.5" style="accent-color:#00d4ff;">
+                </div>
+                <div class="control-group">
+                    <label style="color:#00d4ff;">α₁ (°) <span><span id="a1Val">1.50</span></span></label>
+                    <input type="range" id="a1Slider" min="0.5" max="5.0" step="0.05" value="1.5" style="accent-color:#00d4ff;">
+                </div>
+            </div>
+
+            <div class="section-sep">// Prisma inferior (azul)</div>
+            <div class="sliders-grid">
+                <div class="control-group">
+                    <label style="color:#4488ff;">n₂ <span><span id="n2Val">1.50</span></span></label>
+                    <input type="range" id="n2Slider" min="1.4" max="1.8" step="0.01" value="1.5" style="accent-color:#4488ff;">
+                </div>
+                <div class="control-group">
+                    <label style="color:#4488ff;">α₂ (°) <span><span id="a2Val">1.50</span></span></label>
+                    <input type="range" id="a2Slider" min="0.5" max="5.0" step="0.05" value="1.5" style="accent-color:#4488ff;">
+                </div>
+            </div>
+
+            <div style="font-family:'Space Mono';font-size:0.62rem;color:var(--gray);line-height:1.9;margin-top:10px;">
+                <div>D₁ = 5 cm &nbsp;(fuente → biprisma)</div>
+                <div>D₂ = 100 cm (biprisma → pantalla)</div>
+                <div style="color:var(--cyan);">δ₁ = D₁·(n₁−1)·α₁ &nbsp;  δ₂ = D₁·(n₂−1)·α₂</div>
+                <div style="color:var(--cyan);">d = δ₁+δ₂ &nbsp;  i = λ·L/d</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canGeom"   height="280"></canvas>
+        <canvas id="canScreen" height="310"></canvas>
+    </div>
+</div>
+
+<script>
+    const canG = document.getElementById('canGeom'),   ctxG = canG.getContext('2d');
+    const canS = document.getElementById('canScreen'), ctxS = canS.getContext('2d');
+
+    const D1_CM = 5.0, D2_CM = 100.0;
+    const L_CM  = D1_CM + D2_CM;
+
+    let wav_nm=400, n1=1.5, a1_deg=1.5, n2=1.5, a2_deg=1.5;
+
+    function wavToRGB(w) {
+        let r,g,b;
+        if      (w<440){r=(440-w)/(440-380);g=0;b=1;}
+        else if (w<490){r=0;g=(w-440)/(490-440);b=1;}
+        else if (w<510){r=0;g=1;b=(510-w)/(510-490);}
+        else if (w<580){r=(w-510)/(580-510);g=1;b=0;}
+        else if (w<645){r=1;g=(645-w)/(645-580);b=0;}
+        else           {r=1;g=0;b=0;}
+        return [r,g,b];
+    }
+
+    function compute() {
+        const a1=a1_deg*Math.PI/180, a2=a2_deg*Math.PI/180;
+        const d1_cm = D1_CM*(n1-1)*a1 * (180/Math.PI); // small angle: δ = D*(n-1)*α_rad
+        // Recompute properly in radians
+        const d1 = D1_CM*(n1-1)*a1;  // cm
+        const d2 = D1_CM*(n2-1)*a2;  // cm
+        const d_total = d1+d2;        // cm
+        const wav_m   = wav_nm*1e-9;
+        const L_m     = L_CM/100;
+        const d_m     = d_total/100;
+        const i_m     = (wav_m*L_m)/d_m;
+        const i_mm    = i_m*1e3;
+        // Shift of central fringe (asymmetry)
+        const y0_shift_cm = (d1-d2)*D2_CM/(2*D1_CM);
+        return {d1,d2,d_total,i_mm,y0_shift_cm};
+    }
+
+    // ── GEOMETRY ──────────────────────────────────────────────────────────────
+    function drawGeometry() {
+        const W=canG.width, H=canG.height;
+        if(!W||!H) return;
+        ctxG.clearRect(0,0,W,H);
+
+        const {d1,d2,d_total,y0_shift_cm} = compute();
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        // Map coords: x in [-D1-5, D2+8] → canvas, y in [-15,15] → canvas
+        const physW=D1_CM+D2_CM+13, physH=30;
+        function cx(xp){return(xp+D1_CM+5)/physW*W;}
+        function cy(yp){return H/2-yp/physH*H;}
+
+        // Biprism at x=0
+        const bpX=cx(0);
+        // Upper prism (cyan fill)
+        ctxG.beginPath();
+        ctxG.moveTo(bpX, cy(0)); ctxG.lineTo(bpX+W*0.07, cy(12)); ctxG.lineTo(bpX, cy(12));
+        ctxG.closePath(); ctxG.fillStyle='rgba(0,212,255,0.25)'; ctxG.fill();
+        ctxG.strokeStyle='#00d4ff'; ctxG.lineWidth=1.5; ctxG.stroke();
+        // Lower prism (blue fill)
+        ctxG.beginPath();
+        ctxG.moveTo(bpX, cy(0)); ctxG.lineTo(bpX+W*0.07, cy(-12)); ctxG.lineTo(bpX, cy(-12));
+        ctxG.closePath(); ctxG.fillStyle='rgba(68,136,255,0.25)'; ctxG.fill();
+        ctxG.strokeStyle='#4488ff'; ctxG.lineWidth=1.5; ctxG.stroke();
+
+        // Labels on prisms
+        ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillStyle='#00d4ff'; ctxG.fillText(`n₁=${n1.toFixed(2)} α₁=${a1_deg.toFixed(1)}°`, bpX+W*0.05, cy(8));
+        ctxG.fillStyle='#4488ff'; ctxG.fillText(`n₂=${n2.toFixed(2)} α₂=${a2_deg.toFixed(1)}°`, bpX+W*0.05, cy(-8));
+
+        // Real source
+        const srcX=cx(-D1_CM), srcY=cy(0);
+        ctxG.beginPath(); ctxG.arc(srcX,srcY,6,0,Math.PI*2);
+        ctxG.fillStyle='#ffdd00'; ctxG.shadowBlur=12; ctxG.shadowColor='#ffdd00'; ctxG.fill(); ctxG.shadowBlur=0;
+        ctxG.fillStyle='#ffdd00'; ctxG.fillText('S',srcX,srcY-10);
+
+        // Virtual images
+        const s1y=cy(d1), s2y=cy(-d2);
+        ctxG.beginPath(); ctxG.arc(srcX,s1y,5,0,Math.PI*2);
+        ctxG.fillStyle=col; ctxG.globalAlpha=0.7; ctxG.fill(); ctxG.globalAlpha=1;
+        ctxG.fillStyle=col; ctxG.fillText("S₁'",srcX,s1y-9);
+        ctxG.beginPath(); ctxG.arc(srcX,s2y,5,0,Math.PI*2);
+        ctxG.fillStyle=col; ctxG.globalAlpha=0.7; ctxG.fill(); ctxG.globalAlpha=1;
+        ctxG.fillText("S₂'",srcX,s2y+15);
+
+        // d arrow
+        ctxG.strokeStyle=col; ctxG.lineWidth=1;
+        ctxG.beginPath(); ctxG.moveTo(srcX+14,s1y); ctxG.lineTo(srcX+14,s2y); ctxG.stroke();
+        ctxG.fillStyle=col; ctxG.fillText(`d=${d_total.toFixed(3)}cm`,srcX+28,(s1y+s2y)/2+4);
+
+        // Rays from virtual sources to screen
+        const scrX=cx(D2_CM);
+        ctxG.globalAlpha=0.15; ctxG.strokeStyle=col; ctxG.lineWidth=1;
+        [[srcX,s1y],[srcX,s2y]].forEach(([sx,sy])=>{
+            for(let yp=-H*0.35;yp<=H*0.35;yp+=H*0.14){
+                ctxG.beginPath(); ctxG.moveTo(sx,sy); ctxG.lineTo(scrX,H/2+yp); ctxG.stroke();
+            }
+        });
+        ctxG.globalAlpha=1;
+
+        // Screen
+        ctxG.strokeStyle='#2a3a5a'; ctxG.lineWidth=4;
+        ctxG.beginPath(); ctxG.moveTo(scrX,H*0.05); ctxG.lineTo(scrX,H*0.95); ctxG.stroke();
+
+        // Axis labels
+        ctxG.fillStyle='#8892b0'; ctxG.font='9px Space Mono';
+        ctxG.fillText(`D₁=${D1_CM}cm`,(cx(-D1_CM)+bpX)/2,cy(0)+14);
+        ctxG.fillText(`D₂=${D2_CM}cm`,(bpX+scrX)/2,cy(0)+14);
+
+        // Asymmetry marker
+        if(Math.abs(y0_shift_cm)>0.01){
+            const y0px=cy(y0_shift_cm*D2_CM/D2_CM); // position of zero order on screen
+            ctxG.strokeStyle='rgba(255,221,0,0.5)'; ctxG.lineWidth=1; ctxG.setLineDash([3,4]);
+            ctxG.beginPath(); ctxG.moveTo(scrX-6,y0px); ctxG.lineTo(scrX+6,y0px); ctxG.stroke();
+            ctxG.setLineDash([]);
+            ctxG.fillStyle='#ffdd00'; ctxG.font='8px Space Mono'; ctxG.textAlign='left';
+            ctxG.fillText(`m=0`,scrX+8,y0px+4);
+        }
+
+        // Title
+        ctxG.fillStyle='rgba(0,0,0,0.5)'; ctxG.fillRect(0,0,W,18);
+        ctxG.fillStyle='#00d4ff'; ctxG.font='10px Space Mono'; ctxG.textAlign='center';
+        ctxG.fillText(`BIPRISMA  d=${d_total.toFixed(3)}cm  δ₁=${d1.toFixed(3)}  δ₂=${d2.toFixed(3)}`,W/2,13);
+        ctxG.textAlign='left';
+    }
+
+    // ── SCREEN ────────────────────────────────────────────────────────────────
+    function drawScreen() {
+        const W=canS.width, H=canS.height;
+        if(!W||!H) return;
+        ctxS.clearRect(0,0,W,H);
+
+        const {d_total,i_mm,y0_shift_cm}=compute();
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+
+        const wav_m=wav_nm*1e-9, d_m=d_total/100, L_m=L_CM/100;
+        const Y_HALF_CM=1.0; // ±1 cm on screen
+        const N_PTS=600;
+        const margin={left:55,right:15,top:25,bottom:38};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+
+        // Grid
+        ctxS.strokeStyle='#16203a'; ctxS.lineWidth=1;
+        ctxS.font='10px Space Mono'; ctxS.fillStyle='#8892b0';
+        for(let i=0;i<=5;i++){
+            const gx=margin.left+(i/5)*w;
+            ctxS.beginPath(); ctxS.moveTo(gx,margin.top); ctxS.lineTo(gx,margin.top+h); ctxS.stroke();
+            ctxS.fillText((i/5).toFixed(1),gx-8,margin.top+h+14);
+        }
+        const yTicks=[-8,-4,0,4,8]; // mm
+        yTicks.forEach(yt=>{
+            const gy=margin.top+(1-(yt/10+Y_HALF_CM)/(2*Y_HALF_CM))*h;
+            ctxS.beginPath(); ctxS.moveTo(margin.left,gy); ctxS.lineTo(margin.left+w,gy); ctxS.stroke();
+            ctxS.fillText(`${yt}mm`,4,gy+4);
+        });
+        ctxS.fillText('I/I₀',margin.left+w/2-10,margin.top+h+28);
+
+        // Reference y=0 (geometric center) dashed
+        const gy0=margin.top+(1-Y_HALF_CM/(2*Y_HALF_CM))*h;
+        ctxS.strokeStyle='rgba(255,255,255,0.2)'; ctxS.lineWidth=1; ctxS.setLineDash([4,4]);
+        ctxS.beginPath(); ctxS.moveTo(margin.left,gy0); ctxS.lineTo(margin.left+w,gy0); ctxS.stroke();
+        ctxS.setLineDash([]);
+
+        // Compute intensity
+        const yArr=Array.from({length:N_PTS},(_,i)=>(-Y_HALF_CM+2*Y_HALF_CM*i/(N_PTS-1))); // cm
+        const I=yArr.map(y=>{
+            const phi=(2*Math.PI/wav_m)*(d_m*(y/100-y0_shift_cm/100)/L_m);
+            return Math.cos(phi/2)**2;
+        });
+
+        const mapX=Iv=>margin.left+Iv*w;
+        const mapY=y=>margin.top+(1-(y+Y_HALF_CM)/(2*Y_HALF_CM))*h;
+
+        // Pattern strip
+        const stripW=Math.ceil(w*0.12);
+        const imgData=ctxS.createImageData(stripW,h);
+        for(let py=0;py<h;py++){
+            const ii=Math.floor((1-py/h)*(N_PTS-1));
+            const Iv=I[ii]||0;
+            for(let px=0;px<stripW;px++){
+                const idx=(py*stripW+px)*4;
+                imgData.data[idx]  =Math.round(r*Iv*255);
+                imgData.data[idx+1]=Math.round(g*Iv*255);
+                imgData.data[idx+2]=Math.round(b*Iv*255);
+                imgData.data[idx+3]=255;
+            }
+        }
+        ctxS.putImageData(imgData,margin.left,margin.top);
+
+        // Intensity curve
+        ctxS.beginPath(); ctxS.strokeStyle=col; ctxS.lineWidth=2;
+        yArr.forEach((y,i)=>{ const px=mapX(I[i]),py=mapY(y); i===0?ctxS.moveTo(px,py):ctxS.lineTo(px,py); });
+        ctxS.stroke();
+
+        // Interfringe marker
+        const i_cm=i_mm/10;
+        const gyI=margin.top+(1-(i_cm+Y_HALF_CM)/(2*Y_HALF_CM))*h;
+        ctxS.strokeStyle='rgba(255,255,255,0.35)'; ctxS.lineWidth=1; ctxS.setLineDash([3,3]);
+        ctxS.beginPath(); ctxS.moveTo(margin.left,gyI); ctxS.lineTo(margin.left+w,gyI); ctxS.stroke();
+        ctxS.setLineDash([]);
+        ctxS.fillStyle='#fff'; ctxS.font='9px Space Mono'; ctxS.textAlign='right';
+        ctxS.fillText(`i=${i_mm.toFixed(3)}mm`,margin.left+w-4,gyI-4);
+
+        // m=0 marker if asymmetric
+        if(Math.abs(y0_shift_cm)>0.001){
+            const gyShift=mapY(y0_shift_cm);
+            ctxS.strokeStyle='rgba(255,221,0,0.4)'; ctxS.lineWidth=1; ctxS.setLineDash([3,4]);
+            ctxS.beginPath(); ctxS.moveTo(margin.left,gyShift); ctxS.lineTo(margin.left+w,gyShift); ctxS.stroke();
+            ctxS.setLineDash([]);
+            ctxS.fillStyle='#ffdd00'; ctxS.textAlign='right';
+            ctxS.fillText('m=0',margin.left+w-4,gyShift-4);
+        }
+
+        // Title
+        ctxS.fillStyle='rgba(0,0,0,0.5)'; ctxS.fillRect(0,0,W,18);
+        ctxS.fillStyle='#fff'; ctxS.font='bold 10px Space Mono'; ctxS.textAlign='center';
+        ctxS.fillText(`PANTALLA  i = ${i_mm.toFixed(3)} mm  λ=${wav_nm}nm`,W/2,13);
+        ctxS.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        const {d1,d2,d_total,i_mm,y0_shift_cm}=compute();
+        const asym = Math.abs(d1-d2)>0.001 ? `\nDesplazamiento m=0: ${(y0_shift_cm*10).toFixed(3)} mm` : '\nBiprisma simétrico (m=0 centrado)';
+        document.getElementById('infoDisplay').innerText =
+            `δ₁=${d1.toFixed(4)}cm  δ₂=${d2.toFixed(4)}cm\nd = δ₁+δ₂ = ${d_total.toFixed(4)} cm\ni = λ·L/d = ${i_mm.toFixed(4)} mm${asym}`;
+    }
+
+    function update() { drawGeometry(); drawScreen(); updateInfoBox(); }
+
+    document.getElementById('wavSlider').oninput=e=>{
+        wav_nm=parseInt(e.target.value); document.getElementById('wavVal').innerText=wav_nm;
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+        e.target.style.accentColor=col; document.getElementById('wavLabel').style.color=col; update();
+    };
+    document.getElementById('n1Slider').oninput=e=>{ n1=parseFloat(e.target.value); document.getElementById('n1Val').innerText=n1.toFixed(2); update(); };
+    document.getElementById('a1Slider').oninput=e=>{ a1_deg=parseFloat(e.target.value); document.getElementById('a1Val').innerText=a1_deg.toFixed(2); update(); };
+    document.getElementById('n2Slider').oninput=e=>{ n2=parseFloat(e.target.value); document.getElementById('n2Val').innerText=n2.toFixed(2); update(); };
+    document.getElementById('a2Slider').oninput=e=>{ a2_deg=parseFloat(e.target.value); document.getElementById('a2Val').innerText=a2_deg.toFixed(2); update(); };
+
+    function resize(){
+        canG.width=canG.offsetWidth; canG.height=280;
+        canS.width=canS.offsetWidth; canS.height=310;
+        update();
+    }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

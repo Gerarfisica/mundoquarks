@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modos Normales en Cuerdas | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: #00ff7f; margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: #00ff7f; cursor: pointer; }
+
+        /* Mode buttons */
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .mode-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 14px; }
+        .mode-btn {
+            background: rgba(0,255,127,0.05); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.65rem;
+            padding: 7px 2px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .mode-btn:hover { border-color: #00ff7f; color: var(--white); }
+        .mode-btn.active { background: rgba(0,255,127,0.18); color: #00ff7f; border-color: #00ff7f; font-weight: bold; }
+
+        /* Right column: 3 stacked canvases */
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
+        canvas { background: #000; border-radius: 10px; border: 1px solid #1a2a4a; display: block; width: 100%; height: 170px; }
+
+        /* Reference block */
+        .ref-block { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--gray); line-height: 2.0; margin-top: 10px; }
+        .ref-block span { display: block; }
+        .c1 { color: #00ffff; } .c2 { color: #ff00ff; } .c3 { color: #adff2f; }
+        .dot-r { color: #ff4444; } .dot-y { color: #ffdd00; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Modos Normales en Cuerdas — Tres Condiciones de Contorno</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">n = 1</div>
+
+        <span class="mode-label">Modo n</span>
+        <div class="mode-options">
+            <button class="mode-btn active" data-n="1">1</button>
+            <button class="mode-btn" data-n="2">2</button>
+            <button class="mode-btn" data-n="3">3</button>
+            <button class="mode-btn" data-n="4">4</button>
+            <button class="mode-btn" data-n="5">5</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Amplitud A <span><span id="ampVal">0.6</span></span></label>
+                <input type="range" id="ampSlider" min="0.1" max="1.0" step="0.05" value="0.6">
+            </div>
+        </div>
+
+        <div class="ref-block">
+            <span class="c1">● Nodo-Nodo (fijo-fijo)</span>
+            <span style="padding-left:8px;">k = nπ/L &nbsp; λ = 2L/n</span>
+            <span style="padding-left:8px;">y = A·sin(kx)·cos(ωt)</span>
+            <span class="c2" style="margin-top:6px;">● Nodo-Antinodo (mixto)</span>
+            <span style="padding-left:8px;">k = (n−½)π/L &nbsp; λ = 4L/(2n−1)</span>
+            <span style="padding-left:8px;">y = A·sin(kx)·cos(ωt)</span>
+            <span class="c3" style="margin-top:6px;">● Antinodo-Antinodo (libre)</span>
+            <span style="padding-left:8px;">k = nπ/L &nbsp; λ = 2L/n</span>
+            <span style="padding-left:8px;">y = A·cos(kx)·cos(ωt)</span>
+            <span style="margin-top:10px;"><span class="dot-r">●</span> Fijo &nbsp; <span class="dot-y">○</span> Libre</span>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="can1" height="170"></canvas>
+        <canvas id="can2" height="170"></canvas>
+        <canvas id="can3" height="170"></canvas>
+    </div>
+</div>
+
+<script>
+    const can1 = document.getElementById('can1'), ctx1 = can1.getContext('2d');
+    const can2 = document.getElementById('can2'), ctx2 = can2.getContext('2d');
+    const can3 = document.getElementById('can3'), ctx3 = can3.getContext('2d');
+
+    const L  = 1.0;
+    const V  = 0.3;
+    const NX = 500;
+    const xArr = Array.from({length: NX}, (_, i) => i / (NX - 1) * L);
+
+    let n = 1, A = 0.6, t = 0;
+
+    // Computed once per n change
+    let simData = buildSim(n);
+
+    function buildSim(n) {
+        const k1 = n * Math.PI / L;
+        const k2 = (n - 0.5) * Math.PI / L;
+        const k3 = n * Math.PI / L;
+        return [
+            { shape: xArr.map(x => Math.sin(k1 * x)), freq: k1 * V, k: k1 },
+            { shape: xArr.map(x => Math.sin(k2 * x)), freq: k2 * V, k: k2 },
+            { shape: xArr.map(x => Math.cos(k3 * x)), freq: k3 * V, k: k3 },
+        ];
+    }
+
+    // ── DRAW ONE PANEL ───────────────────────────────────────────────────────
+    const TITLES = [
+        'Extremos FIJOS (Nodo-Nodo)',
+        'Extremos MIXTOS (Nodo-Antinodo)',
+        'Extremos LIBRES (Antinodo-Antinodo)',
+    ];
+    const COLORS = ['#00ffff', '#ff00ff', '#adff2f'];
+
+    function drawPanel(ctx, canvas, idx, t) {
+        const W = canvas.width, H = canvas.height;
+        if (!W || !H) return;
+        ctx.clearRect(0, 0, W, H);
+
+        const sd = simData[idx];
+        const margin = { left: 36, right: 36, top: 26, bottom: 18 };
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+        const midY = margin.top + h / 2;
+        const scaleY = h / 2;
+        const color = COLORS[idx];
+
+        // Zero axis
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(margin.left, midY); ctx.lineTo(margin.left + w, midY); ctx.stroke();
+
+        // Envelope (dashed ±shape)
+        ctx.strokeStyle = 'rgba(255,255,255,0.13)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+        [1, -1].forEach(sign => {
+            ctx.beginPath();
+            sd.shape.forEach((s, i) => {
+                const px = margin.left + (i / (NX - 1)) * w;
+                const py = midY - sign * A * s * scaleY;
+                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+
+        // Animated string y(x,t) = A·shape(x)·cos(ω·t)
+        const cosT = Math.cos(sd.freq * t);
+        const yT = sd.shape.map(s => A * s * cosT);
+
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 3;
+        ctx.shadowBlur = 8; ctx.shadowColor = color;
+        yT.forEach((y, i) => {
+            const px = margin.left + (i / (NX - 1)) * w;
+            const py = midY - y * scaleY;
+            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        });
+        ctx.stroke(); ctx.shadowBlur = 0;
+
+        // Boundary dots
+        const y0 = yT[0], yL = yT[NX - 1];
+
+        function drawFixed(px, py) {
+            ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff4444'; ctx.shadowBlur = 10; ctx.shadowColor = '#ff4444';
+            ctx.fill(); ctx.shadowBlur = 0;
+        }
+        function drawFree(px, py) {
+            ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffdd00'; ctx.lineWidth = 2.5;
+            ctx.shadowBlur = 8; ctx.shadowColor = '#ffdd00';
+            ctx.stroke(); ctx.shadowBlur = 0;
+            ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffdd00'; ctx.fill();
+        }
+
+        const x0px = margin.left, xLpx = margin.left + w;
+        if (idx === 0) { // Fixed-Fixed
+            drawFixed(x0px, midY);
+            drawFixed(xLpx, midY);
+        } else if (idx === 1) { // Fixed-Free
+            drawFixed(x0px, midY);
+            drawFree(xLpx, midY - yL * scaleY);
+        } else { // Free-Free
+            drawFree(x0px, midY - y0 * scaleY);
+            drawFree(xLpx, midY - yL * scaleY);
+        }
+
+        // Title bar
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, W, 20);
+        ctx.fillStyle = color; ctx.font = 'bold 10px Space Mono'; ctx.textAlign = 'center';
+        ctx.fillText(`${TITLES[idx]}  —  n=${n}  k=${sd.k.toFixed(3)}  ω=${sd.freq.toFixed(3)}`, W / 2, 13);
+        ctx.textAlign = 'left';
+
+        // x=0 / x=L labels
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '8px Space Mono';
+        ctx.fillText('0', margin.left - 10, H - 2);
+        ctx.fillText('L', margin.left + w - 6, H - 2);
+    }
+
+    function updateInfoBox() {
+        const sd = simData;
+        document.getElementById('infoDisplay').innerText =
+            `n = ${n}\nFF: ω = ${sd[0].freq.toFixed(3)}  λ = ${(2*L/n).toFixed(3)}L\n` +
+            `FM: ω = ${sd[1].freq.toFixed(3)}  λ = ${(4*L/(2*n-1)).toFixed(3)}L\n` +
+            `LL: ω = ${sd[2].freq.toFixed(3)}  λ = ${(2*L/n).toFixed(3)}L`;
+    }
+
+    function resize() {
+        [can1, can2, can3].forEach(c => {
+            c.width = c.offsetWidth;
+            c.height = 170;
+        });
+    }
+
+    function loop() {
+        t += 0.025;
+        drawPanel(ctx1, can1, 0, t);
+        drawPanel(ctx2, can2, 1, t);
+        drawPanel(ctx3, can3, 2, t);
+        requestAnimationFrame(loop);
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            n = parseInt(btn.dataset.n);
+            t = 0;
+            simData = buildSim(n);
+            updateInfoBox();
+        });
+    });
+
+    document.getElementById('ampSlider').oninput = e => {
+        A = parseFloat(e.target.value);
+        document.getElementById('ampVal').innerText = A.toFixed(2);
+    };
+
+    window.onresize = resize;
+    requestAnimationFrame(() => { resize(); updateInfoBox(); loop(); });
+</script>
+</body>
+</html>

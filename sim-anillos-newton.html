@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Anillos de Newton | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; height: fit-content; }
+        canvas { background: #000; border-radius: 10px; width: 100%; border: 1px solid #1a2a4a; display: block; margin-bottom: 10px; }
+        .controls { margin-top: 20px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px 12px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.72rem; line-height: 1.8; white-space: pre-line; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .plots-column { display: flex; flex-direction: column; gap: 15px; }
+        #canGeom   { height: 200px; }
+        #canPatron { height: 380px; }
+
+        .mode-group { margin-bottom: 14px; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.04); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.6rem;
+            padding: 7px 4px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn[data-geo="cunha"].active   { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+        .mode-btn[data-geo="newton"].active  { background: rgba(0,255,127,0.12); color: #00ff7f; border-color: #00ff7f; font-weight: bold; }
+        .mode-btn[data-luz="mono"].active    { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+        .mode-btn[data-luz="blanca"].active  { background: rgba(255,255,200,0.10); color: #ffffaa; border-color: #ffffaa; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Cuña de Aire y Anillos de Newton — Luz Mono y Blanca</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">e = r²/2R = --- µm\nm oscuros: r_m = √(m·λ·R)</div>
+        <div class="controls">
+            <div class="mode-group">
+                <span class="mode-label">Geometría</span>
+                <div class="mode-options">
+                    <button class="mode-btn active" data-geo="cunha">Cuña de Aire</button>
+                    <button class="mode-btn" data-geo="newton">Anillos de Newton</button>
+                </div>
+            </div>
+            <div class="mode-group">
+                <span class="mode-label">Tipo de luz</span>
+                <div class="mode-options">
+                    <button class="mode-btn active" data-luz="mono">Monocromática</button>
+                    <button class="mode-btn" data-luz="blanca">Luz Blanca</button>
+                </div>
+            </div>
+
+            <div class="control-group" id="groupWav">
+                <label id="wavLabel" style="color:#00ff99;">λ monocromática <span><span id="wavVal">550</span> nm</span></label>
+                <input type="range" id="wavSlider" min="380" max="750" step="1" value="550">
+            </div>
+            <div class="control-group" id="groupParam">
+                <label id="paramLabel">Parámetro geométrico <span><span id="paramVal">60</span></span></label>
+                <input type="range" id="paramSlider" min="1" max="150" step="1" value="60">
+            </div>
+        </div>
+    </div>
+
+    <div class="plots-column">
+        <canvas id="canGeom"   height="200"></canvas>
+        <canvas id="canPatron" height="380"></canvas>
+    </div>
+</div>
+
+<script>
+    const canG = document.getElementById('canGeom'),   ctxG = canG.getContext('2d');
+    const canP = document.getElementById('canPatron'), ctxP = canP.getContext('2d');
+
+    let geoMode = 'cunha', luzMode = 'mono', wav_nm = 550, param = 60;
+    let rendering = false; // prevent overlapping renders
+
+    function wavToRGB(w) {
+        let r,g,b;
+        if      (w<440){r=(440-w)/(440-380);g=0;b=1;}
+        else if (w<490){r=0;g=(w-440)/(490-440);b=1;}
+        else if (w<510){r=0;g=1;b=(510-w)/(510-490);}
+        else if (w<580){r=(w-510)/(580-510);g=1;b=0;}
+        else if (w<645){r=1;g=(645-w)/(645-580);b=0;}
+        else           {r=1;g=0;b=0;}
+        return [r,g,b];
+    }
+
+    // ── GEOMETRY DIAGRAM ──────────────────────────────────────────────────────
+    function drawGeometry() {
+        const W=canG.width, H=canG.height;
+        if(!W||!H) return;
+        ctxG.clearRect(0,0,W,H);
+
+        if (geoMode === 'cunha') {
+            const alpha = Math.radians ? Math.radians(param/100) : (param/100)*Math.PI/180;
+            const alpha_rad = (param/100)*Math.PI/180;
+            const baseY = H*0.65, leftX=W*0.08, rightX=W*0.92;
+
+            // Bottom glass
+            ctxG.fillStyle='rgba(200,220,255,0.1)'; ctxG.fillRect(leftX, baseY, rightX-leftX, H*0.2);
+            ctxG.strokeStyle='#fff'; ctxG.lineWidth=2;
+            ctxG.beginPath(); ctxG.moveTo(leftX,baseY); ctxG.lineTo(rightX,baseY); ctxG.stroke();
+
+            // Top glass (wedge)
+            const riseY = (rightX-leftX)*Math.tan(alpha_rad);
+            const topLeftY=baseY, topRightY=baseY-Math.min(riseY, H*0.45);
+            ctxG.beginPath(); ctxG.moveTo(leftX,topLeftY); ctxG.lineTo(rightX,topRightY); ctxG.stroke();
+
+            // Air gap shading
+            ctxG.fillStyle='rgba(0,212,255,0.06)';
+            ctxG.beginPath(); ctxG.moveTo(leftX,topLeftY); ctxG.lineTo(rightX,topRightY); ctxG.lineTo(rightX,baseY); ctxG.lineTo(leftX,baseY); ctxG.closePath(); ctxG.fill();
+
+            // Incident and reflected rays at a point
+            const rx=W*0.55, ryTop=baseY-(rx-leftX)*Math.tan(alpha_rad), ryBot=baseY;
+            ctxG.strokeStyle='#ffdd00'; ctxG.lineWidth=1.5;
+            ctxG.beginPath(); ctxG.moveTo(rx, ryTop-35); ctxG.lineTo(rx, ryTop); ctxG.stroke();
+            // Ray 1 reflected at top
+            ctxG.strokeStyle='rgba(255,255,255,0.6)'; ctxG.setLineDash([4,4]);
+            ctxG.beginPath(); ctxG.moveTo(rx,ryTop); ctxG.lineTo(rx-20,ryTop-35); ctxG.stroke();
+            // Ray 2 through to bottom
+            ctxG.strokeStyle='rgba(255,221,0,0.4)'; ctxG.setLineDash([2,3]);
+            ctxG.beginPath(); ctxG.moveTo(rx,ryTop); ctxG.lineTo(rx,ryBot); ctxG.stroke();
+            ctxG.beginPath(); ctxG.moveTo(rx,ryBot); ctxG.lineTo(rx+20,ryTop-35); ctxG.stroke();
+            ctxG.setLineDash([]);
+
+            // Labels
+            ctxG.fillStyle='orange'; ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+            ctxG.fillText('Salto π', rx+30, ryBot+14);
+            ctxG.fillStyle='#fff'; ctxG.fillText('Salto 0', rx-30, ryTop-30);
+            ctxG.fillStyle='#00d4ff'; ctxG.fillText(`α=${(param/100).toFixed(2)}°`, leftX+30, topLeftY-8);
+
+            // Title
+            ctxG.fillStyle='rgba(0,0,0,0.5)'; ctxG.fillRect(0,0,W,18);
+            ctxG.fillStyle='#00d4ff'; ctxG.font='10px Space Mono';
+            ctxG.fillText('CUÑA DE AIRE — mínimo en el borde (e=0)',W/2,13);
+
+        } else {
+            // Newton's rings geometry: lens on flat plate
+            const cx=W/2, cy=H*0.55;
+            const R_px=W*0.35;
+
+            // Flat plate
+            ctxG.strokeStyle='#fff'; ctxG.lineWidth=2;
+            ctxG.beginPath(); ctxG.moveTo(0,cy); ctxG.lineTo(W,cy); ctxG.stroke();
+
+            // Lens arc
+            const arcR=R_px*2;
+            const dx=W*0.38;
+            ctxG.beginPath(); ctxG.arc(cx, cy-arcR, arcR, Math.PI*0.45, Math.PI*0.55); ctxG.stroke();
+
+            // Air gap shading
+            ctxG.fillStyle='rgba(0,212,255,0.08)';
+            ctxG.beginPath();
+            ctxG.arc(cx, cy-arcR, arcR, Math.PI*0.45, Math.PI*0.55);
+            ctxG.lineTo(cx+dx, cy); ctxG.lineTo(cx-dx, cy); ctxG.closePath(); ctxG.fill();
+
+            // R arrow
+            const R_mm=param;
+            ctxG.strokeStyle='rgba(255,255,255,0.3)'; ctxG.lineWidth=1;
+            ctxG.beginPath(); ctxG.moveTo(cx,cy); ctxG.lineTo(cx,cy-arcR); ctxG.stroke();
+            ctxG.fillStyle='#8892b0'; ctxG.font='9px Space Mono'; ctxG.textAlign='center';
+            ctxG.fillText(`R=${R_mm}mm`,cx+35,cy-arcR/2);
+
+            // Title
+            ctxG.fillStyle='rgba(0,0,0,0.5)'; ctxG.fillRect(0,0,W,18);
+            ctxG.fillStyle='#00ff7f'; ctxG.font='10px Space Mono';
+            ctxG.fillText(`ANILLOS DE NEWTON — R=${R_mm}mm — mínimo central`,W/2,13);
+        }
+        ctxG.textAlign='left';
+    }
+
+    // ── PATTERN (rendered into ImageData) ─────────────────────────────────────
+    function renderPattern() {
+        const W=canP.width, H=canP.height;
+        if(!W||!H||rendering) return;
+        rendering=true;
+
+        const wavs = luzMode==='mono' ? [wav_nm] : Array.from({length:40},(_,i)=>400+i*300/39);
+
+        if (geoMode==='cunha') {
+            // 1D horizontal pattern
+            const N=W;
+            const R=new Float32Array(N), G=new Float32Array(N), B=new Float32Array(N);
+            wavs.forEach(wv=>{
+                const [r,g,b]=wavToRGB(wv);
+                const alpha_rad=(param/100)*Math.PI/180;
+                for(let i=0;i<N;i++){
+                    const x_um=i/N*5000; // 0 to 5000 µm
+                    const e_um=x_um*Math.tan(alpha_rad);
+                    const I=0.5*(1-Math.cos(4*Math.PI*e_um/(wv/1000)));
+                    R[i]+=I*r; G[i]+=I*g; B[i]+=I*b;
+                }
+            });
+            const nw=wavs.length*0.7;
+            const imgData=ctxP.createImageData(W,H);
+            for(let y=0;y<H;y++){
+                for(let x=0;x<W;x++){
+                    const idx=(y*W+x)*4;
+                    imgData.data[idx]  =Math.min(255,Math.round(R[x]/nw*255));
+                    imgData.data[idx+1]=Math.min(255,Math.round(G[x]/nw*255));
+                    imgData.data[idx+2]=Math.min(255,Math.round(B[x]/nw*255));
+                    imgData.data[idx+3]=255;
+                }
+            }
+            ctxP.putImageData(imgData,0,0);
+
+            // Intensity profile overlay
+            const proH=H*0.25, proY=H-proH-4;
+            ctxP.fillStyle='rgba(0,0,0,0.4)'; ctxP.fillRect(0,proY,W,proH);
+            const [pr,pg,pb]=wavToRGB(wav_nm);
+            const col=luzMode==='mono'?`rgb(${Math.round(pr*255)},${Math.round(pg*255)},${Math.round(pb*255)})`:'#fff';
+            ctxP.beginPath(); ctxP.strokeStyle=col; ctxP.lineWidth=1.5;
+            for(let x=0;x<W;x++){
+                const Iv=R[x]/wavs.length/0.7;
+                const py=proY+proH-(Iv*proH);
+                x===0?ctxP.moveTo(x,py):ctxP.lineTo(x,py);
+            }
+            ctxP.stroke();
+
+            // Labels
+            ctxP.fillStyle='#8892b0'; ctxP.font='9px Space Mono';
+            ctxP.fillText('← borde de contacto',4,H-4);
+            ctxP.fillText('5 mm →',W-55,H-4);
+
+        } else {
+            // 2D Newton rings
+            const N=Math.min(W,H);
+            const cx=W/2, cy=H/2;
+            const R_um=param*1000; // mm → µm
+            const scale=N*0.45; // px per mm (display size 4mm radius)
+            const R=new Float32Array(W*H), G=new Float32Array(W*H), B=new Float32Array(W*H);
+
+            wavs.forEach(wv=>{
+                const [r,g,b]=wavToRGB(wv);
+                for(let py=0;py<H;py++){
+                    for(let px=0;px<W;px++){
+                        const dx_mm=(px-cx)/scale, dy_mm=(py-cy)/scale;
+                        const r_sq_mm=dx_mm*dx_mm+dy_mm*dy_mm;
+                        const e_um=r_sq_mm*1e6/(2*param); // e = r²/(2R) in µm
+                        const I=0.5*(1-Math.cos(4*Math.PI*e_um/(wv/1000)));
+                        const idx=py*W+px;
+                        R[idx]+=I*r; G[idx]+=I*g; B[idx]+=I*b;
+                    }
+                }
+            });
+            const nw=wavs.length*0.7;
+            const imgData=ctxP.createImageData(W,H);
+            for(let i=0;i<W*H;i++){
+                const idx=i*4;
+                imgData.data[idx]  =Math.min(255,Math.round(R[i]/nw*255));
+                imgData.data[idx+1]=Math.min(255,Math.round(G[i]/nw*255));
+                imgData.data[idx+2]=Math.min(255,Math.round(B[i]/nw*255));
+                imgData.data[idx+3]=255;
+            }
+            ctxP.putImageData(imgData,0,0);
+        }
+
+        // Title overlay
+        ctxP.fillStyle='rgba(0,0,0,0.55)'; ctxP.fillRect(0,0,W,18);
+        const titleCol=geoMode==='cunha'?'#00d4ff':'#00ff7f';
+        ctxP.fillStyle=titleCol; ctxP.font='10px Space Mono'; ctxP.textAlign='center';
+        const title=geoMode==='cunha'
+            ? `CUÑA — α=${(param/100).toFixed(2)}°  λ=${luzMode==='mono'?wav_nm+'nm':'blanca'}`
+            : `ANILLOS DE NEWTON — R=${param}mm  λ=${luzMode==='mono'?wav_nm+'nm':'blanca'}`;
+        ctxP.fillText(title,W/2,13); ctxP.textAlign='left';
+
+        rendering=false;
+    }
+
+    function updateInfoBox() {
+        let info;
+        if(geoMode==='cunha'){
+            const alpha_rad=(param/100)*Math.PI/180;
+            const i_um=(wav_nm/1000)/(2*Math.tan(alpha_rad));
+            info=`CUÑA DE AIRE  α=${(param/100).toFixed(2)}°\nInterfranja i = λ/(2α) = ${i_um.toFixed(2)} µm\nMínimos: 2e = m·λ  (salto π en inf.)\nMínimo en borde: e=0 → m=0 (oscuro)`;
+        } else {
+            const r1_mm=Math.sqrt(1*wav_nm/1e6*param);
+            info=`ANILLOS DE NEWTON  R=${param}mm\nr_m oscuro = √(m·λ·R)\nr₁ = ${(r1_mm*1000).toFixed(3)} µm para m=1\nMínimo central (e=0, salto π)`;
+        }
+        document.getElementById('infoDisplay').innerText=info;
+    }
+
+    function update() {
+        drawGeometry();
+        updateInfoBox();
+        // Defer pattern render to next frame
+        requestAnimationFrame(renderPattern);
+    }
+
+    // Geo buttons
+    document.querySelectorAll('[data-geo]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('[data-geo]').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); geoMode=btn.dataset.geo;
+            // Update param label
+            document.getElementById('paramLabel').firstChild.textContent =
+                geoMode==='cunha' ? 'Ángulo α (×10⁻²°) ' : 'Radio lente R (mm) ';
+            update();
+        });
+    });
+
+    // Luz buttons
+    document.querySelectorAll('[data-luz]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('[data-luz]').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); luzMode=btn.dataset.luz;
+            document.getElementById('groupWav').style.display=luzMode==='mono'?'':'none';
+            update();
+        });
+    });
+
+    document.getElementById('wavSlider').oninput=e=>{
+        wav_nm=parseInt(e.target.value); document.getElementById('wavVal').innerText=wav_nm;
+        const [r,g,b]=wavToRGB(wav_nm);
+        const col=`rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+        e.target.style.accentColor=col; document.getElementById('wavLabel').style.color=col; update();
+    };
+    document.getElementById('paramSlider').oninput=e=>{
+        param=parseInt(e.target.value); document.getElementById('paramVal').innerText=param; update();
+    };
+
+    function resize(){
+        canG.width=canG.offsetWidth; canG.height=200;
+        canP.width=canP.offsetWidth; canP.height=380;
+        update();
+    }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

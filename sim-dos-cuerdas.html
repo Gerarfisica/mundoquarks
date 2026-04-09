@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dos Cuerdas de Diferente Densidad | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .mode-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 14px; }
+        .mode-btn {
+            background: rgba(0,212,255,0.05); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.65rem;
+            padding: 7px 2px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .mode-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .mode-btn.active { background: rgba(0,212,255,0.18); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
+        canvas { background: #000; border-radius: 10px; border: 1px solid #1a2a4a; display: block; width: 100%; }
+        #canStr   { height: 260px; }
+        #canDisp  { height: 180px; }
+
+        .ref-block { font-family: 'Space Mono'; font-size: 0.6rem; color: var(--gray); line-height: 2.0; margin-top: 10px; }
+        .err-box { background: rgba(255,68,68,0.1); border: 1px solid #ff4444; padding: 6px 10px; border-radius: 6px; font-family: 'Space Mono'; font-size: 0.62rem; color: #ff8888; margin-bottom: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Dos Cuerdas de Diferente Densidad — Modos Normales Compuestos</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">n = 1\nω = ---\nk₁ = ---  k₂ = ---</div>
+        <div id="errBox" class="err-box">No se encontró modo. Ajustá los parámetros.</div>
+
+        <span class="mode-label">Modo n</span>
+        <div class="mode-options">
+            <button class="mode-btn active" data-n="1">1</button>
+            <button class="mode-btn" data-n="2">2</button>
+            <button class="mode-btn" data-n="3">3</button>
+            <button class="mode-btn" data-n="4">4</button>
+            <button class="mode-btn" data-n="5">5</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#00d4ff;">L₁ (tramo ligero) <span><span id="L1Val">0.75</span> L</span></label>
+                <input type="range" id="L1Slider" min="0.1" max="0.9" step="0.05" value="0.75" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:orange;">μ₂/μ₁ (razón densidades) <span><span id="muVal">9.0</span></span></label>
+                <input type="range" id="muSlider" min="1.0" max="25.0" step="0.5" value="9.0" style="accent-color:orange;">
+            </div>
+        </div>
+
+        <div class="ref-block">
+            <span style="color:#00d4ff;">Tramo 1 (ligero, μ₁)</span>
+            <span style="padding-left:6px;">v₁ = √(T/μ₁)  kₙ = ω/v₁</span>
+            <span style="padding-left:6px;">y₁ = sin(k₁x)</span>
+            <span style="color:orange;margin-top:5px;">Tramo 2 (pesado, μ₂)</span>
+            <span style="padding-left:6px;">v₂ = v₁/√(μ₂/μ₁)  k₂ = ω/v₂</span>
+            <span style="padding-left:6px;">y₂ = A₂·sin(k₂(L−x))</span>
+            <span style="margin-top:6px;">Condición de empalme:</span>
+            <span style="padding-left:6px;">√μ₁·tan(k₂L₂) + √μ₂·tan(k₁L₁) = 0</span>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="canStr"  height="260"></canvas>
+        <canvas id="canDisp" height="180"></canvas>
+    </div>
+</div>
+
+<script>
+    const canStr  = document.getElementById('canStr'),  ctxStr  = canStr.getContext('2d');
+    const canDisp = document.getElementById('canDisp'), ctxDisp = canDisp.getContext('2d');
+
+    const NX   = 600;
+    const MU1  = 1.0;  // reference; mu2 is ratio
+    const V1   = 1.0;
+
+    let n_modo = 1;
+    let L1_frac = 0.75;
+    let mu_ratio = 9.0;
+    let t = 0;
+
+    let simData = null; // { omega, shape, mask1end, k1, k2, L1, L2, v2 }
+
+    // ── ROOT FINDER ───────────────────────────────────────────────────────────
+    // Junction condition: √μ₁·tan(k₂·L₂) + √μ₂·tan(k₁·L₁) = 0
+    // where k₁ = ω/v₁, k₂ = ω/v₂, v₂ = v₁/√(mu_ratio)
+    function junctionF(omega, L1, L2, v2) {
+        const k1 = omega / V1;
+        const k2 = omega / v2;
+        const t1 = Math.tan(k1 * L1);
+        const t2 = Math.tan(k2 * L2);
+        return Math.sqrt(MU1) * t2 + Math.sqrt(mu_ratio) * t1;
+    }
+
+    function findOmega(n_target, L1, L2, v2) {
+        const W_MAX = 80;
+        const W_STEPS = 8000;
+        const dw = W_MAX / W_STEPS;
+
+        // Collect sign-change intervals, skipping near-asymptotes
+        const roots = [];
+        let prevF = null, prevW = null;
+
+        for (let i = 1; i <= W_STEPS; i++) {
+            const w = i * dw;
+            const k1 = w / V1, k2 = w / v2;
+            // Skip if near a tan asymptote (|tan| > 200)
+            if (Math.abs(Math.tan(k1*L1)) > 200 || Math.abs(Math.tan(k2*L2)) > 200) {
+                prevF = null; prevW = null; continue;
+            }
+            const f = junctionF(w, L1, L2, v2);
+            if (prevF !== null && prevF * f < 0) {
+                // Bisection refinement
+                let wa = prevW, wb = w;
+                for (let b = 0; b < 40; b++) {
+                    const wm = (wa + wb) / 2;
+                    const fm = junctionF(wm, L1, L2, v2);
+                    if (Math.abs(fm) < 1e-10) { wa = wm; break; }
+                    if (prevF * fm < 0) { wb = wm; } else { wa = wm; prevF = fm; }
+                }
+                roots.push((wa + wb) / 2);
+                if (roots.length >= n_target) break;
+            }
+            prevF = f; prevW = w;
+        }
+        return roots.length >= n_target ? roots[n_target - 1] : null;
+    }
+
+    function buildSim() {
+        const L = 1.0;
+        const L1 = L1_frac;
+        const L2 = L - L1;
+        const v2 = V1 / Math.sqrt(mu_ratio);
+
+        const omega = findOmega(n_modo, L1, L2, v2);
+        if (!omega) return null;
+
+        const k1 = omega / V1;
+        const k2 = omega / v2;
+
+        const xArr = Array.from({length: NX}, (_, i) => i / (NX - 1) * L);
+        const shape = new Float64Array(NX);
+        const A1 = 1.0;
+        const sinK2L2 = Math.sin(k2 * L2);
+        const A2 = Math.abs(sinK2L2) > 1e-6
+            ? A1 * Math.sin(k1 * L1) / sinK2L2
+            : A1;
+
+        let mask1end = 0;
+        xArr.forEach((x, i) => {
+            if (x <= L1) {
+                shape[i] = A1 * Math.sin(k1 * x);
+                mask1end = i;
+            } else {
+                shape[i] = A2 * Math.sin(k2 * (L - x));
+            }
+        });
+
+        return { omega, shape, mask1end, k1, k2, L1, L2, v2, xArr };
+    }
+
+    // ── STRING PANEL ──────────────────────────────────────────────────────────
+    function drawString() {
+        const W = canStr.width, H = canStr.height;
+        if (!W || !H) return;
+        ctxStr.clearRect(0, 0, W, H);
+
+        const margin = {left: 40, right: 20, top: 30, bottom: 22};
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+        const midY = margin.top + h / 2;
+        const scaleY = h / 2 * 0.82;
+
+        if (!simData) {
+            ctxStr.fillStyle='#ff4444'; ctxStr.font='12px Space Mono'; ctxStr.textAlign='center';
+            ctxStr.fillText('No se encontró modo — ajustá los parámetros', W/2, H/2);
+            return;
+        }
+
+        const {shape, mask1end, k1, k2, L1, L2, xArr, omega} = simData;
+        const L1px = margin.left + L1_frac * w;
+
+        // Background segments
+        ctxStr.fillStyle = 'rgba(0,212,255,0.07)';
+        ctxStr.fillRect(margin.left, margin.top, L1px - margin.left, h);
+        ctxStr.fillStyle = 'rgba(255,140,0,0.07)';
+        ctxStr.fillRect(L1px, margin.top, margin.left + w - L1px, h);
+
+        // Junction line
+        ctxStr.strokeStyle = 'rgba(255,255,255,0.3)'; ctxStr.lineWidth = 1.5; ctxStr.setLineDash([5,5]);
+        ctxStr.beginPath(); ctxStr.moveTo(L1px, margin.top+4); ctxStr.lineTo(L1px, margin.top+h-4); ctxStr.stroke();
+        ctxStr.setLineDash([]);
+
+        // Zero axis
+        ctxStr.strokeStyle = 'rgba(255,255,255,0.08)'; ctxStr.lineWidth = 1;
+        ctxStr.beginPath(); ctxStr.moveTo(margin.left, midY); ctxStr.lineTo(margin.left+w, midY); ctxStr.stroke();
+
+        // Fixed end markers
+        ctxStr.fillStyle = '#ff4444'; ctxStr.shadowBlur = 8; ctxStr.shadowColor = '#ff4444';
+        ctxStr.beginPath(); ctxStr.arc(margin.left, midY, 5, 0, Math.PI*2); ctxStr.fill();
+        ctxStr.beginPath(); ctxStr.arc(margin.left+w, midY, 5, 0, Math.PI*2); ctxStr.fill();
+        ctxStr.shadowBlur = 0;
+
+        // Animated string
+        const ampT = Math.cos(omega * t);
+
+        // Tramo 1 (cyan)
+        ctxStr.beginPath(); ctxStr.strokeStyle = '#00d4ff'; ctxStr.lineWidth = 2.5;
+        ctxStr.shadowBlur = 8; ctxStr.shadowColor = '#00d4ff';
+        for (let i = 0; i <= mask1end; i++) {
+            const px = margin.left + xArr[i] * w;
+            const py = midY - shape[i] * ampT * scaleY;
+            i === 0 ? ctxStr.moveTo(px, py) : ctxStr.lineTo(px, py);
+        }
+        ctxStr.stroke(); ctxStr.shadowBlur = 0;
+
+        // Tramo 2 (orange, thicker to show density)
+        ctxStr.beginPath(); ctxStr.strokeStyle = 'orange'; ctxStr.lineWidth = 5;
+        ctxStr.shadowBlur = 8; ctxStr.shadowColor = 'orange';
+        for (let i = mask1end; i < NX; i++) {
+            const px = margin.left + xArr[i] * w;
+            const py = midY - shape[i] * ampT * scaleY;
+            i === mask1end ? ctxStr.moveTo(px, py) : ctxStr.lineTo(px, py);
+        }
+        ctxStr.stroke(); ctxStr.shadowBlur = 0;
+
+        // Labels
+        ctxStr.font = '9px Space Mono'; ctxStr.textAlign = 'center';
+        ctxStr.fillStyle = 'rgba(0,212,255,0.7)';
+        ctxStr.fillText(`μ₁   v₁=${V1.toFixed(2)}`, margin.left + L1_frac*w/2, margin.top+14);
+        ctxStr.fillStyle = 'rgba(255,165,0,0.7)';
+        ctxStr.fillText(`μ₂=${mu_ratio.toFixed(1)}μ₁   v₂=${simData.v2.toFixed(3)}`, L1px + (1-L1_frac)*w/2, margin.top+14);
+        ctxStr.fillStyle = '#fff';
+        ctxStr.fillText('empalme', L1px, margin.top+h+14);
+
+        // x=0, x=L labels
+        ctxStr.fillStyle = 'rgba(255,255,255,0.3)'; ctxStr.font = '8px Space Mono';
+        ctxStr.fillText('x=0', margin.left, H-3);
+        ctxStr.fillText('x=L', margin.left+w, H-3);
+        ctxStr.textAlign = 'left';
+
+        // Title
+        ctxStr.fillStyle = 'rgba(0,0,0,0.55)'; ctxStr.fillRect(0,0,W,20);
+        ctxStr.fillStyle = '#00d4ff'; ctxStr.font = '10px Space Mono'; ctxStr.textAlign = 'center';
+        ctxStr.fillText(`MODO n=${n_modo}  ω=${omega.toFixed(4)}  k₁=${k1.toFixed(4)}  k₂=${k2.toFixed(4)}  L₁=${L1_frac.toFixed(2)}L`, W/2, 13);
+        ctxStr.textAlign = 'left';
+    }
+
+    // ── DISPERSION / SHAPE PANEL ──────────────────────────────────────────────
+    function drawDisp() {
+        const W = canDisp.width, H = canDisp.height;
+        if (!W || !H || !simData) { ctxDisp.clearRect(0,0,W,H); return; }
+        ctxDisp.clearRect(0,0,W,H);
+
+        const {shape, mask1end, xArr, omega} = simData;
+        const margin = {left: 40, right: 20, top: 25, bottom: 30};
+        const w = W - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+        const midY = margin.top + h / 2;
+
+        const maxA = Math.max(...Array.from(shape).map(Math.abs), 0.01);
+        const scaleY = h / 2 / maxA * 0.85;
+        const L1px = margin.left + L1_frac * w;
+
+        // Background segments
+        ctxDisp.fillStyle = 'rgba(0,212,255,0.06)';
+        ctxDisp.fillRect(margin.left, margin.top, L1px - margin.left, h);
+        ctxDisp.fillStyle = 'rgba(255,140,0,0.06)';
+        ctxDisp.fillRect(L1px, margin.top, margin.left+w - L1px, h);
+
+        // Grid
+        ctxDisp.strokeStyle = '#16203a'; ctxDisp.lineWidth = 1;
+        ctxDisp.font = '9px Space Mono'; ctxDisp.fillStyle = '#8892b0';
+        [-1, 0, 1].forEach(f => {
+            const gy = midY - f * h/2 * 0.85;
+            ctxDisp.beginPath(); ctxDisp.moveTo(margin.left,gy); ctxDisp.lineTo(margin.left+w,gy); ctxDisp.stroke();
+            ctxDisp.fillText((f*maxA).toFixed(2), 4, gy+4);
+        });
+
+        // Zero axis
+        ctxDisp.strokeStyle = 'rgba(255,255,255,0.15)'; ctxDisp.lineWidth = 1;
+        ctxDisp.beginPath(); ctxDisp.moveTo(margin.left, midY); ctxDisp.lineTo(margin.left+w, midY); ctxDisp.stroke();
+
+        // Static shape curve
+        ctxDisp.beginPath(); ctxDisp.strokeStyle = '#00d4ff'; ctxDisp.lineWidth = 2;
+        for (let i = 0; i <= mask1end; i++) {
+            const px = margin.left + xArr[i]*w;
+            const py = midY - shape[i]*scaleY;
+            i===0?ctxDisp.moveTo(px,py):ctxDisp.lineTo(px,py);
+        }
+        ctxDisp.stroke();
+        ctxDisp.beginPath(); ctxDisp.strokeStyle = 'orange'; ctxDisp.lineWidth = 4;
+        for (let i = mask1end; i < NX; i++) {
+            const px = margin.left + xArr[i]*w;
+            const py = midY - shape[i]*scaleY;
+            i===mask1end?ctxDisp.moveTo(px,py):ctxDisp.lineTo(px,py);
+        }
+        ctxDisp.stroke();
+
+        // Junction marker
+        ctxDisp.strokeStyle='rgba(255,255,255,0.25)'; ctxDisp.lineWidth=1; ctxDisp.setLineDash([4,4]);
+        ctxDisp.beginPath(); ctxDisp.moveTo(L1px,margin.top); ctxDisp.lineTo(L1px,margin.top+h); ctxDisp.stroke();
+        ctxDisp.setLineDash([]);
+
+        // Title
+        ctxDisp.fillStyle='rgba(0,0,0,0.5)'; ctxDisp.fillRect(0,0,W,18);
+        ctxDisp.fillStyle='#ffdd00'; ctxDisp.font='10px Space Mono'; ctxDisp.textAlign='center';
+        ctxDisp.fillText('FORMA ESTÁTICA DEL MODO — y(x, t=0)', W/2, 13);
+        ctxDisp.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        if (!simData) {
+            document.getElementById('infoDisplay').innerText = 'No se encontró modo\nAjustá L₁ o μ₂/μ₁';
+            document.getElementById('errBox').style.display = 'block';
+            return;
+        }
+        document.getElementById('errBox').style.display = 'none';
+        const {omega, k1, k2, v2} = simData;
+        document.getElementById('infoDisplay').innerText =
+            `n = ${n_modo}\nω = ${omega.toFixed(4)} rad/s\nk₁ = ${k1.toFixed(4)}  k₂ = ${k2.toFixed(4)}\nv₁ = ${V1.toFixed(3)}  v₂ = ${v2.toFixed(4)}\nL₁ = ${L1_frac.toFixed(2)}L  L₂ = ${(1-L1_frac).toFixed(2)}L\nμ₂/μ₁ = ${mu_ratio.toFixed(1)}`;
+    }
+
+    function rebuild() {
+        simData = buildSim();
+        updateInfoBox();
+        drawDisp();
+    }
+
+    function loop() {
+        t += 0.025;
+        drawString();
+        requestAnimationFrame(loop);
+    }
+
+    // Controls
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            n_modo = parseInt(btn.dataset.n); t = 0; rebuild();
+        });
+    });
+    document.getElementById('L1Slider').oninput = e => {
+        L1_frac = parseFloat(e.target.value);
+        document.getElementById('L1Val').innerText = L1_frac.toFixed(2);
+        rebuild();
+    };
+    document.getElementById('muSlider').oninput = e => {
+        mu_ratio = parseFloat(e.target.value);
+        document.getElementById('muVal').innerText = mu_ratio.toFixed(1);
+        rebuild();
+    };
+
+    function resize() {
+        canStr.width  = canStr.offsetWidth;  canStr.height  = 260;
+        canDisp.width = canDisp.offsetWidth; canDisp.height = 180;
+        rebuild();
+    }
+    window.onresize = resize;
+    requestAnimationFrame(() => { resize(); loop(); });
+</script>
+</body>
+</html>

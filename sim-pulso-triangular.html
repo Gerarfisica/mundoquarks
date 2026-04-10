@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pulso Triangular y Doppler | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.68rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 12px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.7rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .btn-restart { width:100%; padding:9px; background:#1a6cf5; color:#fff; border:none; font-family:'Space Mono'; font-size:0.65rem; font-weight:bold; cursor:pointer; border-radius:6px; margin-top:6px; transition:0.3s; }
+        .btn-restart:hover { background:#ff4500; }
+        .sep { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); letter-spacing:1px; text-transform:uppercase; margin:10px 0 6px; border-top:1px solid var(--border); padding-top:8px; }
+        .right-col { display:flex; flex-direction:column; gap:12px; }
+        canvas { background:#000; border-radius:10px; border:1px solid #1a2a4a; display:block; width:100%; }
+        #canProp  { height:200px; }
+        #canRefl  { height:200px; }
+        #canDoppl { height:220px; }
+        .ref-block { font-family:'Space Mono'; font-size:0.58rem; color:var(--gray); line-height:2.0; margin-top:8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Pulso Triangular — Reflexión, Transmisión y Efecto Doppler</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">t = 0.00 s\nR = ---  T = ---</div>
+
+        <div class="sep">// Panel 1 — Paquete</div>
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#00ff7f;">vg <span><span id="vgVal">0.6</span></span></label>
+                <input type="range" id="vgS" min="0.1" max="3.0" step="0.05" value="0.6" style="accent-color:#00ff7f;">
+            </div>
+            <div class="control-group">
+                <label style="color:#ff4444;">vp <span><span id="vpVal">1.5</span></span></label>
+                <input type="range" id="vpS" min="0.1" max="5.0" step="0.1" value="1.5" style="accent-color:#ff4444;">
+            </div>
+            <div class="control-group">
+                <label style="color:#ffdd00;">GVD <span><span id="gvdVal">1.2</span></span></label>
+                <input type="range" id="gvdS" min="0.0" max="5.0" step="0.1" value="1.2" style="accent-color:#ffdd00;">
+            </div>
+        </div>
+
+        <div class="sep">// Panel 2 — Reflexión</div>
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#00d4ff;">v₁ (medio izq.) <span><span id="v1Val">3.0</span></span></label>
+                <input type="range" id="v1S" min="0.5" max="8.0" step="0.5" value="3.0" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:orange;">v₂ (medio der.) <span><span id="v2Val">1.5</span></span></label>
+                <input type="range" id="v2S" min="0.5" max="8.0" step="0.5" value="1.5" style="accent-color:orange;">
+            </div>
+        </div>
+
+        <div class="sep">// Panel 3 — Doppler</div>
+        <div class="controls">
+            <div class="control-group">
+                <label>v_fuente <span><span id="vfVal">40</span></span></label>
+                <input type="range" id="vfS" min="0" max="300" step="10" value="40" style="accent-color:#ff44ff;">
+            </div>
+            <div class="control-group">
+                <label>v_observador <span><span id="voVal">20</span></span></label>
+                <input type="range" id="voS" min="0" max="100" step="5" value="20">
+            </div>
+            <div class="control-group">
+                <label>v_viento <span><span id="vwVal">20</span></span></label>
+                <input type="range" id="vwS" min="0" max="100" step="5" value="20" style="accent-color:#888;">
+            </div>
+        </div>
+        <button class="btn-restart" onclick="restart()">REINICIAR</button>
+
+        <div class="ref-block">
+            <span style="color:#00d4ff;">Reflexión (Fresnel):</span>
+            <span style="padding-left:4px;">R=(v₂−v₁)/(v₂+v₁)</span>
+            <span style="padding-left:4px;">T=2v₂/(v₂+v₁)</span>
+            <span style="color:#ff44ff;margin-top:5px;">Doppler:</span>
+            <span style="padding-left:4px;">f′=f₀(vs±vo)/(vs±vf)</span>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="canProp"  height="200"></canvas>
+        <canvas id="canRefl"  height="200"></canvas>
+        <canvas id="canDoppl" height="220"></canvas>
+    </div>
+</div>
+
+<script>
+    const canProp  = document.getElementById('canProp'),  ctxProp  = canProp.getContext('2d');
+    const canRefl  = document.getElementById('canRefl'),  ctxRefl  = canRefl.getContext('2d');
+    const canDoppl = document.getElementById('canDoppl'), ctxDoppl = canDoppl.getContext('2d');
+
+    // Panel 1 params
+    let vg=0.6, vp=1.5, gvd=1.2;
+    const k0=8.0, Dk=1.2, b=0.5;
+    const X_PROP_MAX=60, NX_PROP=800;
+    const xProp = Array.from({length:NX_PROP}, (_,i)=>i/(NX_PROP-1)*X_PROP_MAX);
+
+    // Panel 2 params
+    let v1=3.0, v2=1.5;
+    const X_REFL_MIN=-10, X_REFL_MAX=10, NX_REFL=600;
+    const xRefl = Array.from({length:NX_REFL}, (_,i)=>X_REFL_MIN+(X_REFL_MAX-X_REFL_MIN)*i/(NX_REFL-1));
+
+    // Panel 3 params
+    let v_f=40, v_o=20, v_viento=20;
+    const V_SOUND=340;
+    const DOPPL_XMIN=-50, DOPPL_XMAX=400, DOPPL_YMIN=-200, DOPPL_YMAX=200;
+
+    let t=0;
+    let circles=[]; // [{cx0, t0}]
+    let frameCount=0;
+
+    function restart() { t=0; circles=[]; frameCount=0; }
+
+    // Triangular pulse
+    function fTri(u) {
+        const L=2.0, half=L/2;
+        if (u < -half || u > half) return 0;
+        if (u < 0) return (u + half) / half;
+        return 1 - u / half;
+    }
+
+    // ── PANEL 1: WAVE PACKET ─────────────────────────────────────────────────
+    function drawProp() {
+        const W=canProp.width, H=canProp.height;
+        if(!W||!H) return;
+        ctxProp.clearRect(0,0,W,H);
+        const margin={left:36,right:16,top:24,bottom:22};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+        const midY=margin.top+h/2;
+
+        // Grid
+        ctxProp.strokeStyle='#16203a'; ctxProp.lineWidth=1;
+        ctxProp.font='8px Space Mono'; ctxProp.fillStyle='#8892b0';
+        for(let xg=0;xg<=X_PROP_MAX;xg+=10){
+            const px=margin.left+(xg/X_PROP_MAX)*w;
+            ctxProp.beginPath(); ctxProp.moveTo(px,margin.top); ctxProp.lineTo(px,margin.top+h); ctxProp.stroke();
+            ctxProp.fillText(xg,px-6,margin.top+h+12);
+        }
+        ctxProp.strokeStyle='rgba(255,255,255,0.07)'; ctxProp.lineWidth=1;
+        ctxProp.beginPath(); ctxProp.moveTo(margin.left,midY); ctxProp.lineTo(margin.left+w,midY); ctxProp.stroke();
+
+        // Compute
+        const dx0=(1/(2*Dk))*Math.sqrt(1+16*b*b*Dk*Dk*Dk*Dk);
+        const dxT=dx0*Math.sqrt(1+(gvd*t/(2*dx0*dx0))*(gvd*t/(2*dx0*dx0)));
+        const center=5+vg*t, amp=Math.sqrt(dx0/dxT);
+        const scaleY=h/2*0.88;
+
+        // Envelope
+        ctxProp.beginPath(); ctxProp.strokeStyle='#ff4444'; ctxProp.lineWidth=1.5; ctxProp.setLineDash([5,4]);
+        xProp.forEach((x,i)=>{ const env=amp*Math.exp(-((x-center)*(x-center))/(4*dxT*dxT)); const px=margin.left+(x/X_PROP_MAX)*w, py=midY-env*scaleY; i===0?ctxProp.moveTo(px,py):ctxProp.lineTo(px,py); });
+        ctxProp.stroke(); ctxProp.setLineDash([]);
+
+        // Wave
+        ctxProp.beginPath(); ctxProp.strokeStyle='#00ff7f'; ctxProp.lineWidth=1.5; ctxProp.shadowBlur=5; ctxProp.shadowColor='#00ff7f';
+        xProp.forEach((x,i)=>{ const env=amp*Math.exp(-((x-center)*(x-center))/(4*dxT*dxT)); const wave=env*Math.cos(k0*(x-vp*t)); const px=margin.left+(x/X_PROP_MAX)*w, py=midY-wave*scaleY; i===0?ctxProp.moveTo(px,py):ctxProp.lineTo(px,py); });
+        ctxProp.stroke(); ctxProp.shadowBlur=0;
+
+        // Group dot
+        const cpx=margin.left+((((center%X_PROP_MAX)+X_PROP_MAX)%X_PROP_MAX)/X_PROP_MAX)*w;
+        ctxProp.beginPath(); ctxProp.arc(cpx,midY,7,0,Math.PI*2); ctxProp.fillStyle='#ffdd00'; ctxProp.fill();
+
+        // Title
+        ctxProp.fillStyle='rgba(0,0,0,0.55)'; ctxProp.fillRect(0,0,W,18);
+        ctxProp.fillStyle='#00d4ff'; ctxProp.font='9px Space Mono'; ctxProp.textAlign='center';
+        ctxProp.fillText(`PAQUETE DISPERSIVO — vg=${vg.toFixed(2)}  vp=${vp.toFixed(2)}  GVD=${gvd.toFixed(2)}  Δx=${dxT.toFixed(3)}`,W/2,12);
+        ctxProp.textAlign='left';
+    }
+
+    // ── PANEL 2: REFLECTION / TRANSMISSION ────────────────────────────────────
+    function drawRefl() {
+        const W=canRefl.width, H=canRefl.height;
+        if(!W||!H) return;
+        ctxRefl.clearRect(0,0,W,H);
+        const margin={left:36,right:16,top:24,bottom:22};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+        const midY=margin.top+h/2;
+        const scaleY=h/2*0.82;
+
+        const R_coef=(v2-v1)/(v2+v1);
+        const T_coef=(2*v2)/(v2+v1);
+        const RANGE=X_REFL_MAX-X_REFL_MIN;
+
+        function mapX(xv){ return margin.left+(xv-X_REFL_MIN)/RANGE*w; }
+
+        // Backgrounds
+        ctxRefl.fillStyle='rgba(0,80,200,0.08)'; ctxRefl.fillRect(margin.left,margin.top,(mapX(0)-margin.left),h);
+        ctxRefl.fillStyle='rgba(255,100,0,0.08)'; ctxRefl.fillRect(mapX(0),margin.top,(margin.left+w-mapX(0)),h);
+
+        // Interface
+        ctxRefl.strokeStyle='rgba(255,255,255,0.25)'; ctxRefl.lineWidth=1; ctxRefl.setLineDash([4,4]);
+        ctxRefl.beginPath(); ctxRefl.moveTo(mapX(0),margin.top+2); ctxRefl.lineTo(mapX(0),margin.top+h-2); ctxRefl.stroke(); ctxRefl.setLineDash([]);
+
+        // Zero axis
+        ctxRefl.strokeStyle='rgba(255,255,255,0.07)'; ctxRefl.lineWidth=1;
+        ctxRefl.beginPath(); ctxRefl.moveTo(margin.left,midY); ctxRefl.lineTo(margin.left+w,midY); ctxRefl.stroke();
+
+        const t_shift=t-2.0;
+
+        // Compute wave
+        const yRefl=xRefl.map(xv=>{
+            if(xv<0){
+                return fTri(xv-v1*t_shift)+R_coef*fTri(-(xv+v1*t_shift));
+            } else {
+                return T_coef*fTri((v1/v2)*(xv-v2*t_shift));
+            }
+        });
+
+        // Incident + reflected (left: white)
+        ctxRefl.beginPath(); ctxRefl.strokeStyle='#fff'; ctxRefl.lineWidth=2.5; ctxRefl.shadowBlur=7; ctxRefl.shadowColor='#fff';
+        yRefl.forEach((y,i)=>{ const px=mapX(xRefl[i]), py=midY-y*scaleY; i===0?ctxRefl.moveTo(px,py):ctxRefl.lineTo(px,py); });
+        ctxRefl.stroke(); ctxRefl.shadowBlur=0;
+
+        // x labels
+        ctxRefl.fillStyle='#8892b0'; ctxRefl.font='8px Space Mono';
+        [-8,-4,0,4,8].forEach(xg=>{
+            ctxRefl.fillText(xg, mapX(xg)-6, margin.top+h+12);
+        });
+        ctxRefl.fillStyle='rgba(0,212,255,0.6)'; ctxRefl.fillText(`v₁=${v1.toFixed(1)}`,margin.left+6,margin.top+14);
+        ctxRefl.fillStyle='rgba(255,140,0,0.6)'; ctxRefl.fillText(`v₂=${v2.toFixed(1)}`,mapX(0)+6,margin.top+14);
+
+        // Title
+        ctxRefl.fillStyle='rgba(0,0,0,0.55)'; ctxRefl.fillRect(0,0,W,18);
+        ctxRefl.fillStyle='#00d4ff'; ctxRefl.font='9px Space Mono'; ctxRefl.textAlign='center';
+        ctxRefl.fillText(`PULSO TRIANGULAR EN INTERFAZ — R=${R_coef.toFixed(3)}  T=${T_coef.toFixed(3)}`,W/2,12);
+        ctxRefl.textAlign='left';
+    }
+
+    // ── PANEL 3: DOPPLER ──────────────────────────────────────────────────────
+    function drawDoppler() {
+        const W=canDoppl.width, H=canDoppl.height;
+        if(!W||!H) return;
+        ctxDoppl.clearRect(0,0,W,H);
+        const margin={left:16,right:16,top:24,bottom:22};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+        const cx0=margin.left, cy0=margin.top+h/2;
+
+        const XRANGE=DOPPL_XMAX-DOPPL_XMIN, YRANGE=DOPPL_YMAX-DOPPL_YMIN;
+        function mx(xv){ return cx0+(xv-DOPPL_XMIN)/XRANGE*w; }
+        function my(yv){ return margin.top+(1-(yv-DOPPL_YMIN)/YRANGE)*h; }
+
+        // Grid lines
+        ctxDoppl.strokeStyle='#16203a'; ctxDoppl.lineWidth=1;
+        ctxDoppl.beginPath(); ctxDoppl.moveTo(margin.left,my(0)); ctxDoppl.lineTo(margin.left+w,my(0)); ctxDoppl.stroke();
+
+        // Wavefronts
+        circles.forEach(({cx_src, t0}) => {
+            const dt=t-t0;
+            if(dt<0) return;
+            const radius=(V_SOUND*dt)*w/XRANGE;
+            const cx_shifted=mx(cx_src+v_viento*dt);
+            ctxDoppl.beginPath(); ctxDoppl.arc(cx_shifted, my(0), radius, 0, Math.PI*2);
+            ctxDoppl.strokeStyle=`rgba(0,212,255,${Math.max(0,0.9-dt*0.15)})`; ctxDoppl.lineWidth=1.5; ctxDoppl.stroke();
+        });
+
+        // Source (red dot)
+        const x_f=v_f*t;
+        ctxDoppl.beginPath(); ctxDoppl.arc(mx(x_f), my(0), 8, 0, Math.PI*2);
+        ctxDoppl.fillStyle='#ff4444'; ctxDoppl.shadowBlur=12; ctxDoppl.shadowColor='#ff4444'; ctxDoppl.fill(); ctxDoppl.shadowBlur=0;
+        ctxDoppl.fillStyle='#ff4444'; ctxDoppl.font='9px Space Mono'; ctxDoppl.textAlign='center';
+        ctxDoppl.fillText(`Fuente vf=${v_f}`, mx(x_f), my(0)-14);
+
+        // Observer (green dot)
+        const x_o=150+v_o*t;
+        if(x_o<=DOPPL_XMAX){
+            ctxDoppl.beginPath(); ctxDoppl.arc(mx(x_o), my(0), 8, 0, Math.PI*2);
+            ctxDoppl.fillStyle='#00ff7f'; ctxDoppl.shadowBlur=12; ctxDoppl.shadowColor='#00ff7f'; ctxDoppl.fill(); ctxDoppl.shadowBlur=0;
+            ctxDoppl.fillStyle='#00ff7f'; ctxDoppl.textAlign='center';
+            ctxDoppl.fillText(`Obs. vo=${v_o}`, mx(x_o), my(0)+22);
+        }
+
+        // Doppler freq ratio
+        const f_ratio=(V_SOUND+v_o)/(V_SOUND-v_f);
+        ctxDoppl.fillStyle='#ffdd00'; ctxDoppl.font='9px Space Mono'; ctxDoppl.textAlign='left';
+        ctxDoppl.fillText(`f′/f₀ = (vs+vo)/(vs−vf) = ${f_ratio.toFixed(4)}`, margin.left+6, margin.top+h-8);
+        ctxDoppl.fillText(`Viento = ${v_viento} m/s →`, margin.left+6, margin.top+14);
+
+        // Title
+        ctxDoppl.fillStyle='rgba(0,0,0,0.55)'; ctxDoppl.fillRect(0,0,W,18);
+        ctxDoppl.fillStyle='#ff44ff'; ctxDoppl.font='9px Space Mono'; ctxDoppl.textAlign='center';
+        ctxDoppl.fillText(`EFECTO DOPPLER — vs=${V_SOUND}  vf=${v_f}  vo=${v_o}  vviento=${v_viento}`,W/2,12);
+        ctxDoppl.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        const R_coef=(v2-v1)/(v2+v1), T_coef=(2*v2)/(v2+v1);
+        const f_ratio=(V_SOUND+v_o)/(V_SOUND-v_f);
+        document.getElementById('infoDisplay').innerText =
+            `t = ${t.toFixed(2)} s\nR = ${R_coef.toFixed(4)}  T = ${T_coef.toFixed(4)}\nf′/f₀ = ${f_ratio.toFixed(4)}\nviento = ${v_viento} m/s`;
+    }
+
+    function loop() {
+        t += 0.05;
+        frameCount++;
+
+        // Add wavefront every 10 frames
+        if(frameCount%10===0) circles.push({cx_src: v_f*t, t0: t});
+        if(circles.length>15) circles.shift();
+
+        // Resize if needed
+        [canProp,canRefl,canDoppl].forEach(c=>{ if(c.offsetWidth!==c.width){c.width=c.offsetWidth;} });
+
+        drawProp();
+        drawRefl();
+        drawDoppler();
+        updateInfoBox();
+        requestAnimationFrame(loop);
+    }
+
+    // Controls
+    document.getElementById('vgS').oninput   = e=>{ vg  = parseFloat(e.target.value); document.getElementById('vgVal').innerText  = vg.toFixed(2);  restart(); };
+    document.getElementById('vpS').oninput   = e=>{ vp  = parseFloat(e.target.value); document.getElementById('vpVal').innerText  = vp.toFixed(2);  restart(); };
+    document.getElementById('gvdS').oninput  = e=>{ gvd = parseFloat(e.target.value); document.getElementById('gvdVal').innerText = gvd.toFixed(2); restart(); };
+    document.getElementById('v1S').oninput   = e=>{ v1  = parseFloat(e.target.value); document.getElementById('v1Val').innerText  = v1.toFixed(1);  restart(); };
+    document.getElementById('v2S').oninput   = e=>{ v2  = parseFloat(e.target.value); document.getElementById('v2Val').innerText  = v2.toFixed(1);  restart(); };
+    document.getElementById('vfS').oninput   = e=>{ v_f = parseFloat(e.target.value); document.getElementById('vfVal').innerText  = v_f;            restart(); };
+    document.getElementById('voS').oninput   = e=>{ v_o = parseFloat(e.target.value); document.getElementById('voVal').innerText  = v_o;            restart(); };
+    document.getElementById('vwS').oninput   = e=>{ v_viento=parseFloat(e.target.value); document.getElementById('vwVal').innerText=v_viento;      restart(); };
+
+    function resize(){
+        canProp.width  = canProp.offsetWidth;  canProp.height  = 200;
+        canRefl.width  = canRefl.offsetWidth;  canRefl.height  = 200;
+        canDoppl.width = canDoppl.offsetWidth; canDoppl.height = 220;
+    }
+    window.onresize = resize;
+    requestAnimationFrame(()=>{ resize(); loop(); });
+</script>
+</body>
+</html>

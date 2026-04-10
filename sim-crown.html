@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crown — Dispersión Cromática | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 13px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .btn-play { width:100%; padding:9px; background:#1a6cf5; color:#fff; border:none; font-family:'Space Mono'; font-size:0.65rem; font-weight:bold; cursor:pointer; border-radius:6px; margin-top:6px; transition:0.3s; }
+        .btn-play:hover { background:#ff4500; }
+        .btn-restart { width:100%; padding:7px; background:#0a1a2a; color:var(--cyan); border:1px solid var(--cyan); font-family:'Space Mono'; font-size:0.62rem; cursor:pointer; border-radius:6px; margin-top:5px; transition:0.3s; }
+        .btn-restart:hover { background:rgba(0,212,255,0.1); }
+        canvas { background:#000; border-radius:12px; border:1px solid #1a2a4a; display:block; width:100%; }
+        #canMain { height:500px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.62rem; margin-bottom:5px; }
+        .leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Lupa de Dispersión Cromática — Líneas F, D y C del Crown Glass</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">α = 4°  (prisma delgado)\nδF = 2.052°  δD = 2.032°\nδC = 2.016°  Δδ = 0.036°</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Ángulo ápice α <span><span id="alphaVal">4.0</span>°</span></label>
+                <input type="range" id="alphaSlider" min="1" max="15" step="0.5" value="4.0">
+            </div>
+            <div class="control-group">
+                <label>Exageración visual <span><span id="exagVal">120</span>×</span></label>
+                <input type="range" id="exagSlider" min="10" max="300" step="10" value="120" style="accent-color:#ffdd00;">
+            </div>
+        </div>
+        <button class="btn-play" id="btnPlay">⏸ PAUSAR</button>
+        <button class="btn-restart" onclick="restart()">↺ REINICIAR</button>
+
+        <div style="margin-top:14px;">
+            <div class="legend-row"><div class="leg-dot" style="background:#00f5ff;"></div><span>F (Azul)   — n=1.513  λ=486nm</span></div>
+            <div class="legend-row"><div class="leg-dot" style="background:#ffd700;"></div><span>D (Amarillo)— n=1.508  λ=589nm</span></div>
+            <div class="legend-row"><div class="leg-dot" style="background:#ff4500;"></div><span>C (Rojo)   — n=1.504  λ=656nm</span></div>
+            <div class="legend-row" style="margin-top:6px;"><div class="leg-dot" style="background:#fff;"></div><span>Luz blanca incidente</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Prisma delgado (aproximación):</span>
+            <span style="padding-left:4px;">δ = (n−1)·α</span>
+            <span style="margin-top:5px;">Poder dispersivo ω:</span>
+            <span style="padding-left:4px;">ω = (nF−nC)/(nD−1)</span>
+            <span style="margin-top:5px;color:var(--cyan);">Dispersión angular:</span>
+            <span style="padding-left:4px;">Δδ = δF − δC = (nF−nC)·α</span>
+            <span style="margin-top:5px;color:#ffdd00;">Exageración solo visual — los ángulos reales se calculan con (n−1)·α exacto</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        <canvas id="canMain" height="500"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    // Crown glass data
+    const LINES = [
+        {key:'F', label:'F (Azul)',    n:1.513, color:'#00f5ff', delta_exact:null},
+        {key:'D', label:'D (Amarillo)',n:1.508, color:'#ffd700', delta_exact:null},
+        {key:'C', label:'C (Rojo)',    n:1.504, color:'#ff4500', delta_exact:null},
+    ];
+
+    let alpha_deg=4.0, exag=120;
+    let frame=0, running=true;
+
+    // View: x∈[-1,9], y∈[-2.5,2.5]
+    const XMIN=-1,XMAX=9,YMIN=-2.5,YMAX=2.5;
+
+    function toC(px,py){
+        const W=canvas.width,H=canvas.height;
+        const ml=30,mr=20,mt=30,mb=30;
+        const w=W-ml-mr,h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function computeDeltas(){
+        return LINES.map(l=>({...l, delta:(l.n-1)*alpha_deg}));
+    }
+
+    function arrowHead(x0,y0,x1,y1,color,lw){
+        const [px0,py0]=toC(x0,y0),[px1,py1]=toC(x1,y1);
+        const dx=px1-px0,dy=py1-py0,len=Math.sqrt(dx*dx+dy*dy);
+        if(len<2) return;
+        const ux=dx/len,uy=dy/len,hw=8;
+        ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.shadowBlur=8; ctx.shadowColor=color;
+        ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px1-ux*hw,py1-uy*hw); ctx.stroke();
+        ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.fillStyle=color;
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-ux*hw*2-uy*hw,py1-uy*hw*2+ux*hw);
+        ctx.lineTo(px1-ux*hw*2+uy*hw,py1-uy*hw*2-ux*hw);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function drawScene(t_anim){
+        const W=canvas.width,H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        const lines=computeDeltas();
+        const delta_base=lines[1].delta; // D line as reference
+
+        // ── PRISM ─────────────────────────────────────────────────────────
+        const prismaVerts=[[0,-1],[0,1],[0.5,0]];
+        ctx.beginPath();
+        ctx.moveTo(...toC(...prismaVerts[0]));
+        prismaVerts.slice(1).forEach(v=>ctx.lineTo(...toC(...v)));
+        ctx.closePath();
+        ctx.fillStyle='rgba(0,212,255,0.1)'; ctx.fill();
+        ctx.strokeStyle='#00d4ff'; ctx.lineWidth=2; ctx.shadowBlur=6; ctx.shadowColor='#00d4ff';
+        ctx.stroke(); ctx.shadowBlur=0;
+
+        // Prism label
+        ctx.fillStyle='#00d4ff'; ctx.font='bold 10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`PRISMA DELGADO α=${alpha_deg.toFixed(1)}°`,toC(0.25,1.18)[0],toC(0.25,1.18)[1]);
+
+        // ── INCIDENT WHITE RAY ─────────────────────────────────────────────
+        const t1=Math.min(t_anim/0.25,1);
+        const incX0=-2, incY0=0;
+        const incX1=-2+t1*2, incY1=0;
+        arrowHead(incX0,incY0,Math.min(incX1,0),incY1,'#fff',3.5);
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('Luz blanca',toC(-1.5,0.15)[0],toC(-1.5,0.15)[1]);
+
+        // ── DISPERSED RAYS ────────────────────────────────────────────────
+        if(t_anim>0.25){
+            const t2=Math.min((t_anim-0.25)/0.75,1);
+            const dist=t2*7.5;
+
+            lines.forEach(l=>{
+                const diff=l.delta-delta_base;
+                const ang_viz=-(delta_base+diff*exag)*Math.PI/180;
+                const x_end=dist*Math.cos(ang_viz);
+                const y_end=dist*Math.sin(ang_viz);
+
+                // Ray
+                arrowHead(0,0,x_end,y_end,l.color,2.5);
+
+                // Dot at tip
+                const [ex,ey]=toC(x_end,y_end);
+                ctx.beginPath(); ctx.arc(ex,ey,5,0,Math.PI*2);
+                ctx.fillStyle=l.color; ctx.shadowBlur=10; ctx.shadowColor=l.color; ctx.fill(); ctx.shadowBlur=0;
+
+                // Label at tip (appears late)
+                if(t2>0.7){
+                    const fade=Math.min((t2-0.7)/0.3,1);
+                    ctx.globalAlpha=fade;
+                    ctx.fillStyle=l.color; ctx.font='bold 10px Space Mono'; ctx.textAlign='left';
+                    ctx.fillText(`${l.label}: δ=${l.delta.toFixed(4)}°`, ex+10, ey+4);
+                    ctx.globalAlpha=1;
+                }
+            });
+
+            // Angular separation annotations
+            if(t2>0.85){
+                const lineF=lines[0], lineC=lines[2];
+                const diffF=(lineF.delta-delta_base)*exag, diffC=(lineC.delta-delta_base)*exag;
+                const angF=-(delta_base+diffF)*Math.PI/180;
+                const angC=-(delta_base+diffC)*Math.PI/180;
+                const refDist=4.5;
+
+                // Double-headed arrow between F and C
+                const [fx,fy]=toC(refDist*Math.cos(angF),refDist*Math.sin(angF));
+                const [cx,cy]=toC(refDist*Math.cos(angC),refDist*Math.sin(angC));
+                ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+                ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(cx,cy); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle='#fff'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+                const midX=(fx+cx)/2, midY=(fy+cy)/2;
+                ctx.fillText(`Δδ=${(lineF.delta-lineC.delta).toFixed(4)}°×${exag}`,midX,midY-8);
+                ctx.fillText('(exagerado)',midX,midY+6);
+            }
+        }
+
+        // ── DISPERSIVE POWER TABLE ────────────────────────────────────────
+        const nF=lines[0].n, nD=lines[1].n, nC=lines[2].n;
+        const omega=(nF-nC)/(nD-1);
+        const deltaDisp=(nF-nC)*alpha_deg;
+
+        const tx=toC(6.5,2.2)[0], ty=toC(6.5,2.2)[1];
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(tx-6,ty-14,175,95);
+        ctx.fillStyle='#00d4ff'; ctx.font='9px Space Mono'; ctx.textAlign='left';
+        ctx.fillText(`ω = (nF−nC)/(nD−1)`,tx,ty);
+        ctx.fillText(`  = ${(nF-nC).toFixed(4)}/${(nD-1).toFixed(4)}`,tx,ty+14);
+        ctx.fillStyle='#ffdd00';
+        ctx.fillText(`  = ${omega.toFixed(5)}`,tx,ty+28);
+        ctx.fillStyle='#00d4ff';
+        ctx.fillText(`Δδ = (nF−nC)·α`,tx,ty+46);
+        ctx.fillStyle='#ffdd00';
+        ctx.fillText(`   = ${deltaDisp.toFixed(5)}°`,tx,ty+60);
+
+        // ── TITLE & INFO ─────────────────────────────────────────────────
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,20);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`CROWN GLASS — α=${alpha_deg.toFixed(1)}°  Exageración visual: ${exag}×`,W/2,13);
+        ctx.textAlign='left';
+
+        // Update info box
+        document.getElementById('infoDisplay').innerText =
+            `α = ${alpha_deg.toFixed(2)}°  (prisma delgado)\nδF = ${lines[0].delta.toFixed(4)}°  (Azul)\nδD = ${lines[1].delta.toFixed(4)}°  (Amarillo)\nδC = ${lines[2].delta.toFixed(4)}°  (Rojo)\nΔδ = δF−δC = ${(lines[0].delta-lines[2].delta).toFixed(5)}°\nω = ${omega.toFixed(6)}`;
+    }
+
+    function restart(){ frame=0; }
+
+    function loop(){
+        if(running) frame++;
+        const t=Math.min(frame/120,1);
+        drawScene(t);
+        requestAnimationFrame(loop);
+    }
+
+    document.getElementById('alphaSlider').oninput=e=>{
+        alpha_deg=parseFloat(e.target.value);
+        document.getElementById('alphaVal').innerText=alpha_deg.toFixed(1);
+        restart();
+    };
+    document.getElementById('exagSlider').oninput=e=>{
+        exag=parseInt(e.target.value);
+        document.getElementById('exagVal').innerText=exag;
+    };
+    document.getElementById('btnPlay').addEventListener('click',()=>{
+        running=!running;
+        document.getElementById('btnPlay').innerText=running?'⏸ PAUSAR':'▶ REANUDAR';
+    });
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=500; }
+    window.onresize=resize;
+    requestAnimationFrame(()=>{ resize(); loop(); });
+</script>
+</body>
+</html>

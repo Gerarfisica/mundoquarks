@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lente Delgada | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .status-box { padding: 9px; text-align: center; font-family: 'Space Mono'; font-size: 0.7rem; font-weight: bold; border-radius: 8px; margin-bottom: 14px; transition: 0.3s; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 13px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: #ffdd00; cursor: pointer; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .lens-options { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .lens-btn { background:rgba(0,212,255,0.04); border:1px solid var(--border); color:var(--gray); font-family:'Space Mono'; font-size:0.6rem; padding:7px 8px; border-radius:5px; cursor:pointer; transition:0.2s; text-align:left; }
+        .lens-btn:hover { border-color:var(--cyan); color:var(--white); }
+        .lens-btn.active { background:rgba(0,212,255,0.12); color:var(--cyan); border-color:var(--cyan); font-weight:bold; }
+        canvas { background:#000; border-radius:12px; border:1px solid #1a2a4a; display:block; width:100%; }
+        #canMain { height: 500px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:4px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Lente Delgada — Rayos Principales e Imagen</h1>
+
+    <div class="panel-left">
+        <div id="statusBox" class="status-box" style="background:rgba(255,68,255,0.08);border:1px solid #ff44ff;color:#ff44ff;">Imagen REAL</div>
+        <div id="infoDisplay" class="freq-box">f′ = ---\ns = ---  s′ = ---\nM = ---</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#ffdd00;">Posición objeto s <span><span id="sVal">-5.0</span></span></label>
+                <input type="range" id="sSlider" min="-9.5" max="-0.1" step="0.1" value="-5.0">
+            </div>
+            <div class="control-group">
+                <label style="color:#00d4ff;">Índice n <span><span id="nVal">1.50</span></span></label>
+                <input type="range" id="nSlider" min="1.1" max="2.0" step="0.01" value="1.5" style="accent-color:#00d4ff;">
+            </div>
+        </div>
+
+        <span class="mode-label">Tipo de lente</span>
+        <div class="lens-options">
+            <button class="lens-btn active" data-r1="2.0" data-r2="-2.0">Biconvexa  (R₁=+2, R₂=−2)</button>
+            <button class="lens-btn" data-r1="-2.0" data-r2="2.0">Bicóncava  (R₁=−2, R₂=+2)</button>
+            <button class="lens-btn" data-r1="2.0" data-r2="1e6">Plano-Convexa  (R₁=+2, R₂=∞)</button>
+            <button class="lens-btn" data-r1="2.0" data-r2="4.0">Menisco Conv. (R₁=+2, R₂=+4)</button>
+            <button class="lens-btn" data-r1="4.0" data-r2="2.0">Menisco Div.  (R₁=+4, R₂=+2)</button>
+        </div>
+
+        <div style="margin-top:8px;">
+            <div class="legend-row"><div class="leg-line" style="background:orange;"></div><span>Rayo 1: paralelo → pasa por F′</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#00ff7f;"></div><span>Rayo 2: por el centro (no desviado)</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#ffdd00;"></div><span>Rayo 3: por F → sale paralelo</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#888;border-top:2px dashed #888;"></div><span>Prolongaciones virtuales</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Lens Maker:</span>
+            <span style="padding-left:4px;">1/f′ = (n−1)(1/R₁ − 1/R₂)</span>
+            <span style="margin-top:4px;">Gauss:</span>
+            <span style="padding-left:4px;">1/s′ − 1/s = 1/f′</span>
+            <span style="padding-left:4px;">M = s′/s</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;">
+        <canvas id="canMain" height="500"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    let s_obj=-5.0, n_lens=1.5, R1=2.0, R2=-2.0;
+
+    const XMIN=-10,XMAX=10,YMIN=-4,YMAX=4;
+
+    function toC(px,py){
+        const W=canvas.width,H=canvas.height;
+        const ml=30,mr=20,mt=22,mb=22;
+        const w=W-ml-mr,h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function line(x0,y0,x1,y1,color,lw,dash=[]){
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.setLineDash(dash);
+        ctx.moveTo(...toC(x0,y0)); ctx.lineTo(...toC(x1,y1)); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function arrowObj(x,y0,y1,color,lw){
+        const [px0,py0]=toC(x,y0),[px1,py1]=toC(x,y1);
+        const dy=py1-py0,len=Math.abs(dy);
+        if(len<2) return;
+        const uy=dy/len,hw=9;
+        ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.shadowBlur=8; ctx.shadowColor=color;
+        ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px1,py1-uy*hw); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.fillStyle=color;
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-hw,py1-uy*hw*2); ctx.lineTo(px1+hw,py1-uy*hw*2);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+    function drawLensSymbol(f_prime, h){
+        // Thin lens: vertical line with arrows
+        const [lx,lt]=toC(0,h), [,lb]=toC(0,-h);
+        ctx.strokeStyle='#00d4ff'; ctx.lineWidth=4; ctx.shadowBlur=8; ctx.shadowColor='#00d4ff';
+        ctx.beginPath(); ctx.moveTo(lx,lt); ctx.lineTo(lx,lb); ctx.stroke(); ctx.shadowBlur=0;
+
+        const conv = f_prime>0 && f_prime<100;
+        const div  = f_prime<0;
+        const [ax0,ay0]=toC(0,h), [ax1,ay1]=toC(0,-h);
+        ctx.strokeStyle='#00d4ff'; ctx.lineWidth=2;
+
+        if(conv){
+            // Arrows pointing outward (converging)
+            [[ax0,-1],[ax1,1]].forEach(([py,dir])=>{
+                ctx.beginPath(); ctx.moveTo(lx-8,py+dir*10); ctx.lineTo(lx,py); ctx.lineTo(lx+8,py+dir*10); ctx.stroke();
+            });
+        } else if(div){
+            // Arrows pointing inward (diverging)
+            [[ax0,-1],[ax1,1]].forEach(([py,dir])=>{
+                ctx.beginPath(); ctx.moveTo(lx-8,py); ctx.lineTo(lx,py+dir*10); ctx.lineTo(lx+8,py); ctx.stroke();
+            });
+        }
+    }
+
+    function drawScene(){
+        const W=canvas.width,H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        // Compute f' from Lens Maker
+        let inv_f=0;
+        if(Math.abs(R1)>1e4 && Math.abs(R2)>1e4){ inv_f=0; }
+        else if(Math.abs(R1)>1e4){ inv_f=(n_lens-1)*(-1/R2); }
+        else if(Math.abs(R2)>1e4){ inv_f=(n_lens-1)*(1/R1); }
+        else { inv_f=(n_lens-1)*(1/R1-1/R2); }
+
+        const f_prime = Math.abs(inv_f)<1e-6 ? 1e6 : 1/inv_f;
+
+        // ── OPTICAL AXIS ────────────────────────────────────────────────
+        line(XMIN,0,XMAX,0,'rgba(255,255,255,0.15)',1,[4,6]);
+
+        // ── FOCAL MARKERS ────────────────────────────────────────────────
+        if(Math.abs(f_prime)<12){
+            [f_prime,-f_prime].forEach((f,i)=>{
+                line(f,-0.25,f,0.25,'#ff4444',2);
+                ctx.fillStyle='#ff4444'; ctx.font='bold 11px Space Mono'; ctx.textAlign='center';
+                ctx.fillText(i===0?"F′":"F",toC(f,-0.62)[0],toC(f,-0.62)[1]);
+                ctx.fillText(f.toFixed(2),toC(f,-1.1)[0],toC(f,-1.1)[1]);
+            });
+        }
+
+        // ── LENS ─────────────────────────────────────────────────────────
+        drawLensSymbol(f_prime, 3.0);
+
+        // ── OBJECT ───────────────────────────────────────────────────────
+        arrowObj(s_obj,0,1.0,'#ffdd00',3.5);
+        ctx.fillStyle='#ffdd00'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`s=${s_obj.toFixed(1)}`,toC(s_obj,-0.45)[0],toC(s_obj,-0.45)[1]);
+
+        // ── IMAGE ────────────────────────────────────────────────────────
+        const h_obj=1.0;
+        let s_prime=null, m=null, h_img=null;
+        const inv_sp = (Math.abs(f_prime)<1e5 ? 1/f_prime : 0) + 1/s_obj;
+        if(Math.abs(inv_sp)>1e-6){
+            s_prime=1/inv_sp;
+            m=s_prime/s_obj;
+            h_img=m*h_obj;
+        }
+
+        if(s_prime!==null && isFinite(s_prime) && Math.abs(s_prime)<12){
+            const isReal=s_prime>0;
+            const imgCol=isReal?'#ff44ff':'orange';
+            arrowObj(s_prime,0,h_img,imgCol,3);
+            line(s_prime,-3.8,s_prime,3.8,imgCol+'44',1,[5,4]);
+            ctx.fillStyle=imgCol; ctx.font='bold 9px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(isReal?'REAL':'VIRTUAL',
+                toC(s_prime,h_img+(h_img>0?0.28:-0.48))[0],
+                toC(s_prime,h_img+(h_img>0?0.28:-0.48))[1]);
+
+            const box=document.getElementById('statusBox');
+            if(isReal){
+                box.style.background='rgba(255,68,255,0.1)'; box.style.borderColor='#ff44ff'; box.style.color='#ff44ff';
+                box.innerText=`Imagen REAL  M=${m.toFixed(3)}`;
+            } else {
+                box.style.background='rgba(255,165,0,0.1)'; box.style.borderColor='orange'; box.style.color='orange';
+                box.innerText=`Imagen VIRTUAL  M=${m.toFixed(3)}`;
+            }
+        } else {
+            const box=document.getElementById('statusBox');
+            box.style.background='rgba(150,150,150,0.08)'; box.style.borderColor='#888'; box.style.color='#888';
+            box.innerText='Objeto en foco → rayos paralelos';
+        }
+
+        // ── THREE PRINCIPAL RAYS ──────────────────────────────────────────
+        if(Math.abs(f_prime)<1e4){
+            // Ray 1: parallel → through F′
+            line(s_obj,h_obj,0,h_obj,'orange',2);
+            const slope1=(0-h_obj)/(f_prime-0);
+            // forward
+            const y1_end=clamp(h_obj+10*slope1,-3.8,3.8);
+            const x1_end=0+(y1_end-h_obj)/slope1;
+            line(0,h_obj,x1_end,y1_end,'orange',2);
+            // virtual backward
+            line(0,h_obj,-10,h_obj-10*slope1,'rgba(255,165,0,0.2)',1.5,[5,5]);
+
+            // Ray 2: through center (undeviated)
+            const slope2=(0-h_obj)/(0-s_obj);
+            line(s_obj,h_obj,10,h_obj+(10-s_obj)*slope2,'#00ff7f',2);
+            line(0,0,-10,-10*slope2,'rgba(0,255,127,0.2)',1.5,[5,5]);
+
+            // Ray 3: through F → exits parallel
+            const f_neg=-f_prime;
+            const slope3=(0-h_obj)/(f_neg-s_obj);
+            const y3_at0=h_obj+(0-s_obj)*slope3;
+            line(s_obj,h_obj,0,y3_at0,'#ffdd00',2,[],false);
+            line(0,y3_at0,10,y3_at0,'#ffdd00',2);
+            line(0,y3_at0,-10,y3_at0,'rgba(255,221,0,0.2)',1.5,[5,5]);
+        }
+
+        // ── TITLE ────────────────────────────────────────────────────────
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,22);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        const fStr=Math.abs(f_prime)<1e4?f_prime.toFixed(3):'∞';
+        const spStr=s_prime!==null&&isFinite(s_prime)?s_prime.toFixed(3):'∞';
+        const mStr=m!==null&&isFinite(m)?m.toFixed(3):'∞';
+        ctx.fillText(`LENTE DELGADA  n=${n_lens.toFixed(2)}  R₁=${R1.toFixed(1)}  R₂=${R2===1e6?'∞':R2.toFixed(1)}  f′=${fStr}  s′=${spStr}  M=${mStr}`,W/2,14);
+        ctx.textAlign='left';
+
+        // Info box
+        document.getElementById('infoDisplay').innerText =
+            `f′ = ${fStr}\ns = ${s_obj.toFixed(3)}   s′ = ${spStr}\nM = ${mStr}\n1/f′=(n−1)(1/R₁−1/R₂)=${inv_f.toFixed(5)}`;
+    }
+
+    document.getElementById('sSlider').oninput=e=>{ s_obj=parseFloat(e.target.value); document.getElementById('sVal').innerText=s_obj.toFixed(1); drawScene(); };
+    document.getElementById('nSlider').oninput=e=>{ n_lens=parseFloat(e.target.value); document.getElementById('nVal').innerText=n_lens.toFixed(2); drawScene(); };
+
+    document.querySelectorAll('.lens-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.lens-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            R1=parseFloat(btn.dataset.r1); R2=parseFloat(btn.dataset.r2);
+            drawScene();
+        });
+    });
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=500; drawScene(); }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

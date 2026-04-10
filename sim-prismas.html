@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prismas | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .status-box { padding: 9px; text-align: center; font-family: 'Space Mono'; font-size: 0.72rem; font-weight: bold; border-radius: 8px; margin-bottom: 14px; transition: 0.3s; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .btn-play { width:100%; padding:9px; background:#1a6cf5; color:#fff; border:none; font-family:'Space Mono'; font-size:0.65rem; font-weight:bold; cursor:pointer; border-radius:6px; margin-top:6px; transition:0.3s; }
+        .btn-play:hover { background:#ff4500; }
+        canvas { background:#000; border-radius:12px; border:1px solid #1a2a4a; display:block; width:100%; }
+        #canMain { height:540px; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:4px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Desviación en Prisma — Ángulos y Reflexión Total Interna</h1>
+
+    <div class="panel-left">
+        <div id="statusBox" class="status-box" style="background:rgba(0,255,127,0.08);border:1px solid #00ff7f;color:#00ff7f;">REFRACCIÓN</div>
+        <div id="infoDisplay" class="freq-box">θ₁=45°  θ₂=---°\nθ₃=---°  θ₄=---°\nδ = δ₁+δ₂ = ---°</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#00d4ff;">Índice n <span><span id="nVal">1.50</span></span></label>
+                <input type="range" id="nSlider" min="1.1" max="2.5" step="0.01" value="1.5" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:#00d4ff;">Ángulo ápice α <span><span id="aVal">60</span>°</span></label>
+                <input type="range" id="aSlider" min="10" max="90" step="1" value="60" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:#ffdd00;">Incidencia θ₁ <span><span id="t1Val">45</span>°</span></label>
+                <input type="range" id="t1Slider" min="5" max="85" step="0.5" value="45" style="accent-color:#ffdd00;">
+            </div>
+        </div>
+
+        <button class="btn-play" id="btnPlay">⏸ PAUSAR</button>
+
+        <div style="margin-top:12px;">
+            <div class="legend-row"><div class="leg-line" style="background:#ffdd00;"></div><span>Rayo incidente</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#00ff7f;"></div><span>Rayo interno</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:orange;"></div><span>Rayo emergente</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#888;border-top:2px dotted #888;"></div><span>Prolongaciones</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Snell en cara 1:  sin θ₁ = n·sin θ₂</span>
+            <span>Geometría:  θ₃ = α − θ₂</span>
+            <span>Snell en cara 2:  n·sin θ₃ = sin θ₄</span>
+            <span style="margin-top:5px;color:var(--cyan);">δ = (θ₁−θ₂) + (θ₄−θ₃)</span>
+            <span style="padding-left:4px;">= θ₁ + θ₄ − α</span>
+            <span style="color:#ff4444;margin-top:5px;">RTI si sin θ₃ ≥ 1/n</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        <canvas id="canMain" height="540"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    let n=1.5, alpha_deg=60, theta1_deg=45;
+    let animFrame=0, running=true, rafId=null;
+
+    // View: x∈[-4,4], y∈[-1,4]
+    const XMIN=-4,XMAX=4,YMIN=-1,YMAX=4;
+
+    function toC(px,py){
+        const W=canvas.width,H=canvas.height;
+        const ml=30,mr=20,mt=20,mb=20;
+        const w=W-ml-mr,h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function rotVec(v,ang){ const c=Math.cos(ang),s=Math.sin(ang); return [c*v[0]-s*v[1],s*v[0]+c*v[1]]; }
+
+    function intersectLines(p1,v1,p3,v3){
+        // solve: p1 + t*v1 = p3 + s*v3
+        const det=v1[0]*(-v3[1])-v1[1]*(-v3[0]);
+        if(Math.abs(det)<1e-10) return null;
+        const dx=p3[0]-p1[0],dy=p3[1]-p1[1];
+        const t=(dx*(-v3[1])-dy*(-v3[0]))/det;
+        return [p1[0]+t*v1[0],p1[1]+t*v1[1]];
+    }
+
+    function computeGeometry(){
+        const alpha=alpha_deg*Math.PI/180;
+        const theta1=theta1_deg*Math.PI/180;
+
+        // Prism vertices: apex at top, symmetric
+        const L=3.8;
+        const A_apex=[0, 3.4];
+        const B_base=[A_apex[0]-L*Math.sin(alpha/2), A_apex[1]-L*Math.cos(alpha/2)];
+        const C_base=[A_apex[0]+L*Math.sin(alpha/2), A_apex[1]-L*Math.cos(alpha/2)];
+
+        // Left face normal (pointing outward to the left)
+        const norm1=[-Math.cos(alpha/2), Math.sin(alpha/2)];
+        // Right face normal (pointing outward to the right)
+        const norm2=[Math.cos(alpha/2), Math.sin(alpha/2)];
+
+        // Entry point on left face, 40% from apex
+        const frac=0.4;
+        const p_inc=[A_apex[0]+frac*(B_base[0]-A_apex[0]), A_apex[1]+frac*(B_base[1]-A_apex[1])];
+
+        // Incident ray direction: arriving at p_inc
+        const v_inc=rotVec([-norm1[0],-norm1[1]], -theta1);
+
+        // Snell at face 1
+        const sin_t2=Math.sin(theta1)/n;
+        if(sin_t2>1) return {tir:true, A_apex, B_base, C_base, p_inc, v_inc, norm1, norm2};
+        const theta2=Math.asin(sin_t2);
+        const v_int=rotVec([-norm1[0],-norm1[1]], -theta2);
+
+        // Intersection of internal ray with right face (line from A_apex to C_base)
+        const v_right=[C_base[0]-A_apex[0],C_base[1]-A_apex[1]];
+        const p_out=intersectLines(p_inc,v_int,A_apex,v_right);
+
+        // Snell at face 2
+        const theta3=alpha-theta2;
+        const sin_t4=n*Math.sin(theta3);
+        const tir2=sin_t4>1;
+        let theta4=null,v_out=null,p_delta=null,delta=null,delta1=null,delta2=null;
+
+        if(!tir2){
+            theta4=Math.asin(sin_t4);
+            v_out=rotVec(norm2, -theta4);
+            // Find delta point: intersection of extended incident and extended emergent
+            if(p_out) p_delta=intersectLines(p_inc,v_inc,p_out,[-v_out[0],-v_out[1]]);
+            delta1=(theta1-theta2)*180/Math.PI;
+            delta2=(theta4-theta3)*180/Math.PI;
+            delta=(theta1+theta4-alpha)*180/Math.PI;
+        }
+
+        return {A_apex,B_base,C_base,norm1,norm2,p_inc,v_inc,theta1,theta2,
+                v_int,p_out,theta3,sin_t4,tir2,theta4,v_out,p_delta,
+                delta,delta1,delta2,alpha};
+    }
+
+    function drawScene(t_anim){
+        const W=canvas.width,H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        const g=computeGeometry();
+        if(!g) return;
+
+        const {A_apex,B_base,C_base,norm1,norm2,p_inc,v_inc,theta1,theta2,
+               v_int,p_out,theta3,sin_t4,tir2,theta4,v_out,p_delta,
+               delta,delta1,delta2,alpha}=g;
+
+        // ── PRISM ─────────────────────────────────────────────────────────
+        ctx.beginPath();
+        const [ax0,ay0]=toC(A_apex[0],A_apex[1]);
+        const [bx0,by0]=toC(B_base[0],B_base[1]);
+        const [cx0,cy0]=toC(C_base[0],C_base[1]);
+        ctx.moveTo(ax0,ay0); ctx.lineTo(bx0,by0); ctx.lineTo(cx0,cy0); ctx.closePath();
+        ctx.fillStyle='rgba(0,212,255,0.08)'; ctx.fill();
+        ctx.strokeStyle='#00d4ff'; ctx.lineWidth=2; ctx.shadowBlur=6; ctx.shadowColor='#00d4ff';
+        ctx.stroke(); ctx.shadowBlur=0;
+
+        // Alpha angle arc at apex
+        ctx.strokeStyle='rgba(0,212,255,0.4)'; ctx.lineWidth=1.5;
+        const [apxC,apyC]=toC(A_apex[0],A_apex[1]);
+        const lAB=Math.sqrt((bx0-ax0)**2+(by0-ay0)**2);
+        const lAC=Math.sqrt((cx0-ax0)**2+(cy0-ay0)**2);
+        const angAB=Math.atan2(by0-ay0,bx0-ax0);
+        const angAC=Math.atan2(cy0-ay0,cx0-ax0);
+        ctx.beginPath(); ctx.arc(apxC,apyC,30,angAB,angAC); ctx.stroke();
+        ctx.fillStyle='#00d4ff'; ctx.font='11px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`α=${alpha_deg}°`,apxC,apyC+45);
+
+        // Progress split: 0-0.3 stage1, 0.3-0.6 stage2, 0.6-1 stage3
+        const t=t_anim;
+
+        // ── STAGE 1: Incident ray ─────────────────────────────────────────
+        if(t>0){
+            const prog=Math.min(t/0.3,1);
+            const [px0,py0]=toC(p_inc[0]-2*v_inc[0],p_inc[1]-2*v_inc[1]);
+            const [px1,py1]=toC(p_inc[0],p_inc[1]);
+            const ex=px0+(px1-px0)*prog, ey=py0+(py1-py0)*prog;
+            ctx.beginPath(); ctx.strokeStyle='#ffdd00'; ctx.lineWidth=2.5; ctx.shadowBlur=6; ctx.shadowColor='#ffdd00';
+            ctx.moveTo(px0,py0); ctx.lineTo(ex,ey); ctx.stroke(); ctx.shadowBlur=0;
+
+            // Normal at entry
+            const [nx0,ny0]=toC(p_inc[0],p_inc[1]);
+            const [nx1,ny1]=toC(p_inc[0]+norm1[0],p_inc[1]+norm1[1]);
+            ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+            ctx.beginPath(); ctx.moveTo(nx0,ny0); ctx.lineTo(nx1,ny1); ctx.stroke(); ctx.setLineDash([]);
+
+            // θ₁ label
+            ctx.fillStyle='#ffdd00'; ctx.font='bold 12px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(`θ₁=${theta1_deg.toFixed(1)}°`,toC(p_inc[0]-0.7,p_inc[1]+0.4)[0],toC(p_inc[0]-0.7,p_inc[1]+0.4)[1]);
+        }
+
+        // ── STAGE 2: Internal ray ─────────────────────────────────────────
+        if(t>0.3 && p_out){
+            const prog=Math.min((t-0.3)/0.3,1);
+            const [ix0,iy0]=toC(p_inc[0],p_inc[1]);
+            const [ix1,iy1]=toC(p_out[0],p_out[1]);
+            const ex=ix0+(ix1-ix0)*prog, ey=iy0+(iy1-iy0)*prog;
+            ctx.beginPath(); ctx.strokeStyle='#00ff7f'; ctx.lineWidth=2.5; ctx.shadowBlur=6; ctx.shadowColor='#00ff7f';
+            ctx.moveTo(ix0,iy0); ctx.lineTo(ex,ey); ctx.stroke(); ctx.shadowBlur=0;
+
+            // θ₂ label
+            ctx.fillStyle='#00ff7f'; ctx.font='bold 11px Space Mono';
+            ctx.fillText(`θ₂=${(theta2*180/Math.PI).toFixed(1)}°`,toC(p_inc[0]+0.35,p_inc[1]-0.15)[0],toC(p_inc[0]+0.35,p_inc[1]-0.15)[1]);
+        }
+
+        // ── STAGE 3: Exit ray + delta ─────────────────────────────────────
+        if(t>0.6 && p_out){
+            // Prolongation of incident (dotted)
+            const [pi0,pi1]=toC(p_inc[0],p_inc[1]);
+            const [pi2,pi3]=toC(p_inc[0]+2.5*v_inc[0],p_inc[1]+2.5*v_inc[1]);
+            ctx.beginPath(); ctx.strokeStyle='rgba(255,221,0,0.35)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
+            ctx.moveTo(pi0,pi1); ctx.lineTo(pi2,pi3); ctx.stroke(); ctx.setLineDash([]);
+
+            if(tir2){
+                // RTI marker
+                ctx.fillStyle='#ff4444'; ctx.font='bold 13px Space Mono'; ctx.textAlign='center';
+                ctx.fillText('⚡ RTI en cara 2', toC(0,0)[0], toC(0,0)[1]);
+            } else if(v_out && theta4!==null){
+                const prog=Math.min((t-0.6)/0.4,1);
+                const [ox0,oy0]=toC(p_out[0],p_out[1]);
+                const [ox1,oy1]=toC(p_out[0]+1.8*v_out[0],p_out[1]+1.8*v_out[1]);
+                const ex=ox0+(ox1-ox0)*prog, ey=oy0+(oy1-oy0)*prog;
+                ctx.beginPath(); ctx.strokeStyle='orange'; ctx.lineWidth=2.5; ctx.shadowBlur=6; ctx.shadowColor='orange';
+                ctx.moveTo(ox0,oy0); ctx.lineTo(ex,ey); ctx.stroke(); ctx.shadowBlur=0;
+
+                // Prolongation of emergent (dotted)
+                const [pe0,pe1]=toC(p_out[0],p_out[1]);
+                const [pe2,pe3]=toC(p_out[0]-2.5*v_out[0],p_out[1]-2.5*v_out[1]);
+                ctx.beginPath(); ctx.strokeStyle='rgba(255,140,0,0.35)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
+                ctx.moveTo(pe0,pe1); ctx.lineTo(pe2,pe3); ctx.stroke(); ctx.setLineDash([]);
+
+                // Normal at right face
+                const [rn0,rn1]=toC(p_out[0],p_out[1]);
+                const [rn2,rn3]=toC(p_out[0]+norm2[0],p_out[1]+norm2[1]);
+                ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+                ctx.beginPath(); ctx.moveTo(rn0,rn1); ctx.lineTo(rn2,rn3); ctx.stroke(); ctx.setLineDash([]);
+
+                // Angle labels at exit
+                ctx.fillStyle='#00ff7f'; ctx.font='bold 11px Space Mono'; ctx.textAlign='center';
+                ctx.fillText(`θ₃=${(theta3*180/Math.PI).toFixed(1)}°`,toC(p_out[0]-0.55,p_out[1]-0.12)[0],toC(p_out[0]-0.55,p_out[1]-0.12)[1]);
+                ctx.fillStyle='orange';
+                ctx.fillText(`θ₄=${(theta4*180/Math.PI).toFixed(1)}°`,toC(p_out[0]+0.6,p_out[1]+0.2)[0],toC(p_out[0]+0.6,p_out[1]+0.2)[1]);
+
+                // Delta point
+                if(p_delta){
+                    const [dpx,dpy]=toC(p_delta[0],p_delta[1]);
+                    ctx.beginPath(); ctx.arc(dpx,dpy,6,0,Math.PI*2);
+                    ctx.fillStyle='#fff'; ctx.shadowBlur=10; ctx.shadowColor='#fff'; ctx.fill(); ctx.shadowBlur=0;
+                    ctx.fillStyle='#fff'; ctx.font='bold 14px Space Mono'; ctx.textAlign='center';
+                    ctx.fillText('δ',dpx,dpy-14);
+                }
+
+                // δ₁ δ₂ labels
+                ctx.fillStyle='rgba(255,221,0,0.7)'; ctx.font='11px Space Mono';
+                ctx.fillText(`δ₁=${delta1?delta1.toFixed(1):'?'}°`,toC(p_inc[0]+0.9,p_inc[1]+0.55)[0],toC(p_inc[0]+0.9,p_inc[1]+0.55)[1]);
+                ctx.fillStyle='rgba(255,140,0,0.7)';
+                ctx.fillText(`δ₂=${delta2?delta2.toFixed(1):'?'}°`,toC(p_out[0]-1.1,p_out[1]+0.45)[0],toC(p_out[0]-1.1,p_out[1]+0.45)[1]);
+            }
+        }
+
+        // Entry dot
+        const [epx,epy]=toC(p_inc[0],p_inc[1]);
+        ctx.beginPath(); ctx.arc(epx,epy,5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+        if(p_out){
+            const [opx,opy]=toC(p_out[0],p_out[1]);
+            ctx.beginPath(); ctx.arc(opx,opy,5,0,Math.PI*2); ctx.fillStyle=tir2?'#ff4444':'orange'; ctx.fill();
+        }
+
+        // Title
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,20);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`PRISMA  n=${n.toFixed(2)}  α=${alpha_deg}°  θ₁=${theta1_deg.toFixed(1)}°  δ=${delta?delta.toFixed(2)+'°':'RTI'}`,W/2,13);
+        ctx.textAlign='left';
+
+        // Update boxes
+        const box=document.getElementById('statusBox');
+        if(tir2){
+            box.style.background='rgba(255,68,68,0.12)'; box.style.borderColor='#ff4444'; box.style.color='#ff4444';
+            box.innerText='⚡ RTI EN CARA 2';
+        } else {
+            box.style.background='rgba(0,255,127,0.08)'; box.style.borderColor='#00ff7f'; box.style.color='#00ff7f';
+            box.innerText='REFRACCIÓN';
+        }
+        document.getElementById('infoDisplay').innerText =
+            `θ₁=${theta1_deg.toFixed(2)}°  θ₂=${(theta2*180/Math.PI).toFixed(4)}°\nθ₃=${(theta3*180/Math.PI).toFixed(4)}°  θ₄=${theta4?(theta4*180/Math.PI).toFixed(4)+'°':'RTI'}\nδ₁=${delta1?delta1.toFixed(4):'?'}°  δ₂=${delta2?delta2.toFixed(4):'?'}°\nδ = θ₁+θ₄−α = ${delta?delta.toFixed(4)+'°':'RTI'}\nsin θ₃ = ${Math.sin(theta3).toFixed(4)}  1/n = ${(1/n).toFixed(4)}`;
+    }
+
+    function loop(){
+        if(running){ animFrame=(animFrame+1)%100; }
+        const t=animFrame/100;
+        drawScene(t);
+        rafId=requestAnimationFrame(loop);
+    }
+
+    document.getElementById('nSlider').oninput  =e=>{ n=parseFloat(e.target.value); document.getElementById('nVal').innerText=n.toFixed(2); animFrame=0; };
+    document.getElementById('aSlider').oninput  =e=>{ alpha_deg=parseInt(e.target.value); document.getElementById('aVal').innerText=alpha_deg; animFrame=0; };
+    document.getElementById('t1Slider').oninput =e=>{ theta1_deg=parseFloat(e.target.value); document.getElementById('t1Val').innerText=theta1_deg.toFixed(1); animFrame=0; };
+    document.getElementById('btnPlay').addEventListener('click',()=>{
+        running=!running; document.getElementById('btnPlay').innerText=running?'⏸ PAUSAR':'▶ REANUDAR';
+    });
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=540; }
+    window.onresize=resize;
+    requestAnimationFrame(()=>{ resize(); loop(); });
+</script>
+</body>
+</html>

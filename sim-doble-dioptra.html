@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Doble Dioptra — Lente Gruesa | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .status-box { padding: 9px; text-align: center; font-family: 'Space Mono'; font-size: 0.7rem; font-weight: bold; border-radius: 8px; margin-bottom: 14px; transition: 0.3s; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 13px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        canvas { background: #000; border-radius: 12px; border: 1px solid #1a2a4a; display: block; width: 100%; }
+        #canMain { height: 500px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:4px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Doble Dioptra — Lente Gruesa con Trazado de Rayos Exacto</h1>
+
+    <div class="panel-left">
+        <div id="statusBox" class="status-box" style="background:rgba(255,68,255,0.08);border:1px solid #ff44ff;color:#ff44ff;">Imagen REAL</div>
+        <div id="infoDisplay" class="freq-box">M₁=---  M₂=---  M=---\ns₁′=---  s₂′=---</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#00d4ff;">R₁ (cara izquierda) <span><span id="r1Val">2.0</span></span></label>
+                <input type="range" id="r1Slider" min="1.0" max="5.0" step="0.1" value="2.0" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:#00d4ff;">R₂ (cara derecha) <span><span id="r2Val">-2.0</span></span></label>
+                <input type="range" id="r2Slider" min="-5.0" max="-1.0" step="0.1" value="-2.0" style="accent-color:#00d4ff;">
+            </div>
+            <div class="control-group">
+                <label style="color:#00ff7f;">Espesor d <span><span id="dVal">1.0</span></span></label>
+                <input type="range" id="dSlider" min="0.1" max="4.0" step="0.1" value="1.0" style="accent-color:#00ff7f;">
+            </div>
+            <div class="control-group">
+                <label style="color:#ffdd00;">Posición objeto s <span><span id="sVal">-5.0</span></span></label>
+                <input type="range" id="sSlider" min="-9.5" max="-0.5" step="0.1" value="-5.0">
+            </div>
+        </div>
+
+        <div style="margin-top:8px;">
+            <div class="legend-row"><div class="leg-line" style="background:#ffdd00;"></div><span>Rayo incidente (medio 1)</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#00ff7f;"></div><span>Rayo en vidrio (entre dioptras)</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:orange;"></div><span>Rayo emergente (medio 2)</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:orange;border-top:2px dashed orange;"></div><span>Prolongación virtual</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Dioptra 1: n_env/s + n_lens/s₁′ = P₁</span>
+            <span style="padding-left:4px;">P₁ = (n_lens−n_env)/R₁</span>
+            <span style="margin-top:4px;">Dioptra 2: s₂ = s₁′−d</span>
+            <span style="padding-left:4px;">P₂ = (n_env−n_lens)/R₂</span>
+            <span style="margin-top:4px;">M_total = M₁ × M₂</span>
+            <span style="padding-left:4px;">Mᵢ = (nₐ·sᵢ′)/(nᵦ·sᵢ)</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;">
+        <canvas id="canMain" height="500"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    let R1=2.0, R2=-2.0, d=1.0, s_obj=-5.0;
+    const N_ENV=1.0, N_LENS=1.5;
+
+    const XMIN=-10, XMAX=10, YMIN=-4, YMAX=4;
+
+    function toC(px,py){
+        const W=canvas.width, H=canvas.height;
+        const ml=30,mr=20,mt=22,mb=22;
+        const w=W-ml-mr, h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function line(x0,y0,x1,y1,color,lw,dash=[]){
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.setLineDash(dash);
+        ctx.moveTo(...toC(x0,y0)); ctx.lineTo(...toC(x1,y1)); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function arrowObj(x,y0,y1,color,lw){
+        const [px0,py0]=toC(x,y0), [px1,py1]=toC(x,y1);
+        const dy=py1-py0, len=Math.abs(dy);
+        if(len<2) return;
+        const uy=dy/len, hw=9;
+        ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.shadowBlur=8; ctx.shadowColor=color;
+        ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px1,py1-uy*hw); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.fillStyle=color;
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-hw,py1-uy*hw*2); ctx.lineTo(px1+hw,py1-uy*hw*2);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function norm2(v){ return Math.sqrt(v[0]*v[0]+v[1]*v[1]); }
+    function unit(v){ const l=norm2(v); return [v[0]/l,v[1]/l]; }
+    function dot(a,b){ return a[0]*b[0]+a[1]*b[1]; }
+
+    function drawScene(){
+        const W=canvas.width, H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        // ── OPTICAL AXIS ─────────────────────────────────────────────────
+        line(XMIN,0,XMAX,0,'rgba(255,255,255,0.15)',1,[4,6]);
+
+        const H_MAX=3.0;
+        const NY=100;
+        const yArr=Array.from({length:NY},(_,i)=>-H_MAX+2*H_MAX*i/(NY-1));
+
+        // Arc x-values
+        function arcX1(y){ return R1-Math.sign(R1)*Math.sqrt(Math.max(0,R1*R1-y*y)); }
+        function arcX2(y){ return d+R2-Math.sign(R2)*Math.sqrt(Math.max(0,R2*R2-y*y)); }
+
+        const x1Arr=yArr.map(arcX1);
+        const x2Arr=yArr.map(arcX2);
+
+        // Lens fill between faces
+        ctx.beginPath();
+        ctx.moveTo(...toC(x1Arr[0],yArr[0]));
+        yArr.forEach((_,i)=>ctx.lineTo(...toC(x1Arr[i],yArr[i])));
+        yArr.slice().reverse().forEach((_,i)=>ctx.lineTo(...toC(x2Arr[NY-1-i],yArr[NY-1-i])));
+        ctx.closePath(); ctx.fillStyle='rgba(0,212,255,0.12)'; ctx.fill();
+
+        // Face 1
+        ctx.beginPath(); ctx.strokeStyle='#00d4ff'; ctx.lineWidth=2.5; ctx.shadowBlur=5; ctx.shadowColor='#00d4ff';
+        ctx.moveTo(...toC(x1Arr[0],yArr[0]));
+        yArr.forEach((_,i)=>ctx.lineTo(...toC(x1Arr[i],yArr[i])));
+        ctx.stroke(); ctx.shadowBlur=0;
+
+        // Face 2
+        ctx.beginPath(); ctx.strokeStyle='#00d4ff'; ctx.lineWidth=2.5; ctx.shadowBlur=5; ctx.shadowColor='#00d4ff';
+        ctx.moveTo(...toC(x2Arr[0],yArr[0]));
+        yArr.forEach((_,i)=>ctx.lineTo(...toC(x2Arr[i],yArr[i])));
+        ctx.stroke(); ctx.shadowBlur=0;
+
+        // Labels
+        ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.font='10px Space Mono'; ctx.textAlign='right';
+        ctx.fillText(`n₁=${N_ENV}`,toC(-9.5,3.7)[0],toC(-9.5,3.7)[1]);
+        ctx.fillStyle='rgba(0,212,255,0.55)'; ctx.textAlign='center';
+        ctx.fillText(`n=${N_LENS}  d=${d.toFixed(1)}`,toC(d/2,3.7)[0],toC(d/2,3.7)[1]);
+        ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.textAlign='left';
+        ctx.fillText(`n₁=${N_ENV}`,toC(d+0.3,3.7)[0],toC(d+0.3,3.7)[1]);
+
+        // ── PARAXIAL CALCULATION ──────────────────────────────────────────
+        const pot1=(N_LENS-N_ENV)/R1;
+        const s1_prime=N_LENS/(pot1+(N_ENV/s_obj));
+        const m1=(N_ENV*s1_prime)/(N_LENS*s_obj);
+        const s2=s1_prime-d;
+        const pot2=(N_ENV-N_LENS)/R2;
+        const denom2=pot2+(N_LENS/s2);
+        let s2_prime=null, m2=null, m_total=null, h_img=null, x_img=null;
+        if(Math.abs(denom2)>1e-6){
+            s2_prime=N_ENV/denom2;
+            m2=(N_LENS*s2_prime)/(N_ENV*s2);
+            m_total=m1*m2;
+            h_img=m_total*1.0; // h_obj=1
+            x_img=d+s2_prime;
+        }
+
+        // ── OBJECT ───────────────────────────────────────────────────────
+        arrowObj(s_obj,0,1.0,'#ffdd00',3.5);
+        ctx.fillStyle='#ffdd00'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('Objeto',toC(s_obj,-0.45)[0],toC(s_obj,-0.45)[1]);
+
+        // ── IMAGE ────────────────────────────────────────────────────────
+        if(s2_prime!==null && isFinite(s2_prime) && Math.abs(x_img)<12){
+            const isReal=s2_prime>0;
+            const imgCol=isReal?'#ff44ff':'orange';
+            arrowObj(x_img,0,h_img,imgCol,3);
+            line(x_img,-3.8,x_img,3.8,imgCol+'44',1,[5,4]);
+            ctx.fillStyle=imgCol; ctx.font='bold 9px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(isReal?'Imagen REAL':'Imagen VIRTUAL',
+                toC(x_img,h_img+(h_img>0?0.28:-0.48))[0],
+                toC(x_img,h_img+(h_img>0?0.28:-0.48))[1]);
+
+            const box=document.getElementById('statusBox');
+            if(isReal){
+                box.style.background='rgba(255,68,255,0.1)'; box.style.borderColor='#ff44ff'; box.style.color='#ff44ff';
+                box.innerText='Imagen REAL';
+            } else {
+                box.style.background='rgba(255,165,0,0.1)'; box.style.borderColor='orange'; box.style.color='orange';
+                box.innerText='Imagen VIRTUAL';
+            }
+        }
+
+        // ── RAY TRACING (3 rays, exact Snell at both surfaces) ────────────
+        const angles=[0, -0.1, -0.2];
+        angles.forEach(ang=>{
+            // Point on face 1 (y = h_obj + tan(ang)*(x1 - s_obj))
+            // Approximate: use y at vertex x=0
+            const yi1_approx=1.0+Math.tan(ang)*(0-s_obj);
+            if(Math.abs(yi1_approx)>H_MAX) return;
+            const xi1=arcX1(yi1_approx);
+            const yi1=yi1_approx;
+
+            const v1=unit([xi1-s_obj, yi1-1.0]);
+            let n1vec=unit([xi1-R1, yi1]);
+            if(R1<0) n1vec=[-n1vec[0],-n1vec[1]];
+
+            const cosI1=-dot(v1,n1vec);
+            const sinR1_sq=Math.max(0,1-cosI1*cosI1);
+            const sinR1=(N_ENV/N_LENS)*Math.sqrt(sinR1_sq);
+            if(sinR1>1) return;
+
+            const cosR1=Math.sqrt(1-sinR1*sinR1);
+            const vr1=[
+                (N_ENV/N_LENS)*v1[0]+((N_ENV/N_LENS)*cosI1-cosR1)*n1vec[0],
+                (N_ENV/N_LENS)*v1[1]+((N_ENV/N_LENS)*cosI1-cosR1)*n1vec[1]
+            ];
+
+            // Intersection with face 2 (sphere center at [d+R2, 0])
+            const C2=[d+R2, 0];
+            const P1=[xi1,yi1];
+            const oc=[P1[0]-C2[0], P1[1]-C2[1]];
+            const aq=1, bq=2*dot(vr1,oc), cq=dot(oc,oc)-R2*R2;
+            const disc=bq*bq-4*aq*cq;
+            if(disc<0) return;
+
+            const t2a=(-bq+Math.sqrt(disc))/2;
+            const t2b=(-bq-Math.sqrt(disc))/2;
+            const t2=R2<0?t2a:t2b;
+            if(t2<0.01) return;
+
+            const xi2=P1[0]+t2*vr1[0], yi2=P1[1]+t2*vr1[1];
+            if(Math.abs(yi2)>H_MAX) return;
+
+            let n2vec=unit([xi2-C2[0], yi2-C2[1]]);
+            if(R2<0) n2vec=[-n2vec[0],-n2vec[1]];
+
+            const cosI2=-dot(vr1,n2vec);
+            const sinR2_sq=Math.max(0,1-cosI2*cosI2);
+            const sinR2=(N_LENS/N_ENV)*Math.sqrt(sinR2_sq);
+            if(sinR2>1) return;
+
+            const cosR2=Math.sqrt(1-sinR2*sinR2);
+            const vr2=[
+                (N_LENS/N_ENV)*vr1[0]+((N_LENS/N_ENV)*cosI2-cosR2)*n2vec[0],
+                (N_LENS/N_ENV)*vr1[1]+((N_LENS/N_ENV)*cosI2-cosR2)*n2vec[1]
+            ];
+
+            // Draw segments
+            line(s_obj,1.0,xi1,yi1,'rgba(255,221,0,0.4)',1.5);
+            line(xi1,yi1,xi2,yi2,'#00ff7f',2);
+            line(xi2,yi2,xi2+vr2[0]*18,yi2+vr2[1]*18,'orange',2);
+            line(xi2,yi2,xi2-vr2[0]*20,yi2-vr2[1]*20,'rgba(255,165,0,0.15)',1.5,[5,5]);
+        });
+
+        // ── TITLE ────────────────────────────────────────────────────────
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,22);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        const mStr=m_total!==null&&isFinite(m_total)?m_total.toFixed(3):'∞';
+        const spStr=s2_prime!==null&&isFinite(s2_prime)?s2_prime.toFixed(3):'∞';
+        ctx.fillText(`LENTE GRUESA — R₁=${R1.toFixed(1)}  R₂=${R2.toFixed(1)}  d=${d.toFixed(1)}  M=${mStr}  s₂′=${spStr}`,W/2,14);
+        ctx.textAlign='left';
+
+        // Info box
+        const m1str=isFinite(m1)?m1.toFixed(4):'∞';
+        const m2str=m2!==null&&isFinite(m2)?m2.toFixed(4):'∞';
+        const s1str=isFinite(s1_prime)?s1_prime.toFixed(4):'∞';
+        document.getElementById('infoDisplay').innerText =
+            `M₁ = ${m1str}  M₂ = ${m2str}  M = ${mStr}\ns₁′ = ${s1str}  s₂ = ${isFinite(s2)?s2.toFixed(4):'∞'}\ns₂′ = ${spStr}\nP₁=${pot1.toFixed(4)}  P₂=${pot2.toFixed(4)}`;
+    }
+
+    document.getElementById('r1Slider').oninput=e=>{ R1=parseFloat(e.target.value); document.getElementById('r1Val').innerText=R1.toFixed(1); drawScene(); };
+    document.getElementById('r2Slider').oninput=e=>{ R2=parseFloat(e.target.value); document.getElementById('r2Val').innerText=R2.toFixed(1); drawScene(); };
+    document.getElementById('dSlider').oninput=e=>{ d=parseFloat(e.target.value); document.getElementById('dVal').innerText=d.toFixed(1); drawScene(); };
+    document.getElementById('sSlider').oninput=e=>{ s_obj=parseFloat(e.target.value); document.getElementById('sVal').innerText=s_obj.toFixed(1); drawScene(); };
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=500; drawScene(); }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

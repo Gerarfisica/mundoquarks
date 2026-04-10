@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dioptra Esférica | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .status-box { padding: 9px; text-align: center; font-family: 'Space Mono'; font-size: 0.7rem; font-weight: bold; border-radius: 8px; margin-bottom: 14px; transition: 0.3s; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 13px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: #ffdd00; cursor: pointer; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .scene-options { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .scene-btn { background:rgba(0,212,255,0.04); border:1px solid var(--border); color:var(--gray); font-family:'Space Mono'; font-size:0.6rem; padding:7px 8px; border-radius:5px; cursor:pointer; transition:0.2s; text-align:left; }
+        .scene-btn:hover { border-color:var(--cyan); color:var(--white); }
+        .scene-btn.active { background:rgba(0,212,255,0.12); color:var(--cyan); border-color:var(--cyan); font-weight:bold; }
+        canvas { background:#000; border-radius:12px; border:1px solid #1a2a4a; display:block; width:100%; }
+        #canMain { height:500px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:4px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Dioptra Esférica — Focos, Imagen y Trazado de Rayos</h1>
+
+    <div class="panel-left">
+        <div id="statusBox" class="status-box" style="background:rgba(255,0,255,0.08);border:1px solid #ff44ff;color:#ff44ff;">Imagen REAL</div>
+        <div id="infoDisplay" class="freq-box">s′ = ---\nM = ---\nF = ---  F′ = ---</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#ffdd00;">Posición objeto s <span><span id="sVal">-4.0</span></span></label>
+                <input type="range" id="sSlider" min="-9.5" max="-0.5" step="0.1" value="-4.0">
+            </div>
+        </div>
+
+        <span class="mode-label">Escenario</span>
+        <div class="scene-options">
+            <button class="scene-btn active" data-scene="conv">Convergente (n₁=1.0, n₂=1.5, R=+2)</button>
+            <button class="scene-btn" data-scene="div">Divergente (n₁=1.0, n₂=1.5, R=−2)</button>
+            <button class="scene-btn" data-scene="agua">Aire→Agua (n₁=1.0, n₂=1.33, R=+1.5)</button>
+            <button class="scene-btn" data-scene="aireA">Agua→Aire (n₁=1.33, n₂=1.0, R=+1.5)</button>
+        </div>
+
+        <div style="margin-top:8px;">
+            <div class="legend-row"><div class="leg-line" style="background:#ffdd00;"></div><span>Rayos incidentes</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:orange;"></div><span>Rayos refractados</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:orange;border-top:2px dashed orange;"></div><span>Prolongaciones virtuales</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#ff4444;border-top:2px dashed #ff4444;"></div><span>Planos focales F y F′</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Ecuación de la dioptra:</span>
+            <span style="padding-left:4px;">n₂/s′ − n₁/s = (n₂−n₁)/R</span>
+            <span style="margin-top:4px;">Potencia: P = (n₂−n₁)/R</span>
+            <span style="padding-left:4px;">F = −n₁/P   F′ = n₂/P</span>
+            <span style="margin-top:4px;">Magnificación:</span>
+            <span style="padding-left:4px;">M = (n₁·s′)/(n₂·s)</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;">
+        <canvas id="canMain" height="500"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    // Scenes
+    const SCENES = {
+        conv:  {n1:1.0,  n2:1.5,  R: 2.0, label:'Convergente'},
+        div:   {n1:1.0,  n2:1.5,  R:-2.0, label:'Divergente'},
+        agua:  {n1:1.0,  n2:1.33, R: 1.5, label:'Aire→Agua'},
+        aireA: {n1:1.33, n2:1.0,  R: 1.5, label:'Agua→Aire'},
+    };
+
+    let scene='conv', s_obj=-4.0;
+
+    // View: x∈[-10,10], y∈[-4,4]
+    const XMIN=-10,XMAX=10,YMIN=-4,YMAX=4;
+
+    function toC(px,py){
+        const W=canvas.width,H=canvas.height;
+        const ml=30,mr=20,mt=20,mb=20;
+        const w=W-ml-mr,h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function line(x0,y0,x1,y1,color,lw,dash=[]){
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.setLineDash(dash);
+        ctx.moveTo(...toC(x0,y0)); ctx.lineTo(...toC(x1,y1)); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function arrowObj(x,y_base,y_tip,color,lw){
+        const [px0,py0]=toC(x,y_base),[px1,py1]=toC(x,y_tip);
+        const dy=py1-py0,len=Math.abs(dy);
+        if(len<2) return;
+        const uy=dy/len,hw=8;
+        ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.shadowBlur=8; ctx.shadowColor=color;
+        ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px1-0,py1-uy*hw); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.fillStyle=color;
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-hw,py1-uy*hw*2); ctx.lineTo(px1+hw,py1-uy*hw*2);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function dot(x,y,color,r){
+        const [cx,cy]=toC(x,y);
+        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+        ctx.fillStyle=color; ctx.shadowBlur=8; ctx.shadowColor=color; ctx.fill(); ctx.shadowBlur=0;
+    }
+
+    function drawScene(){
+        const W=canvas.width,H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        const {n1,n2,R,label}=SCENES[scene];
+        const h_obj=1.0;
+        const potencia=(n2-n1)/R;
+        const f_obj=-n1/potencia;
+        const f_img= n2/potencia;
+
+        // ── OPTICAL AXIS ────────────────────────────────────────────────
+        line(XMIN,0,XMAX,0,'rgba(255,255,255,0.18)',1,[4,6]);
+
+        // ── DIOPTER ARC ─────────────────────────────────────────────────
+        const H_MAX=3.5;
+        const NY=120;
+        const yArr=Array.from({length:NY},(_,i)=>-H_MAX+2*H_MAX*i/(NY-1));
+        const xArc=yArr.map(y=>R-Math.sign(R)*Math.sqrt(Math.max(0,R*R-y*y)));
+
+        // Fill right side
+        ctx.beginPath();
+        ctx.moveTo(...toC(xArc[0],yArr[0]));
+        yArr.forEach((_,i)=>ctx.lineTo(...toC(xArc[i],yArr[i])));
+        ctx.lineTo(...toC(XMAX,yArr[NY-1])); ctx.lineTo(...toC(XMAX,yArr[0])); ctx.closePath();
+        ctx.fillStyle='rgba(0,212,255,0.05)'; ctx.fill();
+
+        // Arc line
+        ctx.beginPath(); ctx.strokeStyle='#00d4ff'; ctx.lineWidth=3; ctx.shadowBlur=6; ctx.shadowColor='#00d4ff';
+        ctx.moveTo(...toC(xArc[0],yArr[0]));
+        yArr.forEach((_,i)=>ctx.lineTo(...toC(xArc[i],yArr[i])));
+        ctx.stroke(); ctx.shadowBlur=0;
+
+        // ── FOCAL PLANES ─────────────────────────────────────────────────
+        [f_obj,f_img].forEach((f,idx)=>{
+            if(!isFinite(f)||Math.abs(f)>12) return;
+            line(f,-3.8,f,3.8,'rgba(255,68,68,0.4)',1,[5,5]);
+            ctx.fillStyle='#ff4444'; ctx.font='bold 11px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(idx===0?'F':"F'",toC(f,-0.5)[0],toC(f,-0.5)[1]);
+            ctx.fillText(f.toFixed(2),toC(f,-0.9)[0],toC(f,-0.9)[1]);
+        });
+
+        // ── OBJECT ARROW ─────────────────────────────────────────────────
+        arrowObj(s_obj,0,h_obj,'#ffdd00',3.5);
+        ctx.fillStyle='#ffdd00'; ctx.font='bold 10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('S',toC(s_obj,-0.4)[0],toC(s_obj,-0.4)[1]);
+
+        // ── IMAGE CALCULATION ─────────────────────────────────────────────
+        let s_prime=null, mag=null, h_img=null;
+        const denom=potencia+(n1/s_obj);
+        if(Math.abs(denom)>1e-4){
+            s_prime=n2/denom;
+            mag=(n1*s_prime)/(n2*s_obj);
+            h_img=mag*h_obj;
+        }
+
+        // ── RAY TRACING (3 rays from tip of object) ───────────────────────
+        const h_incs=[h_obj, h_obj*0.5, 0];
+        h_incs.forEach(yi=>{
+            // Intersection of object tip ray with diopter
+            const xi = R-Math.sign(R)*Math.sqrt(Math.max(0,R*R-yi*yi));
+
+            // Incident direction
+            let v=[xi-s_obj, yi-h_obj];
+            const vl=Math.sqrt(v[0]*v[0]+v[1]*v[1]);
+            v=[v[0]/vl, v[1]/vl];
+
+            // Normal at surface point (pointing toward center of curvature)
+            let norm=[xi-R, yi];
+            const nl=Math.sqrt(norm[0]*norm[0]+norm[1]*norm[1]);
+            norm=[norm[0]/nl,norm[1]/nl];
+            if(R<0){ norm=[-norm[0],-norm[1]]; }
+
+            const cosI=-(v[0]*norm[0]+v[1]*norm[1]);
+            const sinR2=Math.max(0,1-cosI*cosI);
+            const sinR=(n1/n2)*Math.sqrt(sinR2);
+
+            if(sinR<=1){
+                const cosR=Math.sqrt(1-sinR*sinR);
+                const vr=[
+                    (n1/n2)*v[0]+((n1/n2)*cosI-cosR)*norm[0],
+                    (n1/n2)*v[1]+((n1/n2)*cosI-cosR)*norm[1]
+                ];
+                // Incident ray
+                line(s_obj,h_obj,xi,yi,'rgba(255,221,0,0.45)',1.5);
+                // Refracted ray (forward)
+                line(xi,yi,xi+vr[0]*22,yi+vr[1]*22,'orange',1.8);
+                // Virtual extension (backward)
+                line(xi,yi,xi-vr[0]*22,yi-vr[1]*22,'rgba(255,165,0,0.22)',1,[5,4]);
+            }
+        });
+
+        // ── IMAGE ARROW ───────────────────────────────────────────────────
+        if(s_prime!==null && isFinite(s_prime) && Math.abs(s_prime)<12 && h_img!==null){
+            const isReal=s_prime>0;
+            const imgColor=isReal?'#ff44ff':'orange';
+            arrowObj(s_prime,0,h_img,imgColor,3);
+            ctx.fillStyle=imgColor; ctx.font='bold 9px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(isReal?'Imagen REAL':'Imagen VIRTUAL',
+                toC(s_prime,h_img+(h_img>0?0.25:-0.45))[0],
+                toC(s_prime,h_img+(h_img>0?0.25:-0.45))[1]);
+
+            // Status / info
+            const box=document.getElementById('statusBox');
+            if(isReal){
+                box.style.background='rgba(255,68,255,0.08)'; box.style.borderColor='#ff44ff'; box.style.color='#ff44ff';
+                box.innerText='Imagen REAL';
+            } else {
+                box.style.background='rgba(255,165,0,0.08)'; box.style.borderColor='orange'; box.style.color='orange';
+                box.innerText='Imagen VIRTUAL';
+            }
+        } else {
+            const box=document.getElementById('statusBox');
+            box.style.background='rgba(150,150,150,0.08)'; box.style.borderColor='#888'; box.style.color='#888';
+            box.innerText='Objeto en foco → rayos paralelos';
+        }
+
+        // Labels
+        ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.font='10px Space Mono'; ctx.textAlign='left';
+        ctx.fillText(`n₁=${n1.toFixed(2)}`,toC(-9,3.6)[0],toC(-9,3.6)[1]);
+        ctx.fillStyle='rgba(0,212,255,0.5)';
+        ctx.fillText(`n₂=${n2.toFixed(2)}  R=${R.toFixed(1)}`,toC(0.5,3.6)[0],toC(0.5,3.6)[1]);
+
+        // Title
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,20);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        const spr_str=s_prime!==null&&isFinite(s_prime)?s_prime.toFixed(3):'∞';
+        const mag_str=mag!==null&&isFinite(mag)?mag.toFixed(3):'∞';
+        ctx.fillText(`DIOPTRA ${label}  s=${s_obj.toFixed(2)}  s′=${spr_str}  M=${mag_str}  P=${potencia.toFixed(3)}`,W/2,13);
+        ctx.textAlign='left';
+
+        // Update info box
+        const f_str=isFinite(f_obj)?f_obj.toFixed(4):'∞';
+        const fi_str=isFinite(f_img)?f_img.toFixed(4):'∞';
+        document.getElementById('infoDisplay').innerText =
+            `s = ${s_obj.toFixed(3)}\ns′ = ${s_prime!==null&&isFinite(s_prime)?s_prime.toFixed(4):'∞'}\nM = ${mag!==null&&isFinite(mag)?mag.toFixed(4):'∞'}\nF = ${f_str}   F′ = ${fi_str}\nP = (n₂−n₁)/R = ${potencia.toFixed(4)}`;
+    }
+
+    document.getElementById('sSlider').oninput=e=>{ s_obj=parseFloat(e.target.value); document.getElementById('sVal').innerText=s_obj.toFixed(1); drawScene(); };
+
+    document.querySelectorAll('.scene-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.scene-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); scene=btn.dataset.scene; drawScene();
+        });
+    });
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=500; drawScene(); }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

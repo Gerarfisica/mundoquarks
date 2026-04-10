@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Principio de Fermat | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .hint-box { background: rgba(255,221,0,0.07); border: 1px solid rgba(255,221,0,0.4); padding: 8px 10px; border-radius: 8px; font-family: 'Space Mono'; font-size: 0.62rem; color: #ffdd00; margin-bottom: 14px; line-height: 1.7; }
+        canvas { background: #000; border-radius: 12px; border: 1px solid #1a2a4a; display: block; width: 100%; cursor: crosshair; }
+        #canMain { height: 520px; }
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+        .legend-row { display: flex; align-items: center; gap: 6px; font-family: 'Space Mono'; font-size: 0.6rem; margin-bottom: 4px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Principio de Fermat — Reflexión en Espejo Plano</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">A = (0.0, 1.0)\nB = (4.0, 3.0)\nP = ---\nθᵢ = ---°  θᵣ = ---°\nCamino Fermat = ---\nCamino Directo = ---</div>
+
+        <div class="hint-box">
+            ✋ Arrastrá los puntos<br>
+            🔴 A — fuente (sobre el espejo)<br>
+            🟢 B — destino (cualquier posición)
+        </div>
+
+        <div style="margin-bottom:12px;">
+            <div class="legend-row"><div class="dot" style="background:#ff4444;"></div><span>A — Punto fuente</span></div>
+            <div class="legend-row"><div class="dot" style="background:#00ff7f;"></div><span>B — Punto destino</span></div>
+            <div class="legend-row"><div class="dot" style="background:#ff8800;"></div><span>A′ — Imagen virtual de A</span></div>
+            <div class="legend-row"><div class="dot" style="background:#00d4ff;"></div><span>P — Punto de reflexión</span></div>
+            <div class="legend-row" style="margin-top:4px;"><div style="width:22px;height:2px;background:#ff4444;flex-shrink:0;"></div><span>Rayo incidente A→P</span></div>
+            <div class="legend-row"><div style="width:22px;height:2px;background:#00ff7f;flex-shrink:0;"></div><span>Rayo reflejado P→B</span></div>
+            <div class="legend-row"><div style="width:22px;height:2px;background:#ffdd00;flex-shrink:0;border-top:2px dashed #ffdd00;"></div><span>Camino virtual A′→B</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Principio de Fermat:</span>
+            <span style="padding-left:6px;">La luz sigue el camino de tiempo mínimo</span>
+            <span style="margin-top:5px;">Imagen virtual A′ = (Ax, −Ay)</span>
+            <span>P = intersección de A′B con el espejo</span>
+            <span style="margin-top:5px;color:#00d4ff;">Ley de reflexión: θᵢ = θᵣ</span>
+            <span style="padding-left:6px;">Camino Fermat: |AP| + |PB|</span>
+            <span style="padding-left:6px;">= |A′B| (mínimo posible)</span>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="canMain" height="520"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    // Physics coordinate system: x ∈ [-5,10], y ∈ [-5,10]
+    const PHYS_XMIN=-5, PHYS_XMAX=10, PHYS_YMIN=-5, PHYS_YMAX=10;
+
+    let A = {x:0.0, y:1.0};
+    let B = {x:4.0, y:3.0};
+    let dragging = null; // 'A' | 'B'
+
+    // ── COORDINATE MAPPING ───────────────────────────────────────────────────
+    function toCanvas(px, py) {
+        const W=canvas.width, H=canvas.height;
+        const margin={left:40, right:20, top:20, bottom:40};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+        const cx=margin.left+(px-PHYS_XMIN)/(PHYS_XMAX-PHYS_XMIN)*w;
+        const cy=margin.top+(1-(py-PHYS_YMIN)/(PHYS_YMAX-PHYS_YMIN))*h;
+        return [cx,cy];
+    }
+    function toPhys(cx, cy) {
+        const W=canvas.width, H=canvas.height;
+        const margin={left:40, right:20, top:20, bottom:40};
+        const w=W-margin.left-margin.right, h=H-margin.top-margin.bottom;
+        const px=(cx-margin.left)/w*(PHYS_XMAX-PHYS_XMIN)+PHYS_XMIN;
+        const py=(1-(cy-margin.top)/h)*(PHYS_YMAX-PHYS_YMIN)+PHYS_YMIN;
+        return {x:px, y:py};
+    }
+
+    // ── PHYSICS ───────────────────────────────────────────────────────────────
+    function computeScene() {
+        const Ap = {x: A.x, y: -A.y}; // virtual image of A
+
+        // Find P: intersection of line A'→B with y=0
+        const dy = B.y - Ap.y;
+        if (Math.abs(dy) < 1e-9) return null; // parallel to mirror
+
+        const t = (0 - Ap.y) / dy;
+        const P = {x: Ap.x + t*(B.x-Ap.x), y: 0};
+
+        if (!isFinite(P.x) || A.y <= 0) return null;
+
+        // Vectors
+        const vecAP = {x:P.x-A.x, y:P.y-A.y};
+        const vecPB = {x:B.x-P.x, y:B.y-P.y};
+        const lenAP = Math.sqrt(vecAP.x*vecAP.x + vecAP.y*vecAP.y);
+        const lenPB = Math.sqrt(vecPB.x*vecPB.x + vecPB.y*vecPB.y);
+
+        // Angles with normal (0,1)
+        const normal = {x:0, y:1};
+        const cosI = (-vecAP.x*normal.x + -vecAP.y*normal.y) / lenAP;
+        const cosR = (vecPB.x*normal.x  + vecPB.y*normal.y)  / lenPB;
+        const thetaI = Math.acos(Math.max(-1,Math.min(1,cosI))) * 180/Math.PI;
+        const thetaR = Math.acos(Math.max(-1,Math.min(1,cosR))) * 180/Math.PI;
+
+        const pathFermat = lenAP + lenPB;
+        const dx=B.x-A.x, dy2=B.y-A.y;
+        const pathDirect = Math.sqrt(dx*dx+dy2*dy2);
+
+        return {Ap, P, thetaI, thetaR, pathFermat, pathDirect};
+    }
+
+    // ── DRAW ──────────────────────────────────────────────────────────────────
+    function drawArrow(x0,y0,x1,y1,color,lw) {
+        const [px0,py0]=toCanvas(x0,y0), [px1,py1]=toCanvas(x1,y1);
+        const dx=px1-px0, dy=py1-py0, len=Math.sqrt(dx*dx+dy*dy);
+        if(len<2) return;
+        const ux=dx/len, uy=dy/len, hw=7;
+        ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px1-ux*hw,py1-uy*hw);
+        ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-ux*hw*2-uy*hw, py1-uy*hw*2+ux*hw);
+        ctx.lineTo(px1-ux*hw*2+uy*hw, py1-uy*hw*2-ux*hw);
+        ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+    }
+
+    function drawDot(px,py,color,r,label,labelDir) {
+        const [cx,cy]=toCanvas(px,py);
+        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+        ctx.fillStyle=color; ctx.shadowBlur=12; ctx.shadowColor=color; ctx.fill(); ctx.shadowBlur=0;
+        if(label){
+            ctx.fillStyle=color; ctx.font='bold 11px Space Mono'; ctx.textAlign='center';
+            const off=labelDir||{dx:0,dy:-16};
+            ctx.fillText(label, cx+off.dx, cy+off.dy);
+        }
+    }
+
+    function draw() {
+        const W=canvas.width, H=canvas.height;
+        ctx.clearRect(0,0,W,H);
+
+        const scene = computeScene();
+
+        // Grid
+        ctx.strokeStyle='#111a2a'; ctx.lineWidth=1;
+        ctx.font='9px Space Mono'; ctx.fillStyle='#3a4a6a';
+        for(let gx=PHYS_XMIN;gx<=PHYS_XMAX;gx++){
+            const [px]=toCanvas(gx,0); const [,pyT]=toCanvas(gx,PHYS_YMAX), [,pyB]=toCanvas(gx,PHYS_YMIN);
+            ctx.beginPath(); ctx.moveTo(px,pyT); ctx.lineTo(px,pyB); ctx.stroke();
+            if(gx%2===0&&gx!==0){ ctx.fillStyle='#3a4a6a'; ctx.textAlign='center'; ctx.fillText(gx,px,toCanvas(0,0)[1]+14); }
+        }
+        for(let gy=PHYS_YMIN;gy<=PHYS_YMAX;gy++){
+            const [,py]=toCanvas(0,gy); const [pxL]=toCanvas(PHYS_XMIN,gy), [pxR]=toCanvas(PHYS_XMAX,gy);
+            ctx.beginPath(); ctx.moveTo(pxL,py); ctx.lineTo(pxR,py); ctx.stroke();
+            if(gy%2===0&&gy!==0){ ctx.fillStyle='#3a4a6a'; ctx.textAlign='right'; ctx.fillText(gy,toCanvas(0,0)[0]-6,py+4); }
+        }
+
+        // Axis labels
+        ctx.fillStyle='#8892b0'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('X', toCanvas(PHYS_XMAX,0)[0]+14, toCanvas(0,0)[1]);
+        ctx.fillText('Y', toCanvas(0,0)[0], toCanvas(0,PHYS_YMAX)[1]-8);
+
+        // Below-mirror shading (medium 2)
+        const [mL,mT]=toCanvas(PHYS_XMIN,-0.05), [mR,mB]=toCanvas(PHYS_XMAX,PHYS_YMIN);
+        ctx.fillStyle='rgba(26,108,245,0.08)'; ctx.fillRect(mL,mT,mR-mL,mB-mT);
+
+        // Mirror (y=0)
+        const [mxL,myL]=toCanvas(PHYS_XMIN,0), [mxR]=toCanvas(PHYS_XMAX,0);
+        ctx.strokeStyle='#00d4ff'; ctx.lineWidth=3; ctx.shadowBlur=6; ctx.shadowColor='#00d4ff';
+        ctx.beginPath(); ctx.moveTo(mxL,myL); ctx.lineTo(mxR,myL); ctx.stroke(); ctx.shadowBlur=0;
+        // Hatching below
+        for(let hx=PHYS_XMIN;hx<=PHYS_XMAX;hx+=0.6){
+            const [hpx,hpy]=toCanvas(hx,0), [hpx2,hpy2]=toCanvas(hx-0.3,-0.3);
+            ctx.strokeStyle='rgba(0,212,255,0.2)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(hpx,hpy); ctx.lineTo(hpx2,hpy2); ctx.stroke();
+        }
+        ctx.fillStyle='#00d4ff'; ctx.font='9px Space Mono'; ctx.textAlign='left';
+        ctx.fillText('Espejo (y=0)', mxL+4, myL-6);
+
+        if(scene) {
+            const {Ap, P, thetaI, thetaR, pathFermat, pathDirect} = scene;
+
+            // Virtual image line A'→B (yellow dashed)
+            ctx.setLineDash([7,5]);
+            ctx.strokeStyle='rgba(255,221,0,0.5)'; ctx.lineWidth=1.5;
+            const [apx,apy]=toCanvas(Ap.x,Ap.y), [bpx,bpy]=toCanvas(B.x,B.y);
+            ctx.beginPath(); ctx.moveTo(apx,apy); ctx.lineTo(bpx,bpy); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Rays
+            drawArrow(A.x,A.y,P.x,P.y,'#ff4444',2.5);
+            drawArrow(P.x,P.y,B.x,B.y,'#00ff7f',2.5);
+
+            // Normal at P (dashed)
+            ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+            const [ppx,ppy]=toCanvas(P.x,P.y), [npx,npy]=toCanvas(P.x,P.y+2.5);
+            ctx.beginPath(); ctx.moveTo(ppx,ppy); ctx.lineTo(npx,npy); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Angle arcs
+            const arcR=28;
+            // Incidence arc (red)
+            const angAP=Math.atan2(-(P.y-A.y), P.x-A.x); // inverted y
+            ctx.strokeStyle='rgba(255,68,68,0.7)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(ppx, ppy, arcR, -Math.PI/2, angAP+Math.PI, false);
+            ctx.stroke();
+            // Reflection arc (green)
+            const angPB=Math.atan2(-(B.y-P.y), B.x-P.x);
+            ctx.strokeStyle='rgba(0,255,127,0.7)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(ppx, ppy, arcR, angPB, -Math.PI/2, false);
+            ctx.stroke();
+
+            // Angle labels
+            ctx.fillStyle='#ff4444'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(`θᵢ=${thetaI.toFixed(1)}°`, ppx-35, ppy-35);
+            ctx.fillStyle='#00ff7f';
+            ctx.fillText(`θᵣ=${thetaR.toFixed(1)}°`, ppx+40, ppy-35);
+
+            // A′ virtual image dot (orange x)
+            drawDot(Ap.x,Ap.y,'#ff8800',7,`A′(${Ap.x.toFixed(1)},${Ap.y.toFixed(1)})`,{dx:0,dy:16});
+
+            // P dot
+            drawDot(P.x,P.y,'#00d4ff',7,`P(${P.x.toFixed(2)},0)`,{dx:0,dy:-16});
+
+            // Path length annotations
+            const [mpx,mpy]=toCanvas((A.x+P.x)/2,(A.y+P.y)/2);
+            ctx.fillStyle='rgba(255,68,68,0.9)'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(`|AP|=${Math.hypot(P.x-A.x,P.y-A.y).toFixed(3)}`, mpx+12, mpy-8);
+            const [mp2x,mp2y]=toCanvas((P.x+B.x)/2,(P.y+B.y)/2);
+            ctx.fillStyle='rgba(0,255,127,0.9)';
+            ctx.fillText(`|PB|=${Math.hypot(B.x-P.x,B.y-P.y).toFixed(3)}`, mp2x+12, mp2y-8);
+        }
+
+        // A and B dots (drawn last so they're on top)
+        drawDot(A.x,A.y,'#ff4444',9,`A(${A.x.toFixed(1)},${A.y.toFixed(1)})`,{dx:0,dy:-18});
+        drawDot(B.x,B.y,'#00ff7f',9,`B(${B.x.toFixed(1)},${B.y.toFixed(1)})`,{dx:0,dy:-18});
+
+        // Title
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,20);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('PRINCIPIO DE FERMAT — Reflexión en Espejo Plano  (arrastrá A y B)', W/2, 13);
+        ctx.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        const scene = computeScene();
+        if(!scene){
+            document.getElementById('infoDisplay').innerText =
+                `A = (${A.x.toFixed(2)}, ${A.y.toFixed(2)})\nB = (${B.x.toFixed(2)}, ${B.y.toFixed(2)})\nP = inválido\n(A debe estar por encima del espejo)`;
+            return;
+        }
+        const {P,thetaI,thetaR,pathFermat,pathDirect} = scene;
+        document.getElementById('infoDisplay').innerText =
+            `A = (${A.x.toFixed(2)}, ${A.y.toFixed(2)})\nB = (${B.x.toFixed(2)}, ${B.y.toFixed(2)})\nP = (${P.x.toFixed(3)}, 0.000)\nθᵢ = ${thetaI.toFixed(3)}°  θᵣ = ${thetaR.toFixed(3)}°\nCamino Fermat: ${pathFermat.toFixed(4)}\nCamino Directo: ${pathDirect.toFixed(4)}\n= |A′B| = ${Math.hypot(B.x-scene.Ap.x,B.y-scene.Ap.y).toFixed(4)}`;
+    }
+
+    // ── INTERACTION ───────────────────────────────────────────────────────────
+    function hitTest(phys, point, radius=0.4) {
+        return Math.hypot(phys.x-point.x, phys.y-point.y) < radius;
+    }
+
+    canvas.addEventListener('mousedown', e => {
+        const rect=canvas.getBoundingClientRect();
+        const scaleX=canvas.width/rect.width, scaleY=canvas.height/rect.height;
+        const phys=toPhys((e.clientX-rect.left)*scaleX, (e.clientY-rect.top)*scaleY);
+        if(hitTest(phys,A)) dragging='A';
+        else if(hitTest(phys,B)) dragging='B';
+    });
+    canvas.addEventListener('mouseup',  () => dragging=null);
+    canvas.addEventListener('mouseleave',()=> dragging=null);
+    canvas.addEventListener('mousemove', e => {
+        if(!dragging) return;
+        const rect=canvas.getBoundingClientRect();
+        const scaleX=canvas.width/rect.width, scaleY=canvas.height/rect.height;
+        const phys=toPhys((e.clientX-rect.left)*scaleX,(e.clientY-rect.top)*scaleY);
+        if(dragging==='A') { A.x=phys.x; A.y=Math.max(0.1,phys.y); }
+        else               { B.x=phys.x; B.y=phys.y; }
+        draw(); updateInfoBox();
+    });
+
+    // Touch support
+    function touchPhys(e) {
+        const rect=canvas.getBoundingClientRect();
+        const scaleX=canvas.width/rect.width, scaleY=canvas.height/rect.height;
+        const t=e.touches[0];
+        return toPhys((t.clientX-rect.left)*scaleX,(t.clientY-rect.top)*scaleY);
+    }
+    canvas.addEventListener('touchstart', e=>{ e.preventDefault(); const p=touchPhys(e); if(hitTest(p,A))dragging='A'; else if(hitTest(p,B))dragging='B'; },{passive:false});
+    canvas.addEventListener('touchend',   ()=> dragging=null);
+    canvas.addEventListener('touchmove',  e=>{ e.preventDefault(); if(!dragging)return; const p=touchPhys(e); if(dragging==='A'){A.x=p.x;A.y=Math.max(0.1,p.y);}else{B.x=p.x;B.y=p.y;} draw();updateInfoBox(); },{passive:false});
+
+    function resize(){
+        canvas.width=canvas.offsetWidth; canvas.height=520;
+        draw(); updateInfoBox();
+    }
+    window.onresize=resize;
+    requestAnimationFrame(()=>{ resize(); });
+</script>
+</body>
+</html>

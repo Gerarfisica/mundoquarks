@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dispositivos Ópticos | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 13px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .mode-options { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .mode-btn { background:rgba(0,212,255,0.04); border:1px solid var(--border); color:var(--gray); font-family:'Space Mono'; font-size:0.62rem; padding:9px 8px; border-radius:5px; cursor:pointer; transition:0.2s; text-align:center; font-weight:bold; }
+        .mode-btn:hover { border-color:var(--cyan); color:var(--white); }
+        .mode-btn.active { background:rgba(0,212,255,0.14); color:var(--cyan); border-color:var(--cyan); }
+        canvas { background:#000; border-radius:12px; border:1px solid #1a2a4a; display:block; width:100%; }
+        #canMain { height: 500px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:4px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+        .disabled { opacity:0.35; pointer-events:none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Dispositivos Ópticos — Lupa, Microscopio y Telescopio</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">LUPA\nf₁=2.5  s=−3.0\ns′=---  M=---</div>
+
+        <span class="mode-label">Instrumento</span>
+        <div class="mode-options">
+            <button class="mode-btn active" data-mode="lupa">🔍 LUPA</button>
+            <button class="mode-btn" data-mode="microscopio">🔬 MICROSCOPIO</button>
+            <button class="mode-btn" data-mode="telescopio">🔭 TELESCOPIO</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#00e5ff;">f₁ (objetivo/lupa) <span><span id="f1Val">2.5</span></span></label>
+                <input type="range" id="f1Slider" min="0.5" max="8.0" step="0.1" value="2.5" style="accent-color:#00e5ff;">
+            </div>
+            <div class="control-group" id="f2Group">
+                <label style="color:#ffd700;">f₂ (ocular) <span><span id="f2Val">1.5</span></span></label>
+                <input type="range" id="f2Slider" min="0.5" max="4.0" step="0.1" value="1.5" style="accent-color:#ffd700;">
+            </div>
+            <div class="control-group">
+                <label style="color:#ffdd00;">Posición / Ángulo s <span><span id="s1Val">-3.0</span></span></label>
+                <input type="range" id="s1Slider" min="-10.0" max="-0.1" step="0.1" value="-3.0">
+            </div>
+            <div class="control-group" id="LGroup">
+                <label style="color:#00ff7f;">Longitud tubo L <span><span id="LVal">8.0</span></span></label>
+                <input type="range" id="LSlider" min="2.0" max="15.0" step="0.5" value="8.0" style="accent-color:#00ff7f;">
+            </div>
+        </div>
+
+        <div style="margin-top:8px;" id="legendDiv">
+            <div class="legend-row"><div class="leg-line" style="background:#ffdd00;"></div><span>Rayos incidentes / Objeto</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:orange;"></div><span>Rayos tras objetivo</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#00ff7f;"></div><span>Rayos tras ocular</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#ff44ff;"></div><span>Imagen final</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#ff4444;border-top:2px solid #ff4444;"></div><span>Planos focales F y F′</span></div>
+        </div>
+
+        <div class="ref-block" id="refDiv">
+            <span style="color:#00e5ff;">LUPA: 1/s′=1/f+1/s  M=s′/s</span>
+            <span style="color:#ffd700;margin-top:4px;">MICROSCOPIO:</span>
+            <span style="padding-left:4px;">M=M₁×M₂  (obj.×ocular)</span>
+            <span style="color:#00ff7f;margin-top:4px;">TELESCOPIO:</span>
+            <span style="padding-left:4px;">M_ang=−f₁/f₂</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;">
+        <canvas id="canMain" height="500"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    let mode='lupa', f1=2.5, f2=1.5, s1=-3.0, L=8.0;
+
+    // View: x∈[-15,20], y∈[-6,6]
+    const XMIN=-15,XMAX=20,YMIN=-6,YMAX=6;
+
+    function toC(px,py){
+        const W=canvas.width,H=canvas.height;
+        const ml=30,mr=20,mt=22,mb=22;
+        const w=W-ml-mr,h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function line(x0,y0,x1,y1,col,lw,dash=[]){
+        ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.setLineDash(dash);
+        ctx.moveTo(...toC(x0,y0)); ctx.lineTo(...toC(x1,y1)); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function arrowObj(x,y0,y1,col,lw){
+        const [px0,py0]=toC(x,y0),[px1,py1]=toC(x,y1);
+        const dy=py1-py0,len=Math.abs(dy);
+        if(len<1) return;
+        const uy=dy/len,hw=8;
+        ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.shadowBlur=7; ctx.shadowColor=col;
+        ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px1,py1-uy*hw); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.fillStyle=col;
+        ctx.moveTo(px1,py1); ctx.lineTo(px1-hw,py1-uy*hw*2); ctx.lineTo(px1+hw,py1-uy*hw*2);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function drawLens(x,col,lbl){
+        const h=3.0;
+        const [lx,lt]=toC(x,h),[,lb]=toC(x,-h);
+        ctx.strokeStyle=col; ctx.lineWidth=3.5; ctx.shadowBlur=7; ctx.shadowColor=col;
+        ctx.beginPath(); ctx.moveTo(lx,lt); ctx.lineTo(lx,lb); ctx.stroke(); ctx.shadowBlur=0;
+        // Arrow tips (converging)
+        [[lt,-1],[lb,1]].forEach(([py,dir])=>{
+            ctx.strokeStyle=col; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.moveTo(lx-8,py+dir*10); ctx.lineTo(lx,py); ctx.lineTo(lx+8,py+dir*10); ctx.stroke();
+        });
+        ctx.fillStyle=col; ctx.font='bold 10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(lbl, lx, toC(x,h+0.45)[1]);
+    }
+
+    function drawFoci(x,f,col){
+        [x-f,x+f].forEach(fx=>{
+            if(Math.abs(fx)<XMAX+2){
+                line(fx,-0.22,fx,0.22,'#ff4444',2);
+                ctx.fillStyle='#ff4444'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+                ctx.fillText(fx===x-f?'F':"F'", toC(fx,-0.7)[0], toC(fx,-0.7)[1]);
+            }
+        });
+    }
+
+    function gaussImage(f,s){ const d=1/f+1/s; return Math.abs(d)<1e-6?null:1/d; }
+
+    // ── LUPA ─────────────────────────────────────────────────────────────
+    function drawLupa(){
+        const s=s1, h_obj=0.8;
+        drawLens(0,'#00e5ff','LUPA');
+        drawFoci(0,f1,'#00e5ff');
+        arrowObj(s,0,h_obj,'#ffdd00',3.5);
+        ctx.fillStyle='#ffdd00'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('OBJETO',toC(s,-0.55)[0],toC(s,-0.55)[1]);
+
+        const sp=gaussImage(f1,s);
+        let mStr='∞', spStr='∞';
+        if(sp!==null && isFinite(sp)){
+            const m=sp/s;
+            const hi=m*h_obj;
+            arrowObj(sp,0,hi,'#ff44ff',3);
+            line(sp,-5.5,sp,5.5,'rgba(255,68,255,0.25)',1,[5,4]);
+            ctx.fillStyle='#ff44ff'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(sp>0?'REAL':'VIRTUAL',toC(sp,hi+(hi>0?0.3:-0.55))[0],toC(sp,hi+(hi>0?0.3:-0.55))[1]);
+            mStr=m.toFixed(3); spStr=sp.toFixed(3);
+            // Principal rays
+            // Ray 1: parallel → through F'
+            line(s,h_obj,0,h_obj,'orange',1.8);
+            const sl1=(0-h_obj)/(f1-0);
+            line(0,h_obj,XMAX,h_obj+XMAX*sl1,'orange',1.8);
+            // Ray 2: center
+            const sl2=(0-h_obj)/(0-s);
+            line(s,h_obj,XMAX,h_obj+(XMAX-s)*sl2,'#00ff7f',1.8);
+            // Ray 3: through F → parallel
+            const slF=(0-h_obj)/(-f1-s);
+            const yAt0=h_obj+(0-s)*slF;
+            line(s,h_obj,0,yAt0,'#ffdd00',1.5,[4,4]);
+            line(0,yAt0,XMAX,yAt0,'#ffdd00',1.5);
+        }
+        document.getElementById('infoDisplay').innerText =
+            `LUPA\nf₁=${f1.toFixed(2)}   s=${s.toFixed(2)}\ns′=${spStr}   M=${mStr}`;
+    }
+
+    // ── MICROSCOPIO ───────────────────────────────────────────────────────
+    function drawMicroscopio(){
+        const x1=0, x2=L, h_obj=0.8;
+        const s=-Math.max(Math.abs(s1), f1+0.05);
+        drawLens(x1,'#00e5ff','OBJETIVO');
+        drawFoci(x1,f1,'#00e5ff');
+        drawLens(x2,'#ffd700','OCULAR');
+        drawFoci(x2,f2,'#ffd700');
+        arrowObj(s,0,h_obj,'#ffdd00',3.5);
+        ctx.fillStyle='#ffdd00'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('OBJ',toC(s,-0.55)[0],toC(s,-0.55)[1]);
+
+        const sp1=gaussImage(f1,s);
+        let mTotal='∞', sp2Str='∞', m1Str='∞', m2Str='∞';
+        if(sp1!==null && isFinite(sp1)){
+            const m1=sp1/s;
+            const hi1=m1*h_obj;
+            arrowObj(sp1,0,hi1,'rgba(255,255,255,0.55)',2);
+            ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.textAlign='center'; ctx.font='8px Space Mono';
+            ctx.fillText('INT.',toC(sp1,hi1+(hi1>0?0.25:-0.4))[0],toC(sp1,hi1+(hi1>0?0.25:-0.4))[1]);
+            // Principal rays obj→int
+            ['orange','#00ff7f','#ffdd00'].forEach((col,ri)=>{
+                if(ri===0){line(s,h_obj,x1,h_obj,col,1.5); const sl=(0-h_obj)/(f1); line(x1,h_obj,sp1,h_obj+sp1*sl,col,1.5);}
+                else if(ri===1){const sl=(0-h_obj)/(0-s); line(s,h_obj,sp1,h_obj+(sp1-s)*sl,col,1.5);}
+                else{const slF=(0-h_obj)/(-f1-s); const y0=h_obj+(0-s)*slF; line(s,h_obj,x1,y0,col,1.2,[4,4]); line(x1,y0,sp1,y0,col,1.2);}
+            });
+
+            const s2=sp1-x2;
+            const sp2=gaussImage(f2,s2);
+            if(sp2!==null && isFinite(sp2)){
+                const m2=sp2/s2;
+                const hFinal=m2*hi1;
+                const xFinal=x2+sp2;
+                if(Math.abs(xFinal)<XMAX+2){
+                    arrowObj(xFinal,0,hFinal,'#ff44ff',3);
+                    line(xFinal,-5.5,xFinal,5.5,'rgba(255,68,255,0.2)',1,[5,4]);
+                    ctx.fillStyle='#ff44ff'; ctx.textAlign='center'; ctx.font='9px Space Mono';
+                    ctx.fillText('FINAL',toC(xFinal,hFinal+(hFinal>0?0.3:-0.55))[0],toC(xFinal,hFinal+(hFinal>0?0.3:-0.55))[1]);
+                    // Rays int→final
+                    ['orange','#00ff7f'].forEach((col,ri)=>{
+                        if(ri===0){line(sp1,hi1,x2,hi1,col,1.5); const sl=(0-hi1)/(f2); line(x2,hi1,xFinal,hi1+sp2*sl,col,1.5);}
+                        else{const sl=(0-hi1)/(0-s2); line(sp1,hi1,xFinal,hi1+(xFinal-sp1)*sl,col,1.5);}
+                    });
+                }
+                mTotal=(m1*m2).toFixed(3); sp2Str=sp2.toFixed(3); m1Str=m1.toFixed(3); m2Str=m2.toFixed(3);
+            }
+        }
+        document.getElementById('infoDisplay').innerText =
+            `MICROSCOPIO  L=${L.toFixed(1)}\nf₁=${f1.toFixed(2)}  f₂=${f2.toFixed(2)}\nM₁=${m1Str}  M₂=${m2Str}\nM=${mTotal}  s₂′=${sp2Str}`;
+    }
+
+    // ── TELESCOPIO ────────────────────────────────────────────────────────
+    function drawTelescopio(){
+        const x1=0, x2=L;
+        const ang=parseFloat(s1)*2*Math.PI/180;
+        drawLens(x1,'#00e5ff','OBJETIVO');
+        drawFoci(x1,f1,'#00e5ff');
+        drawLens(x2,'#ffd700','OCULAR');
+        drawFoci(x2,f2,'#ffd700');
+        // Focal plane label
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('PLANO FOCAL',toC(f1,-1)[0],toC(f1,-1)[1]);
+        // Vertical at focal plane
+        line(f1,-3.5,f1,3.5,'rgba(255,255,255,0.1)',1,[3,4]);
+
+        [0.5,1.0,1.5].forEach(h=>{
+            // Incident ray (parallel, inclined)
+            const x_start=XMIN, y_start=h-Math.tan(ang)*(x1-x_start);
+            line(x_start,y_start,x1,h,'#ffdd00',1.5);
+            // Ray to focal plane
+            const y_int=h-f1*Math.tan(ang);
+            line(x1,h,f1,y_int,'orange',1.8);
+            // Ray from focal plane to ocular
+            line(f1,y_int,x2,y_int+(x2-f1)*(-y_int/(x2-f1)),'#00ff7f',1.5,[4,4]);
+            // Exit ray (parallel, different angle)
+            const slope_out=-y_int/f2;
+            line(x2,y_int+(x2-f1)*(-y_int/(x2-f1)),XMAX,y_int+(x2-f1)*(-y_int/(x2-f1))+slope_out*(XMAX-x2),'#00ff7f',1.8);
+        });
+
+        const m_ang=-(f1/f2);
+        document.getElementById('infoDisplay').innerText =
+            `TELESCOPIO  L=${L.toFixed(1)}\nf₁=${f1.toFixed(2)}  f₂=${f2.toFixed(2)}\nM_ang=−f₁/f₂=${m_ang.toFixed(3)}\nLongitud=f₁+f₂=${(f1+f2).toFixed(3)}`;
+    }
+
+    function drawScene(){
+        const W=canvas.width,H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+        line(XMIN,0,XMAX,0,'rgba(255,255,255,0.15)',1,[4,6]);
+
+        // Mode label
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,22);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`MODO: ${mode.toUpperCase()}  f₁=${f1.toFixed(2)}  f₂=${f2.toFixed(2)}  L=${L.toFixed(1)}`,W/2,14);
+        ctx.textAlign='left';
+
+        if(mode==='lupa')        drawLupa();
+        else if(mode==='microscopio') drawMicroscopio();
+        else                     drawTelescopio();
+    }
+
+    // Controls
+    document.querySelectorAll('.mode-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active'); mode=btn.dataset.mode;
+            // Disable irrelevant sliders
+            const lupaMode=mode==='lupa';
+            document.getElementById('f2Group').classList.toggle('disabled', lupaMode);
+            document.getElementById('LGroup').classList.toggle('disabled', lupaMode);
+            drawScene();
+        });
+    });
+    document.getElementById('f1Slider').oninput=e=>{ f1=parseFloat(e.target.value); document.getElementById('f1Val').innerText=f1.toFixed(1); drawScene(); };
+    document.getElementById('f2Slider').oninput=e=>{ f2=parseFloat(e.target.value); document.getElementById('f2Val').innerText=f2.toFixed(1); drawScene(); };
+    document.getElementById('s1Slider').oninput=e=>{ s1=parseFloat(e.target.value); document.getElementById('s1Val').innerText=s1.toFixed(1); drawScene(); };
+    document.getElementById('LSlider').oninput=e=> { L=parseFloat(e.target.value);  document.getElementById('LVal').innerText=L.toFixed(1);   drawScene(); };
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=500; drawScene(); }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

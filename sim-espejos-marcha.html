@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Marcha de Rayos — Espejo Plano | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: #00ff7f; cursor: pointer; }
+        canvas { background: #000; border-radius: 12px; border: 1px solid #1a2a4a; display: block; width: 100%; }
+        #canMain { height: 480px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:5px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Marcha de Rayos — Espejo Plano Extendido</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">d = 2.5\nImagen virtual: d′ = 2.5\ny_inc_cabeza = ---\ny_inc_pies = ---</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Distancia objeto–espejo <span><span id="distVal">2.5</span></span></label>
+                <input type="range" id="distSlider" min="0.5" max="3.5" step="0.05" value="2.5">
+            </div>
+            <div class="control-group">
+                <label>Altura objeto (flecha) <span><span id="hVal">1.8</span></span></label>
+                <input type="range" id="hSlider" min="0.8" max="2.0" step="0.05" value="1.8" style="accent-color:#ffdd00;">
+            </div>
+            <div class="control-group">
+                <label>Altura del ojo <span><span id="eyeVal">1.6</span></span></label>
+                <input type="range" id="eyeSlider" min="0.4" max="1.95" step="0.05" value="1.6" style="accent-color:#ff44ff;">
+            </div>
+        </div>
+
+        <div style="margin-top:10px;">
+            <div class="legend-row"><div class="leg-line" style="background:#00d4ff;"></div><span>Espejo plano</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:orange;"></div><span>Rayo paralelo (cabeza)</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#ffdd00;"></div><span>Rayo de la cabeza al ojo</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#00ff7f;"></div><span>Rayo de los pies al ojo</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#888;border-top:2px dashed #888;"></div><span>Prolongaciones (imagen virtual)</span></div>
+            <div class="legend-row" style="margin-top:4px;"><div style="width:10px;height:10px;border-radius:50%;background:#fff;"></div><span>Puntos de incidencia en espejo</span></div>
+            <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:#ffdd00;border:2px solid #000;"></div><span>Ojo del observador</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Espejo plano: imagen virtual simétrica</span>
+            <span style="padding-left:4px;">d′ = d (siempre)</span>
+            <span style="margin-top:5px;">Rayo paralelo: incide en y=h_cabeza</span>
+            <span style="margin-top:5px;">Rayo pies→ojo:</span>
+            <span style="padding-left:4px;">y_inc = y_ojo/2</span>
+            <span style="margin-top:5px;">Rayo cabeza→ojo:</span>
+            <span style="padding-left:4px;">y_inc = (h+y_ojo)/2</span>
+            <span style="margin-top:5px;color:var(--cyan);">Mínima altura del espejo</span>
+            <span style="padding-left:4px;">= h/2 (independiente de d)</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        <canvas id="canMain" height="480"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    let dist=2.5, h_obj=1.8, y_ojo=1.6;
+
+    // View: x∈[-4.2,4.2], y∈[-0.25,2.35]
+    const XMIN=-4.2,XMAX=4.2,YMIN=-0.28,YMAX=2.38;
+
+    function toC(px,py){
+        const W=canvas.width,H=canvas.height;
+        const ml=30,mr=20,mt=20,mb=30;
+        const w=W-ml-mr,h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function line(x0,y0,x1,y1,color,lw,dash=[]){
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.setLineDash(dash);
+        ctx.moveTo(...toC(x0,y0)); ctx.lineTo(...toC(x1,y1)); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function arrowLine(x0,y0,x1,y1,color,lw,shadow=true){
+        const [px0,py0]=toC(x0,y0),[px1,py1]=toC(x1,y1);
+        const dx=px1-px0,dy=py1-py0,len=Math.sqrt(dx*dx+dy*dy);
+        if(len<2) return;
+        const ux=dx/len,uy=dy/len,hw=8;
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw;
+        if(shadow){ctx.shadowBlur=7; ctx.shadowColor=color;}
+        ctx.moveTo(px0,py0); ctx.lineTo(px1-ux*hw,py1-uy*hw); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.fillStyle=color;
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-ux*hw*2-uy*hw,py1-uy*hw*2+ux*hw);
+        ctx.lineTo(px1-ux*hw*2+uy*hw,py1-uy*hw*2-ux*hw);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function dot(x,y,color,r,glow=false){
+        const [cx,cy]=toC(x,y);
+        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+        if(glow){ctx.shadowBlur=12; ctx.shadowColor=color;}
+        ctx.fillStyle=color; ctx.fill(); ctx.shadowBlur=0;
+    }
+
+    function drawScene(){
+        const W=canvas.width,H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        const y_inc_pies  = y_ojo/2;
+        const y_inc_cab   = (h_obj+y_ojo)/2;
+        const h_espejo_min = h_obj/2;
+
+        // ── GROUND ────────────────────────────────────────────────────────
+        line(XMIN,0,XMAX,0,'rgba(150,150,150,0.4)',2);
+        // Hatching
+        for(let gx=XMIN;gx<XMAX;gx+=0.4){
+            const [px,py]=toC(gx,0),[px2,py2]=toC(gx-0.2,-0.12);
+            ctx.strokeStyle='rgba(120,120,120,0.25)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px2,py2); ctx.stroke();
+        }
+
+        // ── MIRROR ────────────────────────────────────────────────────────
+        ctx.strokeStyle='#00d4ff'; ctx.lineWidth=6; ctx.shadowBlur=8; ctx.shadowColor='#00d4ff';
+        ctx.beginPath(); ctx.moveTo(...toC(0,0)); ctx.lineTo(...toC(0,2.05)); ctx.stroke(); ctx.shadowBlur=0;
+        // Mirror label
+        ctx.fillStyle='#00d4ff'; ctx.font='bold 10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('ESPEJO',toC(0,2.18)[0],toC(0,2.18)[1]);
+        // Minimum mirror region highlight
+        ctx.fillStyle='rgba(0,212,255,0.12)';
+        ctx.fillRect(toC(0,y_inc_pies)[0]-5,toC(0,y_inc_pies)[1],10,toC(0,y_inc_cab)[1]-toC(0,y_inc_pies)[1]);
+        ctx.fillStyle='rgba(0,212,255,0.4)'; ctx.font='8px Space Mono'; ctx.textAlign='left';
+        ctx.fillText(`h_min=${h_espejo_min.toFixed(3)}`,toC(0.08,h_espejo_min)[0],toC(0.08,h_espejo_min)[1]);
+
+        // ── OBJECT (green arrow) ──────────────────────────────────────────
+        arrowLine(-dist,0,-dist,h_obj,'#00ff7f',4);
+        ctx.fillStyle='#00ff7f'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText('Objeto',toC(-dist,-0.17)[0],toC(-dist,-0.17)[1]);
+
+        // ── VIRTUAL IMAGE (dashed, right of mirror) ───────────────────────
+        line(dist,0,dist,h_obj,'rgba(0,255,127,0.25)',3,[6,5]);
+        ctx.fillStyle='rgba(150,150,150,0.6)'; ctx.textAlign='center';
+        ctx.fillText('Imagen Virtual',toC(dist,-0.17)[0],toC(dist,-0.17)[1]);
+
+        // ── EYE ───────────────────────────────────────────────────────────
+        dot(-dist,y_ojo,'#ffdd00',7,true);
+        ctx.fillStyle='#ffdd00'; ctx.font='bold 9px Space Mono'; ctx.textAlign='right';
+        ctx.fillText(`ojo (y=${y_ojo.toFixed(2)})`,toC(-dist-0.1,y_ojo)[0],toC(-dist-0.1,y_ojo)[1]-4);
+
+        // ── RAY A: PARALLEL (from head, hits mirror at y=h_obj) ──────────
+        // Hits at (0, h_obj) → reflects horizontally → to virtual head
+        line(-dist,h_obj,0,h_obj,'orange',2.5);
+        line(0,h_obj,dist,h_obj,'rgba(255,165,0,0.35)',2,[6,5]);
+        dot(0,h_obj,'#fff',5);
+        // Arrow indicator at mirror
+        const [mx,my]=toC(0,h_obj);
+        ctx.fillStyle='orange'; ctx.font='bold 11px Space Mono'; ctx.textAlign='left';
+        ctx.fillText('►',mx+4,my+4);
+
+        // ── RAY B: FEET → EYE (incidence at y_inc_pies) ─────────────────
+        line(-dist,0,0,y_inc_pies,'#00ff7f',2.5);
+        line(0,y_inc_pies,-dist,y_ojo,'#00ff7f',2.5);
+        line(0,y_inc_pies,dist,0,'rgba(0,255,127,0.3)',2,[6,5]);
+        dot(0,y_inc_pies,'#fff',5);
+
+        // ── RAY C: HEAD → EYE (incidence at y_inc_cab) ───────────────────
+        line(-dist,h_obj,0,y_inc_cab,'#ffdd00',2.5);
+        line(0,y_inc_cab,-dist,y_ojo,'#ffdd00',2.5);
+        line(0,y_inc_cab,dist,h_obj,'rgba(255,221,0,0.3)',2,[6,5]);
+        dot(0,y_inc_cab,'#fff',5);
+
+        // ── ANGLE MARKS at mirror ─────────────────────────────────────────
+        [[0,y_inc_pies,'#00ff7f'],[0,y_inc_cab,'#ffdd00']].forEach(([x,y,col])=>{
+            const [mx,my]=toC(x,y);
+            ctx.strokeStyle=col+'88'; ctx.lineWidth=1; ctx.setLineDash([2,3]);
+            ctx.beginPath(); ctx.arc(mx,my,18,0,Math.PI); ctx.stroke(); ctx.setLineDash([]);
+        });
+
+        // ── SYMMETRY LINES (distance markers) ────────────────────────────
+        ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1; ctx.setLineDash([3,5]);
+        ctx.beginPath(); ctx.moveTo(...toC(-dist,YMIN*0.5)); ctx.lineTo(...toC(-dist,YMAX*0.95)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(...toC(dist,YMIN*0.5));  ctx.lineTo(...toC(dist,YMAX*0.95)); ctx.stroke();
+        ctx.setLineDash([]);
+        // Distance labels
+        line(-dist,2.1,0,2.1,'rgba(255,255,255,0.2)',1);
+        line(0,2.1,dist,2.1,'rgba(255,255,255,0.2)',1);
+        ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`d=${dist.toFixed(2)}`,toC(-dist/2,2.25)[0],toC(-dist/2,2.25)[1]);
+        ctx.fillText(`d′=${dist.toFixed(2)}`,toC(dist/2,2.25)[0],toC(dist/2,2.25)[1]);
+
+        // ── TITLE ─────────────────────────────────────────────────────────
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,20);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`MARCHA DE RAYOS — d=${dist.toFixed(2)}  h=${h_obj.toFixed(2)}  h_espejo_min=${h_espejo_min.toFixed(3)}`,W/2,13);
+        ctx.textAlign='left';
+
+        // Update info box
+        document.getElementById('infoDisplay').innerText =
+            `d = ${dist.toFixed(3)}   d′ = ${dist.toFixed(3)} (imagen)\nh_objeto = ${h_obj.toFixed(3)}\ny_ojo = ${y_ojo.toFixed(3)}\ny_inc_cabeza = ${y_inc_cab.toFixed(4)}\ny_inc_pies = ${y_inc_pies.toFixed(4)}\nh_espejo_mínimo = h/2 = ${h_espejo_min.toFixed(4)}`;
+    }
+
+    document.getElementById('distSlider').oninput=e=>{ dist=parseFloat(e.target.value); document.getElementById('distVal').innerText=dist.toFixed(2); drawScene(); };
+    document.getElementById('hSlider').oninput=e=>{ h_obj=parseFloat(e.target.value); document.getElementById('hVal').innerText=h_obj.toFixed(2); if(y_ojo>h_obj){y_ojo=h_obj-0.05;document.getElementById('eyeSlider').value=y_ojo;document.getElementById('eyeVal').innerText=y_ojo.toFixed(2);} drawScene(); };
+    document.getElementById('eyeSlider').oninput=e=>{ y_ojo=Math.min(parseFloat(e.target.value),h_obj-0.05); document.getElementById('eyeVal').innerText=y_ojo.toFixed(2); drawScene(); };
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=480; drawScene(); }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

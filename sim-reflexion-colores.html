@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reflexión Selectiva por Color | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 12px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .status-box { padding: 10px; text-align: center; font-family: 'Space Mono'; font-size: 0.68rem; font-weight: bold; border-radius: 8px; margin-bottom: 12px; line-height: 1.7; transition: 0.3s; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: #ffdd00; cursor: pointer; }
+        canvas { background: #000; border-radius: 12px; border: 1px solid #1a2a4a; display: block; width: 100%; }
+        #canMain { height: 500px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:4px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+        .range-bar { position:relative; height:18px; border-radius:4px; margin:6px 0; overflow:hidden; }
+        .range-fill { position:absolute; height:100%; border-radius:4px; display:flex; align-items:center; padding-left:6px; font-family:'Space Mono'; font-size:0.55rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Reflexión Total Selectiva — Violeta vs Rojo</h1>
+
+    <div class="panel-left">
+        <div id="statusBox" class="status-box" style="background:rgba(255,221,0,0.1);border:1px solid #ffdd00;color:#ffdd00;">⚡ ZONA CRÍTICA</div>
+        <div id="infoDisplay" class="freq-box">φ = 41.00°\nRojo: ---  Violeta: ---</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label style="color:#ffdd00;">Ángulo de incidencia φ <span><span id="phiVal">41.0</span>°</span></label>
+                <input type="range" id="phiSlider" min="35" max="45" step="0.01" value="41.0">
+            </div>
+            <div class="control-group">
+                <label style="color:#ff4444;">n rojo <span><span id="nrVal">1.510</span></span></label>
+                <input type="range" id="nrSlider" min="1.40" max="1.80" step="0.001" value="1.51" style="accent-color:#ff4444;">
+            </div>
+            <div class="control-group">
+                <label style="color:#aa44ff;">n violeta <span><span id="nvVal">1.530</span></span></label>
+                <input type="range" id="nvSlider" min="1.40" max="1.80" step="0.001" value="1.53" style="accent-color:#aa44ff;">
+            </div>
+        </div>
+
+        <!-- Critical angle range bar -->
+        <div style="font-family:'Space Mono';font-size:0.65rem;color:var(--gray);margin-bottom:6px;">Rango crítico:</div>
+        <div style="position:relative;height:20px;background:#111;border-radius:4px;margin-bottom:12px;overflow:hidden;">
+            <div id="barRojo" style="position:absolute;height:100%;background:rgba(255,68,68,0.35);border-right:2px solid #ff4444;"></div>
+            <div id="barVioleta" style="position:absolute;height:100%;background:rgba(170,68,255,0.35);border-right:2px solid #aa44ff;"></div>
+            <div id="barCursor" style="position:absolute;top:0;bottom:0;width:2px;background:#ffdd00;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:'Space Mono';font-size:0.58rem;color:var(--gray);margin-bottom:10px;">
+            <span>35°</span><span>φc_violeta</span><span>φc_rojo</span><span>45°</span>
+        </div>
+
+        <div style="margin-top:6px;">
+            <div class="legend-row"><div class="leg-line" style="background:#fff;"></div><span>Luz blanca incidente</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#ff4444;"></div><span>Rojo (n=1.51)</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#aa44ff;"></div><span>Violeta (n=1.53)</span></div>
+            <div class="legend-row" style="margin-top:4px;"><span style="color:#ffdd00;font-family:'Space Mono';font-size:0.6rem;">⚡ Entre 40.81° y 41.47° solo el violeta tiene RTI</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Vidrio → Aire (n→1)</span>
+            <span>φc = arcsin(1/n)</span>
+            <span style="color:#ff4444;">φc_rojo   = arcsin(1/1.51) = 41.47°</span>
+            <span style="color:#aa44ff;">φc_violeta = arcsin(1/1.53) = 40.81°</span>
+            <span style="margin-top:5px;">Si φ ≥ φc → RTI (reflexión total)</span>
+            <span>Si φ &lt; φc → n·sin φ = sin θ_out</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        <canvas id="canMain" height="500"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    let phi_deg=41.0, n_r=1.51, n_v=1.53;
+
+    // View: x∈[-1.6,1.6], y∈[-1.3,1.3]
+    const XMIN=-1.6,XMAX=1.6,YMIN=-1.3,YMAX=1.3;
+
+    function toC(px,py){
+        const W=canvas.width,H=canvas.height;
+        const ml=30,mr=20,mt=25,mb=25;
+        const w=W-ml-mr,h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function arrowLine(x0,y0,x1,y1,color,lw){
+        const [px0,py0]=toC(x0,y0),[px1,py1]=toC(x1,y1);
+        const dx=px1-px0,dy=py1-py0,len=Math.sqrt(dx*dx+dy*dy);
+        if(len<2) return;
+        const ux=dx/len,uy=dy/len,hw=9;
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.shadowBlur=8; ctx.shadowColor=color;
+        ctx.moveTo(px0,py0); ctx.lineTo(px1-ux*hw,py1-uy*hw); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.fillStyle=color;
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-ux*hw*2-uy*hw,py1-uy*hw*2+ux*hw);
+        ctx.lineTo(px1-ux*hw*2+uy*hw,py1-uy*hw*2-ux*hw);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function criticalAngle(n){ return Math.asin(1/n)*180/Math.PI; }
+
+    function drawScene(){
+        const W=canvas.width,H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        const phi=phi_deg*Math.PI/180;
+        const phi_c_r=criticalAngle(n_r);
+        const phi_c_v=criticalAngle(n_v);
+
+        // ── GLASS / AIR INTERFACE ─────────────────────────────────────────
+        // Glass below (cyan tint)
+        const [gl0,gt0]=toC(XMIN,0),[gl1,gt1]=toC(XMAX,YMIN);
+        ctx.fillStyle='rgba(0,180,220,0.08)'; ctx.fillRect(gl0,gt0,gl1-gl0,gt1-gt0);
+        // Interface line
+        const [il0,il1]=toC(XMIN,0),[ir0]=toC(XMAX,0);
+        ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(il0,il1); ctx.lineTo(ir0,il1); ctx.stroke();
+        // Normal (dashed)
+        const [n0x,n0y]=toC(0,YMIN*0.9),[n1x,n1y]=toC(0,YMAX*0.9);
+        ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1; ctx.setLineDash([5,5]);
+        ctx.beginPath(); ctx.moveTo(n0x,n0y); ctx.lineTo(n1x,n1y); ctx.stroke(); ctx.setLineDash([]);
+
+        // Labels
+        ctx.fillStyle='rgba(0,200,220,0.55)'; ctx.font='11px Space Mono'; ctx.textAlign='right';
+        ctx.fillText(`Vidrio (n_r=${n_r.toFixed(3)}, n_v=${n_v.toFixed(3)})`,toC(XMAX*0.95,YMIN*0.4)[0],toC(XMAX*0.95,YMIN*0.4)[1]);
+        ctx.fillStyle='rgba(255,255,255,0.3)';
+        ctx.fillText('Aire (n=1)',toC(XMAX*0.95,YMAX*0.35)[0],toC(XMAX*0.95,YMAX*0.35)[1]);
+        ctx.textAlign='left';
+
+        // ── INCIDENT RAY (white, from below) ─────────────────────────────
+        arrowLine(-Math.sin(phi),-Math.cos(phi),0,0,'#fff',3);
+
+        // Angle arc for phi
+        const [ox,oy]=toC(0,0);
+        ctx.strokeStyle='rgba(255,221,0,0.5)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.arc(ox,oy,40,Math.PI/2,Math.PI/2+phi); ctx.stroke();
+        ctx.fillStyle='#ffdd00'; ctx.font='bold 10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`φ=${phi_deg.toFixed(2)}°`,toC(-Math.sin(phi)*0.35-0.05,-Math.cos(phi)*0.35)[0],toC(-Math.sin(phi)*0.35-0.05,-Math.cos(phi)*0.35)[1]);
+
+        // ── PROCESS EACH COLOR ────────────────────────────────────────────
+        const colors=[
+            {name:'Rojo',   n:n_r, hex:'#ff4444', offset:0.02},
+            {name:'Violeta',n:n_v, hex:'#aa44ff', offset:-0.02},
+        ];
+
+        let statusR='', statusV='';
+
+        colors.forEach(({name,n,hex,offset})=>{
+            const phi_c=Math.asin(1/n);
+            const isTIR=Math.sin(phi)>=1/n;
+
+            if(isTIR){
+                // Total internal reflection: angle symmetric about normal
+                arrowLine(0,0, Math.sin(phi)+offset,-Math.cos(phi), hex, 2.5);
+                if(name==='Rojo') statusR='RTI ↗'; else statusV='RTI ↗';
+            } else {
+                // Refraction: n*sin(phi) = sin(theta_out)
+                const sin_out=n*Math.sin(phi);
+                const theta_out=Math.asin(Math.min(1,sin_out));
+                arrowLine(0,0, Math.sin(theta_out)+offset, Math.cos(theta_out), hex, 2.5);
+                // Angle arc for theta_out
+                ctx.strokeStyle=hex+'88'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+                ctx.beginPath(); ctx.arc(ox,oy,35,-Math.PI/2,-Math.PI/2+theta_out); ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle=hex; ctx.font='9px Space Mono'; ctx.textAlign='center';
+                ctx.fillText(`θ=${(theta_out*180/Math.PI).toFixed(1)}°`,toC(Math.sin(theta_out)*0.3+offset, Math.cos(theta_out)*0.3+0.12)[0],toC(Math.sin(theta_out)*0.3+offset, Math.cos(theta_out)*0.3+0.12)[1]);
+                if(name==='Rojo') statusR=`θ=${(theta_out*180/Math.PI).toFixed(1)}°`; else statusV=`θ=${(theta_out*180/Math.PI).toFixed(1)}°`;
+            }
+        });
+
+        // ── CRITICAL ANGLE MARKERS ────────────────────────────────────────
+        // φc_rojo line
+        ctx.strokeStyle='rgba(255,68,68,0.4)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+        const phiCR_rad=phi_c_r*Math.PI/180;
+        ctx.beginPath(); ctx.moveTo(...toC(0,0)); ctx.lineTo(...toC(-Math.sin(phiCR_rad)*1.2,-Math.cos(phiCR_rad)*1.2)); ctx.stroke();
+        // φc_violeta line
+        ctx.strokeStyle='rgba(170,68,255,0.4)';
+        const phiCV_rad=phi_c_v*Math.PI/180;
+        ctx.beginPath(); ctx.moveTo(...toC(0,0)); ctx.lineTo(...toC(-Math.sin(phiCV_rad)*1.2,-Math.cos(phiCV_rad)*1.2)); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle='rgba(255,68,68,0.7)'; ctx.font='9px Space Mono'; ctx.textAlign='left';
+        ctx.fillText(`φc_rojo=${phi_c_r.toFixed(2)}°`,toC(-1.5,-0.55)[0],toC(-1.5,-0.55)[1]);
+        ctx.fillStyle='rgba(170,68,255,0.7)';
+        ctx.fillText(`φc_violeta=${phi_c_v.toFixed(2)}°`,toC(-1.5,-0.72)[0],toC(-1.5,-0.72)[1]);
+
+        // ── SPECIAL ZONE LABEL ────────────────────────────────────────────
+        if(phi_deg>Math.min(phi_c_r,phi_c_v) && phi_deg<Math.max(phi_c_r,phi_c_v)){
+            ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(toC(0.05,0.55)[0],toC(0.05,0.55)[1]-14,200,50);
+            ctx.fillStyle='#ffdd00'; ctx.font='bold 10px Space Mono'; ctx.textAlign='left';
+            ctx.fillText('VIOLETA ATRAPADO (RTI)',toC(0.08,0.55)[0],toC(0.08,0.55)[1]);
+            ctx.fillText('ROJO ESCAPA (REFRACCIÓN)',toC(0.08,0.55)[0]+2,toC(0.08,0.55)[1]+16);
+        }
+
+        // Origin dot
+        ctx.beginPath(); ctx.arc(ox,oy,5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+
+        // Title
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,20);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`REFLEXIÓN SELECTIVA — φ=${phi_deg.toFixed(2)}°  φc_v=${phi_c_v.toFixed(2)}°  φc_r=${phi_c_r.toFixed(2)}°`,W/2,13);
+        ctx.textAlign='left';
+
+        // ── UPDATE BOXES ──────────────────────────────────────────────────
+        const isTIR_r=Math.sin(phi)>=1/n_r, isTIR_v=Math.sin(phi)>=1/n_v;
+        const box=document.getElementById('statusBox');
+        if(isTIR_v && !isTIR_r){
+            box.style.background='rgba(255,221,0,0.12)'; box.style.borderColor='#ffdd00'; box.style.color='#ffdd00';
+            box.innerText='⚡ ZONA CRÍTICA\nVioleta: RTI  |  Rojo: Refracción';
+        } else if(isTIR_v && isTIR_r){
+            box.style.background='rgba(255,68,68,0.12)'; box.style.borderColor='#ff4444'; box.style.color='#ff4444';
+            box.innerText='⚡ RTI TOTAL\nAmbos colores reflejados';
+        } else {
+            box.style.background='rgba(0,255,127,0.08)'; box.style.borderColor='#00ff7f'; box.style.color='#00ff7f';
+            box.innerText='REFRACCIÓN\nAmbos colores emergen';
+        }
+
+        document.getElementById('infoDisplay').innerText =
+            `φ = ${phi_deg.toFixed(3)}°\nRojo:    φc=${phi_c_r.toFixed(4)}°  ${isTIR_r?'RTI':statusR}\nVioleta: φc=${phi_c_v.toFixed(4)}°  ${isTIR_v?'RTI':statusV}\nsin φ = ${Math.sin(phi).toFixed(5)}\n1/n_r = ${(1/n_r).toFixed(5)}\n1/n_v = ${(1/n_v).toFixed(5)}`;
+
+        // ── RANGE BAR ─────────────────────────────────────────────────────
+        const bar=document.getElementById('barRojo'), barv=document.getElementById('barVioleta');
+        const curs=document.getElementById('barCursor');
+        const minP=35,maxP=45,range=maxP-minP;
+        bar.style.width=((phi_c_r-minP)/range*100)+'%';
+        barv.style.width=((phi_c_v-minP)/range*100)+'%';
+        curs.style.left=((phi_deg-minP)/range*100)+'%';
+    }
+
+    function update(){
+        drawScene();
+    }
+
+    document.getElementById('phiSlider').oninput=e=>{ phi_deg=parseFloat(e.target.value); document.getElementById('phiVal').innerText=phi_deg.toFixed(2); update(); };
+    document.getElementById('nrSlider').oninput=e=>{ n_r=parseFloat(e.target.value); document.getElementById('nrVal').innerText=n_r.toFixed(3); update(); };
+    document.getElementById('nvSlider').oninput=e=>{ n_v=parseFloat(e.target.value); document.getElementById('nvVal').innerText=n_v.toFixed(3); update(); };
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=500; update(); }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

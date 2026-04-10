@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reflexión en Cubo | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .status-box { padding: 10px; text-align: center; font-family: 'Space Mono'; font-size: 0.75rem; font-weight: bold; border-radius: 8px; margin-bottom: 14px; transition: 0.3s; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: #ffdd00; cursor: pointer; }
+        canvas { background: #000; border-radius: 12px; border: 1px solid #1a2a4a; display: block; width: 100%; }
+        #canMain { height: 520px; }
+        .legend-row { display:flex; align-items:center; gap:6px; font-family:'Space Mono'; font-size:0.6rem; margin-bottom:5px; }
+        .leg-line { width:24px; height:2px; flex-shrink:0; }
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Refracción, RTI y Reflexión Parcial en un Cubo</h1>
+
+    <div class="panel-left">
+        <div id="statusBox" class="status-box" style="background:rgba(0,255,127,0.1);border:1px solid #00ff7f;color:#00ff7f;">REFRACCIÓN</div>
+        <div id="infoDisplay" class="freq-box">φ = 45.0°  n = 1.50\nθᵣ = ---°  α = ---°\nφ_crítico = ---°</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Ángulo incidente φ <span><span id="phiVal">45.0</span>°</span></label>
+                <input type="range" id="phiSlider" min="0" max="89" step="0.5" value="45">
+            </div>
+            <div class="control-group">
+                <label style="color:#00d4ff;">Índice n <span><span id="nVal">1.50</span></span></label>
+                <input type="range" id="nSlider" min="1.01" max="2.5" step="0.01" value="1.5" style="accent-color:#00d4ff;">
+            </div>
+        </div>
+
+        <div style="margin-top:12px;">
+            <div class="legend-row"><div class="leg-line" style="background:#ffdd00;"></div><span>Rayo incidente</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#00ff7f;"></div><span>Rayo interno y refractado</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#ff4444;"></div><span>RTI — Reflexión total interna</span></div>
+            <div class="legend-row"><div class="leg-line" style="background:#00ff7f;border-top:2px dotted #00ff7f;"></div><span>Reflexión parcial (débil)</span></div>
+        </div>
+
+        <div class="ref-block">
+            <span>Cara superior (entrada):</span>
+            <span style="padding-left:4px;">sin(θᵣ) = sin(φ)/n</span>
+            <span style="margin-top:4px;">Cara vertical (análisis):</span>
+            <span style="padding-left:4px;">α = 90° − θᵣ</span>
+            <span style="padding-left:4px;">RTI si α ≥ φc = arcsin(1/n)</span>
+            <span style="padding-left:4px;">Si no: ψ = arcsin(n·sin α)</span>
+            <span style="margin-top:4px;color:var(--cyan);">φ_crítico = arcsin(1/n)</span>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        <canvas id="canMain" height="520"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canMain');
+    const ctx    = canvas.getContext('2d');
+
+    let phi_deg = 45.0, n = 1.5;
+
+    // Physics: cube occupies x ∈ [-0.5,0.5], y ∈ [-1,0]
+    // View: x ∈ [-1.5,1.5], y ∈ [-1.5,0.5]
+    const XMIN=-1.5, XMAX=1.5, YMIN=-1.5, YMAX=0.5;
+
+    function toC(px,py){
+        const W=canvas.width, H=canvas.height;
+        const ml=30,mr=20,mt=20,mb=20;
+        const w=W-ml-mr, h=H-mt-mb;
+        return [ml+(px-XMIN)/(XMAX-XMIN)*w, mt+(1-(py-YMIN)/(YMAX-YMIN))*h];
+    }
+
+    function line(x0,y0,x1,y1,color,lw,dash=[]){
+        const [px0,py0]=toC(x0,y0),[px1,py1]=toC(x1,y1);
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.setLineDash(dash);
+        ctx.moveTo(px0,py0); ctx.lineTo(px1,py1); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function arrow(x0,y0,x1,y1,color,lw){
+        const [px0,py0]=toC(x0,y0),[px1,py1]=toC(x1,y1);
+        const dx=px1-px0,dy=py1-py0,len=Math.sqrt(dx*dx+dy*dy);
+        if(len<2) return;
+        const ux=dx/len,uy=dy/len,hw=8;
+        ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=lw;
+        ctx.moveTo(px0,py0); ctx.lineTo(px1-ux*hw,py1-uy*hw); ctx.stroke();
+        ctx.beginPath(); ctx.fillStyle=color;
+        ctx.moveTo(px1,py1);
+        ctx.lineTo(px1-ux*hw*2-uy*hw,py1-uy*hw*2+ux*hw);
+        ctx.lineTo(px1-ux*hw*2+uy*hw,py1-uy*hw*2-ux*hw);
+        ctx.closePath(); ctx.fill();
+    }
+
+    function computeScene(){
+        const phi=phi_deg*Math.PI/180;
+        const sin_tr=Math.sin(phi)/n;
+        if(sin_tr>1) return null; // TIR at top (shouldn't happen for n>1, phi<90)
+        const theta_r=Math.asin(sin_tr);
+        const phi_c=Math.asin(1/n)*180/Math.PI;
+
+        // Entry point: top face at x=0, y=0
+        // Internal ray direction: (−sin θr, −cos θr) going down-left
+        // Find intersection with left face x=−0.5
+        // x(t) = 0 − sin(θr)·t = −0.5  →  t = 0.5/sin(θr)
+        // y(t) = 0 − cos(θr)·t
+
+        let status, rayColor;
+
+        const t_v = 0.5/Math.sin(theta_r);
+        const y_v = -Math.cos(theta_r)*t_v;
+
+        let x_v=-0.5, y_v_final=y_v;
+        let escaped_base=false;
+
+        if(y_v<-1){
+            // Ray exits through base before reaching left wall
+            // x where y=-1: t_base=1/cos(θr), x=-sin(θr)/cos(θr)=-tan(θr)
+            const t_base=1/Math.cos(theta_r);
+            const x_base=-Math.sin(theta_r)*t_base;
+            x_v=x_base; y_v_final=-1;
+            escaped_base=true;
+        }
+
+        const alpha=Math.PI/2-theta_r; // angle of incidence at left wall
+        const sin_alpha=Math.sin(alpha);
+        const sin_c=1/n;
+        const isTIR=!escaped_base && sin_alpha>=sin_c;
+        const phi_c_actual=Math.asin(sin_c)*180/Math.PI;
+
+        let psi=null, x_exit=null, y_exit=null;
+        let x_refl2=null, y_refl2=null;
+
+        if(!escaped_base){
+            if(isTIR){
+                // Reflect at left wall: normal is (1,0), reflection flips x-component
+                // reflected dir: (sin(θr), -cos(θr)) → going right-down
+                // hits bottom y=-1 or right wall x=0.5
+                const t_bot=(y_v_final+1)/Math.cos(theta_r);
+                const x_bot=x_v+Math.sin(theta_r)*t_bot;
+                x_refl2=x_bot; y_refl2=-1;
+                status='REFLEXIÓN TOTAL INTERNA (RTI)'; rayColor='#ff4444';
+            } else {
+                // Refraction at left wall
+                psi=Math.asin(n*sin_alpha);
+                // exit direction goes left: x decreasing, y decreasing
+                const len=0.5;
+                x_exit=x_v-len*Math.cos(psi);
+                y_exit=y_v_final-len*Math.sin(psi);
+                // Partial internal reflection
+                const t_refl=(y_v_final+1)/Math.cos(theta_r);
+                x_refl2=x_v+Math.sin(theta_r)*t_refl;
+                y_refl2=-1;
+                status=`REFRACCIÓN — ψ=${(psi*180/Math.PI).toFixed(2)}°`; rayColor='#00ff7f';
+            }
+        } else {
+            status='Escapa por la base'; rayColor='#ffdd00';
+        }
+
+        return {phi,theta_r,alpha,phi_c:phi_c_actual,x_v,y_v:y_v_final,
+                isTIR,escaped_base,psi,x_exit,y_exit,x_refl2,y_refl2,rayColor,status};
+    }
+
+    function draw(){
+        const W=canvas.width, H=canvas.height;
+        if(!W||!H) return;
+        ctx.clearRect(0,0,W,H);
+
+        const sc=computeScene();
+
+        // ── CUBE ─────────────────────────────────────────────────────────────
+        const [cx0,cy0]=toC(-0.5,-1),[cx1,cy1]=toC(0.5,0);
+        ctx.fillStyle='rgba(0,212,255,0.08)'; ctx.fillRect(cx0,cy1,cx1-cx0,cy0-cy1);
+        ctx.strokeStyle='#00d4ff'; ctx.lineWidth=2;
+        ctx.strokeRect(cx0,cy1,cx1-cx0,cy0-cy1);
+
+        // Index label
+        ctx.fillStyle='rgba(0,212,255,0.6)'; ctx.font='11px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`n = ${n.toFixed(2)}`, (cx0+cx1)/2, (cy0+cy1)/2);
+
+        // Normals (dashed)
+        line(-0.5,-1.5,-0.5,0.5,'rgba(255,255,255,0.15)',1,[5,5]);
+        line(-1.5,0,1.5,0,'rgba(255,255,255,0.15)',1,[5,5]);
+
+        // Critical angle marker
+        if(sc){
+            const phi_c_rad=sc.phi_c*Math.PI/180;
+            ctx.strokeStyle='rgba(255,165,0,0.4)'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+            const [acx,acy]=toC(0,0);
+            ctx.beginPath(); ctx.arc(acx,acy,40,-Math.PI/2,-Math.PI/2-phi_c_rad,false);
+            ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle='rgba(255,165,0,0.6)'; ctx.font='9px Space Mono'; ctx.textAlign='left';
+            ctx.fillText(`φc=${sc.phi_c.toFixed(1)}°`, acx+8, acy-45);
+        }
+
+        // ── RAYS ─────────────────────────────────────────────────────────────
+        if(sc){
+            const {phi,theta_r,alpha,x_v,y_v,isTIR,escaped_base,psi,x_exit,y_exit,x_refl2,y_refl2,rayColor} = sc;
+
+            // Incident ray (yellow, outside cube)
+            const x_start=-Math.tan(phi)*0.4, y_start=0.4;
+            arrow(x_start,y_start,0,0,'#ffdd00',2.5);
+
+            // Internal segment 1: entry → left wall or base
+            arrow(0,0,x_v,y_v,rayColor,2.5);
+
+            if(!escaped_base){
+                if(isTIR){
+                    // Total reflection
+                    if(x_refl2!==null) arrow(x_v,y_v,x_refl2,y_refl2,rayColor,2.5);
+                } else {
+                    // Refracted ray exiting left wall
+                    if(x_exit!==null) arrow(x_v,y_v,x_exit,y_exit,rayColor,2.5);
+                    // Partial reflection (dotted)
+                    if(x_refl2!==null) line(x_v,y_v,x_refl2,y_refl2,rayColor,1.5,[5,4]);
+                }
+            }
+
+            // ── ANGLE ARCS ───────────────────────────────────────────────────
+            // At entry (0,0): incidence angle φ and refraction θr
+            const [e0x,e0y]=toC(0,0);
+            const arcR=30;
+            // φ arc (incident, measured from normal ↑)
+            ctx.strokeStyle='rgba(255,221,0,0.7)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(e0x,e0y,arcR,-Math.PI/2,-Math.PI/2+phi,true); ctx.stroke();
+            ctx.fillStyle='#ffdd00'; ctx.font='9px Space Mono'; ctx.textAlign='center';
+            ctx.fillText(`φ=${phi_deg.toFixed(1)}°`, e0x-arcR-15, e0y-20);
+
+            // θr arc (refracted, measured from normal ↓)
+            ctx.strokeStyle='rgba(0,255,127,0.7)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(e0x,e0y,arcR+10,Math.PI/2,Math.PI/2+theta_r,false); ctx.stroke();
+            ctx.fillStyle='#00ff7f'; ctx.textAlign='center';
+            ctx.fillText(`θᵣ=${(theta_r*180/Math.PI).toFixed(1)}°`, e0x+arcR+18, e0y+28);
+
+            // At left wall (x_v, y_v): α arc
+            const [wvx,wvy]=toC(x_v,y_v);
+            ctx.strokeStyle=isTIR?'rgba(255,68,68,0.7)':'rgba(0,255,127,0.7)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(wvx,wvy,28,0,alpha,false); ctx.stroke();
+            ctx.fillStyle=rayColor; ctx.font='9px Space Mono'; ctx.textAlign='left';
+            ctx.fillText(`α=${(alpha*180/Math.PI).toFixed(1)}°`, wvx+32, wvy+8);
+
+            if(!isTIR && psi!==null){
+                ctx.strokeStyle='rgba(0,255,127,0.7)'; ctx.lineWidth=1.5;
+                ctx.beginPath(); ctx.arc(wvx,wvy,42,-Math.PI,-(Math.PI-psi),false); ctx.stroke();
+                ctx.fillStyle='#00ff7f';
+                ctx.fillText(`ψ=${(psi*180/Math.PI).toFixed(1)}°`, wvx-80, wvy+20);
+            }
+        }
+
+        // Entry and wall-hit dots
+        const [epx,epy]=toC(0,0);
+        ctx.beginPath(); ctx.arc(epx,epy,5,0,Math.PI*2);
+        ctx.fillStyle='#fff'; ctx.fill();
+        if(sc){
+            const [wpx,wpy]=toC(sc.x_v,sc.y_v);
+            ctx.beginPath(); ctx.arc(wpx,wpy,6,0,Math.PI*2);
+            ctx.fillStyle=sc.rayColor; ctx.shadowBlur=10; ctx.shadowColor=sc.rayColor; ctx.fill(); ctx.shadowBlur=0;
+        }
+
+        // ── LABELS ───────────────────────────────────────────────────────────
+        ctx.font='10px Space Mono'; ctx.textAlign='left';
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.fillText('n=1 (aire)',toC(0.55,0.3)[0],toC(0.55,0.3)[1]);
+        ctx.fillStyle='rgba(0,212,255,0.5)'; ctx.fillText(`n=${n.toFixed(2)}`,toC(-0.45,0.3)[0],toC(-0.45,0.3)[1]);
+        ctx.fillText('Cara\nsuperior',toC(-0.2,0.15)[0],toC(-0.2,0.15)[1]);
+        ctx.fillText('Cara\nvertical',toC(-1.45,-0.5)[0],toC(-1.45,-0.5)[1]);
+
+        // Title
+        ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,20);
+        ctx.fillStyle='#00d4ff'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`CUBO ÓPTICO — φ=${phi_deg.toFixed(1)}°  n=${n.toFixed(2)}  φc=${sc?sc.phi_c.toFixed(2):'?'}°`,W/2,13);
+        ctx.textAlign='left';
+    }
+
+    function update(){
+        const sc=computeScene();
+        draw();
+
+        // Status box
+        const box=document.getElementById('statusBox');
+        if(!sc){ box.innerText='Error geométrico'; return; }
+        if(sc.escaped_base){
+            box.style.background='rgba(255,221,0,0.1)'; box.style.borderColor='#ffdd00'; box.style.color='#ffdd00';
+            box.innerText='Escapa por la base';
+        } else if(sc.isTIR){
+            box.style.background='rgba(255,68,68,0.12)'; box.style.borderColor='#ff4444'; box.style.color='#ff4444';
+            box.innerText='⚡ REFLEXIÓN TOTAL INTERNA (RTI)';
+        } else {
+            box.style.background='rgba(0,255,127,0.08)'; box.style.borderColor='#00ff7f'; box.style.color='#00ff7f';
+            box.innerText=`REFRACCIÓN — ψ=${sc.psi?(sc.psi*180/Math.PI).toFixed(2):'?'}°`;
+        }
+
+        document.getElementById('infoDisplay').innerText =
+            `φ = ${phi_deg.toFixed(2)}°   n = ${n.toFixed(3)}\nθᵣ = ${(sc.theta_r*180/Math.PI).toFixed(4)}°   α = ${(sc.alpha*180/Math.PI).toFixed(4)}°\nφ_crítico = arcsin(1/n) = ${sc.phi_c.toFixed(4)}°\n${sc.isTIR?'α ≥ φc → RTI':'α < φc → Refracción'}\nsin α = ${Math.sin(sc.alpha).toFixed(4)}  1/n = ${(1/n).toFixed(4)}`;
+    }
+
+    document.getElementById('phiSlider').oninput=e=>{ phi_deg=parseFloat(e.target.value); document.getElementById('phiVal').innerText=phi_deg.toFixed(1); update(); };
+    document.getElementById('nSlider').oninput=e=>{ n=parseFloat(e.target.value); document.getElementById('nVal').innerText=n.toFixed(2); update(); };
+
+    function resize(){ canvas.width=canvas.offsetWidth; canvas.height=520; update(); }
+    window.onresize=resize;
+    requestAnimationFrame(resize);
+</script>
+</body>
+</html>

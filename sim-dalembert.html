@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>D'Alembert | Mundo Quarks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #03050f; --bg-panel: #070d1f; --cyan: #00d4ff; --white: #eef2ff; --gray: #8892b0; --border: rgba(26, 108, 245, 0.2); }
+        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+        h1 { grid-column: 1 / -1; font-family: 'Space Mono'; color: var(--cyan); text-align: center; margin: 10px 0; font-size: 1rem; }
+        .panel-left { background: var(--bg-panel); border: 1px solid var(--border); padding: 18px; border-radius: 15px; height: fit-content; }
+        .btn-volver { grid-column: 1 / -1; color: var(--gray); text-decoration: none; font-family: 'Space Mono'; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        .freq-box { background: rgba(0,212,255,0.05); border: 1px solid var(--cyan); padding: 10px; text-align: center; font-family: 'Space Mono'; color: var(--cyan); margin-bottom: 14px; border-radius: 8px; font-size: 0.7rem; line-height: 1.9; white-space: pre-line; }
+        .controls { margin-top: 14px; }
+        .control-group { margin-bottom: 14px; }
+        label { display: flex; justify-content: space-between; font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+
+        .mode-label { font-family: 'Space Mono'; font-size: 0.72rem; color: var(--cyan); margin-bottom: 6px; display: block; }
+        .shape-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+        .shape-btn {
+            background: rgba(0,212,255,0.04); border: 1px solid var(--border);
+            color: var(--gray); font-family: 'Space Mono'; font-size: 0.6rem;
+            padding: 7px 4px; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .shape-btn:hover { border-color: var(--cyan); color: var(--white); }
+        .shape-btn.active { background: rgba(0,212,255,0.15); color: var(--cyan); border-color: var(--cyan); font-weight: bold; }
+
+        .toggle-row { display: flex; gap: 8px; margin-bottom: 14px; }
+        .toggle-btn { flex:1; padding:7px 4px; border-radius:5px; cursor:pointer; font-family:'Space Mono'; font-size:0.6rem; text-align:center; transition:0.2s; }
+        .toggle-btn.r { background:rgba(255,69,0,0.12); border:1px solid #ff4500; color:#ff6622; }
+        .toggle-btn.l { background:rgba(0,212,255,0.08); border:1px solid var(--cyan); color:var(--cyan); }
+        .toggle-btn.off { background:transparent; color:#444; border-color:#333; }
+
+        .right-col { display:flex; flex-direction:column; gap:12px; }
+        canvas { background:#000; border-radius:10px; border:1px solid #1a2a4a; display:block; width:100%; }
+        #canWave { height:320px; }
+        #canProfile { height:180px; }
+
+        .ref-block { font-family:'Space Mono'; font-size:0.6rem; color:var(--gray); line-height:2.0; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="fisica2.html" class="btn-volver">← VOLVER A SELECCIÓN</a>
+    <h1>Solución de D'Alembert — Pulso Inicial → Dos Ondas Viajeras</h1>
+
+    <div class="panel-left">
+        <div id="infoDisplay" class="freq-box">t = 0.000 s\nv = 100 m/s</div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Velocidad v <span><span id="vVal">100</span> m/s</span></label>
+                <input type="range" id="vSlider" min="10" max="300" step="10" value="100" style="accent-color:#ffdd00;">
+            </div>
+            <div class="control-group">
+                <label>Amplitud A <span><span id="ampVal">1.0</span></span></label>
+                <input type="range" id="ampSlider" min="0.2" max="2.0" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>Ancho del pulso <span><span id="wVal">2.0</span></span></label>
+                <input type="range" id="wSlider" min="0.5" max="10.0" step="0.5" value="2.0" style="accent-color:#ff44ff;">
+            </div>
+            <div class="control-group">
+                <label>Centro x₀ <span><span id="x0Val">0.0</span></span></label>
+                <input type="range" id="x0Slider" min="-50" max="50" step="5" value="0" style="accent-color:#888;">
+            </div>
+        </div>
+
+        <span class="mode-label">Forma de ψ₀(x)</span>
+        <div class="shape-options">
+            <button class="shape-btn active" data-shape="tri">Triángulo</button>
+            <button class="shape-btn" data-shape="gauss">Gaussiano</button>
+            <button class="shape-btn" data-shape="rect">Rect</button>
+            <button class="shape-btn" data-shape="sine">Sinusoidal</button>
+        </div>
+
+        <span class="mode-label">Mostrar componentes</span>
+        <div class="toggle-row">
+            <button class="toggle-btn r" id="toggleR">→ Derecha</button>
+            <button class="toggle-btn l" id="toggleL">← Izquierda</button>
+        </div>
+
+        <div class="ref-block">
+            <span>Solución de D'Alembert:</span>
+            <span style="color:#fff;padding-left:6px;">Y(x,t) = ½[ψ₀(x−vt) + ψ₀(x+vt)]</span>
+            <span style="margin-top:5px;">El pulso inicial se divide en:</span>
+            <span style="color:#ff4500;padding-left:6px;">½ψ₀(x−vt)  →  viaja a la derecha</span>
+            <span style="color:#00d4ff;padding-left:6px;">½ψ₀(x+vt)  →  viaja a la izquierda</span>
+            <span style="margin-top:5px;">(condición inicial: ∂Y/∂t|ₜ₌₀ = 0)</span>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <canvas id="canWave"   height="320"></canvas>
+        <canvas id="canProfile" height="180"></canvas>
+    </div>
+</div>
+
+<script>
+    const canW = document.getElementById('canWave'),    ctxW = canW.getContext('2d');
+    const canP = document.getElementById('canProfile'), ctxP = canP.getContext('2d');
+
+    const NX    = 800;
+    const X_MIN = -200, X_MAX = 200;
+    const xArr  = Array.from({length: NX}, (_, i) => X_MIN + (X_MAX - X_MIN) * i / (NX - 1));
+
+    let v   = 100.0;
+    let A   = 1.0;
+    let W   = 2.0;   // pulse width
+    let x0c = 0.0;   // pulse center
+    let shapeMode = 'tri';
+    let showR = true, showL = true;
+    let t = 0;
+    const DT = 0.006;
+
+    // ── PULSE SHAPE ───────────────────────────────────────────────────────────
+    function psi0(xv) {
+        // xi = deviation from center
+        const xi = xv - x0c;
+        if (shapeMode === 'tri') {
+            // Triangle: peak at center, zero at ±W/2
+            const half = W / 2;
+            if (xi < -half || xi > half) return 0;
+            return A * (1 - Math.abs(xi) / half);
+        }
+        if (shapeMode === 'gauss') {
+            const r = xi / (W / 2);
+            return A * Math.exp(-(r * r));
+        }
+        if (shapeMode === 'rect') {
+            return Math.abs(xi) < W / 2 ? A : 0;
+        }
+        if (shapeMode === 'sine') {
+            if (Math.abs(xi) >= W / 2) return 0;
+            const c = Math.cos(Math.PI * xi / (W / 2));
+            return A * c * c;
+        }
+        return 0;
+    }
+
+    // ── WAVE PANEL ────────────────────────────────────────────────────────────
+    function drawWave() {
+        const W_px = canW.width, H = canW.height;
+        if (!W_px || !H) return;
+        ctxW.clearRect(0, 0, W_px, H);
+
+        const margin = {left: 52, right: 20, top: 28, bottom: 36};
+        const w = W_px - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+        const botY = margin.top + h;
+        const scaleX = w / (X_MAX - X_MIN);
+        const scaleY = h * 0.7 / A;
+
+        function mapX(xv) { return margin.left + (xv - X_MIN) * scaleX; }
+        function mapY(y)  { return botY - 10 - y * scaleY; }
+
+        // Grid
+        ctxW.strokeStyle = '#16203a'; ctxW.lineWidth = 1;
+        ctxW.font = '9px Space Mono'; ctxW.fillStyle = '#8892b0';
+        for (let xg = X_MIN; xg <= X_MAX; xg += 50) {
+            const px = mapX(xg);
+            ctxW.beginPath(); ctxW.moveTo(px, margin.top); ctxW.lineTo(px, botY); ctxW.stroke();
+            ctxW.fillText(xg, px - 10, botY + 14);
+        }
+        ctxW.fillText('x', W_px - 16, botY + 14);
+
+        // Zero axis
+        const y0px = mapY(0);
+        ctxW.strokeStyle = 'rgba(255,255,255,0.12)'; ctxW.lineWidth = 1;
+        ctxW.beginPath(); ctxW.moveTo(margin.left, y0px); ctxW.lineTo(margin.left + w, y0px); ctxW.stroke();
+        ctxW.fillText('0', margin.left - 14, y0px + 4);
+        ctxW.fillText('A', margin.left - 14, mapY(A) + 4);
+
+        // Compute waves
+        const yr = xArr.map(x => 0.5 * psi0(x - v * t));
+        const yl = xArr.map(x => 0.5 * psi0(x + v * t));
+        const yt = xArr.map((_, i) => yr[i] + yl[i]);
+
+        // Initial pulse reference (t=0 shape, very faint)
+        ctxW.beginPath(); ctxW.strokeStyle = 'rgba(255,255,255,0.12)'; ctxW.lineWidth = 1; ctxW.setLineDash([3,5]);
+        xArr.forEach((x, i) => { const px = mapX(x), py = mapY(psi0(x)); i===0?ctxW.moveTo(px,py):ctxW.lineTo(px,py); });
+        ctxW.stroke(); ctxW.setLineDash([]);
+
+        // Right component
+        if (showR) {
+            ctxW.beginPath(); ctxW.strokeStyle = '#ff4500'; ctxW.lineWidth = 2; ctxW.globalAlpha = 0.65; ctxW.setLineDash([6,4]);
+            yr.forEach((y, i) => { const px=mapX(xArr[i]), py=mapY(y); i===0?ctxW.moveTo(px,py):ctxW.lineTo(px,py); });
+            ctxW.stroke(); ctxW.setLineDash([]); ctxW.globalAlpha = 1;
+        }
+
+        // Left component
+        if (showL) {
+            ctxW.beginPath(); ctxW.strokeStyle = '#00d4ff'; ctxW.lineWidth = 2; ctxW.globalAlpha = 0.65; ctxW.setLineDash([6,4]);
+            yl.forEach((y, i) => { const px=mapX(xArr[i]), py=mapY(y); i===0?ctxW.moveTo(px,py):ctxW.lineTo(px,py); });
+            ctxW.stroke(); ctxW.setLineDash([]); ctxW.globalAlpha = 1;
+        }
+
+        // Total (white)
+        ctxW.beginPath(); ctxW.strokeStyle = '#fff'; ctxW.lineWidth = 3;
+        ctxW.shadowBlur = 8; ctxW.shadowColor = '#fff';
+        yt.forEach((y, i) => { const px=mapX(xArr[i]), py=mapY(y); i===0?ctxW.moveTo(px,py):ctxW.lineTo(px,py); });
+        ctxW.stroke(); ctxW.shadowBlur = 0;
+
+        // Legend
+        ctxW.font = '9px Space Mono'; ctxW.textAlign = 'left';
+        ctxW.fillStyle = 'rgba(255,255,255,0.4)'; ctxW.fillText('· · ·  ψ₀(x)  (t=0)', margin.left+6, margin.top+14);
+        ctxW.fillStyle = '#ff4500';  ctxW.fillText('- -  ½ψ₀(x−vt)  →', margin.left+6, margin.top+26);
+        ctxW.fillStyle = '#00d4ff'; ctxW.fillText('- -  ½ψ₀(x+vt)  ←', margin.left+6, margin.top+38);
+        ctxW.fillStyle = '#fff';     ctxW.fillText('───  Y(x,t) = ½[ψ₀(x−vt)+ψ₀(x+vt)]', margin.left+6, margin.top+50);
+
+        // Title
+        ctxW.fillStyle = 'rgba(0,0,0,0.55)'; ctxW.fillRect(0,0,W_px,20);
+        ctxW.fillStyle = '#00d4ff'; ctxW.font = '10px Space Mono'; ctxW.textAlign = 'center';
+        ctxW.fillText(`D'ALEMBERT — v=${v} m/s    t = ${t.toFixed(3)} s`, W_px/2, 13);
+        ctxW.textAlign = 'left';
+    }
+
+    // ── PROFILE PANEL: Y(x=0,t) vs t ─────────────────────────────────────────
+    const profileHist = [];
+    const T_MAX = 3.0;
+
+    function drawProfile() {
+        const W_px = canP.width, H = canP.height;
+        if (!W_px || !H) return;
+        ctxP.clearRect(0, 0, W_px, H);
+
+        const margin = {left:52, right:20, top:25, bottom:32};
+        const w = W_px - margin.left - margin.right;
+        const h = H - margin.top - margin.bottom;
+        const midY = margin.top + h / 2;
+        const scaleY = h / 2 / A * 0.85;
+
+        // Grid
+        ctxP.strokeStyle = '#16203a'; ctxP.lineWidth = 1;
+        ctxP.font = '9px Space Mono'; ctxP.fillStyle = '#8892b0';
+        for (let tg = 0; tg <= T_MAX; tg += 0.5) {
+            const px = margin.left + (tg/T_MAX)*w;
+            ctxP.beginPath(); ctxP.moveTo(px,margin.top); ctxP.lineTo(px,margin.top+h); ctxP.stroke();
+            ctxP.fillText(tg.toFixed(1), px-8, margin.top+h+14);
+        }
+        ctxP.fillText('t (s)', margin.left+w-14, margin.top+h+26);
+        ctxP.fillText('Y(0,t)', 4, margin.top-6);
+
+        // Zero axis
+        ctxP.strokeStyle = 'rgba(255,255,255,0.12)'; ctxP.lineWidth = 1;
+        ctxP.beginPath(); ctxP.moveTo(margin.left, midY); ctxP.lineTo(margin.left+w, midY); ctxP.stroke();
+        ctxP.fillText('0', margin.left-14, midY+4);
+
+        // History curve
+        if (profileHist.length > 1) {
+            ctxP.beginPath(); ctxP.strokeStyle = '#00ff7f'; ctxP.lineWidth = 2;
+            profileHist.forEach(({ts, y}, i) => {
+                const px = margin.left + (ts/T_MAX)*w;
+                const py = midY - y * scaleY;
+                i===0?ctxP.moveTo(px,py):ctxP.lineTo(px,py);
+            });
+            ctxP.stroke();
+        }
+
+        // Current marker
+        const yCur = profileHist.length ? profileHist[profileHist.length-1].y : 0;
+        const pxCur = margin.left + (t/T_MAX)*w;
+        const pyCur = midY - yCur * scaleY;
+        ctxP.beginPath(); ctxP.arc(pxCur, pyCur, 4, 0, Math.PI*2);
+        ctxP.fillStyle = '#00ff7f'; ctxP.shadowBlur=8; ctxP.shadowColor='#00ff7f'; ctxP.fill(); ctxP.shadowBlur=0;
+
+        // Title
+        ctxP.fillStyle='rgba(0,0,0,0.5)'; ctxP.fillRect(0,0,W_px,18);
+        ctxP.fillStyle='#00ff7f'; ctxP.font='10px Space Mono'; ctxP.textAlign='center';
+        ctxP.fillText('Y(x=0, t) — Señal en el origen vs tiempo', W_px/2, 13);
+        ctxP.textAlign='left';
+    }
+
+    function updateInfoBox() {
+        const xR = x0c + v * t;
+        const xL = x0c - v * t;
+        document.getElementById('infoDisplay').innerText =
+            `t = ${t.toFixed(3)} s   v = ${v} m/s\nPico →  en x = ${xR.toFixed(2)}\nPico ←  en x = ${xL.toFixed(2)}\nY(x,t) = ½[ψ₀(x−vt)+ψ₀(x+vt)]`;
+    }
+
+    function loop() {
+        t += DT;
+        if (t > T_MAX) { t = 0; profileHist.length = 0; }
+
+        // Record Y at x=0
+        const y0 = 0.5 * psi0(0 - v*t) + 0.5 * psi0(0 + v*t);
+        profileHist.push({ts: t, y: y0});
+        if (profileHist.length > 1200) profileHist.shift();
+
+        drawWave();
+        drawProfile();
+        updateInfoBox();
+        requestAnimationFrame(loop);
+    }
+
+    // Controls
+    document.getElementById('vSlider').oninput   = e => { v   = parseFloat(e.target.value); document.getElementById('vVal').innerText   = v;   t=0; profileHist.length=0; };
+    document.getElementById('ampSlider').oninput = e => { A   = parseFloat(e.target.value); document.getElementById('ampVal').innerText = A.toFixed(1); };
+    document.getElementById('wSlider').oninput   = e => { W   = parseFloat(e.target.value); document.getElementById('wVal').innerText   = W.toFixed(1); t=0; profileHist.length=0; };
+    document.getElementById('x0Slider').oninput  = e => { x0c = parseFloat(e.target.value); document.getElementById('x0Val').innerText  = x0c.toFixed(1); t=0; profileHist.length=0; };
+
+    document.querySelectorAll('.shape-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            shapeMode = btn.dataset.shape;
+            t = 0; profileHist.length = 0;
+        });
+    });
+    document.getElementById('toggleR').addEventListener('click', () => {
+        showR = !showR; document.getElementById('toggleR').classList.toggle('off', !showR);
+    });
+    document.getElementById('toggleL').addEventListener('click', () => {
+        showL = !showL; document.getElementById('toggleL').classList.toggle('off', !showL);
+    });
+
+    function resize() {
+        canW.width = canW.offsetWidth; canW.height = 320;
+        canP.width = canP.offsetWidth; canP.height = 180;
+    }
+    window.onresize = resize;
+    requestAnimationFrame(() => { resize(); loop(); });
+</script>
+</body>
+</html>

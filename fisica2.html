@@ -1,128 +1,746 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Física 2 - Simuladores | Mundo Quarks</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Space+Mono&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg: #03050f; --cyan: #00d4ff; --white: #eef2ff; --border: rgba(26, 108, 245, 0.2); }
-        body { background: var(--bg); color: var(--white); font-family: 'Crimson Pro', serif; margin: 0; padding: 40px 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { font-family: 'Syne'; color: var(--cyan); text-align: center; font-size: 2.5rem; margin-bottom: 40px; }
-        .btn-volver { color: var(--cyan); text-decoration: none; font-family: 'Space Mono'; display: inline-block; margin-bottom: 20px; }
-        .subseccion {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-            border-left: 4px solid var(--cyan); margin-bottom: 20px;
-            padding: 25px; border-radius: 0 12px 12px 0;
-        }
-        .subseccion h2 { font-family: 'Space Mono'; font-size: 1.1rem; color: var(--cyan); margin-top: 0; text-transform: uppercase; }
-        .lista-sim { list-style: none; padding: 0; margin-top: 15px; }
-        .lista-sim li { margin: 12px 0; display: flex; align-items: center; justify-content: space-between; }
-        .lista-sim a { color: var(--white); text-decoration: none; font-weight: 600; transition: 0.2s; }
-        .lista-sim a:hover { color: var(--cyan); padding-left: 5px; }
-        .badge { font-family: 'Space Mono'; font-size: 0.6rem; padding: 3px 8px; border-radius: 4px; background: #1a2a4a; color: #8892b0; }
-        .badge.active { background: var(--cyan); color: var(--bg); font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Física 2 — Simuladores y Material | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #03050f;
+    --bg2: #070d1f;
+    --blue: #1a6cf5;
+    --blue-dim: #0d3a8a;
+    --cyan: #00d4ff;
+    --white: #eef2ff;
+    --gray: #8892b0;
+    --accent: #f5a623;
+    --card-bg: rgba(13, 25, 60, 0.6);
+    --border: rgba(26, 108, 245, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  #stars-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 4rem;
+    background: rgba(3, 5, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+  }
+  .nav-logo span { color: var(--cyan); }
+
+  .nav-back {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--cyan); }
+
+  /* PAGE HEADER */
+  .page-header {
+    position: relative;
+    z-index: 1;
+    padding: 10rem 4rem 5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-label::after {
+    content: '';
+    display: block;
+    flex: 1;
+    max-width: 3rem;
+    height: 1px;
+    background: var(--cyan);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  /* MAIN CONTENT */
+  .content {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 4rem 8rem;
+  }
+
+  /* BLOQUE DE GUÍA */
+  .guia-block {
+    margin-bottom: 4rem;
+  }
+
+  .guia-header {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .guia-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    background: rgba(0, 212, 255, 0.08);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    padding: 0.2rem 0.6rem;
+    flex-shrink: 0;
+  }
+
+  /* LISTA DE SIMULADORES */
+  .sim-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .sim-list li a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .sim-list li a::before { content: '//'; color: var(--blue-dim); flex-shrink: 0; }
+  .sim-list li a:hover { color: var(--cyan); }
+  .sim-list li a:hover::before { color: var(--cyan); }
+
+  .badge-disponible {
+    font-size: 0.55rem;
+    color: #4caf82;
+    border: 1px solid rgba(76, 175, 130, 0.4);
+    padding: 0.1rem 0.4rem;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  /* ---- SECCIÓN MATERIAL PDF ---- */
+  .pdf-section {
+    position: relative;
+    z-index: 1;
+    padding: 6rem 4rem 8rem;
+    background: linear-gradient(to bottom, transparent, rgba(7,13,31,0.8), transparent);
+  }
+
+  .pdf-section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .pdf-section-header {
+    margin-bottom: 3rem;
+  }
+
+  .div-subsection-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* GRID DE TARJETAS PDF */
+  .pdf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 4rem;
+  }
+
+  .pdf-card {
+    background: var(--bg2);
+    padding: 2rem 2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .pdf-card:hover { background: rgba(26, 108, 245, 0.08); }
+
+  .pdf-card-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 3rem;
+    color: rgba(26, 108, 245, 0.1);
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .pdf-card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--white);
+    line-height: 1.3;
+    max-width: 85%;
+  }
+
+  .pdf-card-subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+    line-height: 1.8;
+  }
+
+  .pdf-card-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pdf-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.45rem 1rem;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    color: var(--gray);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .pdf-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+  .pdf-btn-primary {
+    background: rgba(26, 108, 245, 0.15);
+    border-color: var(--blue);
+    color: var(--cyan);
+  }
+  .pdf-btn-primary:hover {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--cyan);
+  }
+  .pdf-btn-soon {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* DIVIDER */
+  .divider {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 4rem;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* FADE IN */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  footer p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+  }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .page-header, .content, .pdf-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="btn-volver">← Volver al inicio</a>
-        <h1>Simuladores de Física 2</h1>
 
-        <div class="subseccion">
-            <h2>1. Oscilaciones libres y forzadas</h2>
-            <ul class="lista-sim">
-                <li><a href="sim-oscilador-long.html">Oscilador Longitudinal (G1-P1)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-oscilador-transversal.html">Oscilador Transversal (G1-P1)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-pendulo.html">Péndulo (G1-P1)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-oscilador-amortiguado.html">Oscilador amortiguado, crítico y sobreamortiguado (G1-P2)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-oscilador-forzado.html">Oscilador forzado (G1-P4)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-resonancia.html">Resonancia (G1-P5)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-modos-normales.html">Modos normales (G1-P6)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-acoplamiento-debil.html">Modos normales y acoplamiento débil (G1-P7)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-batidos-long.html">Modos normales. Batidos longitudinal (G1-P8)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-batidos-transversal.html">Modos normales. Batidos transversales (G1-P8)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-combinacion-modos.html">Combinación lineal de modos (G1-P9)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-modos-batidos-2d.html">Modos normales y batidos (G1-P10)</a> <span class="badge active">DISPONIBLE</span></li>
-            </ul>
-        </div>
+<canvas id="stars-canvas"></canvas>
 
-        <div class="subseccion">
-            <h2>2. Oscilaciones libres en medios continuos</h2>
-            <ul class="lista-sim">
-                <li><a href="sim-modos-cuerdas.html">Modos normales en cuerdas (G2-P1)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-modos-tubos.html">Modos normales en tubos de aire (G2-P4)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-fourier.html">Fourier (G2-P8)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-dos-cuerdas.html">Dos cuerdas de diferente densidad (G2-P11)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-ondas-viajeras.html">Ondas viajeras (G2-P16)</a> <span class="badge active">DISPONIBLE</span></li>
-            </ul>
-        </div>
+<nav>
+  <a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <a href="index.html" class="nav-back">← Volver al inicio</a>
+</nav>
 
-        <div class="subseccion">
-            <h2>3. Propagación de ondas en medios continuos</h2>
-            <ul class="lista-sim">
-                <li><a href="sim-propagacion-ondas.html">Propagación de ondas (G3-P2)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-dalembert.html">Propagación de ondas (G3-P3)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-reflexion-transmision.html">Dos casos de propagación de ondas (G3-P9)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-paquetes-onda.html">Propagación de ondas (G3-P14 a P19)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-pulso-triangular.html">Pulso triangular (G3-P20 y P21)</a> <span class="badge active">DISPONIBLE</span></li>
-            </ul>
-        </div>
+<!-- ENCABEZADO -->
+<div class="page-header fade-in">
+  <div class="section-label">Contenido académico · UBA</div>
+  <h2 class="section-title">Física 2.</h2>
+  <p style="font-family:'Crimson Pro',serif; font-size:1.15rem; color:var(--gray); max-width:55ch; line-height:1.8; font-style:italic; font-weight:300;">
+    Ondas, oscilaciones y óptica. Simuladores interactivos, material teórico y problemas resueltos organizados por guía.
+  </p>
+</div>
 
-        <div class="subseccion">
-            <h2>4. Descripción geométrica de fenómenos ondulatorios</h2>
-            <ul class="lista-sim">
-                <li><a href="sim-fermat.html">Fermat (G4-P1)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-espejo.html">Espejo (G4-P3)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-reflexion-cubo.html">Reflexión (G4-P5)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-prismas.html">Prismas (G4-P6)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-reflexion-colores.html">Reflexión colores (G4-P7)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-crown.html">Crown (G4-P9)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-espejos-marcha.html">Espejos (G4-P10)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-dioptra.html">Dioptra (G4-P15)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-doble-dioptra.html">Doble Dioptra (G4-P16)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-lente-delgada.html">Lente delgada (G4-P20)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-dispositivos.html">Dispositivos (G4-P30)</a> <span class="badge active">DISPONIBLE</span></li>
-            </ul>
-        </div>
+<!-- ===== SIMULADORES ===== -->
+<div class="content">
 
-        <div class="subseccion">
-            <h2>5. Polarización</h2>
-            <ul class="lista-sim">
-                <li><a href="sim-polarizacion.html">Ondas polarizadas (G5-P1)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-polarizador.html">Polarizador (G5-P4 a P7)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-ley-malus.html">Ley de Malus (G5-P8 a P10)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-brewster.html">Ángulo de Brewster (G5-P11 a P14)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-laminas-retardadoras.html">Láminas retardadoras (G5-P15 a P20)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-analizadores.html">Analizadores (G5-P21 a P30)</a> <span class="badge active">DISPONIBLE</span></li>
-            </ul>
-        </div>
-
-        <div class="subseccion">
-            <h2>6. Interferencia</h2>
-            <ul class="lista-sim">
-                <li><a href="sim-young.html">Interferómetro de Young (G6-P4 a P7)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-espejos-fresnel.html">Espejos de Fresnel (G6-P8 a P10)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-biprisma-fresnel.html">Biprisma de Fresnel (G6-P11 a P15)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-lamina-paralelas.html">Lámina de caras paralelas (G6-P20 a P26)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-anillos-newton.html">Anillos de Newton (G6-P24 a P31)</a> <span class="badge active">DISPONIBLE</span></li>
-            </ul>
-        </div>
-
-        <div class="subseccion">
-            <h2>7. Difracción</h2>
-            <ul class="lista-sim">
-                <li><a href="sim-rendija-unica.html">Difracción rendija única (G7-P1)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-difraccion-rect.html">Difracción rectangular (G7-P3)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-difraccion-cruz.html">Difracción en cruz (G7-P4)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-doble-rendija.html">Difracción doble rendija (G7-P5 a P7)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-red-difraccion.html">Red de difracción (G7-P8 a P12)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-red-reflexion.html">Red de difracción por reflexión (G7-P17 y P18)</a> <span class="badge active">DISPONIBLE</span></li>
-                <li><a href="sim-rayleigh.html">Criterio de Rayleigh (G7-P19/20)</a> <span class="badge active">DISPONIBLE</span></li>
-            </ul>
-        </div>
-
+  <!-- G1 -->
+  <div class="guia-block fade-in">
+    <div class="guia-header">
+      <span class="guia-num">G1</span>
+      Oscilaciones libres y forzadas
     </div>
+    <ul class="sim-list">
+      <li><a href="sim-oscilador-long.html">Oscilador Longitudinal (G1-P1) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-oscilador-transversal.html">Oscilador Transversal (G1-P1) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-pendulo.html">Péndulo (G1-P1) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-oscilador-amortiguado.html">Oscilador amortiguado, crítico y sobreamortiguado (G1-P2) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-oscilador-forzado.html">Oscilador forzado (G1-P4) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-resonancia.html">Resonancia (G1-P5) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-modos-normales.html">Modos normales (G1-P6) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-acoplamiento-debil.html">Modos normales y acoplamiento débil (G1-P7) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-batidos-long.html">Modos normales. Batidos longitudinal (G1-P8) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-batidos-transversal.html">Modos normales. Batidos transversales (G1-P8) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-combinacion-modos.html">Combinación lineal de modos (G1-P9) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-modos-batidos-2d.html">Modos normales y batidos (G1-P10) <span class="badge-disponible">DISPONIBLE</span></a></li>
+    </ul>
+  </div>
+
+  <!-- G2 -->
+  <div class="guia-block fade-in">
+    <div class="guia-header">
+      <span class="guia-num">G2</span>
+      Oscilaciones libres en medios continuos
+    </div>
+    <ul class="sim-list">
+      <li><a href="sim-modos-cuerdas.html">Modos normales en cuerdas (G2-P1) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-modos-tubos.html">Modos normales en tubos de aire (G2-P4) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-fourier.html">Fourier (G2-P8) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-dos-cuerdas.html">Dos cuerdas de diferente densidad (G2-P11) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-ondas-viajeras.html">Ondas viajeras (G2-P16) <span class="badge-disponible">DISPONIBLE</span></a></li>
+    </ul>
+  </div>
+
+  <!-- G3 -->
+  <div class="guia-block fade-in">
+    <div class="guia-header">
+      <span class="guia-num">G3</span>
+      Propagación de ondas en medios continuos
+    </div>
+    <ul class="sim-list">
+      <li><a href="sim-propagacion-ondas.html">Propagación de ondas (G3-P2) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-dalembert.html">Propagación de ondas (G3-P3) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-reflexion-transmision.html">Dos casos de propagación de ondas (G3-P9) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-paquetes-onda.html">Propagación de ondas (G3-P14 a P19) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-pulso-triangular.html">Pulso triangular (G3-P20 y P21) <span class="badge-disponible">DISPONIBLE</span></a></li>
+    </ul>
+  </div>
+
+  <!-- G4 -->
+  <div class="guia-block fade-in">
+    <div class="guia-header">
+      <span class="guia-num">G4</span>
+      Descripción geométrica de fenómenos ondulatorios
+    </div>
+    <ul class="sim-list">
+      <li><a href="sim-fermat.html">Fermat (G4-P1) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-espejo.html">Espejo (G4-P3) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-reflexion-cubo.html">Reflexión (G4-P5) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-prismas.html">Prismas (G4-P6) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-reflexion-colores.html">Reflexión colores (G4-P7) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-crown.html">Crown (G4-P9) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-espejos-marcha.html">Espejos (G4-P10) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-dioptra.html">Dioptra (G4-P15) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-doble-dioptra.html">Doble Dioptra (G4-P16) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-lente-delgada.html">Lente delgada (G4-P20) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-dispositivos.html">Dispositivos (G4-P30) <span class="badge-disponible">DISPONIBLE</span></a></li>
+    </ul>
+  </div>
+
+  <!-- G5 -->
+  <div class="guia-block fade-in">
+    <div class="guia-header">
+      <span class="guia-num">G5</span>
+      Polarización
+    </div>
+    <ul class="sim-list">
+      <li><a href="sim-polarizacion.html">Ondas polarizadas (G5-P1) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-polarizador.html">Polarizador (G5-P4 a P7) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-ley-malus.html">Ley de Malus (G5-P8 a P10) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-brewster.html">Ángulo de Brewster (G5-P11 a P14) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-laminas-retardadoras.html">Láminas retardadoras (G5-P15 a P20) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-analizadores.html">Analizadores (G5-P21 a P30) <span class="badge-disponible">DISPONIBLE</span></a></li>
+    </ul>
+  </div>
+
+  <!-- G6 -->
+  <div class="guia-block fade-in">
+    <div class="guia-header">
+      <span class="guia-num">G6</span>
+      Interferencia
+    </div>
+    <ul class="sim-list">
+      <li><a href="sim-young.html">Interferómetro de Young (G6-P4 a P7) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-espejos-fresnel.html">Espejos de Fresnel (G6-P8 a P10) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-biprisma-fresnel.html">Biprisma de Fresnel (G6-P11 a P15) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-lamina-paralelas.html">Lámina de caras paralelas (G6-P20 a P26) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-anillos-newton.html">Anillos de Newton (G6-P24 a P31) <span class="badge-disponible">DISPONIBLE</span></a></li>
+    </ul>
+  </div>
+
+  <!-- G7 -->
+  <div class="guia-block fade-in">
+    <div class="guia-header">
+      <span class="guia-num">G7</span>
+      Difracción
+    </div>
+    <ul class="sim-list">
+      <li><a href="sim-rendija-unica.html">Difracción rendija única (G7-P1) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-difraccion-rect.html">Difracción rectangular (G7-P3) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-difraccion-cruz.html">Difracción en cruz (G7-P4) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-doble-rendija.html">Difracción doble rendija (G7-P5 a P7) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-red-difraccion.html">Red de difracción (G7-P8 a P12) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-red-reflexion.html">Red de difracción por reflexión (G7-P17 y P18) <span class="badge-disponible">DISPONIBLE</span></a></li>
+      <li><a href="sim-rayleigh.html">Criterio de Rayleigh (G7-P19/20) <span class="badge-disponible">DISPONIBLE</span></a></li>
+    </ul>
+  </div>
+
+</div><!-- /content -->
+
+<div class="divider"></div>
+
+
+<!-- ===== MATERIAL PDF ===== -->
+<section class="pdf-section">
+  <div class="pdf-section-inner">
+
+    <div class="pdf-section-header fade-in">
+      <div class="section-label">Material de estudio</div>
+      <h2 class="section-title">PDFs por guía.</h2>
+      <p style="font-family:'Crimson Pro',serif; font-size:1.05rem; color:var(--gray); max-width:58ch; margin-top:1rem; line-height:1.8; font-weight:300;">
+        Material teórico de cátedra y problemas resueltos organizados por guía. Los PDFs se abren directamente en el navegador o se pueden descargar.
+      </p>
+    </div>
+
+    <!-- TEÓRICO -->
+    <div class="fade-in" style="margin-bottom: 4rem;">
+      <div class="div-subsection-label">// Material Teórico</div>
+      <div class="pdf-grid">
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">01</span>
+          <div class="pdf-card-title">Oscilaciones libres y forzadas</div>
+          <div class="pdf-card-subtitle">G1 · Oscilaciones · Resonancia · Modos normales</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G1-Oscilaciones-libres-y-forzadas.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G1-Oscilaciones-libres-y-forzadas.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">02</span>
+          <div class="pdf-card-title">Oscilaciones libres en medios continuos</div>
+          <div class="pdf-card-subtitle">G2 · Cuerdas · Tubos · Fourier · Ondas viajeras</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G2-Oscilaciones-libres-en-medios-continuos.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G2-Oscilaciones-libres-en-medios-continuos.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">03</span>
+          <div class="pdf-card-title">Propagación de ondas en medios continuos</div>
+          <div class="pdf-card-subtitle">G3 · D'Alembert · Reflexión · Transmisión · Paquetes</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G3-Propagacion-de-ondas-en-medios-continuos.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G3-Propagacion-de-ondas-en-medios-continuos.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">04</span>
+          <div class="pdf-card-title">Descripción geométrica de fenómenos ondulatorios</div>
+          <div class="pdf-card-subtitle">G4 · Fermat · Espejos · Dioptra · Lentes · Prismas</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G4-Descripcion-geometrica-de-fenomenos-ondulatorios.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G4-Descripcion-geometrica-de-fenomenos-ondulatorios.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">05</span>
+          <div class="pdf-card-title">Polarización</div>
+          <div class="pdf-card-subtitle">G5 · Malus · Brewster · Láminas retardadoras · Analizadores</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G5-Polarizacion.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G5-Polarizacion.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">06</span>
+          <div class="pdf-card-title">Interferencia</div>
+          <div class="pdf-card-subtitle">G6 · Young · Fresnel · Lámina · Anillos de Newton</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G6-Interferencia.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G6-Interferencia.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">07</span>
+          <div class="pdf-card-title">Difracción</div>
+          <div class="pdf-card-subtitle">G7 · Rendija · Doble rendija · Red · Rayleigh</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G7-Difraccion.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/teo-G7-Difraccion.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RESUELTOS -->
+    <div class="fade-in">
+      <div class="div-subsection-label">// Problemas Resueltos</div>
+      <div class="pdf-grid">
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">01</span>
+          <div class="pdf-card-title">Oscilaciones libres y forzadas</div>
+          <div class="pdf-card-subtitle">G1 · Problemas resueltos completos</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G1-Oscilaciones-libres-y-forzadas.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G1-Oscilaciones-libres-y-forzadas.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">02</span>
+          <div class="pdf-card-title">Oscilaciones libres en medios continuos</div>
+          <div class="pdf-card-subtitle">G2 · Problemas resueltos completos</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G2-Oscilaciones-libres-en-medios-continuos.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G2-Oscilaciones-libres-en-medios-continuos.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">03</span>
+          <div class="pdf-card-title">Propagación de ondas en medios continuos</div>
+          <div class="pdf-card-subtitle">G3 · Problemas resueltos completos</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G3-Propagacion-de-ondas-en-medios-continuos.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G3-Propagacion-de-ondas-en-medios-continuos.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">04</span>
+          <div class="pdf-card-title">Descripción geométrica de fenómenos ondulatorios</div>
+          <div class="pdf-card-subtitle">G4 · Problemas resueltos completos</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G4-Descripcion-geometrica-de-fenomenos-ondulatorios.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G4-Descripcion-geometrica-de-fenomenos-ondulatorios.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">05</span>
+          <div class="pdf-card-title">Polarización</div>
+          <div class="pdf-card-subtitle">G5 · Problemas resueltos completos</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G5-Polarizacion.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G5-Polarizacion.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">06</span>
+          <div class="pdf-card-title">Interferencia</div>
+          <div class="pdf-card-subtitle">G6 · Problemas resueltos completos</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G6-Interferencia.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G6-Interferencia.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+        <div class="pdf-card">
+          <span class="pdf-card-num">07</span>
+          <div class="pdf-card-title">Difracción</div>
+          <div class="pdf-card-subtitle">G7 · Problemas resueltos completos</div>
+          <div class="pdf-card-actions">
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G7-Difraccion.pdf" target="_blank" class="pdf-btn pdf-btn-primary">▶ Ver PDF</a>
+            <a href="https://gerarfisica.github.io/pdf_Fisica2/G7-Difraccion.pdf" download class="pdf-btn">⬇ Descargar</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="index.html">← Volver al inicio</a></p>
+</footer>
+
+
+<script>
+// ---- PARTICLES ----
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+
+function createParticles() {
+  particles = [];
+  const count = Math.floor((W * H) / 8000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.15,
+      alpha: Math.random() * 0.6 + 0.2,
+      blue: Math.random() > 0.85
+    });
+  }
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.blue ? `rgba(0,212,255,${p.alpha})` : `rgba(180,195,240,${p.alpha})`;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+  }
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(26,108,245,${0.08*(1-dist/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+
+resize(); createParticles(); drawParticles();
+window.addEventListener('resize', () => { resize(); createParticles(); });
+
+// ---- SCROLL FADE IN ----
+const faders = document.querySelectorAll('.fade-in');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => { entry.target.classList.add('visible'); }, i * 150);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+faders.forEach(fader => observer.observe(fader));
+</script>
+
 </body>
 </html>

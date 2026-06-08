@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gnuplot | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--green:#00ff9f;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .code-block{background:rgba(0,0,0,0.5);border:1px solid var(--border);border-left:3px solid var(--green);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--green);letter-spacing:0.02em;position:relative;white-space:pre;overflow-x:auto;line-height:1.6;}.code-block::before{content:'GNUPLOT';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--green);background:var(--bg);padding:0 0.5rem;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:2rem 0;}
+    .resource-card{background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;text-decoration:none;transition:border-color 0.2s,transform 0.2s;display:block;}.resource-card:hover{border-color:var(--cyan);transform:translateY(-2px);}.resource-card .rc-type{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:0.5rem;}.resource-card .rc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);margin-bottom:0.3rem;}.resource-card .rc-desc{font-family:'Crimson Pro',serif;font-size:0.9rem;color:var(--gray);}
+    .video-card{background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;text-decoration:none;transition:border-color 0.2s;display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.75rem;}.video-card:hover{border-color:var(--accent);}.video-card .vc-icon{font-size:1.8rem;flex-shrink:0;}.video-card .vc-info .vc-type{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.3rem;}.video-card .vc-info .vc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);margin-bottom:0.2rem;}.video-card .vc-info .vc-desc{font-family:'Crimson Pro',serif;font-size:0.9rem;color:var(--gray);}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.resource-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="index.html#herramientas" class="nav-back">Herramientas</a></nav>
+
+<div class="article-hero">
+  <div class="article-meta">Herramientas <span>·</span> Programación y Análisis de Datos</div>
+  <h1>📈 Gnuplot:<br><span class="hl">Gráficos desde</span><br>la Terminal</h1>
+  <p class="article-subtitle">La herramienta de graficación científica más veterana y portátil — integración perfecta con LaTeX, scripts reproducibles y cero dependencias</p>
+  <div class="article-tags"><span class="tag active">// Gnuplot</span><span class="tag">Graficación</span><span class="tag">LaTeX</span><span class="tag">Terminal</span><span class="tag">Ajuste de Curvas</span></div>
+</div>
+
+<div class="article-container">
+
+  <p>Gnuplot existe desde 1986 — antes que Python, antes que R, antes que MATLAB tuviera interfaz gráfica. Y sigue activo, actualizado y siendo usado por miles de científicos. No tiene interfaz gráfica propia: se opera desde la terminal con comandos de texto, lo que lo hace ideal para automatizar la generación de gráficos en scripts, integrar directamente con LaTeX y reproducir figuras exactamente iguales en cualquier computadora sin depender de ningún lenguaje de programación.</p>
+
+  <p>¿Por qué usar Gnuplot en 2025 cuando existe Matplotlib? Porque Gnuplot hace <strong>una sola cosa y la hace extremadamente bien</strong>: graficar datos. No necesita Python, ni R, ni ningún ecosistema. Un archivo de datos CSV y un script de tres líneas producen un gráfico con calidad de publicación en PDF, EPS o LaTeX puro (tikz). Para un físico que trabaja en Linux con LaTeX, Gnuplot es la forma más directa de ir de "datos crudos" a "figura en el informe".</p>
+
+  <h2>¿Para qué sirve en física?</h2>
+
+  <p>Gnuplot es especialmente útil en tres contextos: generación rápida de gráficos desde la terminal para explorar datos, producción de figuras de alta calidad para informes LaTeX, y ajuste de curvas no lineales directamente integrado con la graficación. Su terminal <strong>epslatex</strong> produce figuras donde los labels y ecuaciones son renderizados por el propio LaTeX del documento — tipografía perfectamente consistente.</p>
+
+  <div class="math-block">Ventajas de Gnuplot para el flujo de trabajo en física:
+· No requiere Python, R ni ningún lenguaje adicional
+· Terminal epslatex: figuras con tipografía LaTeX nativa
+· Ajuste de curvas integrado (fit) con incertezas
+· Scripts reproducibles de 5 líneas → gráfico publicable
+· Funciona en cualquier Linux/Mac/Windows sin instalación pesada
+· Lee directamente CSV, TSV, datos en columnas
+· Ideal para automatizar con Bash: loop → datos → gráfico</div>
+
+  <div class="analogy-box">
+    <p><strong>Gnuplot es a Matplotlib lo que vim es a VS Code:</strong> minimalista, rápido, opera desde la terminal, no necesita interfaz gráfica. Tiene una curva de aprendizaje inicial, pero una vez que dominás los comandos, producís gráficos más rápido que con cualquier otro método. Y como los scripts son texto puro, se versionan con Git perfectamente.</p>
+  </div>
+
+  <h2>Instalación</h2>
+
+  <div class="code-block"># Linux (Ubuntu/Debian)
+sudo apt install gnuplot
+
+# macOS
+brew install gnuplot
+
+# Windows
+# Descargar desde http://www.gnuplot.info/download.html
+
+# Verificar instalación
+gnuplot --version
+
+# Iniciar la consola interactiva
+gnuplot
+
+# Para salir
+gnuplot> quit</div>
+
+  <h2>Ejemplo de uso: datos experimentales con ajuste</h2>
+
+  <p>Ejemplo completo: un archivo de datos de laboratorio, un script Gnuplot que hace el ajuste y el gráfico, y la salida lista para incluir en LaTeX.</p>
+
+  <div class="code-block"># ---- Archivo de datos: pendulo.dat ----
+# L(m)    T(s)    dT(s)
+0.20    0.90    0.02
+0.35    1.19    0.02
+0.50    1.42    0.03
+0.65    1.62    0.03
+0.80    1.79    0.03
+1.00    2.01    0.04</div>
+
+  <div class="code-block"># ---- Script: grafico_pendulo.gp ----
+# Gnuplot script para ajustar T = a * L^n
+
+# Modelo
+f(x) = a * x**n
+a = 2.0      # valor inicial
+n = 0.5      # valor inicial
+
+# Ajuste con pesos (columna 3 = incerteza)
+fit f(x) 'pendulo.dat' using 1:2:3 via a, n
+
+# Configuración del gráfico
+set terminal pdfcairo enhanced font "Helvetica,12" size 5,3.5
+set output 'pendulo_ajuste.pdf'
+
+set xlabel 'Longitud L (m)'
+set ylabel 'Período T (s)'
+set title 'Péndulo simple: T vs L'
+set key top left
+
+set grid
+set style data points
+
+# Gráfico: datos con barras de error + curva ajustada
+plot 'pendulo.dat' using 1:2:3 with yerrorbars \
+     title 'Datos experimentales' pt 7 ps 1.2 lc rgb '#00d4ff', \
+     f(x) title sprintf("Ajuste: T = %.3f · L^{%.3f}", a, n) \
+     lw 2 lc rgb '#f5a623'
+
+# Para ejecutar: gnuplot grafico_pendulo.gp</div>
+
+  <div class="tech-note">
+    <p><strong>Terminal epslatex:</strong> Para integración perfecta con LaTeX, la terminal <code style="font-family:'Space Mono',monospace;color:var(--cyan);font-size:0.85rem;">set terminal epslatex</code> genera dos archivos: un .eps con las curvas y un .tex con los labels. Al incluirlo en el documento LaTeX con <code style="font-family:'Space Mono',monospace;color:var(--cyan);font-size:0.85rem;">\input{grafico.tex}</code>, las etiquetas usan exactamente la misma tipografía que el resto del documento — incluyendo ecuaciones en los ejes. Es la forma más elegante de generar figuras consistentes con el texto.</p>
+  </div>
+
+  <div class="info-box">
+    <h4>Gnuplot + Bash: automatización de gráficos en laboratorio</h4>
+    <p>La combinación Gnuplot + Bash es poderosa para procesar datos de laboratorio en batch. Un script Bash puede recorrer 50 archivos de datos, ejecutar Gnuplot con cada uno, y generar 50 PDFs listos para incluir en un informe — todo en un comando. Cuando tenés mediciones repetidas o barridos de parámetros, esta automatización ahorra horas de trabajo manual.</p>
+  </div>
+
+  <h2>Recursos y links</h2>
+
+  <div class="resource-grid">
+    <a href="http://www.gnuplot.info/" target="_blank" class="resource-card">
+      <div class="rc-type">🌐 Página oficial</div>
+      <div class="rc-title">gnuplot.info</div>
+      <div class="rc-desc">Descarga, documentación oficial, FAQ y demos interactivos</div>
+    </a>
+    <a href="http://www.gnuplot.info/docs_5.4/Gnuplot_5_4.pdf" target="_blank" class="resource-card">
+      <div class="rc-type">📚 Manual</div>
+      <div class="rc-title">Manual oficial (PDF)</div>
+      <div class="rc-desc">Referencia completa de todos los comandos, terminales y opciones de Gnuplot</div>
+    </a>
+    <a href="http://www.gnuplotting.org/" target="_blank" class="resource-card">
+      <div class="rc-type">🎨 Galería</div>
+      <div class="rc-title">gnuplotting.org</div>
+      <div class="rc-desc">Galería de ejemplos con código fuente. El mejor recurso visual para aprender.</div>
+    </a>
+    <a href="http://www.gnuplot.info/demos/" target="_blank" class="resource-card">
+      <div class="rc-type">🎮 Demos</div>
+      <div class="rc-title">Demos oficiales</div>
+      <div class="rc-desc">Cientos de demos con código: scatter, 3D, contornos, mapas de color, animaciones</div>
+    </a>
+    <a href="https://github.com/Gnuplotting/gnuplot-palettes" target="_blank" class="resource-card">
+      <div class="rc-type">🎨 Paletas de color</div>
+      <div class="rc-title">gnuplot-palettes</div>
+      <div class="rc-desc">Paletas de color profesionales para Gnuplot: viridis, magma, inferno y más</div>
+    </a>
+    <a href="http://www.gnuplot.info/faq/" target="_blank" class="resource-card">
+      <div class="rc-type">❓ FAQ</div>
+      <div class="rc-title">Gnuplot FAQ</div>
+      <div class="rc-desc">Preguntas frecuentes. Resuelve los problemas más comunes rápidamente.</div>
+    </a>
+  </div>
+
+  <p>Videos tutoriales recomendados:</p>
+
+  <a href="https://www.youtube.com/watch?v=AwRzky0mNwY" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · Luke Smith</div>
+      <div class="vc-title">Gnuplot Basics – Graphs in the Terminal</div>
+      <div class="vc-desc">Introducción concisa desde la terminal. Ideal para empezar en 15 minutos.</div>
+    </div>
+  </a>
+
+  <a href="https://www.youtube.com/watch?v=WE-rBkgAUjw" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · gnuplot demos</div>
+      <div class="vc-title">Gnuplot Tutorial – Fitting Data</div>
+      <div class="vc-desc">Tutorial específico de ajuste de curvas con fit. Exactamente lo que necesita un laboratorio.</div>
+    </div>
+  </a>
+
+  <a href="https://www.youtube.com/watch?v=9jU4X6SFIRI" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · Gnuplot epslatex</div>
+      <div class="vc-title">Gnuplot + LaTeX: epslatex terminal</div>
+      <div class="vc-desc">Cómo generar figuras con tipografía LaTeX perfecta usando la terminal epslatex.</div>
+    </div>
+  </a>
+
+  <div class="closing">
+    <p>Gnuplot no es glamoroso, no tiene interfaz bonita ni comunidad de Instagram. Pero cuando necesitás un gráfico rápido desde la terminal, una figura que se integre perfecto con LaTeX, o automatizar la producción de cientos de gráficos con un script de Bash — Gnuplot sigue siendo la herramienta más eficiente. Lleva casi 40 años haciendo exactamente eso, y en un mundo donde las herramientas de moda cambian cada dos años, esa estabilidad tiene un valor enorme para la ciencia reproducible.</p>
+  </div>
+
+</div>
+
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="index.html#herramientas" class="back-btn">← Volver a herramientas</a>
+</div>
+
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zotero | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--green:#00ff9f;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .code-block{background:rgba(0,0,0,0.5);border:1px solid var(--border);border-left:3px solid var(--green);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--green);letter-spacing:0.02em;position:relative;white-space:pre;overflow-x:auto;line-height:1.6;}.code-block::before{content:'BibTeX';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--green);background:var(--bg);padding:0 0.5rem;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:2rem 0;}
+    .resource-card{background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;text-decoration:none;transition:border-color 0.2s,transform 0.2s;display:block;}.resource-card:hover{border-color:var(--cyan);transform:translateY(-2px);}.resource-card .rc-type{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:0.5rem;}.resource-card .rc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);margin-bottom:0.3rem;}.resource-card .rc-desc{font-family:'Crimson Pro',serif;font-size:0.9rem;color:var(--gray);}
+    .video-card{background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;text-decoration:none;transition:border-color 0.2s;display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.75rem;}.video-card:hover{border-color:var(--accent);}.video-card .vc-icon{font-size:1.8rem;flex-shrink:0;}.video-card .vc-info .vc-type{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.3rem;}.video-card .vc-info .vc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);margin-bottom:0.2rem;}.video-card .vc-info .vc-desc{font-family:'Crimson Pro',serif;font-size:0.9rem;color:var(--gray);}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.resource-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="index.html#herramientas" class="nav-back">Herramientas</a></nav>
+
+<div class="article-hero">
+  <div class="article-meta">Herramientas <span>·</span> Escritura y Publicación Científica</div>
+  <h1>📚 Zotero:<br><span class="hl">Gestión de</span><br>Bibliografía</h1>
+  <p class="article-subtitle">BibTeX, citas automáticas y organización de papers — el gestor bibliográfico que todo investigador termina necesitando</p>
+  <div class="article-tags"><span class="tag active">// Zotero</span><span class="tag">BibTeX</span><span class="tag">Bibliografía</span><span class="tag">Papers</span><span class="tag">arXiv</span></div>
+</div>
+
+<div class="article-container">
+
+  <p>Gestionar referencias bibliográficas manualmente es una de las tareas más frustrantes de la escritura científica. Copiar datos de papers a mano, mantener un archivo .bib actualizado, verificar que el formato sea exactamente el que pide el journal, asegurarse de que cada cita en el texto tenga su entrada en la bibliografía y viceversa: todo eso es propenso a errores y consume tiempo que debería estar dedicado a la física. Zotero automatiza todo este proceso.</p>
+
+  <p><strong>Zotero</strong> es un gestor de referencias bibliográficas gratuito y de código abierto. Permite guardar papers, libros y recursos web en una biblioteca organizada, importarlos directamente desde el navegador (con un clic en una página de arXiv, Physical Review o Google Scholar), y exportar la bibliografía en formato BibTeX para usar con LaTeX. Con el plugin para Word también funciona fuera de LaTeX, pero para un físico la integración BibTeX es la clave.</p>
+
+  <h2>¿Para qué sirve en física?</h2>
+
+  <p>Cualquier documento que requiera citas bibliográficas —un informe de laboratorio con antecedentes, un trabajo práctico, la introducción de una tesis, un paper— se beneficia de Zotero. Permite capturar la referencia completa de un paper en arXiv o Physical Review con un clic (título, autores, DOI, abstract, año, journal), organizar los papers por tema o proyecto, y exportar la bibliografía como archivo .bib listo para usar en LaTeX. Cuando el mismo paper aparece en 15 documentos distintos, Zotero lo gestiona una vez y lo reutiliza en todos.</p>
+
+  <div class="math-block">Flujo de trabajo típico con Zotero + LaTeX:
+1. Encontrás un paper relevante en arXiv o APS
+2. Hacés click en el conector de Zotero en el navegador
+3. Zotero importa automáticamente todos los metadatos
+4. Exportás tu biblioteca (o colección) como .bib
+5. En LaTeX: \bibliography{mi_biblioteca}
+6. Cada \cite{Dirac1928} se formatea automáticamente</div>
+
+  <h2>Instalación</h2>
+
+  <div class="code-block"># 1. Descargar Zotero desde https://www.zotero.org/download/
+#    (disponible para Windows, macOS y Linux)
+
+# 2. Instalar el conector del navegador (Zotero Connector)
+#    Chrome: https://chrome.google.com/webstore/
+#    Firefox: https://addons.mozilla.org/
+#    El conector detecta automáticamente papers en:
+#    arXiv, APS, AIP, Elsevier, Springer, Google Scholar...
+
+# 3. (Opcional) Crear cuenta en zotero.org para sincronización
+#    La nube gratuita incluye 300 MB para PDFs
+
+# No requiere configuración adicional para uso básico
+# Para LaTeX: File → Export Library → BibTeX (.bib)</div>
+
+  <h2>Ejemplo de uso: from arXiv to BibTeX</h2>
+
+  <p>El flujo completo desde encontrar un paper hasta citarlo en LaTeX, sin escribir una sola línea de BibTeX manualmente:</p>
+
+  <div class="code-block">% PASO 1: En el navegador, vas a
+% https://arxiv.org/abs/1905.09272 (por ejemplo)
+% Hacés click en el ícono de Zotero en la barra del navegador
+% Zotero importa automáticamente: título, autores, año, DOI, abstract
+
+% PASO 2: En Zotero, click derecho en la colección → Export Collection
+% Formato: BibTeX → guardar como "referencias.bib"
+
+% Lo que Zotero genera automáticamente:
+@article{Maas2019,
+  title   = {The Gribov problem and QCD dynamics},
+  author  = {Maas, Axel},
+  journal = {Physics Reports},
+  volume  = {524},
+  number  = {4},
+  pages   = {203--300},
+  year    = {2019},
+  doi     = {10.1016/j.physrep.2012.11.002}
+}
+
+% PASO 3: En tu documento LaTeX
+\usepackage[backend=bibtex, style=unsrt]{biblatex}
+\addbibresource{referencias.bib}
+
+% En el texto:
+La cromodinámica cuántica presenta el problema de Gribov
+en el gauge de Landau \cite{Maas2019}.
+
+% Al compilar, LaTeX formatea automáticamente la cita y
+% genera la sección de bibliografía con el estilo correcto</div>
+
+  <div class="tech-note">
+    <p><strong>BibTeX vs BibLaTeX:</strong> BibTeX es el sistema clásico y es suficiente para la mayoría de los documentos. BibLaTeX es el sucesor moderno con más opciones de formato y mejor manejo de caracteres Unicode. Para física, el estilo <strong>unsrt</strong> (referencias en orden de aparición) es el más común. Physical Review usa su propio estilo: <strong>apsrev4-2.bst</strong>, incluido en la plantilla oficial de APS para Overleaf.</p>
+  </div>
+
+  <div class="info-box">
+    <h4>Zotero + arXiv: captura perfecta</h4>
+    <p>arXiv es el repositorio donde se publica prácticamente toda la física moderna antes de la revisión formal. El conector de Zotero reconoce las páginas de arXiv automáticamente: al visitar <strong>arxiv.org/abs/xxxx.xxxxx</strong> aparece el ícono de Zotero en el navegador listo para importar. También descarga automáticamente el PDF del paper y lo adjunta a la referencia en tu biblioteca. Toda la física que leés, organizada en un clic.</p>
+  </div>
+
+  <h2>Recursos y links</h2>
+
+  <div class="resource-grid">
+    <a href="https://www.zotero.org/" target="_blank" class="resource-card">
+      <div class="rc-type">🌐 Página oficial</div>
+      <div class="rc-title">Zotero</div>
+      <div class="rc-desc">Descarga, documentación y foros de soporte oficial</div>
+    </a>
+    <a href="https://www.zotero.org/download/connectors" target="_blank" class="resource-card">
+      <div class="rc-type">🔌 Plugin</div>
+      <div class="rc-title">Zotero Connector</div>
+      <div class="rc-desc">Plugin para Chrome, Firefox y Safari para capturar referencias con un clic</div>
+    </a>
+    <a href="https://www.zotero.org/support/quick_start_guide" target="_blank" class="resource-card">
+      <div class="rc-type">📚 Guía</div>
+      <div class="rc-title">Quick Start Guide</div>
+      <div class="rc-desc">Guía oficial de inicio rápido. En 10 minutos tenés Zotero funcionando.</div>
+    </a>
+    <a href="https://www.zotero.org/support/word_processor_integration" target="_blank" class="resource-card">
+      <div class="rc-type">📄 Integración</div>
+      <div class="rc-title">Zotero + Word / LibreOffice</div>
+      <div class="rc-desc">Plugin para usar Zotero directamente en procesadores de texto</div>
+    </a>
+    <a href="https://zbib.org/" target="_blank" class="resource-card">
+      <div class="rc-type">⚡ Alternativa rápida</div>
+      <div class="rc-title">ZBib</div>
+      <div class="rc-desc">Generador de bibliografía online sin instalación. Ideal para trabajos puntuales.</div>
+    </a>
+    <a href="https://scholar.google.com/" target="_blank" class="resource-card">
+      <div class="rc-type">🔍 Fuente de referencias</div>
+      <div class="rc-title">Google Scholar</div>
+      <div class="rc-desc">Buscador académico. Zotero lo reconoce automáticamente para importar referencias.</div>
+    </a>
+  </div>
+
+  <p>Videos tutoriales recomendados:</p>
+
+  <a href="https://www.youtube.com/watch?v=JG7Uq_JFDzE" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · Scribbr</div>
+      <div class="vc-title">Getting Started with Zotero (Tutorial)</div>
+      <div class="vc-desc">Tutorial completo en inglés: instalación, organización y citas automáticas.</div>
+    </div>
+  </a>
+
+  <a href="https://www.youtube.com/watch?v=BQL_7C-YqBk" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · Aprendiendo con Víctor</div>
+      <div class="vc-title">Zotero desde CERO en español</div>
+      <div class="vc-desc">Tutorial completo en castellano. Instalación, biblioteca y exportación a BibTeX.</div>
+    </div>
+  </a>
+
+  <a href="https://www.youtube.com/watch?v=Kc8GSBzGHt8" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · Research Rabbit</div>
+      <div class="vc-title">Zotero + LaTeX Workflow</div>
+      <div class="vc-desc">Integración específica Zotero-LaTeX-BibTeX. El flujo que necesita un físico.</div>
+    </div>
+  </a>
+
+  <div class="closing">
+    <p>Zotero es la diferencia entre tener una "lista de papers que leí" y tener una biblioteca científica organizada y utilizable. Una vez que tenés cientos de referencias acumuladas a lo largo de la carrera, la diferencia entre encontrar lo que necesitás en 10 segundos o en 20 minutos es exactamente Zotero. Para la tesis, donde la bibliografía puede tener 100 o 200 entradas, no tenerlo no es una opción real.</p>
+  </div>
+
+</div>
+
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="index.html#herramientas" class="back-btn">← Volver a herramientas</a>
+</div>
+
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

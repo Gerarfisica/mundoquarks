@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Julia para Físicos | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--green:#00ff9f;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .code-block{background:rgba(0,0,0,0.5);border:1px solid var(--border);border-left:3px solid var(--green);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--green);letter-spacing:0.02em;position:relative;white-space:pre;overflow-x:auto;line-height:1.6;}.code-block::before{content:'JULIA';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--green);background:var(--bg);padding:0 0.5rem;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .eq-rendered{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.5rem 2rem;margin:2rem 0;text-align:center;position:relative;font-size:1.1rem;}.eq-rendered::before{content:'ECUACIÓN';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:2rem 0;}
+    .resource-card{background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;text-decoration:none;transition:border-color 0.2s,transform 0.2s;display:block;}.resource-card:hover{border-color:var(--cyan);transform:translateY(-2px);}.resource-card .rc-type{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:0.5rem;}.resource-card .rc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);margin-bottom:0.3rem;}.resource-card .rc-desc{font-family:'Crimson Pro',serif;font-size:0.9rem;color:var(--gray);}
+    .video-card{background:var(--card-bg);border:1px solid var(--border);padding:1.5rem;text-decoration:none;transition:border-color 0.2s;display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.75rem;}.video-card:hover{border-color:var(--accent);}.video-card .vc-icon{font-size:1.8rem;flex-shrink:0;}.video-card .vc-info .vc-type{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.3rem;}.video-card .vc-info .vc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--white);margin-bottom:0.2rem;}.video-card .vc-info .vc-desc{font-family:'Crimson Pro',serif;font-size:0.9rem;color:var(--gray);}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.resource-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="index.html#herramientas" class="nav-back">Herramientas</a></nav>
+
+<div class="article-hero">
+  <div class="article-meta">Herramientas <span>·</span> Programación y Análisis de Datos</div>
+  <h1>⚡ Julia:<br><span class="hl">Velocidad C,</span><br>Sintaxis Python</h1>
+  <p class="article-subtitle">El lenguaje diseñado desde cero para cómputo científico de alto rendimiento — tan fácil de escribir como Python, tan rápido como Fortran</p>
+  <div class="article-tags"><span class="tag active">// Julia</span><span class="tag">Alto Rendimiento</span><span class="tag">EDOs</span><span class="tag">Cómputo Científico</span><span class="tag">DifferentialEquations.jl</span></div>
+</div>
+
+<div class="article-container">
+
+  <p>Julia nació en 2012 en el MIT con un objetivo ambicioso: resolver el <strong>"problema de los dos lenguajes"</strong> en ciencia computacional. Históricamente, los científicos prototipaban en lenguajes lentos pero cómodos (Python, MATLAB, R) y luego reescribían el código en C o Fortran cuando necesitaban velocidad. Julia propone que no haga falta: un único lenguaje con la legibilidad de Python y el rendimiento compilado de C.</p>
+
+  <p>Para un físico, la promesa es concreta: escribir una simulación de dinámica molecular, un integrador de EDOs o un solver de ecuaciones de Boltzmann con una sintaxis que parece pseudocódigo matemático, y que corra a velocidad nativa sin modificaciones. No se trata de un lenguaje del futuro — Julia ya se usa en producción en el MIT, Caltech, la NASA, el Federal Reserve y varios laboratorios de física de altas energías.</p>
+
+  <h2>¿Para qué sirve en física?</h2>
+
+  <p>Julia brilla en los problemas donde Python se queda corto en velocidad: simulaciones numéricas intensivas, resolución de sistemas grandes de EDOs, métodos de Monte Carlo, y cualquier cálculo que requiera loops explícitos rápidos. Mientras que en Python un loop de un millón de iteraciones puede tardar segundos, en Julia tarda lo mismo que en C — sin necesidad de vectorizar ni usar extensiones compiladas.</p>
+
+  <div class="math-block">Áreas donde Julia supera a Python en física:
+· Integración numérica de EDOs/EDPs con alta precisión
+· Simulaciones de dinámica molecular (N-body)
+· Métodos de Monte Carlo (Ising, metropolis)
+· Álgebra lineal densa y dispersa a gran escala
+· Diferenciación automática (AD) para gradientes exactos
+· Paralelización nativa (multithreading y GPU)</div>
+
+  <p>El ecosistema de Julia para física está centrado en <strong>DifferentialEquations.jl</strong>, probablemente la mejor biblioteca de resolución de ecuaciones diferenciales del mundo — con más de 300 métodos numéricos, detección automática de stiffness, sensibilidad a parámetros y soporte nativo para ecuaciones estocásticas. Es la razón principal por la que muchos grupos de investigación están migrando sus códigos de simulación a Julia.</p>
+
+  <div class="eq-rendered">
+    \[ \frac{d\mathbf{u}}{dt} = f(\mathbf{u}, p, t) \qquad \text{DifferentialEquations.jl resuelve esto con 300+ métodos} \]
+  </div>
+
+  <h2>Instalación</h2>
+
+  <div class="code-block"># Descargar desde https://julialang.org/downloads/
+# Disponible para Windows, macOS y Linux
+
+# En Linux (Ubuntu):
+curl -fsSL https://install.julialang.org | sh
+
+# Verificar instalación
+julia --version
+
+# Iniciar la consola interactiva (REPL)
+julia
+
+# Instalar paquetes desde la REPL (presionar ] para modo Pkg)
+# julia> ]
+# pkg> add DifferentialEquations Plots LinearAlgebra
+
+# O desde código:
+using Pkg
+Pkg.add(["DifferentialEquations", "Plots", "LinearAlgebra"])</div>
+
+  <div class="tech-note">
+    <p><strong>Compilación JIT:</strong> Julia usa compilación Just-In-Time (JIT) via LLVM. La primera vez que ejecutás una función, Julia la compila a código máquina nativo — esto causa un pequeño delay inicial ("time to first plot"). Las ejecuciones subsiguientes corren a velocidad C. Para sesiones interactivas, el paquete <strong>Revise.jl</strong> permite recargar código sin recompilar todo. Es una quirk del lenguaje que puede sorprender al principio, pero que explica por qué Julia es tan rápido.</p>
+  </div>
+
+  <h2>Ejemplo de uso: oscilador de Van der Pol</h2>
+
+  <p>Ejemplo de resolución de una EDO no lineal con DifferentialEquations.jl — el oscilador de Van der Pol, un sistema clásico de dinámica no lineal que aparece en electrónica, biología y mecánica:</p>
+
+  <div class="code-block">using DifferentialEquations
+using Plots
+
+# Oscilador de Van der Pol: x'' - μ(1-x²)x' + x = 0
+# Reescrito como sistema de primer orden:
+# dx/dt = y
+# dy/dt = μ(1-x²)y - x
+
+function vanderpol!(du, u, p, t)
+    x, y = u
+    μ = p[1]
+    du[1] = y
+    du[2] = μ * (1 - x^2) * y - x
+end
+
+# Condiciones iniciales y parámetros
+u0 = [0.1, 0.0]         # [x₀, y₀]
+tspan = (0.0, 40.0)     # intervalo de tiempo
+μ = 3.0                  # parámetro de no linealidad
+
+# Resolver
+prob = ODEProblem(vanderpol!, u0, tspan, [μ])
+sol = solve(prob, Tsit5())   # método Runge-Kutta adaptativo
+
+# Gráfico temporal
+p1 = plot(sol, idxs=(0,1), xlabel="Tiempo t", ylabel="x(t)",
+          title="Oscilador de Van der Pol (μ=$μ)",
+          label="x(t)", linecolor=:cyan)
+
+# Espacio de fases
+p2 = plot(sol, idxs=(1,2), xlabel="x", ylabel="dx/dt",
+          title="Espacio de fases",
+          label="trayectoria", linecolor=:orange)
+
+plot(p1, p2, layout=(1,2), size=(900,400))
+savefig("vanderpol.pdf")</div>
+
+  <div class="info-box">
+    <h4>Julia vs Python: ¿cuándo vale la pena el cambio?</h4>
+    <p>Si tu código Python corre en minutos y estás conforme, no hay razón para migrar. Julia vale la pena cuando: (1) tus simulaciones tardan horas y el cuello de botella está en loops numéricos, (2) necesitás diferenciación automática para optimización o machine learning físico, (3) querés paralelizar sin reescribir en C/C++, o (4) trabajás con ecuaciones diferenciales complejas donde DifferentialEquations.jl no tiene equivalente en Python. Muchos investigadores usan ambos: Python para análisis de datos y graficación, Julia para la simulación pesada.</p>
+  </div>
+
+  <h2>Recursos y links</h2>
+
+  <div class="resource-grid">
+    <a href="https://julialang.org/" target="_blank" class="resource-card">
+      <div class="rc-type">🌐 Página oficial</div>
+      <div class="rc-title">julialang.org</div>
+      <div class="rc-desc">Descarga, documentación oficial y blog con novedades del lenguaje</div>
+    </a>
+    <a href="https://docs.sciml.ai/DiffEqDocs/stable/" target="_blank" class="resource-card">
+      <div class="rc-type">📚 Documentación</div>
+      <div class="rc-title">DifferentialEquations.jl</div>
+      <div class="rc-desc">La mejor biblioteca de EDOs del mundo. Documentación completa con ejemplos.</div>
+    </a>
+    <a href="https://juliaacademy.com/" target="_blank" class="resource-card">
+      <div class="rc-type">🎓 Cursos gratuitos</div>
+      <div class="rc-title">Julia Academy</div>
+      <div class="rc-desc">Cursos oficiales gratuitos: desde introducción hasta machine learning</div>
+    </a>
+    <a href="https://book.sciml.ai/" target="_blank" class="resource-card">
+      <div class="rc-type">📖 Libro</div>
+      <div class="rc-title">Parallel Computing and SciML</div>
+      <div class="rc-desc">Libro del MIT: Julia para cómputo científico paralelo. Gratis online.</div>
+    </a>
+    <a href="https://docs.julialang.org/en/v1/" target="_blank" class="resource-card">
+      <div class="rc-type">📚 Manual</div>
+      <div class="rc-title">Julia Manual</div>
+      <div class="rc-desc">Manual oficial del lenguaje. Referencia completa de sintaxis y tipos.</div>
+    </a>
+    <a href="https://juliapackages.com/" target="_blank" class="resource-card">
+      <div class="rc-type">📦 Paquetes</div>
+      <div class="rc-title">Julia Packages</div>
+      <div class="rc-desc">Directorio de todos los paquetes Julia disponibles, por categoría y popularidad</div>
+    </a>
+  </div>
+
+  <p>Videos tutoriales recomendados:</p>
+
+  <a href="https://www.youtube.com/watch?v=sE67bP2PnOo" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · freeCodeCamp</div>
+      <div class="vc-title">Julia Programming for Beginners</div>
+      <div class="vc-desc">Curso completo de Julia desde cero. Cubre sintaxis, tipos, funciones y paquetes.</div>
+    </div>
+  </a>
+
+  <a href="https://www.youtube.com/watch?v=4igzy3bGVkQ" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · The Julia Programming Language</div>
+      <div class="vc-title">Intro to Julia (MIT Computational Thinking)</div>
+      <div class="vc-desc">Conferencia introductoria del MIT. Julia aplicado a ciencia computacional.</div>
+    </div>
+  </a>
+
+  <a href="https://www.youtube.com/watch?v=Fi7Pkjy8EeI" target="_blank" class="video-card">
+    <div class="vc-icon">▶️</div>
+    <div class="vc-info">
+      <div class="vc-type">YouTube · Doggo dot jl</div>
+      <div class="vc-title">DifferentialEquations.jl Tutorial</div>
+      <div class="vc-desc">Tutorial específico de DifferentialEquations.jl con ejemplos de física y biología.</div>
+    </div>
+  </a>
+
+  <div class="closing">
+    <p>Julia es una apuesta al futuro del cómputo científico. No reemplaza a Python para todo — Python sigue siendo superior en ecosistema, comunidad y herramientas de análisis de datos general. Pero para los problemas donde la velocidad importa — simulaciones numéricas, integración de EDOs, Monte Carlo, optimización — Julia ofrece algo que Python no puede: rendimiento nativo sin sacrificar la claridad del código. En un laboratorio donde una simulación pasa de tardar 8 horas a tardar 15 minutos, esa diferencia es transformadora.</p>
+  </div>
+
+</div>
+
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="index.html#herramientas" class="back-btn">← Volver a herramientas</a>
+</div>
+
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

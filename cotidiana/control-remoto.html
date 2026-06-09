@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El control remoto de la tele | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#vida-cotidiana">Vida Cotidiana</a><span>/</span>
+    El control remoto
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física en la Vida Cotidiana · Electromagnetismo · Óptica · Gadgets</div>
+  <h1>El control remoto <span>de la tele</span></h1>
+  <p class="art-subtitle">Diodos emisores de luz infrarroja y por qué la cámara del celular ve lo que el ojo humano no puede</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Longitud de onda IR</strong>850–950 nm (infrarrojo cercano)</div><div class="art-meta-item"><strong>Protocolo típico</strong>NEC, RC-5, Sony SIRCS</div><div class="art-meta-item"><strong>Frecuencia portadora</strong>36–40 kHz</div></div>
+</div>
+<article class="art-body">
+
+  <p>Apuntás el control remoto a la tele y cambiás de canal. Nadie lo piensa dos veces. Pero si apuntás el control remoto a la cámara del celular y apretás un botón, ves destellos violáceos o blancos que el ojo humano no puede percibir. Ese experimento revela algo fundamental sobre la naturaleza de la luz y los límites de la percepción humana: el control remoto emite luz infrarroja invisible, y la cámara del celular es más sensible que el ojo en ese rango.</p>
+
+  <h2>La Luz Infrarroja: Más Allá del Rojo</h2>
+  <p>El espectro electromagnético visible para el ojo humano va de unos 380 nm (violeta) a unos 700 nm (rojo). Más allá del rojo, con longitudes de onda entre 700 nm y 1 mm, está el <strong>infrarrojo</strong>. El control remoto usa infrarrojo cercano (NIR), típicamente a 850–950 nm.</p>
+
+  <p>El ojo humano tiene fotorreceptores (conos y bastones) que responden al rango visible pero son prácticamente insensibles al NIR. Los sensores CMOS de las cámaras digitales, en cambio, responden bien hasta unos 1100 nm. Los fabricantes de cámaras ponen un filtro de paso de luz visible (filtro IR-cut) delante del sensor para que las fotos tengan colores naturales. Pero ese filtro no es perfecto: deja pasar algo de NIR, especialmente el cercano a 850–950 nm del control remoto. Por eso la cámara lo ve y el ojo no.</p>
+
+  <h2>El LED Infrarrojo: Diodo Emisor de Luz</h2>
+  <p>El elemento emisor del control es un LED (diodo emisor de luz) de arseniuro de galio-aluminio (GaAlAs) o arseniuro de galio (GaAs). Como cualquier LED, emite fotones cuando los electrones cruzan la unión p-n y caen a un nivel de menor energía. La energía del fotón emitido corresponde al gap del semiconductor:</p>
+
+  <div class="eq-box">E<sub>fotón</sub> = hc/λ ≈ 1,3 eV &nbsp;(para λ = 950 nm)<span class="eq-label">El gap del GaAs (≈1,42 eV) determina la longitud de onda emitida · Ajustando la composición → ajustando λ</span></div>
+
+  <h2>La Modulación: Cómo Se Transmite la Información</h2>
+  <p>El LED no emite un haz continuo: parpadea a altísima velocidad según un protocolo codificado. La información se transmite modulando la intensidad del LED sobre una frecuencia portadora de 36–40 kHz. Cada botón del control envía una secuencia binaria única: pulsos de encendido/apagado que el sensor IR de la tele decodifica como un comando específico.</p>
+
+  <div class="highlight-box"><strong>El protocolo NEC (el más común)</strong>Un comando NEC típico comienza con un pulso largo de encendido (cabecera: 9 ms ON + 4,5 ms OFF), seguido de 32 bits de datos (16 bits de dirección del dispositivo + 16 bits del comando), cada bit codificado como una pausa corta (0) o larga (1) entre pulsos. Todo el comando tarda unos 67 ms. La frecuencia portadora de 38 kHz sobre la que se modulan los pulsos permite al sensor de la tele distinguir la señal IR del control del IR ambiental (luz solar, lámparas incandescentes), que tiene componentes de frecuencia mucho menores.</div>
+
+  <h2>Por Qué el Control No Necesita Apuntar Exactamente</h2>
+  <p>Los LED infrarrojos tienen un ángulo de emisión amplio (generalmente ±20–30°) y los fotones rebotan en las paredes y el techo antes de llegar al sensor de la tele. Por eso podés usar el control apuntando al techo o a una pared lateral: mientras algunos fotones reboten hacia el sensor, el comando llegará. Los sensores de IR de las televisiones también son bastante sensibles y tienen ángulos de aceptación amplios, lo que hace al sistema robusto frente a imprecisiones de apuntado.</p>
+
+  <div class="art-tags"><span class="art-tag">Infrarrojo</span><span class="art-tag">LED</span><span class="art-tag">Electromagnetismo</span><span class="art-tag">Modulación</span><span class="art-tag">Espectro Electromagnético</span><span class="art-tag">Gadgets</span></div>
+  <div class="community-q">
+    <div class="q-label">// Pregunta para la comunidad</div>
+    <p>¿Por qué los controles remotos de los autos (llave de apertura) usan radiofrecuencia (433 MHz) en vez de infrarrojo como los controles de TV? ¿Qué ventaja tiene la RF sobre el IR para ese caso de uso específico?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#vida-cotidiana" class="art-back">← Volver a Vida Cotidiana</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

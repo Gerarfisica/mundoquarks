@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿Cómo viaja la música por Bluetooth? | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#vida-cotidiana">Vida Cotidiana</a><span>/</span>
+    El Bluetooth
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física en la Vida Cotidiana · Electromagnetismo · Gadgets</div>
+  <h1>¿Cómo viaja la música <span>por Bluetooth?</span></h1>
+  <p class="art-subtitle">Ondas de radio, modulación de frecuencia y saltos pseudoaleatorios para esquivar interferencias</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Frecuencia</strong>2,4 GHz (banda ISM)</div><div class="art-meta-item"><strong>Técnica</strong>FHSS: saltos de frecuencia 1600 veces/segundo</div><div class="art-meta-item"><strong>Alcance típico</strong>10 m (Clase 2) · 100 m (Clase 1)</div></div>
+</div>
+<article class="art-body">
+
+  <p>Apretás play en el celular y la música sale por los auriculares inalámbricos que están a medio metro. No hay cables, no hay contacto físico. La información viaja por el aire en forma de ondas de radio, convertida en bits, comprimida, transmitida, recibida y vuelta a convertir en sonido en milisegundos. El Bluetooth es un milagro de ingeniería electromagnética comprimido en un chip de pocos milímetros.</p>
+
+  <h2>Las Ondas de Radio: Luz Invisible</h2>
+  <p>El Bluetooth usa ondas de radio en la banda de 2,4 GHz, exactamente la misma banda que el WiFi doméstico y los hornos microondas. Las ondas de radio son radiación electromagnética, igual que la luz visible, pero con frecuencias millones de veces menores y longitudes de onda de centímetros en vez de nanómetros.</p>
+
+  <p>Una antena de Bluetooth (un simple fragmento de pista de cobre en el circuito impreso del chip, de unos pocos centímetros de largo) hace oscilar electrones a 2,4 GHz, generando un campo electromagnético que se propaga como onda a la velocidad de la luz. La antena receptora hace lo inverso: el campo oscilante induce una corriente eléctrica oscilante en el conductor, que el circuito interpreta como señal.</p>
+
+  <div class="eq-box">λ = c / f = 3×10⁸ / 2,4×10⁹ ≈ 12,5 cm<span class="eq-label">Longitud de onda del Bluetooth · La antena óptima tiene longitud λ/4 ≈ 3 cm</span></div>
+
+  <h2>FHSS: Los Saltos de Frecuencia</h2>
+  <p>La banda de 2,4 GHz está dividida en 79 canales de 1 MHz cada uno. El Bluetooth no usa un canal fijo: salta entre los 79 canales de forma <strong>pseudoaleatoria</strong>, cambiando de canal 1600 veces por segundo. Esta técnica se llama <em>Frequency Hopping Spread Spectrum</em> (FHSS).</p>
+
+  <p>El transmisor y el receptor están sincronizados: ambos conocen la secuencia pseudoaleatoria de saltos (generada por el mismo algoritmo con la misma semilla) y cambian de canal simultáneamente. Para un receptor no autorizado que no conoce la secuencia, la señal parece ruido distribuido en toda la banda.</p>
+
+  <div class="highlight-box"><strong>Por qué los saltos resuelven las interferencias</strong>El WiFi, los microondas y otros dispositivos en la banda de 2,4 GHz generan interferencias en canales específicos. Con FHSS, si un canal está interferido en el momento de un salto, solo se pierde ese paquete de datos (unos 0,6 ms de audio), y el receptor pide retransmisión en el siguiente salto. La probabilidad de que el mismo canal esté interferido en el siguiente salto es baja (1/79). El resultado: transmisión robusta en un ambiente de radio ruidoso, sin necesitar un canal dedicado limpio.</div>
+
+  <h2>Del Sonido Analógico a los Bits: La Cadena de Procesamiento</h2>
+  <p>La música no viaja como una onda analógica continua. El proceso completo es:</p>
+
+  <p><strong>En el celular:</strong> el archivo de audio (MP3, AAC, FLAC) se descomprime en el procesador → el codec Bluetooth (SBC, AAC, aptX, LDAC) lo recomprime para transmisión inalámbrica → el chip Bluetooth lo modula en la portadora de 2,4 GHz → la antena lo emite.</p>
+
+  <p><strong>En los auriculares:</strong> la antena recibe la señal → el chip Bluetooth la demodula y reconstruye los bits → el codec descomprime el audio → el DAC (conversor digital-analógico) genera la señal eléctrica analógica → el amplificador la amplifica → el driver (altavoz) la convierte en sonido.</p>
+
+  <h2>La Latencia: El Enemigo del Video</h2>
+  <p>Todo ese procesamiento lleva tiempo: tipicamente 100–200 ms en Bluetooth clásico. Para escuchar música, 200 ms de retraso son imperceptibles. Pero para ver un video, el audio llega 200 ms después de la imagen: ves los labios moverse y el sonido llega casi un cuarto de segundo después. Los codecs de baja latencia (aptX Low Latency, LC3 del Bluetooth LE Audio) reducen esto a 40 ms o menos, suficiente para sincronización audiovisual aceptable.</p>
+
+  <div class="art-tags"><span class="art-tag">Bluetooth</span><span class="art-tag">Ondas de Radio</span><span class="art-tag">FHSS</span><span class="art-tag">Modulación</span><span class="art-tag">Electromagnetismo</span><span class="art-tag">Gadgets</span></div>
+  <div class="community-q">
+    <div class="q-label">// Pregunta para la comunidad</div>
+    <p>¿Por qué el Bluetooth tiene alcance de 10 metros pero el WiFi, que usa la misma frecuencia de 2,4 GHz, tiene alcance de 50 metros o más? ¿Qué diferencia hay en la potencia de transmisión y qué limitación legal existe sobre la potencia máxima en esa banda?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#vida-cotidiana" class="art-back">← Volver a Vida Cotidiana</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

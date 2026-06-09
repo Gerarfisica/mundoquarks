@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La cámara de tu celular | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#vida-cotidiana">Vida Cotidiana</a><span>/</span>
+    La cámara del celular
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física en la Vida Cotidiana · Física Cuántica · Óptica · Gadgets</div>
+  <h1>La cámara <span>de tu celular</span></h1>
+  <p class="art-subtitle">Sensores CMOS, efecto fotoeléctrico y cómo millones de fotones se convierten en píxeles de color</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Sensor típico</strong>CMOS BSI de 50 Mpx</div><div class="art-meta-item"><strong>Tamaño de píxel</strong>0,7 – 1,4 μm</div><div class="art-meta-item"><strong>Fenómeno cuántico</strong>Efecto fotoeléctrico en semiconductores de silicio</div></div>
+</div>
+<article class="art-body">
+
+  <p>La cámara del celular es quizás el dispositivo de física cuántica más usado por la humanidad, aunque nadie lo piense así. Cada foto que tomás involucra cientos de millones de transacciones cuánticas: fotones individuales golpeando átomos de silicio y liberando electrones uno a uno, en un proceso que Einstein explicó en 1905 y que le valió el Premio Nobel de Física en 1921.</p>
+
+  <h2>El Efecto Fotoeléctrico en Semiconductores</h2>
+  <p>Cuando un fotón de luz golpea un átomo de silicio con suficiente energía, puede arrancar un electrón de la banda de valencia y elevarlo a la banda de conducción, dejando un "hueco" positivo. Este es el efecto fotoeléctrico en semiconductores (también llamado efecto fotovoltaico interno). La condición es que la energía del fotón supere el gap del silicio:</p>
+
+  <div class="eq-box">E<sub>fotón</sub> = hf = hc/λ ≥ E<sub>gap</sub>(Si) ≈ 1,12 eV<span class="eq-label">El fotón debe tener energía mayor que el gap del silicio · Para λ ≤ 1100 nm: el fotón es absorbido y genera un par electrón-hueco</span></div>
+
+  <p>La luz visible (380–700 nm, energía 1,8–3,3 eV) supera cómodamente el gap del silicio. La luz infrarroja cercana (hasta ≈1100 nm, 1,13 eV) también. La luz UV también. Por eso el silicio es sensible a un rango amplio, y los filtros ópticos son necesarios para que la cámara reproduzca colores naturales.</p>
+
+  <h2>El Sensor CMOS: Millones de Pozos de Carga</h2>
+  <p>El sensor de imagen CMOS (Complementary Metal-Oxide-Semiconductor) es una matriz de millones de fotodiodos, uno por píxel. Cada fotodiodo es esencialmente una juntura p-n polarizada en inversa: crea una región despejada de portadores libres (zona de depleción). Cuando un fotón genera un par electrón-hueco en esa zona, el campo eléctrico de la depleción separa los portadores antes de que se recombinen, capturando el electrón en un pozo de carga.</p>
+
+  <p>Durante la exposición, cada píxel acumula electrones proporcionales a la cantidad de fotones que recibió. Al final de la exposición, el circuito lee la carga acumulada en cada píxel (convertida a voltaje, luego a valor digital) y la transmite al procesador de imagen.</p>
+
+  <div class="highlight-box"><strong>El píxel de 0,7 μm y el límite cuántico</strong>Los sensores modernos tienen píxeles de apenas 0,7 μm = 700 nm. La longitud de onda de la luz verde es ≈550 nm. Un píxel de 700 nm captura solo unos pocos fotones por exposición en condiciones de poca luz. Con tan pocos fotones, el ruido de shot (fluctuación estadística de Poisson en el número de fotones: σ = √N) se vuelve significativo. Es el límite fundamental cuántico del tamaño de los píxeles: píxeles más pequeños capturan menos fotones y tienen peor relación señal/ruido en condiciones de poca luz.</div>
+
+  <h2>El Filtro de Bayer: Cómo Se Detecta el Color</h2>
+  <p>El silicio detecta fotones pero no distingue colores (es como un sensor en blanco y negro). Para detectar color, cada píxel tiene un microfiltro de color encima: el <strong>mosaico de Bayer</strong> arregla los píxeles en grupos de 2×2 con 1 rojo, 2 verdes y 1 azul (más verdes porque el ojo es más sensible al verde). El algoritmo de demosaicado interpola los colores faltantes en cada píxel a partir de los vecinos, reconstruyendo la imagen a color completa.</p>
+
+  <h2>El Proceso de Imagen: Del Fotón a la Foto</h2>
+  <p>Entre la captura de fotones y la imagen final hay un procesamiento intenso: corrección de defectos del sensor, reducción de ruido, balance de blancos, ajuste de exposición, demosaicado, compresión HDR (fusión de múltiples exposiciones), nitidez computacional y compresión final. Los teléfonos modernos procesan decenas de frames en fracciones de segundo usando chips de IA dedicados. Lo que parece una "foto instantánea" es en realidad el resultado de cientos de millones de operaciones sobre datos cuánticos.</p>
+
+  <div class="art-tags"><span class="art-tag">Efecto Fotoeléctrico</span><span class="art-tag">CMOS</span><span class="art-tag">Física Cuántica</span><span class="art-tag">Fotones</span><span class="art-tag">Sensor de Imagen</span><span class="art-tag">Gadgets</span></div>
+  <div class="community-q">
+    <div class="q-label">// Pregunta para la comunidad</div>
+    <p>¿Por qué las cámaras de los celulares tienen cada vez más lentes (tele, ultra wide, macro) en vez de un solo lente con zoom óptico como las cámaras tradicionales? ¿Qué limitación física impide poner un zoom óptico de alta calidad en un celular delgado?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#vida-cotidiana" class="art-back">← Volver a Vida Cotidiana</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

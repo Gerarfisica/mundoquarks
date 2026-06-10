@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La paradoja de Gibbs | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#paradojas">Paradojas</a><span>/</span>
+    La paradoja de Gibbs
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Paradojas y Acertijos · Termodinámica · Mecánica Cuántica</div>
+  <h1>La paradoja <span>de Gibbs</span></h1>
+  <p class="art-subtitle">Mezclar gases idénticos no cambia la entropía: por qué la indistinguibilidad cuántica resuelve una crisis de la física clásica</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Formulada por</strong>J. Willard Gibbs, 1875</div><div class="art-meta-item"><strong>Resolución</strong>Indistinguibilidad cuántica de partículas idénticas</div><div class="art-meta-item"><strong>Consecuencia</strong>Factor N! en la función de partición estadística</div></div>
+</div>
+<article class="art-body">
+
+  <p>Tomá dos contenedores separados por un tabique: uno con gas A a la izquierda y gas B a la derecha, a la misma temperatura y presión. Retirás el tabique: los gases se mezclan. La entropía aumenta (entropía de mezcla). Ahora repetís el experimento pero con gas A en ambos lados (mismo gas). Retirás el tabique: no pasa nada perceptible. La entropía no debería cambiar. Pero el cálculo clásico de Boltzmann da el mismo aumento de entropía en ambos casos. La paradoja: el cálculo clásico no distingue entre mezclar gases iguales y diferentes.</p>
+
+  <h2>El Cálculo Clásico</h2>
+  <p>En mecánica estadística clásica, el número de microestados de N partículas en volumen V es proporcional a V^N. Cuando se duplica el volumen (al retirar el tabique), el número de microestados se multiplica por 2^N y la entropía aumenta:</p>
+  <div class="eq-box">ΔS = Nk_B ln 2 &nbsp;(por cada lado)<span class="eq-label">Aumento de entropía al doblar el volumen · Igual para gases iguales o diferentes — ¡incorrecto para gases iguales!</span></div>
+  <p>Este resultado es incorrecto para gases idénticos: mezclar gas A con gas A no debería cambiar la entropía. La paradoja señala que la física clásica no tiene forma de manejar la identidad de las partículas.</p>
+  <h2>La Resolución Cuántica: Indistinguibilidad</h2>
+  <p>En mecánica cuántica, las partículas idénticas son fundamentalmente indistinguibles: no solo son iguales en propiedades, sino que no tienen identidad individual. Intercambiar dos electrones no crea un nuevo estado del sistema: es el mismo estado. Esto reduce el número de microestados físicamente distintos por un factor de N! (el número de permutaciones posibles de N partículas idénticas).</p>
+  <div class="highlight-box"><strong>La corrección de Gibbs y la función de partición</strong>Gibbs, antes de la mecánica cuántica, introdujo empíricamente una corrección: dividir el número de microestados por N! para partículas idénticas. Esto resuelve la paradoja pero fue un parche ad hoc en el siglo XIX. La mecánica cuántica justificó este factor: para partículas idénticas, los estados que difieren solo en la permutación de partículas son el mismo estado físico. El factor N! emerge naturalmente de la indistinguibilidad cuántica fundamental.</div>
+  <h2>Las Consecuencias: Fermiones y Bosones</h2>
+  <p>La indistinguibilidad cuántica no es solo un factor N!: tiene consecuencias más profundas. Las partículas idénticas son de dos tipos fundamentales: fermiones (spin semientero: electrones, protones, quarks) cuya función de onda es antisimétrica ante el intercambio (principio de exclusión de Pauli: no pueden estar dos en el mismo estado), y bosones (spin entero: fotones, gluones, mesones) cuya función de onda es simétrica (pueden estar en el mismo estado: condensados de Bose-Einstein, láseres). La paradoja de Gibbs, en última instancia, apunta a una de las características más profundas de la naturaleza cuántica de la materia.</p>
+
+  <div class="art-tags"><span class="art-tag">Paradoja de Gibbs</span><span class="art-tag">Entropía de Mezcla</span><span class="art-tag">Indistinguibilidad</span><span class="art-tag">Fermiones</span><span class="art-tag">Bosones</span><span class="art-tag">Mecánica Estadística</span></div>
+  <div class="community-q">
+    <div class="q-label">// Pregunta para la comunidad</div>
+    <p>¿La paradoja de Gibbs implica que si pudiéramos hacer dos gases "más idénticos" (por ejemplo, enfriándolos al mismo estado cuántico), la entropía de mezcla disminuiría continuamente hasta cero? ¿Cómo se relaciona esto con la condensación de Bose-Einstein?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#paradojas" class="art-back">← Volver a Paradojas</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

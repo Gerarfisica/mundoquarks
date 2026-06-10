@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El acertijo del reloj de arena en la balanza | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#paradojas">Paradojas</a><span>/</span>
+    El reloj de arena en la balanza
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Paradojas y Acertijos · Mecánica · Dinámica · Acertijo</div>
+  <h1>El reloj de arena <span>en la balanza</span></h1>
+  <p class="art-subtitle">¿Pesa más, menos o igual mientras la arena cae? La aceleración de la masa y la fuerza normal</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Respuesta</strong>Depende del momento: igual en promedio, variaciones transitorias</div><div class="art-meta-item"><strong>Análisis completo</strong>Inicio: más pesado · Caída libre: más liviano · Impacto: más pesado</div><div class="art-meta-item"><strong>Principio</strong>Segunda Ley de Newton para masas en aceleración</div></div>
+</div>
+<article class="art-body">
+
+  <p>Ponés un reloj de arena sobre una balanza de precisión. Lo invertís y la arena comienza a caer. Mientras la arena cae, ¿la balanza muestra más, menos o el mismo peso que cuando el reloj está quieto? Este problema clásico de física tiene una respuesta que depende de qué momento del proceso estamos analizando, y el análisis completo revela una física más rica de lo que parece.</p>
+
+  <h2>El Análisis Por Fases</h2>
+
+  <h3>Antes de invertir (arena en reposo)</h3>
+  <p>La balanza lee el peso total: P = Mg, donde M es la masa total del reloj + arena.</p>
+
+  <h3>El instante de invertir (transitorio)</h3>
+  <p>Cuando se invierte el reloj, parte de la arena que antes estaba en reposo comienza a caer. Esa arena acumula una aceleración hacia abajo (g inicialmente). La fuerza que la balanza debe proveer disminuye transitoriamente: el reloj pesa menos que P por un instante.</p>
+
+  <h3>Durante la caída estacionaria</h3>
+  <p>En el estado estacionario, hay una cantidad constante de arena en caída libre entre los dos compartimientos. Esa arena no ejerce fuerza sobre ninguna pared del reloj mientras cae libremente. La balanza lee el peso de todo menos la arena en vuelo libre: P_balanza = (M − m_vuelo)g, donde m_vuelo es la masa en caída libre.</p>
+
+  <div class="eq-box">Pero: m_vuelo · g = fuerza de impacto en promedio → P_balanza = Mg en promedio<span class="eq-label">La arena que cae aterriza con impulso extra · En promedio el peso es igual · Hay fluctuaciones alrededor del promedio</span></div>
+
+  <h3>El impacto de cada grano</h3>
+  <p>Cada grano que llega al fondo golpea con velocidad v = √(2gh), ejerciendo un impulso extra sobre la base del reloj. Ese impulso hace que la balanza registre brevemente más que P. El promedio temporal de la fuerza extra por impactos es exactamente igual a la fuerza perdida por la arena en vuelo: en promedio, la balanza lee P exactamente.</p>
+
+  <div class="highlight-box"><strong>La medición experimental</strong>Experimentos con balanzas de precisión confirman que durante el flujo estacionario de arena, la balanza oscila alrededor de P (el peso original) con variaciones pequeñas. El promedio es igual a P. Al final (cuando la última arena termina de caer y todo queda en reposo), hay un transitorio donde la balanza lee brevemente más que P (el último impulso de impacto sin la contrapartida de nueva arena en vuelo), y luego vuelve a P.</div>
+
+  <h2>La Respuesta Simple (y Correcta)</h2>
+  <p>El peso promedio durante el flujo estacionario es igual al peso del reloj en reposo. Pero con una balanza de alta frecuencia de muestreo verías oscilaciones: cada impacto de grano de arena genera un pico, y entre impactos el peso es ligeramente menor que P. La respuesta "es igual" es correcta en promedio, pero la respuesta completa es más rica.</p>
+
+  <div class="art-tags"><span class="art-tag">Dinámica</span><span class="art-tag">Acertijo</span><span class="art-tag">Reloj de Arena</span><span class="art-tag">Balanza</span><span class="art-tag">Impulso</span><span class="art-tag">Segunda Ley de Newton</span></div>
+  <div class="community-q">
+    <div class="q-label">// Pregunta para la comunidad</div>
+    <p>¿Qué pasaría si en vez de arena, el reloj tuviera una sola bola de goma que rebota entre los dos extremos? ¿Sería el peso promedio igual, mayor o menor que el peso estático? ¿Cambia algo si la bola rebota elásticamente?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#paradojas" class="art-back">← Volver a Paradojas</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

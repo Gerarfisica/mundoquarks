@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eratostenes y el pozo del mediodia | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.art-body ul,.art-body ol{color:rgba(238,242,255,0.85);font-size:1.05rem;line-height:1.9;margin:0 0 1.5rem 1.5rem;}
+.art-body li{margin-bottom:0.5rem;}
+.materials-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.5rem 2rem;margin:2rem 0;}
+.materials-box .mat-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.materials-box ul{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.85);}
+.steps-box{background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.15);padding:1.5rem 2rem;margin:2rem 0;}
+.steps-box .steps-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.steps-box ol{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.9);}
+.steps-box li{margin-bottom:0.75rem;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.safety-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.25);border-left:3px solid var(--accent);padding:1.25rem 2rem;margin:2rem 0;}
+.safety-box .safety-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;display:block;}
+.safety-box p{color:rgba(238,242,255,0.75);font-size:0.95rem;margin:0;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#experimentos">Experimentos</a><span>/</span>
+    Eratostenes y el pozo
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física de Garaje · Excentricidades</div>
+  <h1>Eratostenes <span>y el pozo del mediodia</span></h1>
+  <p class="art-subtitle">Midio la circunferencia de la Tierra con sombras, palos y camellos contando pasos</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Año</strong>c. 240 a.C.</div><div class="art-meta-item"><strong>Lugar</strong>Alejandria / Siena, Egipto</div><div class="art-meta-item"><strong>Campo</strong>Geodesia · Astronomia</div></div>
+</div>
+<article class="art-body">
+<h2>El dato curioso: un pozo sin sombra</h2><p>Eratostenes, director de la Biblioteca de Alejandria (uno de los centros de conocimiento mas importantes del mundo antiguo), tuvo conocimiento de una observacion curiosa reportada desde la ciudad de Siena (la actual Asuan, en el sur de Egipto, ubicada cerca del TROPICO DE CANCER): en el dia del SOLSTICIO DE VERANO, exactamente al MEDIODIA, el SOL se situaba DIRECTAMENTE SOBRE LA CABEZA (en el cenit), de forma que un POZO VERTICAL profundo en Siena quedaba COMPLETAMENTE ILUMINADO hasta el fondo, sin ninguna sombra proyectada en sus paredes —y, de manera similar, un poste o vara VERTICAL no proyectaba NINGUNA sombra en absoluto en ese momento especifico.</p><h2>La comparacion: Alejandria, en el mismo momento</h2><p>Eratostenes sabia que, en ALEJANDRIA (ubicada significativamente mas al NORTE que Siena), en ese MISMO dia y a esa MISMA hora (mediodia del solsticio de verano), un poste vertical SI proyectaba una SOMBRA —es decir, el Sol NO estaba directamente en el cenit en Alejandria en ese momento, sino LIGERAMENTE INCLINADO respecto a la vertical.</p><div class="highlight-box"><strong>La intuicion clave: la Tierra es curva, y eso importa</strong>Si la Tierra fuera PLANA, el Sol (estando muy lejos) deberia iluminar TODOS los puntos de la superficie terrestre con el MISMO ANGULO en un momento dado: si en Siena el Sol esta directamente en el cenit (sin sombras), en Alejandria TAMBIEN deberia estar directamente en el cenit (sin sombras) en ese mismo momento, si la Tierra fuera plana y el Sol estuviera lo suficientemente lejos como para que sus rayos llegaran PRACTICAMENTE PARALELOS a ambas ciudades. El hecho de que HUBIERA una diferencia en el angulo del Sol (sin sombra en Siena, con sombra en Alejandria) en el MISMO momento, indicaba que la SUPERFICIE de la Tierra entre estas dos ciudades estaba CURVADA: la "vertical" en Alejandria y la "vertical" en Siena apuntaban en direcciones LIGERAMENTE DIFERENTES (porque la superficie terrestre, al ser curva, tiene "verticales" que cambian de direccion segun la posicion en la superficie).</div><h2>El metodo: medir el angulo de la sombra en Alejandria</h2><p>Eratostenes (en Alejandria) midio el ANGULO de la sombra proyectada por un poste vertical en el mediodia del solsticio de verano (el mismo dia/hora en que, segun se sabia, en Siena NO habia sombra). Este angulo resulto ser de aproximadamente 7.2 GRADOS (los relatos varian ligeramente en el valor EXACTO que Eratostenes habria medido, pero 7.2° es el valor mas comunmente citado en reconstrucciones modernas de su calculo).</p><div class="eq-box">Angulo de la sombra en Alejandria (mediodia, solsticio de verano) ≈ 7.2°<span class="eq-label">7.2° es, aproximadamente, 1/50 de un circulo completo (360°): 360°/7.2° = 50</span></div><h2>La pieza final: la distancia Alejandria-Siena</h2><p>Si el angulo de 7.2° representaba 1/50 de la circunferencia TOTAL de la Tierra, entonces la DISTANCIA entre Alejandria y Siena (medida a lo largo de la superficie terrestre, siguiendo aproximadamente el mismo meridiano —ambas ciudades estan, convenientemente, casi en la misma LONGITUD geografica, aunque esto Eratostenes lo sabia de forma APROXIMADA, no con la precision de las mediciones modernas) deberia representar, TAMBIEN, 1/50 de la circunferencia TOTAL de la Tierra. Para obtener la circunferencia COMPLETA, bastaria con MULTIPLICAR la distancia Alejandria-Siena por 50.</p><div class="highlight-box"><strong>¿Como se medio la distancia? Camellos contando pasos</strong>La distancia entre Alejandria y Siena (aproximadamente 800 km en terminos modernos) fue estimada, segun los relatos, mediante "bematistas": personas (o, segun algunas versiones, CAMELLOS, entrenados para mantener un paso CONSTANTE) que CONTABAN el numero de PASOS (o de "zancadas de camello") entre las dos ciudades, multiplicando luego por la longitud PROMEDIO conocida de un paso/zancada para obtener la distancia total. Este metodo, aunque parece RUDIMENTARIO desde una perspectiva moderna, era, para la epoca, un metodo de medicion de distancias terrestres relativamente ESTANDAR y razonablemente CONFIABLE para distancias de esta magnitud, especialmente en terreno relativamente LLANO como el valle del Nilo entre estas dos ciudades.</div><div class="eq-box">Distancia Alejandria-Siena (estimada por bematistas) × 50 = Circunferencia de la Tierra (estimada por Eratostenes)<span class="eq-label">Resultado de Eratostenes: aproximadamente 250.000 "estadios" (la unidad de distancia griega usada)</span></div><h2>¿Que tan preciso fue el resultado?</h2><p>Convertir el resultado de Eratostenes (en "estadios", una unidad antigua cuya longitud EXACTA en metros modernos es, en si misma, objeto de cierto DEBATE entre historiadores, ya que existian diferentes definiciones de "estadio" en el mundo griego antiguo, dependiendo de la region y epoca) a unidades modernas es complicado, y diferentes supuestos sobre la longitud del "estadio" usado por Eratostenes dan resultados que van desde un error de apenas un pequeño porcentaje respecto al valor MODERNO conocido (aproximadamente 40.075 km de circunferencia ecuatorial), hasta errores de aproximadamente 15-20%, dependiendo de la conversion especifica asumida. Independientemente del valor EXACTO de precision, el resultado de Eratostenes esta, en CUALQUIER interpretacion razonable, dentro del MISMO ORDEN DE MAGNITUD que el valor moderno —un resultado NOTABLEMENTE bueno para un metodo basado en sombras, postes, y conteo de pasos de camellos, mas de 2200 años antes de la era de los satelites GPS.</p><div class="highlight-box"><strong>Multiples fuentes de error que (parcialmente) se cancelan</strong>Es importante reconocer que el calculo de Eratostenes contenia MULTIPLES fuentes potenciales de ERROR: Siena NO esta EXACTAMENTE sobre el Tropico de Cancer (aunque esta MUY cerca); Alejandria y Siena NO estan EXACTAMENTE sobre el MISMO meridiano (hay una diferencia de longitud geografica de unos pocos grados); la medicion de la distancia mediante "conteo de pasos" tendria, inevitablemente, cierto margen de error; y el angulo de 7.2° en si mismo podria tener un margen de error de medicion. Es PLAUSIBLE (y algunos historiadores de la ciencia lo sugieren) que ALGUNOS de estos errores se hayan CANCELADO PARCIALMENTE entre si por COINCIDENCIA, contribuyendo a que el resultado FINAL fuera mas preciso de lo que cualquier FUENTE INDIVIDUAL de error, considerada aisladamente, sugeriria. Esto no DISMINUYE el LOGRO CONCEPTUAL de Eratostenes (el METODO era solido, independientemente de cuanta "suerte" haya jugado un papel en la precision final), pero es un recordatorio de que evaluar la "precision" de mediciones historicas requiere considerar tanto el metodo como las posibles fuentes de error, y a veces el AZAR.</div><h2>El legado: el metodo, no solo el resultado</h2><p>La importancia DURADERA del calculo de Eratostenes no reside SOLO en el valor numerico especifico que obtuvo (que, como vimos, tiene cierta incertidumbre debido a la conversion de unidades), sino en el METODO CONCEPTUAL: demostrar que es POSIBLE medir propiedades de TODA LA TIERRA (su circunferencia COMPLETA) usando SOLO mediciones realizadas LOCALMENTE (en dos puntos relativamente cercanos de la superficie terrestre), combinadas con razonamiento GEOMETRICO sobre la FORMA de la Tierra (esferica) y la posicion del Sol. Este tipo de razonamiento —usar mediciones LOCALES, combinadas con un MODELO GEOMETRICO/FISICO del sistema mas amplio, para inferir propiedades GLOBALES que no pueden medirse DIRECTAMENTE— es un patron CONCEPTUAL que reaparece repetidamente en la historia de la ciencia (ver, por ejemplo, el articulo sobre Cavendish "pesando la Tierra" en la seccion de Experimentos Fallidos, que usa un patron de razonamiento analogo: mediciones LOCALES de laboratorio, combinadas con leyes fisicas generales, para inferir propiedades de TODO el planeta).</p>
+  <div class="art-tags"><span class="art-tag">Eratostenes</span><span class="art-tag">Circunferencia de la Tierra</span><span class="art-tag">Geodesia</span><span class="art-tag">Antigua Grecia</span><span class="art-tag">Metodo Cientifico</span></div>
+  <div class="community-q">
+    <div class="q-label">// Para ir mas alla</div>
+    <p>El metodo de Eratostenes y el metodo de Cavendish (articulo en Experimentos Fallidos) comparten un patron conceptual: usar mediciones LOCALES + un modelo geometrico/fisico GENERAL para inferir una propiedad GLOBAL del planeta (su circunferencia, en un caso; su masa/densidad, en el otro), sin necesidad de "viajar" o "acceder" directamente a la escala GLOBAL del fenomeno. Pensa en OTRO ejemplo (de la fisica, la astronomia, o cualquier otra ciencia) que siga este MISMO patron general: medicion local + modelo -> inferencia global. Que tienen en comun estos ejemplos en terminos de que TIPO de "modelo" se necesita para que el patron funcione?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#experimentos" class="art-back">← Volver a Experimentos</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

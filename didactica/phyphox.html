@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El smartphone como laboratorio (Phyphox) | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.art-body ul,.art-body ol{color:rgba(238,242,255,0.85);font-size:1.05rem;line-height:1.9;margin:0 0 1.5rem 1.5rem;}
+.art-body li{margin-bottom:0.5rem;}
+.materials-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.5rem 2rem;margin:2rem 0;}
+.materials-box .mat-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.materials-box ul{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.85);}
+.steps-box{background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.15);padding:1.5rem 2rem;margin:2rem 0;}
+.steps-box .steps-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.steps-box ol{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.9);}
+.steps-box li{margin-bottom:0.75rem;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.safety-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.25);border-left:3px solid var(--accent);padding:1.25rem 2rem;margin:2rem 0;}
+.safety-box .safety-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;display:block;}
+.safety-box p{color:rgba(238,242,255,0.75);font-size:0.95rem;margin:0;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#experimentos">Experimentos</a><span>/</span>
+    Phyphox
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física de Garaje · Laboratorio</div>
+  <h1>El smartphone como <span>laboratorio</span> (Phyphox)</h1>
+  <p class="art-subtitle">Sensores inerciales, magnetómetros y micrófonos: medir aceleraciones y frecuencias en tiempo real</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Nivel</strong>Secundario · Universitario</div><div class="art-meta-item"><strong>Herramienta</strong>Phyphox (app gratuita)</div><div class="art-meta-item"><strong>Enfoque</strong>Sensores del celular</div></div>
+</div>
+<article class="art-body">
+<h2>Un laboratorio que ya está en el bolsillo</h2><p>Los smartphones modernos contienen, de fábrica, una colección sorprendente de sensores físicos de precisión razonable: acelerómetros (que miden aceleración en tres ejes), giroscopios (que miden velocidad angular), magnetómetros (que miden campo magnético), barómetros (presión atmosférica), micrófonos (que pueden usarse para análisis de frecuencias de sonido), y GPS. La aplicación gratuita y de código abierto Phyphox (desarrollada por la Universidad RWTH Aachen, Alemania) proporciona una interfaz que permite acceder a las lecturas de estos sensores en TIEMPO REAL, graficarlas, exportar los datos, y ejecutar experimentos PREDISEÑADOS para situaciones físicas comunes.</p><div class="highlight-box"><strong>Por qué esto es un cambio significativo para el laboratorio escolar</strong>Antes de la disponibilidad de este tipo de aplicaciones, medir la aceleración de un objeto, por ejemplo, requería sensores especializados (acelerómetros conectados a una interfaz de adquisición de datos), equipamiento que muchas escuelas no tienen o tienen en cantidades muy limitadas. Hoy, prácticamente CADA ESTUDIANTE tiene, en su bolsillo, un sensor de aceleración de calidad razonable. Esto democratiza el acceso a mediciones que antes eran "privilegio" del laboratorio mejor equipado, y permite trabajos PRÁCTICOS individuales o en grupos muy pequeños, en lugar de "una sola estación de medición para toda la clase".</div><h2>Ejemplo concreto: el ascensor como laboratorio de aceleración</h2><p>Una actividad ampliamente replicada y muy efectiva consiste en usar el acelerómetro del celular dentro de un ASCENSOR. Con el celular en el bolsillo (o sostenido firmemente, orientado consistentemente), la app registra la aceleración VERTICAL durante un viaje completo: arranque (aceleración hacia arriba, mayor que g), tramo de velocidad constante (aceleración neta cercana a cero, aunque la lectura del acelerómetro sigue mostrando g por la gravedad), y frenado al llegar (aceleración hacia abajo, menor que g). Esta actividad conecta DIRECTAMENTE con la experiencia subjetiva de "pesar más o menos" en el ascensor (ver el artículo sobre cinemática gráfica en el bloque anterior), pero ahora con DATOS CUANTITATIVOS reales, medidos por los propios estudiantes.</p><div class="eq-box">Aceleración durante el viaje: arranque (a > g hacia arriba), velocidad constante (a ≈ g), frenado (a < g)<span class="eq-label">Dato registrado por el propio acelerómetro del celular, exportable como CSV para graficar a(t)</span></div><h2>El giroscopio: péndulos, rotaciones y momento angular</h2><p>El giroscopio del celular, que mide velocidad angular, permite experimentos sobre rotación que tradicionalmente requerían equipamiento especializado (mesas giratorias, discos de inercia). Por ejemplo, sosteniendo el celular y haciéndolo girar sobre uno de sus ejes mientras se registra la velocidad angular, los estudiantes pueden verificar cualitativamente cómo cambia la "facilidad" de hacer girar el celular según el EJE elegido (relacionado con el momento de inercia respecto a cada eje, que depende de la distribución de masa del celular — más alargado en un eje que en otro).</p><div class="highlight-box"><strong>El micrófono: ondas sonoras y resonancia</strong>La función de análisis de frecuencias (espectro de Fourier en tiempo real) que ofrece Phyphox usando el micrófono del celular permite experimentos de ACÚSTICA accesibles: medir la frecuencia fundamental de un diapasón, de una cuerda de guitarra a distintas tensiones/longitudes, o de un tubo resonante (como una botella a la que se sopla, ver experimentos relacionados con resonancia en tubos). Los estudiantes pueden verificar relaciones como "la frecuencia de un tubo cerrado en un extremo es inversamente proporcional a su longitud" simplemente soplando en botellas de distinta altura y leyendo la frecuencia dominante en el espectro mostrado por la app.</div><h2>Consideraciones sobre la calidad de los datos</h2><p>Es importante que los estudiantes (y el docente) sean conscientes de que los sensores de un smartphone, aunque sorprendentemente capaces, NO son instrumentos de laboratorio CALIBRADOS con la misma precisión que equipamiento científico dedicado. Pueden tener OFFSETS (lecturas distintas de cero en reposo, que requieren "calibración" o sustracción), RUIDO (fluctuaciones aleatorias en la lectura), y diferencias entre MODELOS de celular (un acelerómetro de un modelo puede tener especificaciones distintas de otro). Lejos de ser un problema puramente "negativo", esto es una OPORTUNIDAD pedagógica: discutir explícitamente estas limitaciones, y cómo IDENTIFICARLAS y, en lo posible, CORREGIRLAS (por ejemplo, restando el "offset" medido en reposo de todas las lecturas posteriores), es exactamente el tipo de pensamiento crítico sobre instrumentación que se busca desarrollar (ver el artículo sobre didáctica del error experimental).</p><div class="eq-box">Antes de cualquier medición: ¿qué lee el sensor en una condición CONOCIDA (reposo, por ejemplo)? Esa lectura "basal" debe restarse de las mediciones posteriores como corrección de offset<span class="eq-label">Comparar lecturas de DISTINTOS celulares para el MISMO fenómeno ayuda a distinguir variación del FENÓMENO de variación del INSTRUMENTO</span></div><h2>Integración con el análisis de datos: exportar y graficar</h2><p>Phyphox permite EXPORTAR los datos crudos (como archivos CSV), lo cual habilita una conexión directa con herramientas de análisis de datos como hojas de cálculo, R, o Python (ver los artículos correspondientes en este bloque). Esto significa que la actividad no termina en "ver el gráfico en la app", sino que puede continuar con un análisis más profundo: ajustar modelos matemáticos a los datos, calcular incertezas, comparar múltiples mediciones repetidas, y producir gráficos para un informe — replicando, a pequeña escala, el flujo de trabajo de un investigador real, desde la adquisición de datos hasta su análisis y comunicación.</p>
+  <div class="art-tags"><span class="art-tag">Phyphox</span><span class="art-tag">Sensores</span><span class="art-tag">Smartphone</span><span class="art-tag">Acelerómetro</span><span class="art-tag">Análisis de Datos</span></div>
+  <div class="community-q">
+    <div class="q-label">// Para ir mas alla</div>
+    <p>El uso de smartphones en el aula suele generar tensión: por un lado, son herramientas poderosas y ya disponibles; por otro, son también una fuente potencial de distracción (notificaciones, redes sociales, mensajería), y su uso "autorizado" en clase podría generar conflictos sobre qué actividades en el celular son "para el trabajo" y cuáles no. ¿Cómo gestionarías esta tensión en un aula real? ¿Hay configuraciones específicas (modo avión, apps en primer plano obligatorio, trabajo en parejas con un celular compartido) que ayudarían a que el potencial del smartphone como instrumento científico no se vea eclipsado por su potencial como fuente de distracción?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#experimentos" class="art-back">← Volver a Experimentos</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

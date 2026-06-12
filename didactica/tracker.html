@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de video con Tracker | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.art-body ul,.art-body ol{color:rgba(238,242,255,0.85);font-size:1.05rem;line-height:1.9;margin:0 0 1.5rem 1.5rem;}
+.art-body li{margin-bottom:0.5rem;}
+.materials-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.5rem 2rem;margin:2rem 0;}
+.materials-box .mat-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.materials-box ul{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.85);}
+.steps-box{background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.15);padding:1.5rem 2rem;margin:2rem 0;}
+.steps-box .steps-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.steps-box ol{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.9);}
+.steps-box li{margin-bottom:0.75rem;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.safety-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.25);border-left:3px solid var(--accent);padding:1.25rem 2rem;margin:2rem 0;}
+.safety-box .safety-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;display:block;}
+.safety-box p{color:rgba(238,242,255,0.75);font-size:0.95rem;margin:0;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#experimentos">Experimentos</a><span>/</span>
+    Tracker
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física de Garaje · Laboratorio</div>
+  <h1>Análisis de video con <span>Tracker</span></h1>
+  <p class="art-subtitle">Filmar un fenómeno cotidiano y extraer ecuaciones: software libre para análisis de movimiento</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Nivel</strong>Secundario · Universitario</div><div class="art-meta-item"><strong>Herramienta</strong>Tracker (software libre)</div><div class="art-meta-item"><strong>Enfoque</strong>Video-análisis</div></div>
+</div>
+<article class="art-body">
+<h2>De grabar un video a obtener un gráfico de posición</h2><p>Tracker es un software libre (basado en Java, multiplataforma) que permite realizar VIDEO-ANÁLISIS de movimiento: a partir de un video (filmado con cualquier celular o cámara), el software permite marcar, FOTOGRAMA POR FOTOGRAMA, la posición de un objeto en movimiento, y a partir de esas posiciones (junto con la escala espacial y temporal del video), genera automáticamente gráficos de posición, velocidad y aceleración en función del tiempo. En esencia, convierte CUALQUIER video de un objeto en movimiento en un CONJUNTO DE DATOS experimentales de cinemática.</p><div class="highlight-box"><strong>La calibración: el paso crítico que no debe saltearse</strong>Para que Tracker convierta "píxeles" en "metros" y "fotogramas" en "segundos", es necesario CALIBRAR el video: se le indica al software la escala espacial (por ejemplo, colocando una regla o un objeto de tamaño CONOCIDO en el campo de visión, y marcando su longitud en píxeles) y la escala temporal (generalmente derivada de la velocidad de fotogramas por segundo del video, que el software suele detectar automáticamente, aunque conviene VERIFICAR este dato, ya que algunos formatos de video o conversiones pueden alterarlo). Un error de calibración (por ejemplo, un objeto de referencia mal medido, o asumido a una distancia distinta de la real respecto a la cámara) introduce un error SISTEMÁTICO en TODAS las mediciones derivadas — una buena oportunidad para discutir la diferencia entre errores sistemáticos y aleatorios (ver el artículo sobre didáctica del error experimental).</div><h2>Ejemplos accesibles: tiro oblicuo con una pelota</h2><p>Uno de los usos más populares de Tracker en el aula es el análisis de TIRO OBLICUO: se filma (con la cámara fija, perpendicular al plano de movimiento) el lanzamiento de una pelota, y se marca su posición en cada fotograma. Tracker genera automáticamente los gráficos x(t) e y(t), que pueden ajustarse con funciones lineales (para x, movimiento uniforme) y cuadráticas (para y, movimiento uniformemente acelerado), permitiendo a los estudiantes VERIFICAR experimentalmente, con su propio video, las ecuaciones de cinemática del tiro oblicuo — incluyendo extraer un valor experimental de "g" a partir del ajuste cuadrático, y comparar ese valor con el valor aceptado (9,8 m/s²), discutiendo las posibles fuentes de discrepancia.</p><div class="eq-box">y(t) = y₀ + v₀y·t − ½g·t² → Tracker permite ajustar esta función a los datos marcados, obteniendo g experimentalmente desde un video casero<span class="eq-label">Comparar el "g" experimental (¿8,5? ¿10,2?) con 9,8 m/s² es una excelente discusión sobre incertezas y fuentes de error en una medición indirecta</span></div><div class="highlight-box"><strong>Más allá del tiro oblicuo: péndulos, colisiones, oscilaciones</strong>Tracker es igualmente útil para analizar PÉNDULOS (verificando la relación entre período y longitud, o la independencia del período respecto a la masa, para amplitudes pequeñas), COLISIONES entre objetos (verificando conservación del momento lineal, comparando las velocidades ANTES y DESPUÉS del choque, calculadas a partir de las posiciones marcadas), y OSCILACIONES de resortes (ajustando funciones sinusoidales a x(t) para extraer la frecuencia angular y relacionarla con la masa y la constante elástica). La versatilidad del software significa que, una vez que los estudiantes aprenden el flujo de trabajo básico (filmar, calibrar, marcar, ajustar), pueden aplicarlo a una gran variedad de fenómenos sin necesitar aprender una herramienta nueva para cada uno.</div><h2>El ajuste de modelos: de "marcar puntos" a "encontrar parámetros"</h2><p>Una vez generados los gráficos de posición/velocidad/aceleración, Tracker permite AJUSTAR funciones matemáticas (lineales, cuadráticas, sinusoidales, exponenciales, entre otras) a los datos, mostrando los PARÁMETROS del ajuste (pendiente, ordenada al origen, amplitud, frecuencia, etc.) junto con una medida de qué tan bien el modelo se ajusta a los datos (como el coeficiente de determinación R²). Esto convierte la actividad en un ejercicio de MODELIZACIÓN genuina (ver el artículo correspondiente en este bloque): el estudiante no solo "ve que la pelota sube y baja", sino que extrae NÚMEROS específicos (la aceleración, la velocidad inicial) a partir de su propio video, que luego pueden compararse con predicciones teóricas o con mediciones de otros grupos.</p><div class="highlight-box"><strong>Limitaciones: movimiento en 2D, paralaje, y la "vista de Dios"</strong>Tracker funciona mejor para movimiento que ocurre, aproximadamente, en un PLANO perpendicular a la cámara (movimiento 2D). Si el objeto se mueve también HACIA o DESDE la cámara, su tamaño aparente cambia, lo cual puede confundir el seguimiento automático (si se usa) y distorsionar la calibración espacial (un objeto que se acerca a la cámara "se agranda" en píxeles, aunque su tamaño real no cambie — un efecto de PERSPECTIVA que Tracker, en su forma básica, no corrige). Discutir esta limitación con los estudiantes — por qué es importante que la cámara esté FIJA y el movimiento sea aproximadamente PERPENDICULAR a la línea de visión — es, en sí mismo, una lección sobre los SUPUESTOS que cualquier método de medición conlleva, y sobre cómo el diseño del EXPERIMENTO (en este caso, cómo se posiciona la cámara) condiciona qué se puede medir correctamente.</div><h2>Una actividad de cierre: "El video misterioso"</h2><p>Una actividad lúdica y efectiva para evaluar la comprensión consiste en proporcionar a los estudiantes un video de un movimiento SIN CONTEXTO (por ejemplo, un objeto cayendo dentro de un líquido viscoso, en lugar de caer libremente en aire) y pedirles que, usando Tracker, determinen QUÉ TIPO de movimiento es (¿uniformemente acelerado? ¿velocidad constante? ¿algo distinto?) basándose ÚNICAMENTE en los datos extraídos del video, sin que se les diga de antemano qué esperar. Esta actividad invierte el flujo habitual ("acá está la teoría, ahora verifiquen con un experimento") y se acerca más al proceso de INVESTIGACIÓN real: analizar datos para INFERIR qué fenómeno los generó, en lugar de confirmar un fenómeno ya conocido.</p>
+  <div class="art-tags"><span class="art-tag">Tracker</span><span class="art-tag">Video-análisis</span><span class="art-tag">Cinemática</span><span class="art-tag">Modelización</span><span class="art-tag">Software Libre</span></div>
+  <div class="community-q">
+    <div class="q-label">// Para ir mas alla</div>
+    <p>Tracker convierte cualquier video casero en un conjunto de datos experimentales, lo cual democratiza el acceso a mediciones de movimiento que antes requerían equipamiento de laboratorio especializado (fotopuertas, sensores de movimiento). Pero también introduce una dependencia de la CALIDAD del video (resolución, velocidad de fotogramas, iluminación, estabilidad de la cámara). En un contexto donde los estudiantes filman con sus propios celulares, ¿qué pautas mínimas de filmación (por ejemplo, sobre el uso de un trípode, la iluminación, la distancia a la cámara) deberían establecerse de antemano para asegurar que los videos sean ÚTILES para el análisis, sin que esto se convierta en una barrera técnica que desmotive la actividad?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#experimentos" class="art-back">← Volver a Experimentos</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

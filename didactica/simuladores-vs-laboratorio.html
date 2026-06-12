@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simuladores interactivos vs. Laboratorio real | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.art-body ul,.art-body ol{color:rgba(238,242,255,0.85);font-size:1.05rem;line-height:1.9;margin:0 0 1.5rem 1.5rem;}
+.art-body li{margin-bottom:0.5rem;}
+.materials-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.5rem 2rem;margin:2rem 0;}
+.materials-box .mat-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.materials-box ul{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.85);}
+.steps-box{background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.15);padding:1.5rem 2rem;margin:2rem 0;}
+.steps-box .steps-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.steps-box ol{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.9);}
+.steps-box li{margin-bottom:0.75rem;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.safety-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.25);border-left:3px solid var(--accent);padding:1.25rem 2rem;margin:2rem 0;}
+.safety-box .safety-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;display:block;}
+.safety-box p{color:rgba(238,242,255,0.75);font-size:0.95rem;margin:0;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#experimentos">Experimentos</a><span>/</span>
+    Simuladores vs. Laboratorio
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física de Garaje · Laboratorio</div>
+  <h1>Simuladores interactivos <span>vs. Laboratorio real</span></h1>
+  <p class="art-subtitle">Cuándo complementa y cuándo es irremplazable: criterios didácticos concretos</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Nivel</strong>Todos los niveles</div><div class="art-meta-item"><strong>Tema</strong>Trabajo Experimental</div><div class="art-meta-item"><strong>Enfoque</strong>Criterios de uso</div></div>
+</div>
+<article class="art-body">
+<h2>Una falsa dicotomía instalada</h2><p>En los últimos años, la disponibilidad de simuladores interactivos de alta calidad (como los del proyecto PhET de la Universidad de Colorado, gratuitos y de código abierto) ha generado un debate que muchas veces se plantea de forma equivocada: "¿simuladores o laboratorio real?", como si fueran alternativas EXCLUYENTES, una de las cuales "ganará" y desplazará a la otra. La evidencia disponible sugiere algo más matizado: ambas herramientas tienen fortalezas y debilidades DIFERENTES, que las hacen apropiadas para objetivos de aprendizaje DIFERENTES — la pregunta relevante no es "cuál es mejor en general" sino "para QUÉ objetivo específico es más apropiada cada una".</p><div class="highlight-box"><strong>Lo que el laboratorio real aporta y el simulador no puede</strong>El laboratorio real expone a los estudiantes al RUIDO EXPERIMENTAL genuino: mediciones que varían entre repeticiones, instrumentos con limitaciones reales (resolución, calibración), y la necesidad de tomar decisiones sobre CÓMO medir algo con las herramientas disponibles. Un simulador, por diseño, suele producir resultados "limpios" (o con ruido ARTIFICIALMENTE agregado de forma simplificada), lo cual es pedagógicamente útil para enfocarse en el FENÓMENO sin la "distracción" del ruido — pero significa que el simulador NO puede enseñar las habilidades de MANEJO DE INCERTEZA EXPERIMENTAL REAL, que son centrales para la práctica científica (ver el artículo sobre didáctica del error experimental en este bloque).</div><h2>Lo que el simulador aporta y el laboratorio real no puede (fácilmente)</h2><p>Por otro lado, los simuladores permiten EXPLORAR rangos de parámetros que serían imposibles, peligrosos, o muy costosos en un laboratorio real: ¿qué pasaría con la órbita de un planeta si la masa del Sol fuera el doble? ¿qué pasaría con un péndulo si la gravedad fuera la de la Luna? ¿qué pasaría con un circuito si la resistencia fuera negativa (un caso físicamente imposible, pero matemáticamente interesante para entender los límites de un modelo)? Los simuladores también permiten VISUALIZAR magnitudes que son invisibles en la realidad (líneas de campo, vectores de fuerza superpuestos sobre un movimiento, trayectorias de partículas individuales en un gas).</p><div class="eq-box">Laboratorio real: el FENÓMENO es genuino, pero limitado en el rango de condiciones accesibles y en la visualización de magnitudes abstractas<span class="eq-label">Simulador: el RANGO de exploración es ilimitado y las magnitudes abstractas son visibles, pero el fenómeno mismo es una REPRESENTACIÓN basada en un modelo (que podría no capturar TODOS los aspectos de la realidad)</span></div><div class="highlight-box"><strong>El riesgo del simulador como "caja negra"</strong>Un riesgo específico de los simuladores es que, si el estudiante no entiende QUÉ MODELO está implementado "detrás" del simulador, puede llegar a tratarlo como una "caja negra" cuyos resultados son simplemente "la verdad", sin cuestionamiento — paradójicamente, el mismo tipo de actitud ACRÍTICA que se busca evitar respecto a fórmulas memorizadas. Por ejemplo, un simulador de colisiones podría implementar, por simplicidad, colisiones perfectamente elásticas o perfectamente inelásticas como las únicas opciones, cuando en la realidad la mayoría de las colisiones son PARCIALMENTE elásticas, con un "coeficiente de restitución" intermedio que depende de los materiales — un aspecto que el simulador, según cómo esté diseñado, podría estar OCULTANDO o SIMPLIFICANDO sin que el estudiante lo note.</div><h2>Estrategia recomendada: secuencia "simulador → laboratorio → simulador"</h2><p>Una secuencia que aprovecha las fortalezas de ambas herramientas, evitando que una "reemplace" a la otra, consiste en: primero, usar el SIMULADOR para que los estudiantes EXPLOREN el fenómeno de forma libre, identificando QUÉ VARIABLES parecen ser relevantes y formulando HIPÓTESIS sobre relaciones entre ellas (esta exploración es rápida, sin las limitaciones de montar un experimento físico cada vez que se quiere cambiar un parámetro); segundo, llevar esas hipótesis al LABORATORIO REAL, donde los estudiantes deben diseñar un experimento CONCRETO para poner a prueba su hipótesis, enfrentando las limitaciones reales de los instrumentos disponibles y el ruido experimental genuino; tercero, VOLVER al simulador para interpretar resultados experimentales que resultaron "ruidosos" o ambiguos, usando el simulador (con su modelo "limpio") como REFERENCIA para entender si la tendencia observada en el laboratorio es consistente con el modelo teórico, a pesar del ruido.</p><div class="highlight-box"><strong>Ejemplo concreto: el péndulo simple</strong>Para el péndulo simple, la secuencia podría ser: (1) en un simulador, los estudiantes varían la longitud, la masa, y la amplitud, y exploran cómo afecta cada variable al período — descubriendo que la masa y la amplitud (para amplitudes pequeñas) NO afectan significativamente el período, mientras que la longitud SÍ; (2) en el laboratorio real, con péndulos físicos de distintas longitudes y un cronómetro (o un sensor de movimiento), los estudiantes MIDEN el período para cada longitud, confrontando la dificultad real de cronometrar con precisión, y obteniendo datos con incerteza; (3) al graficar T² vs. L con los datos REALES (con su dispersión), los estudiantes verifican si la relación lineal predicha por el modelo (y observada "limpiamente" en el simulador) es consistente con sus datos experimentales DENTRO del margen de error — una pregunta genuinamente experimental que el simulador, por sí solo, no podría plantear.</div><h2>Cuándo el simulador es la ÚNICA opción razonable</h2><p>Hay situaciones donde el simulador no es un "complemento" sino la ÚNICA opción viable: fenómenos a escalas atómicas o cósmicas (no se puede "tener" un átomo de hidrógeno en el laboratorio para observar directamente sus niveles de energía, pero sí se puede simular); fenómenos peligrosos (reacciones nucleares, altos voltajes); fenómenos que requieren equipamiento extremadamente costoso (aceleradores de partículas, criostatos para superconductividad); o fenómenos que ocurren en escalas de tiempo incompatibles con una clase (la evolución de un sistema planetario, la difusión térmica en materiales con conductividades muy bajas). En estos casos, la pregunta "¿simulador o laboratorio?" simplemente no se plantea — el simulador (o, en su defecto, videos de experimentos reales realizados en otros contextos) es el único recurso PRÁCTICO, y la discusión se centra en USARLO de forma crítica, no en "evitarlo".</p><div class="eq-box">Regla general: si el fenómeno es ACCESIBLE de forma segura, económica y en escalas de tiempo razonables → priorizar el laboratorio real (con el simulador como complemento exploratorio)<span class="eq-label">Si el fenómeno es INACCESIBLE por escala, peligro, o costo → el simulador (o video) es la herramienta principal, con énfasis en discutir explícitamente QUÉ MODELO está representando y qué simplificaciones implica</span></div><h2>Una nota sobre simuladores "caseros" creados por los propios estudiantes</h2><p>Una actividad de nivel más avanzado, que combina ambos mundos de una forma distinta, consiste en que los propios estudiantes CONSTRUYAN simulaciones simples (usando, por ejemplo, Python, ver el artículo correspondiente en este bloque) para fenómenos que también puedan medir experimentalmente. Comparar los resultados de SU PROPIO modelo simplificado (que ellos mismos programaron, y por lo tanto entienden completamente qué supuestos contiene) con los datos experimentales reales que ELLOS MISMOS midieron, cierra el círculo entre "modelo" y "realidad" de una forma que ni el simulador "caja negra" ni el laboratorio aislado logran por separado.</p>
+  <div class="art-tags"><span class="art-tag">Simuladores</span><span class="art-tag">Laboratorio</span><span class="art-tag">PhET</span><span class="art-tag">Modelización</span><span class="art-tag">Trabajo Experimental</span></div>
+  <div class="community-q">
+    <div class="q-label">// Para ir mas alla</div>
+    <p>Los simuladores de alta calidad son cada vez más accesibles, gratuitos, y fáciles de usar — mientras que el equipamiento de laboratorio en muchas escuelas (especialmente en contextos con recursos limitados) es escaso, viejo, o inexistente. Dado este contexto REAL (no ideal) de muchas instituciones educativas, ¿qué riesgos ves en que los simuladores terminen, en la PRÁCTICA (no por decisión pedagógica deliberada, sino por necesidad), REEMPLAZANDO casi por completo al trabajo de laboratorio real, simplemente porque son lo único disponible? ¿Qué estrategias de bajo costo (ver también el artículo sobre laboratorio "low-cost" en este bloque) podrían ayudar a mantener al menos ALGUNA experiencia de laboratorio real, incluso en contextos con recursos muy limitados?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#experimentos" class="art-back">← Volver a Experimentos</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

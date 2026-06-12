@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modelización matemática vs. Ajuste ciego | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03050f;--bg2:#070d1f;--blue:#1a6cf5;--blue-dim:#0d3a8a;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:"Crimson Pro",Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Syne",sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}
+.nav-logo span{color:var(--cyan);}
+.nav-breadcrumb{display:flex;align-items:center;gap:0.75rem;font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-breadcrumb a{color:var(--gray);text-decoration:none;transition:color 0.2s;}.nav-breadcrumb a:hover{color:var(--cyan);}
+.nav-breadcrumb span{color:var(--blue-dim);}
+.art-hero{position:relative;z-index:1;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding:10rem 4rem 5rem;max-width:1000px;margin:0 auto;}
+.art-category{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.art-category::before{content:"";display:block;width:2rem;height:1px;background:var(--cyan);}
+.art-hero h1{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;letter-spacing:-0.03em;margin-bottom:1.25rem;}
+.art-hero h1 span{color:var(--cyan);}
+.art-subtitle{font-family:"Crimson Pro",serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;max-width:60ch;margin-bottom:2rem;}
+.art-meta{display:flex;gap:2rem;flex-wrap:wrap;font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;padding-top:1.5rem;border-top:1px solid var(--border);}
+.art-meta-item strong{color:var(--cyan);display:block;margin-bottom:0.2rem;}
+.art-body{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:4rem 4rem 8rem;}
+.art-body p{color:rgba(238,242,255,0.85);font-size:1.1rem;line-height:1.85;margin-bottom:1.5rem;}
+.art-body h2{font-family:"Syne",sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin:3rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.art-body h3{font-family:"Syne",sans-serif;font-weight:600;font-size:1.15rem;color:var(--cyan);margin:2rem 0 0.75rem;}
+.art-body strong{color:var(--white);}.art-body em{color:var(--accent);font-style:italic;}
+.art-body ul,.art-body ol{color:rgba(238,242,255,0.85);font-size:1.05rem;line-height:1.9;margin:0 0 1.5rem 1.5rem;}
+.art-body li{margin-bottom:0.5rem;}
+.materials-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:1.5rem 2rem;margin:2rem 0;}
+.materials-box .mat-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.materials-box ul{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.85);}
+.steps-box{background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.15);padding:1.5rem 2rem;margin:2rem 0;}
+.steps-box .steps-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.75rem;display:block;}
+.steps-box ol{margin:0 0 0 1.2rem;color:rgba(238,242,255,0.9);}
+.steps-box li{margin-bottom:0.75rem;}
+.highlight-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--gray);line-height:1.8;letter-spacing:0.03em;}
+.highlight-box strong{color:var(--cyan);display:block;margin-bottom:0.5rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;}
+.safety-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.25);border-left:3px solid var(--accent);padding:1.25rem 2rem;margin:2rem 0;}
+.safety-box .safety-label{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;display:block;}
+.safety-box p{color:rgba(238,242,255,0.75);font-size:0.95rem;margin:0;}
+.eq-box{background:rgba(26,108,245,0.05);border:1px solid rgba(26,108,245,0.2);padding:1.5rem 2rem;margin:2rem 0;text-align:center;font-family:"Space Mono",monospace;font-size:0.9rem;color:var(--white);letter-spacing:0.05em;}
+.eq-box .eq-label{font-size:0.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.2em;margin-top:0.5rem;display:block;}
+.art-tags{display:flex;flex-wrap:wrap;gap:0.75rem;margin:3rem 0 2rem;padding-top:2rem;border-top:1px solid var(--border);}
+.art-tag{font-family:"Space Mono",monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);color:var(--gray);}
+.community-q{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:2rem 2.5rem;margin:3rem 0;}
+.community-q .q-label{font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1rem;}
+.community-q p{color:var(--gray);font-style:italic;margin:0;}
+.art-back{display:inline-flex;align-items:center;gap:0.5rem;font-family:"Space Mono",monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);text-decoration:none;border:1px solid var(--border);padding:0.75rem 1.5rem;transition:all 0.2s;margin-top:2rem;}
+.art-back:hover{border-color:var(--cyan);color:var(--cyan);}
+footer{position:relative;z-index:1;padding:2rem 4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+footer p{font-family:"Space Mono",monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;}
+footer a{color:var(--cyan);text-decoration:none;}
+@media(max-width:900px){nav{padding:1rem 1.5rem;}.art-hero{padding:8rem 1.5rem 3rem;}.art-body{padding:2rem 1.5rem 5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav>
+  <a href="../index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <div class="nav-breadcrumb">
+    <a href="../index.html">Inicio</a><span>/</span>
+    <a href="../index.html#experimentos">Experimentos</a><span>/</span>
+    Modelización vs. Ajuste
+  </div>
+</nav>
+<div class="art-hero">
+  <div class="art-category">Física de Garaje · Laboratorio</div>
+  <h1>Modelización matemática <span>vs. Ajuste ciego</span></h1>
+  <p class="art-subtitle">La línea de tendencia como hipótesis física, no como apretar un botón en una planilla</p>
+  <div class="art-meta"><div class="art-meta-item"><strong>Nivel</strong>Secundario · Universitario</div><div class="art-meta-item"><strong>Tema</strong>Análisis de Datos</div><div class="art-meta-item"><strong>Enfoque</strong>Modelización con sentido físico</div></div>
+</div>
+<article class="art-body">
+<h2>El botón "agregar línea de tendencia"</h2><p>Cualquier programa de planilla de cálculo (Excel, Google Sheets, LibreOffice Calc) ofrece, con un par de clics, la opción de "agregar línea de tendencia" a un gráfico de dispersión, eligiendo entre opciones como "lineal", "exponencial", "polinómica", "potencial", junto con un valor de R² que indica "qué tan bien" se ajusta esa línea a los datos. Esta funcionalidad es, en sí misma, NEUTRAL — ni buena ni mala. El problema surge cuando se usa de forma "ciega": probar varias opciones de "tipo de tendencia" hasta encontrar la que dé el R² más alto, y reportar ESA como "la relación entre las variables", sin ninguna consideración sobre si ese tipo de función tiene algún SENTIDO FÍSICO para el fenómeno estudiado.</p><div class="highlight-box"><strong>El peligro de "R² alto" sin sentido físico</strong>Con suficientes datos y suficientes "tipos de tendencia" para probar, es casi SIEMPRE posible encontrar ALGUNA función que dé un R² razonablemente alto — especialmente con funciones polinómicas de grado alto, que tienen muchos parámetros libres y pueden "pasar cerca" de casi cualquier conjunto de puntos. Pero un R² alto NO significa que esa función tenga algo que ver con el FENÓMENO FÍSICO subyacente. Si la relación física real entre dos variables es, por ejemplo, lineal (y=mx+b), pero los datos tienen algo de ruido, un polinomio de grado 4 probablemente dará un R² MÁS ALTO que el ajuste lineal — simplemente porque tiene más "libertad" para retorcerse y pasar cerca de cada punto, incluyendo el RUIDO. Esto se llama "sobreajuste" (overfitting): el modelo se ajusta al RUIDO, no a la RELACIÓN FÍSICA real.</div><h2>La alternativa: la hipótesis física PRECEDE al ajuste</h2><p>El enfoque correcto invierte el orden: ANTES de mirar los datos (o, al menos, antes de probar distintos "tipos de tendencia"), se debería tener una HIPÓTESIS, basada en la TEORÍA física relevante, sobre qué TIPO de relación se espera entre las variables. Si se está estudiando el período de un péndulo en función de su longitud, la teoría predice T = 2π√(L/g) — es decir, T² es PROPORCIONAL a L (una relación lineal entre T² y L, pasando por el origen). El ajuste a realizar, entonces, NO es "probar varios tipos de tendencia para T vs. L y ver cuál da mejor R²", sino "graficar T² vs. L específicamente, y verificar si es razonable ajustar una RECTA que pase (aproximadamente) por el origen, con una pendiente relacionada con g".</p><div class="eq-box">Enfoque incorrecto: "Probemos lineal, exponencial, polinómica para T vs. L... la polinómica de grado 3 da R²=0,9998, ¡esa es la mejor!"<span class="eq-label">Enfoque correcto: "La teoría predice T² ∝ L. Grafiquemos T² vs. L y veamos si una RECTA POR EL ORIGEN es consistente con los datos (dentro de la incerteza). Si NO lo es, eso es interesante — ¿qué podría estar pasando?"</span></div><div class="highlight-box"><strong>Cuando el modelo "no ajusta": ¿el modelo está mal, o los datos tienen un problema?</strong>Si, siguiendo el enfoque correcto, los datos de T² vs. L NO se ajustan razonablemente a una recta por el origen, hay DOS posibilidades (al menos): (1) el modelo teórico (T=2π√(L/g)) no es apropiado para ESTAS condiciones — por ejemplo, si las amplitudes de oscilación usadas fueron GRANDES, la aproximación de "ángulos pequeños" (sen θ ≈ θ) que se usa para derivar esa fórmula podría no ser válida, y el período REAL dependería también de la amplitud; o (2) hay un PROBLEMA EXPERIMENTAL — un error sistemático en la medición de L o T para algunos puntos, o un punto "atípico" (outlier) que se desvía mucho de los demás por alguna razón identificable (¿se midió mal ese punto en particular?). DISTINGUIR entre estas posibilidades — "el modelo no aplica aquí" vs. "hay un problema con ESTE dato específico" — es un ejercicio de pensamiento científico mucho más rico que simplemente "buscar otro tipo de tendencia que ajuste mejor".</div><h2>Transformaciones de variables: "linealizar" para facilitar el análisis</h2><p>Una técnica poderosa, vinculada a tener una hipótesis física previa, es la TRANSFORMACIÓN de variables para "linealizar" una relación no lineal. Si la teoría predice una relación de la forma y = A·x^n (una relación de potencia, como en muchas leyes físicas), graficar log(y) vs. log(x) debería dar una RECTA, cuya PENDIENTE es el exponente "n" y cuya ORDENADA AL ORIGEN está relacionada con log(A). Esta técnica — graficar variables TRANSFORMADAS (logaritmos, inversos, cuadrados) en lugar de las variables "crudas" — convierte relaciones no lineales en rectas, y las rectas son mucho más fáciles de evaluar visualmente ("¿estos puntos parecen alineados?") y de ajustar (la pendiente y ordenada de una recta tienen interpretaciones físicas directas).</p><div class="eq-box">y = A·xⁿ  →  log(y) = log(A) + n·log(x)  → graficar log(y) vs. log(x) da una recta de pendiente "n" y ordenada "log(A)"<span class="eq-label">Ejemplo: la Ley de Boyle (P·V = constante, o P = constante/V) → graficar P vs. 1/V debería dar una recta que pasa por el origen — una forma directa de VERIFICAR la ley con datos experimentales</span></div><div class="highlight-box"><strong>Actividad: "linealizar" un conjunto de datos dado</strong>Una actividad efectiva consiste en dar a los estudiantes un conjunto de datos (x, y) que provienen de una relación NO LINEAL conocida por el docente pero no revelada a los estudiantes (por ejemplo, y = 3·x² + ruido), y pedirles que, basándose en hipótesis sobre el TIPO de relación (¿lineal? ¿cuadrática? ¿de potencia?), prueben TRANSFORMACIONES de variables (graficar y vs. x², y vs. √x, log(y) vs. log(x), etc.) hasta encontrar cuál transformación produce una relación APROXIMADAMENTE LINEAL. Esta actividad práctica en "transformar variables para linealizar" es una habilidad transferible a MUCHOS contextos de análisis de datos, mucho más allá de la física.</div><h2>La diferencia entre "ajustar" y "explicar"</h2><p>En última instancia, la distinción central de este artículo es entre AJUSTAR datos (encontrar una función matemática que pase cerca de los puntos) y EXPLICAR un fenómeno (entender POR QUÉ los datos siguen el patrón que siguen, en términos de las leyes físicas relevantes). Un ajuste sin explicación es, en el mejor caso, una DESCRIPCIÓN compacta de los datos (útil, por ejemplo, para hacer predicciones DENTRO del rango medido), pero no aporta COMPRENSIÓN del fenómeno. Una explicación sin verificar el ajuste con datos reales es, en el mejor caso, una HIPÓTESIS no contrastada. El objetivo de la modelización en el laboratorio es CONECTAR ambos: tener una explicación teórica (de dónde viene la relación esperada) Y verificar, con datos reales, si esa relación se sostiene — y, cuando no se sostiene perfectamente, usar esa discrepancia para refinar la explicación o identificar problemas experimentales.</p>
+  <div class="art-tags"><span class="art-tag">Modelización</span><span class="art-tag">Ajuste de Curvas</span><span class="art-tag">Linealización</span><span class="art-tag">Sobreajuste</span><span class="art-tag">Análisis de Datos</span></div>
+  <div class="community-q">
+    <div class="q-label">// Para ir mas alla</div>
+    <p>La "linealización" mediante transformación de variables (graficar log-log, por ejemplo) es una técnica poderosa, pero también puede convertirse en otro tipo de "receta a aplicar sin pensar": "si la relación parece de potencia, grafico log-log y listo". ¿Cómo distinguirías, en la práctica de aula, entre un estudiante que usa la linealización como una HERRAMIENTA dentro de un proceso de razonamiento sobre el fenómeno físico, versus un estudiante que la aplica como un nuevo "procedimiento mecánico" (reemplazando "probar tipos de tendencia" por "probar transformaciones de variables", sin que cambie la falta de conexión con la física)? ¿Qué tipo de preguntas o consignas ayudarían a hacer esta distinción visible?</p>
+  </div>
+  <p style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);letter-spacing:0.05em;margin-top:2rem;">Publicado por Mundo Quarks · Sigamos hackeando el código del universo.</p>
+  <a href="../index.html#experimentos" class="art-back">← Volver a Experimentos</a>
+</article>
+<footer>
+  <p>© 2025 Gerardo — Mundo Quarks · Buenos Aires, Argentina</p>
+  <p>Licenciatura en Ciencias Físicas · <a href="https://gerarfisica.github.io/mundoquarks/index.html">mundoquarks</a></p>
+</footer>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const count=Math.floor((W*H)/8000);for(let i=0;i<count;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.15,vy:(Math.random()-0.5)*0.15,alpha:Math.random()*0.6+0.2,blue:Math.random()>0.85});}
+function drawParticles(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${0.08*(1-dist/120)})`;ctx.lineWidth=0.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(drawParticles);}
+resize();createParticles();drawParticles();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

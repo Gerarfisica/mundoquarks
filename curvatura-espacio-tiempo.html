@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La curvatura del espacio-tiempo | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="relatividad-y-cosmologia.html" class="nav-back">Relatividad y Cosmología</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Relatividad y Cosmología <span>·</span> Geometría de la Gravedad</div>
+  <h1>La <span class="hl">curvatura</span><br>del espacio-tiempo</h1>
+  <p class="article-subtitle">Cómo la materia moldea la geometría que dirige el movimiento: la danza de Einstein</p>
+  <div class="article-tags"><span class="tag active">// Relatividad General</span><span class="tag">Espacio-Tiempo</span><span class="tag">Geometría</span><span class="tag">Ecuaciones de Einstein</span></div>
+</div>
+<div class="article-container">
+  <p>La afirmación central de la Relatividad General puede expresarse en pocas palabras: <strong>la materia y la energía curvan el espacio-tiempo, y la curvatura del espacio-tiempo determina cómo se mueven la materia y la energía</strong>. Esta dualidad simbiótica fue resumida elegantemente por el físico John Archibald Wheeler: "El espacio-tiempo le dice a la materia cómo moverse; la materia le dice al espacio-tiempo cómo curvarse". Pero ¿qué significa exactamente que el espacio-tiempo se "curve"? ¿Cómo visualizamos una curvatura en cuatro dimensiones? Y, sobre todo, ¿cómo describimos matemáticamente esta geometría dinámica?</p>
+
+  <div class="math-block">Ecuaciones de campo de Einstein: G_μν + Λg_μν = (8πG/c⁴)·T_μν · Constante gravitatoria de Einstein κ ≈ 2,08×10⁻⁴³ s²/(kg·m)</div>
+
+  <h2>De la Geometría Plana a la Curvada</h2>
+
+  <p>En la geometría euclidiana clásica, el espacio es plano: las líneas paralelas nunca se encuentran, la suma de los ángulos de un triángulo es exactamente 180°, y el teorema de Pitágoras se cumple sin modificaciones. Esta geometría describe muy bien las regiones pequeñas del espacio cotidiano. Pero la geometría puede ser más rica: en superficies curvas como esferas o sillas de montar, las propiedades cambian.</p>
+
+  <p>En la superficie de una esfera (curvatura positiva), las "líneas más rectas posibles" (las geodésicas) son los grandes círculos. Dos meridianos terrestres son paralelos en el ecuador pero se encuentran en los polos. Los triángulos formados por arcos de grandes círculos tienen ángulos que suman más de 180°. En una superficie en silla de montar (curvatura negativa), ocurre lo contrario: las geodésicas divergen y los ángulos suman menos de 180°.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía de la sábana elástica:</strong> Imaginá una sábana elástica tensa horizontalmente. Si colocás una bola de bolos pesada en el centro, la sábana se hundirá formando una "bolsa" alrededor de la bola. Si después hacés rodar pequeñas canicas cerca, no rodarán en línea recta: <strong>curvarán sus trayectorias alrededor de la depresión causada por la bola</strong>. Las canicas no son "atraídas" por la bola: simplemente siguen la geometría curvada de la sábana. La Relatividad General es exactamente esta visualización, pero en cuatro dimensiones: la materia curva el espacio-tiempo, y los objetos siguen las trayectorias geométricamente más rectas en esa curvatura.</p>
+  </div>
+
+  <h2>El Tensor Métrico</h2>
+
+  <p>Matemáticamente, la geometría del espacio-tiempo se describe mediante el <strong>tensor métrico</strong> g_μν, que codifica cómo se miden las distancias y los intervalos temporales en cada punto. En espacio-tiempo plano (sin gravedad), el tensor métrico tiene la forma simple de Minkowski: ds² = -c²dt² + dx² + dy² + dz². Esta métrica define las longitudes invariantes del espacio-tiempo plano: para señales luminosas, ds² = 0; para trayectorias de objetos materiales, ds² < 0 (es decir, intervalos "temporales").</p>
+
+  <p>Cuando hay masa-energía presente, el tensor métrico se vuelve dependiente de la posición: g_μν(x). Esta función matemática codifica completamente la curvatura del espacio-tiempo. A partir de ella se pueden calcular los tensores de curvatura (Riemann, Ricci) que describen cómo cambia la geometría de punto en punto. El tensor de Einstein G_μν —combinación específica del tensor de Ricci y de su traza— es lo que aparece en las ecuaciones de campo.</p>
+
+  <h2>Las Ecuaciones de Campo de Einstein</h2>
+
+  <p>El núcleo matemático de la Relatividad General son las <strong>ecuaciones de campo de Einstein</strong>, publicadas en su forma definitiva en noviembre de 1915. En notación compacta: G_μν + Λg_μν = (8πG/c⁴)·T_μν. El lado izquierdo describe la geometría del espacio-tiempo: el tensor de Einstein G_μν codifica la curvatura local, y Λ es la constante cosmológica. El lado derecho describe el contenido de materia-energía: T_μν es el <strong>tensor de energía-momento</strong>, que codifica densidad de energía, presión, flujo de momento, etc.</p>
+
+  <p>La constante 8πG/c⁴ es el "factor de conversión" entre la geometría y la materia. Es un número extraordinariamente pequeño (~2×10⁻⁴³) en unidades estándar, lo que significa que se necesitan enormes cantidades de masa-energía para producir curvaturas observables. La Tierra entera curva el espacio-tiempo apenas lo suficiente para producir una aceleración gravitatoria de 9,81 m/s²; el Sol produce una curvatura solo un poquito mayor pero a través de distancias mucho mayores. Solo cerca de agujeros negros o estrellas de neutrones la curvatura se vuelve realmente extrema.</p>
+
+  <div class="tech-note">
+    <p><strong>Las soluciones exactas:</strong> Las ecuaciones de Einstein son notoriamente difíciles de resolver exactamente. La primera solución exacta no trivial fue encontrada por Karl Schwarzschild en 1916, apenas dos meses después de la publicación final de las ecuaciones, mientras servía como oficial alemán en el frente oriental durante la Primera Guerra Mundial. La <em>solución de Schwarzschild</em> describe el espacio-tiempo alrededor de una masa puntual esféricamente simétrica y no rotante; cuando la masa es lo suficientemente compacta, predice la existencia de un horizonte de eventos: un agujero negro de Schwarzschild. Otras soluciones exactas (Kerr para masas rotantes, Reissner-Nordström para masas cargadas, FLRW para cosmología) describen casos físicos importantes pero limitados. La mayoría de las situaciones reales requieren resolver las ecuaciones numéricamente con supercomputadoras.</p>
+  </div>
+
+  <h2>Las Geodésicas</h2>
+
+  <p>En el espacio-tiempo curvado, los objetos libres (sin fuerzas no gravitatorias actuando sobre ellos) siguen <strong>geodésicas</strong>: las trayectorias que extremizan el intervalo propio entre dos puntos. En el espacio-tiempo plano, las geodésicas son líneas rectas. En el espacio-tiempo curvado, son curvas que parecen "atraídas" por las masas, pero matemáticamente son las trayectorias "más rectas posibles" en la geometría local.</p>
+
+  <p>La órbita de la Tierra alrededor del Sol no es una elipse porque "el Sol tira de la Tierra": es una elipse porque esa es la geodésica natural en el espacio-tiempo curvado por la masa solar. Newton calculaba el efecto correctamente sin entender el mecanismo; Einstein explicó el mecanismo mostrando que es geometría pura.</p>
+
+  <h2>La Curvatura Detectable</h2>
+
+  <p>La curvatura del espacio-tiempo no es solo una abstracción matemática: tiene consecuencias observables. Los <strong>satélites GPS</strong> deben corregir continuamente sus relojes por los efectos relativistas tanto especiales (velocidad orbital) como generales (campo gravitatorio menor a la altitud orbital). Sin esas correcciones, las posiciones GPS divergirían varios kilómetros por día.</p>
+
+  <p>Las <strong>lentes gravitacionales</strong> son otra manifestación: la luz de galaxias lejanas se desvía al pasar cerca de cúmulos galácticos masivos, produciendo imágenes múltiples y arcos brillantes. Los telescopios espaciales como Hubble y James Webb usan estas lentes naturales para observar objetos demasiado tenues para ser vistos directamente. La curvatura del espacio-tiempo no solo afecta a los planetas: afecta a la propia propagación de la luz a través del cosmos.</p>
+
+  <div class="info-box">
+    <h4>La famosa frase de Wheeler</h4>
+    <p>El físico estadounidense John Wheeler, uno de los grandes pioneros de la Relatividad General moderna y discípulo de Einstein, resumió toda la teoría en una frase que se ha vuelto canónica: "El espacio-tiempo le dice a la materia cómo moverse; la materia le dice al espacio-tiempo cómo curvarse". Esta dualidad simbiótica captura la esencia de la teoría: no hay separación entre el escenario (el espacio-tiempo) y los actores (la materia y la energía); ambos se influyen mutuamente en una danza geométrica continua. Wheeler también acuñó el término "agujero negro" en 1967 y fue el director de tesis de muchos físicos influyentes del siglo XX, incluyendo a Richard Feynman.</p>
+  </div>
+
+  <div class="closing">
+    <p>La curvatura del espacio-tiempo es, posiblemente, el concepto más profundo y contraintuitivo de la física moderna. Nos enseña que el espacio y el tiempo no son un escenario pasivo donde ocurren los eventos, sino una entidad dinámica que es moldeada por la materia y la energía que contiene. La gravedad no es una fuerza misteriosa que actúa a distancia: es la consecuencia geométrica de habitar un universo donde la presencia de masa-energía deforma la geometría circundante. Cada objeto en caída libre, cada órbita planetaria, cada rayo de luz desviado por una galaxia distante, es una manifestación de esta geometría dinámica. La Relatividad General no agregó solo correcciones a la mecánica clásica: cambió fundamentalmente nuestra comprensión de qué es el espacio, qué es el tiempo y qué es la gravedad.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si la curvatura del espacio-tiempo emerge de la presencia de masa-energía, ¿qué pasa con regiones del universo donde la densidad es prácticamente cero? ¿Es el "vacío" geométricamente plano, o conserva alguna curvatura residual que no entendemos del todo?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="relatividad-y-cosmologia.html" class="back-btn">← Volver a Relatividad y Cosmología</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

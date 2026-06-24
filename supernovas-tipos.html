@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supernovas: tipos y mecánica | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="astrofisica.html" class="nav-back">Astrofísica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Astrofísica <span>·</span> Explosiones Estelares Catastróficas</div>
+  <h1><span class="hl">Supernovas:</span><br>tipos y mecánica</h1>
+  <p class="article-subtitle">Termonucleares y de colapso: las explosiones más energéticas conocidas del cosmos</p>
+  <div class="article-tags"><span class="tag active">// Astrofísica</span><span class="tag">Supernovas</span><span class="tag">Núcleos Estelares</span><span class="tag">Energía Oscura</span></div>
+</div>
+<div class="article-container">
+  <p>Una supernova es uno de los eventos más energéticos del universo: en cuestión de segundos, libera más energía que el Sol producirá en sus 10.000 millones de años de vida. Durante semanas, una sola supernova puede brillar tanto como una galaxia entera de cien mil millones de estrellas. <strong>Estas explosiones colosales son responsables de la síntesis de los elementos pesados del cosmos</strong> y, paradójicamente, del nacimiento de nuevas generaciones de estrellas y planetas en las ondas de choque que generan. Comprender los tipos de supernovas y sus mecanismos físicos nos lleva al corazón de los procesos más extremos que la física conoce.</p>
+
+  <div class="math-block">Energía liberada: ~10⁴⁴ J · Luminosidad máxima: 10¹⁰ veces la solar · Tasa por galaxia: 1-3 por siglo · Velocidad de eyección: hasta 10% c</div>
+
+  <h2>La Clasificación: Tipo I y Tipo II</h2>
+
+  <p>Las supernovas se clasifican primariamente según su <strong>espectro óptico</strong>. Las del <strong>Tipo I</strong> no muestran líneas de hidrógeno en sus espectros, lo que indica que los progenitores ya han perdido sus capas externas ricas en hidrógeno. Las del <strong>Tipo II</strong> sí muestran fuertes líneas de hidrógeno, indicando progenitores que todavía conservaban sus envolturas exteriores en el momento de la explosión.</p>
+
+  <p>Dentro de las Tipo I hay subdivisiones: Ia (con línea de silicio prominente), Ib (sin silicio pero con helio), Ic (sin silicio ni helio). Las Tipo II también se subdividen según las curvas de luz: II-P (plateau), II-L (lineal), IIb (transicional), IIn (con líneas estrechas). Cada subdivisión corresponde a un escenario físico específico de progenitor y mecanismo de explosión.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del fuego artificial codificado:</strong> Los fuegos artificiales tienen distintos tipos según sus colores característicos y sus efectos visuales: cada combinación química produce un patrón específico identificable. <strong>Las supernovas son fuegos artificiales cósmicos codificados químicamente:</strong> sus espectros revelan exactamente qué tipo de evento las produjo. Una supernova con líneas de hidrógeno está delatando que la estrella progenitora aún tenía su envoltura intacta; una sin hidrógeno revela que la estrella ya había perdido esas capas antes de explotar. La firma química es la "historia clínica" de la muerte estelar.</p>
+  </div>
+
+  <h2>Las Supernovas Termonucleares: Tipo Ia</h2>
+
+  <p>Las supernovas de Tipo Ia tienen un mecanismo radicalmente diferente al resto. Su progenitor es un <strong>sistema binario</strong> con una enana blanca de carbono-oxígeno acompañada por una estrella compañera. Si la enana blanca acreta suficiente masa de su compañera (ya sea por transferencia regular o por colisión con otra enana blanca), su masa total puede acercarse al <em>límite de Chandrasekhar</em> de 1,44 masas solares —el máximo que la presión de degeneración electrónica puede sostener—.</p>
+
+  <p>Cuando la masa se acerca a este límite crítico, las condiciones de presión y temperatura en el núcleo permiten una <strong>ignición termonuclear catastrófica</strong> del carbono. En cuestión de segundos, toda la enana blanca fusiona explosivamente carbono y oxígeno en elementos más pesados, principalmente níquel-56. La estrella se desintegra completamente, expulsando todo su material al espacio. No queda residuo compacto: la supernova Ia destruye totalmente a su progenitor.</p>
+
+  <p>Lo crucial sobre las Tipo Ia es que, debido a que siempre ocurren cuando la enana blanca alcanza la misma masa crítica, sus luminosidades máximas son aproximadamente iguales —son <strong>"candelas estándar" cosmológicas</strong>—. Esta propiedad fue explotada en los años 90 por los equipos liderados por Saul Perlmutter, Brian Schmidt y Adam Riess para descubrir la <strong>expansión acelerada del universo</strong>, atribuida a la energía oscura. El descubrimiento valió el Premio Nobel de Física 2011.</p>
+
+  <h2>Las Supernovas de Colapso del Núcleo: Tipos II, Ib, Ic</h2>
+
+  <p>Las supernovas del Tipo II y sus parientes Ib/Ic provienen de estrellas masivas (>8 M⊙) que agotaron su combustible nuclear. Como vimos en el artículo anterior, cuando se forma un núcleo de hierro de masa de Chandrasekhar, este colapsa catastróficamente en menos de un segundo. Las temperaturas alcanzan miles de millones de Kelvin; las densidades, valores comparables a las nucleares. Los electrones son capturados por los protones, formando neutrones y liberando una enorme cantidad de neutrinos electrónicos.</p>
+
+  <p>El núcleo colapsado se convierte en una proto-estrella de neutrones extremadamente compacta. La materia que cae continúa golpeándola hasta que rebota en su superficie casi rígida, generando una onda de choque hacia afuera. Inicialmente, esta onda de choque tiende a estancarse debido a la presión opuesta del material en caída. Lo que termina propulsándola al exterior es la deposición de energía por parte de los neutrinos emitidos del núcleo: aunque los neutrinos interactúan muy débilmente con la materia, las densidades extremas son suficientes para que una pequeña fracción de ellos sea absorbida, depositando energía suficiente para revivir la onda de choque y eyectar las capas externas de la estrella.</p>
+
+  <p>El resultado visual es una explosión que dura semanas a meses, con luminosidades pico de aproximadamente 10⁹ veces la luminosidad solar. El residuo es una estrella de neutrones (en la mayoría de los casos) o un agujero negro (si la estrella original era extremadamente masiva).</p>
+
+  <div class="tech-note">
+    <p><strong>La supernova SN 1987A: el laboratorio observacional:</strong> El 23 de febrero de 1987, los astrónomos observaron la primera supernova visible a simple vista desde la era pre-telescópica: SN 1987A, en la Gran Nube de Magallanes, a unos 168.000 años luz. El evento fue extraordinariamente bien estudiado: el progenitor fue identificado (Sanduleak -69° 202, una supergigante azul de 20 M⊙), se detectaron neutrinos del colapso del núcleo (por primera vez en la historia de la astrofísica), y se siguió la evolución de la luminosidad y los espectros durante décadas. Fue la confirmación directa más completa del modelo de supernova de colapso del núcleo. Las redes mundiales de detectores de neutrinos —Kamiokande II, IMB, Baksan— detectaron unas dos docenas de neutrinos en un pulso de 13 segundos, abriendo el campo de la astrofísica de neutrinos.</p>
+  </div>
+
+  <h2>Las Hipernovas y Llamaradas de Rayos Gamma</h2>
+
+  <p>Para estrellas extremadamente masivas (>25-40 M⊙), el colapso puede ser tan asimétrico que parte del núcleo colapsado forma un disco de acreción rotando alrededor del agujero negro recién nacido. Este disco puede lanzar chorros relativistas (jets) de partículas a velocidades cercanas a la de la luz, dirigidos a lo largo del eje de rotación. Si uno de estos chorros está dirigido hacia la Tierra, observamos una <strong>llamarada de rayos gamma</strong> (GRB): la emisión más energética conocida del cosmos, capaz de liberar tanta energía en segundos como una galaxia normal en mil millones de años.</p>
+
+  <p>Las hipernovas y GRBs están entre los eventos más violentos conocidos. La GRB 080319B, detectada en 2008, fue brevemente visible a simple vista a pesar de provenir de 7.500 millones de años luz —un récord de luminosidad cósmica—. Las GRBs son trazadores únicos del universo primitivo: como son las explosiones más brillantes del cosmos, pueden detectarse desde distancias inmensas, permitiéndonos sondear las primeras estrellas masivas del universo (Población III).</p>
+
+  <div class="closing">
+    <p>Las supernovas son los eventos más espectaculares del cosmos: explosiones tan brillantes que pueden eclipsar galaxias enteras, tan energéticas que liberan en segundos lo que el Sol producirá en miles de millones de años, tan productivas que sintetizan la mayor parte de los elementos pesados del universo. Cada supernova es simultáneamente el funeral de una estrella y el nacimiento de las semillas químicas para mundos futuros. Sin estos eventos catastróficos, no habría hierro en nuestras sangres, ni oxígeno en nuestros pulmones, ni átomos pesados en nuestros cuerpos. La belleza profunda del cosmos es que los procesos más violentos son también los más creativos: en las cenizas explosivas de las supernovas se encuentran los materiales de los que estamos hechos. Cada vez que respirás, estás incorporando átomos producidos en alguna explosión estelar lejana ocurrida miles de millones de años antes que existiera la Tierra.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si una supernova ocurriera a menos de 50 años luz del Sistema Solar —una distancia astronómicamente cercana—, podría tener efectos significativos sobre la biósfera terrestre por la radiación gamma y los rayos cósmicos. ¿Qué tan probable es que esto ocurra en escalas de tiempo civilizatorias? ¿Cuáles son las estrellas masivas más cercanas que podrían convertirse en supernovas en el futuro?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="astrofisica.html" class="back-btn">← Volver a Astrofísica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

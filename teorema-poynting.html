@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El teorema de Poynting y el flujo de energía | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="electromagnetismo.html" class="nav-back">Electromagnetismo</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Electromagnetismo <span>·</span> Conservación de la Energía EM</div>
+  <h1>El <span class="hl">vector de Poynting</span><br>cómo viaja la energía</h1>
+  <p class="article-subtitle">Por qué la energía eléctrica no viaja por los cables sino por los campos que los rodean</p>
+  <div class="article-tags"><span class="tag active">// Electromagnetismo</span><span class="tag">Vector de Poynting</span><span class="tag">Conservación</span><span class="tag">Flujo de Energía</span></div>
+</div>
+<div class="article-container">
+  <p>Cuando una corriente eléctrica fluye por un cable, ¿por dónde viaja la energía? La respuesta intuitiva es: "a lo largo del cable, junto con los electrones". <strong>La respuesta correcta es contraintuitiva y profunda: la energía no viaja por dentro del cable, sino que fluye por el espacio circundante, en los campos electromagnéticos que rodean al cable</strong>. El <em>teorema de Poynting</em>, publicado por John Henry Poynting en 1884, formaliza este resultado y proporciona la herramienta matemática para calcular cómo se distribuye y propaga la energía electromagnética en cualquier situación. Es uno de los resultados más elegantes del electromagnetismo clásico, con consecuencias que abarcan desde el funcionamiento de las líneas de transmisión hasta la propagación de la radiación solar.</p>
+
+  <div class="math-block">Vector de Poynting: S = (1/μ₀) E × B · Densidad de energía EM: u = ½(ε₀E² + B²/μ₀) · Teorema: -∂u/∂t = ∇·S + J·E · Unidades: W/m²</div>
+
+  <h2>La Conservación de la Energía Electromagnética</h2>
+
+  <p>El teorema de Poynting es esencialmente la ley de conservación de energía aplicada al electromagnetismo. Su formulación matemática parte de las ecuaciones de Maxwell y manipula algebraicamente las identidades vectoriales para obtener una ecuación de continuidad. El resultado es: -∂u/∂t = ∇·S + J·E, donde:</p>
+
+  <ul style="margin-left: 2rem; color: var(--gray); line-height: 1.7;">
+    <li><strong>u</strong> es la densidad de energía electromagnética almacenada en cada punto: u = ½(ε₀E² + B²/μ₀). El primer término es la energía del campo eléctrico, el segundo la del campo magnético.</li>
+    <li><strong>S</strong> es el <em>vector de Poynting</em>: S = (1/μ₀) E × B. Tiene unidades de W/m² (potencia por área) y representa el flujo de energía electromagnética por unidad de área perpendicular a su dirección.</li>
+    <li><strong>J·E</strong> es la potencia disipada por unidad de volumen cuando una corriente J fluye a través de un campo eléctrico E (lo que llamaríamos disipación óhmica en circuitos resistivos).</li>
+  </ul>
+
+  <p>La ecuación se lee así: la disminución de energía electromagnética en un volumen pequeño (-∂u/∂t) iguala la energía que fluye hacia afuera (∇·S) más la energía convertida en otras formas (J·E, típicamente calor). Es una ley de conservación local: la energía no aparece ni desaparece en ningún punto, solo fluye o se convierte.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del río de energía:</strong> Imaginá que el espacio está atravesado por "ríos invisibles" de energía electromagnética que pueden fluir en cualquier dirección. La densidad de flujo en cada punto es el vector de Poynting. Donde los campos E y B son perpendiculares y se "cruzan" mediante el producto vectorial, hay un flujo neto de energía en la dirección perpendicular a ambos. <strong>Estos ríos no necesitan "cables" materiales:</strong> pueden fluir libremente por el vacío. Las antenas son simplemente compuertas que liberan estos ríos al espacio circundante; los receptores son las represas que los capturan. Cuando una onda EM viaja del Sol a la Tierra, lo que viaja es exactamente esto: el flujo de Poynting transportando energía a 8 minutos luz de distancia, a través de 150 millones de kilómetros de vacío esencialmente desierto.</p>
+  </div>
+
+  <h2>El Flujo de Energía en un Cable</h2>
+
+  <p>La aplicación más sorprendente y contraintuitiva del teorema de Poynting es analizar el flujo de energía en un cable eléctrico simple. Considerá un alambre cilíndrico recto con resistencia R, transportando corriente continua I producida por una pila. Los electrones se mueven a lo largo del cable. Pero, ¿por dónde se transporta la energía eléctrica desde la pila hasta donde se disipa (un resistor, una lámpara)?</p>
+
+  <p>El cálculo del vector de Poynting muestra algo asombroso: dentro del cable, el campo eléctrico apunta a lo largo del cable (impulsando los electrones), mientras que el campo magnético circular rodea al cable. <strong>El producto E × B apunta radialmente hacia adentro</strong>: la energía está fluyendo perpendicular al cable, desde el espacio circundante hacia el interior del cable, donde se disipa como calor.</p>
+
+  <p>Fuera del cable, los campos también producen un vector de Poynting. La pila genera campos electromagnéticos que se extienden por el espacio entre los cables, y la energía fluye por ese espacio "alrededor" de los cables, desde la pila hasta el resistor. Los electrones no transportan la energía: la energía fluye por los campos electromagnéticos en el espacio circundante.</p>
+
+  <p>Este resultado es controvertido pedagógicamente —contradice la intuición de la mayoría de los estudiantes y muchos profesores—. Pero es absolutamente correcto y ha sido verificado experimentalmente. Los electrones se mueven a velocidades de deriva extremadamente bajas (~10⁻⁴ m/s); la corriente "fluye" rápidamente porque los campos electromagnéticos se propagan a velocidad cercana a c. La energía sigue los campos, no los electrones.</p>
+
+  <h2>El Flujo de Radiación EM</h2>
+
+  <p>Para ondas electromagnéticas en propagación libre (luz, ondas de radio, etc.), los campos E y B son perpendiculares entre sí y a la dirección de propagación. El vector de Poynting apunta exactamente en la dirección de propagación, con magnitud S = (1/cμ₀)E² para una onda plana. Esto cuantifica exactamente cuánta energía por unidad de tiempo y área transporta la onda.</p>
+
+  <p>Para luz solar en la órbita terrestre, el flujo medio es de aproximadamente 1361 W/m² (la "constante solar"). Para señales de radio comerciales, los flujos son típicamente de microwatts por metro cuadrado. Para láseres científicos, pueden alcanzar 10¹⁵ W/m² o más. El vector de Poynting es la magnitud universal que cuantifica estos flujos diversos.</p>
+
+  <h2>El Momento del Campo Electromagnético</h2>
+
+  <p>El teorema de Poynting tiene una consecuencia adicional importante: las ondas electromagnéticas transportan no solo energía, sino también <strong>momento</strong>. La densidad de momento es g = S/c². Esto significa que cuando luz incide sobre una superficie, ejerce <em>presión</em> sobre ella (la "presión de radiación"). Aunque pequeña en condiciones cotidianas, esta presión es real y medible.</p>
+
+  <p>La presión de radiación solar empuja las colas de los cometas (haciéndolas siempre apuntar en dirección opuesta al Sol, independientemente de la dirección de movimiento del cometa). Es la base de propuestas para <em>velas solares</em>: naves espaciales propulsadas por la presión de la luz solar reflejándose en velas reflectantes enormes. La misión IKAROS de la agencia espacial japonesa (JAXA) demostró este principio en 2010, navegando por el Sistema Solar interior usando una vela solar.</p>
+
+  <p>En condiciones de láseres intensos, la presión de radiación puede ser enorme: en confinamiento inercial para fusión nuclear, láseres extremadamente potentes comprimen un blanco de combustible mediante presión de radiación, alcanzando densidades necesarias para la ignición fusión. Es la base de los experimentos del National Ignition Facility (NIF) en Estados Unidos.</p>
+
+  <div class="tech-note">
+    <p><strong>La paradoja del condensador:</strong> Un experimento mental famoso ilustra lo contraintuitivo del flujo de energía electromagnética. Considerá un condensador siendo cargado: hay un campo eléctrico creciente entre las placas. Según las ecuaciones de Maxwell, el campo eléctrico cambiante genera un campo magnético circular alrededor del eje del condensador. Esto produce un vector de Poynting que apunta <em>radialmente hacia el interior</em> del espacio entre las placas. <strong>La energía fluye desde el espacio externo hacia el interior del condensador</strong>, donde se almacena en el campo eléctrico creciente. No fluye "por los cables" en el sentido convencional: la energía electromagnética se propaga por el espacio, no por los conductores. Este resultado, aunque correcto, sigue siendo difícil de visualizar y enseñar.</p>
+  </div>
+
+  <h2>El Flujo de Energía Solar</h2>
+
+  <p>El teorema de Poynting se aplica también a escalas astronómicas. La energía que el Sol envía a la Tierra fluye por el espacio entre ambos como un río de Poynting, transportando aproximadamente 1361 W/m² a la órbita terrestre. Pero el Sol no irradia uniformemente en todas direcciones: hay variaciones temporales y espaciales (manchas solares, erupciones, viento solar) que modifican el flujo.</p>
+
+  <p>El total de energía solar que llega a la Tierra es enorme: aproximadamente 1,7×10¹⁷ W, varios miles de veces más que el consumo total de energía de la humanidad. La energía solar incidente sobre 0,3% de la superficie terrestre, convertida con eficiencias razonables, podría satisfacer todas las necesidades energéticas humanas. La transición energética hacia fuentes renovables es esencialmente una redirección del flujo de Poynting solar hacia nuestras necesidades.</p>
+
+  <div class="info-box">
+    <h4>Poynting y su libro</h4>
+    <p>John Henry Poynting publicó su famoso teorema en 1884 cuando tenía 32 años, en un artículo titulado "Sobre la Transferencia de Energía en el Campo Electromagnético". Era una contribución conceptual extraordinaria: hasta ese momento, se consideraba que la energía eléctrica "estaba en" los conductores y "se transmitía" por ellos. Poynting demostró rigurosamente que la energía estaba en los campos circundantes, no en los conductores. Su artículo es uno de los pocos en la historia de la física que esencialmente respondió a una pregunta que nadie sabía que estaba haciendo, y la respuesta fue completamente sorprendente. Poynting trabajó toda su carrera en la Universidad de Birmingham y, además del teorema, hizo contribuciones importantes en gravedad, mecánica de fluidos, y mediciones de la constante gravitacional G.</p>
+  </div>
+
+  <div class="closing">
+    <p>El teorema de Poynting es uno de los resultados más profundos del electromagnetismo clásico. Reveló que la energía electromagnética no reside en las cargas o las corrientes, sino en los campos que ellas generan, y que ese flujo de energía obedece leyes geométricas precisas codificadas en el vector de Poynting. Esta perspectiva transformó nuestra comprensión de cómo "fluye" la energía en sistemas eléctricos: por los espacios circundantes a los conductores, no por su interior. Tiene consecuencias prácticas (diseño de líneas de transmisión, eficiencia de antenas, presión de radiación de láseres) y conceptuales (la energía es propiedad de los campos, no de las partículas). Es un recordatorio elegante de que la realidad física rara vez coincide con nuestras intuiciones cotidianas, y que las leyes matemáticas correctas son a veces más sorprendentes —y más bellas— que cualquier expectativa.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si la energía electromagnética fluye por los campos y no por los conductores, ¿qué implicaciones tiene esto para el diseño de redes eléctricas modernas? ¿Podríamos diseñar mejores sistemas de transmisión optimizando explícitamente los flujos de Poynting en el espacio entre conductores?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="electromagnetismo.html" class="back-btn">← Volver a Electromagnetismo</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

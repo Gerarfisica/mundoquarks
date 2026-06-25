@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criticalidad autoorganizada | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Sistemas al Borde del Cataclismo</div>
+  <h1><span class="hl">Criticalidad</span><br>autoorganizada</h1>
+  <p class="article-subtitle">Pilas de arena, terremotos y la ley 1/f: por qué los eventos extremos son más comunes de lo que parece</p>
+  <div class="article-tags"><span class="tag active">// Sistemas Complejos</span><span class="tag">Criticalidad</span><span class="tag">Bak-Tang-Wiesenfeld</span><span class="tag">Leyes de Potencia</span></div>
+</div>
+<div class="article-container">
+  <p>En 1987, tres físicos —Per Bak, Chao Tang y Kurt Wiesenfeld— propusieron un concepto que cambiaría nuestra comprensión de los sistemas complejos: la <strong>criticalidad autoorganizada</strong>. Usando un modelo aparentemente trivial —una "pila de arena" virtual donde se agregaban granos uno por uno hasta producir avalanchas— demostraron que muchos sistemas naturales se conducen espontáneamente hacia estados críticos, donde pequeñas perturbaciones pueden desencadenar respuestas de cualquier tamaño. <strong>No es necesario "ajustar finamente" parámetros: el sistema se sintoniza solo en el punto crítico</strong>. Esta idea unificó conceptualmente fenómenos tan diversos como terremotos, extinciones masivas, fluctuaciones del mercado financiero, ondas cerebrales y la dinámica del flujo de información en internet.</p>
+
+  <div class="math-block">Ley de potencia característica: P(s) ∝ s^(-τ) · Sin escala característica · Avalanchas de todos los tamaños · Sistema crítico sin ajuste fino · Ley de Gutenberg-Richter (terremotos): N(M) ∝ 10^(-bM)</div>
+
+  <h2>El Modelo de la Pila de Arena</h2>
+
+  <p>El modelo paradigmático de Bak-Tang-Wiesenfeld es notablemente simple. Imaginá una grilla cuadrada donde podés agregar "granos de arena" uno por uno en posiciones aleatorias. Cada celda puede contener hasta cierto número crítico de granos (típicamente 3 o 4); cuando una celda excede este umbral, "se desliza", transfiriendo sus granos a las celdas vecinas. Si las celdas vecinas también exceden el umbral, ellas también se deslizan, generando una <strong>avalancha</strong> que puede extenderse por toda la grilla.</p>
+
+  <p>El descubrimiento sorprendente es la distribución del tamaño de las avalanchas. Si simulás el sistema durante mucho tiempo, encontrás que hay avalanchas de todos los tamaños: muchas pequeñas (uno o pocos deslizamientos), menos medianas, y ocasionalmente avalanchas masivas que afectan a gran parte del sistema. La distribución sigue una <strong>ley de potencia</strong>: P(s) ∝ s^(-τ), donde s es el tamaño de la avalancha y τ es un exponente típicamente cercano a 1,5.</p>
+
+  <p>Lo crucial es que <em>el sistema se conduce solo</em> a este estado crítico. Sin necesidad de ajustar ningún parámetro, sin diseño externo, simplemente agregando granos al azar a velocidad constante, el sistema termina en un régimen donde la distribución de avalanchas es libre de escala. Es "crítico" en el sentido técnico de la física estadística (similar al punto crítico de una transición de fase), pero alcanzado <em>espontáneamente</em>.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del castillo de cartas:</strong> Imaginá que estás construyendo un castillo de cartas, agregando cartas una a una. Al principio, cada nueva carta se acomoda fácilmente. Pero a medida que el castillo crece, ocasionalmente una carta nueva desestabiliza la estructura: algunas cartas caen. La mayoría de las veces caen solo una o dos. Pero ocasionalmente, una sola carta provoca el colapso de toda una sección. Y muy ocasionalmente, una sola carta hace caer el castillo entero. <strong>Si grafiqueás la distribución de los tamaños de las caídas, encontrarás una ley de potencia</strong>: muchísimas caídas pequeñas, menos medianas, y ocasionalmente caídas catastróficas. El castillo se "autoorganiza" en un estado donde está perpetuamente cerca del colapso, y eso es exactamente lo que hace un sistema crítico autoorganizado.</p>
+  </div>
+
+  <h2>La Ubicuidad del Fenómeno</h2>
+
+  <p>La criticalidad autoorganizada apareció rápidamente como un marco unificador para explicar muchísimos fenómenos naturales. Los <strong>terremotos</strong> siguen la famosa <em>ley de Gutenberg-Richter</em>: la frecuencia de terremotos cae como una ley de potencia con la magnitud. Hay miles de terremotos pequeños cada día, cientos de medianos cada año, decenas de grandes cada década, y ocasionalmente terremotos masivos. La distribución no tiene escala característica: no existe un "terremoto típico". La corteza terrestre se conduce espontáneamente a un estado crítico donde los temblores de todos los tamaños son posibles.</p>
+
+  <p>Las <strong>extinciones masivas</strong> en el registro fósil siguen una distribución similar. Hay extinciones pequeñas (algunas especies) ocurriendo continuamente, extinciones medianas en escalas de millones de años, y cinco grandes extinciones masivas en los últimos 540 millones de años. La distribución es consistente con criticalidad autoorganizada en los ecosistemas: pequeñas perturbaciones se propagan ocasionalmente en cascadas que pueden afectar a un número arbitrario de especies.</p>
+
+  <p>Las <strong>fluctuaciones del mercado financiero</strong> exhiben "colas pesadas" en sus distribuciones: cambios extremos de precio son mucho más probables de lo que predeciría una distribución gaussiana. La criticalidad financiera podría explicar fenómenos como las burbujas y crashes que el modelo de "mercado eficiente" tradicional no puede capturar.</p>
+
+  <h2>La Ley 1/f</h2>
+
+  <p>Una firma específica de la criticalidad autoorganizada es la <strong>ley 1/f</strong> en el espectro de frecuencias de las fluctuaciones temporales. Si grabás la actividad de un sistema crítico a lo largo del tiempo y calculás el espectro de potencias de su señal, encontrarás que la potencia espectral cae como S(f) ∝ 1/f, donde f es la frecuencia. Esto significa que el sistema tiene fluctuaciones de todas las escalas temporales, no solo escalas características específicas.</p>
+
+  <p>El "ruido 1/f" o "ruido rosa" se observa ubicuamente en la naturaleza: en transistores y dispositivos electrónicos, en la actividad neuronal, en el comportamiento de animales, en flujos de tráfico, en niveles del Nilo medidos por milenios, en la música (las composiciones de Bach exhiben espectros muy cercanos a 1/f). El físico Manfred Schroeder y otros han argumentado que el ruido 1/f es una firma universal de criticalidad autoorganizada en muy diversos sistemas.</p>
+
+  <div class="tech-note">
+    <p><strong>El cerebro crítico:</strong> Un descubrimiento fascinante de las últimas décadas es que el cerebro humano parece operar cerca de —o exactamente en— un estado crítico autoorganizado. Las "avalanchas neuronales" —cascadas de actividad neural— siguen distribuciones de ley de potencia con exponentes consistentes con criticalidad. Esta dinámica crítica parece ser óptima para procesamiento de información: maximiza la sensibilidad a estímulos externos (los inputs débiles pueden generar respuestas amplificadas) sin caer en hiperactividad descontrolada (como en convulsiones epilépticas) ni en hipoactividad (como en estados comatosos). La "hipótesis del cerebro crítico" sugiere que la evolución optimizó el cerebro para operar precisamente en el punto crítico, balanceando flexibilidad y estabilidad.</p>
+  </div>
+
+  <h2>La Conexión con las Transiciones de Fase</h2>
+
+  <p>La criticalidad autoorganizada está conceptualmente relacionada con las <strong>transiciones de fase clásicas</strong> de la física estadística. En las transiciones convencionales (como el ferromagnetismo, la condensación de gases, la transición superfluido-fluido normal), hay un parámetro de control (temperatura, presión, campo magnético) que debe ajustarse exactamente al valor crítico para que aparezcan las fluctuaciones libres de escala. Pequeñas desviaciones del punto crítico destruyen la criticalidad.</p>
+
+  <p>En la criticalidad autoorganizada, <em>no hay parámetro de control externo</em>: el sistema regula su propia dinámica para mantenerse en el punto crítico. Esto requiere ciertas propiedades estructurales: lentitud de la fuerza impulsora (los granos se agregan lentamente), umbral local (las celdas tienen capacidad finita), conservación o redistribución de la "energía" durante los eventos. Bajo estas condiciones, los sistemas se sintonizan automáticamente al estado crítico, sin necesidad de un "ajustador externo".</p>
+
+  <h2>Las Implicaciones Prácticas</h2>
+
+  <p>Si los sistemas complejos están organizados críticamente, las predicciones de eventos extremos son fundamentalmente diferentes de las predicciones tradicionales. En sistemas no críticos, los eventos extremos son extremadamente raros (cae exponencialmente con el tamaño). En sistemas críticos, los eventos extremos son mucho más probables de lo que la intuición sugiere, y no podemos descartarlos como "imposibles".</p>
+
+  <p>Esto tiene implicaciones para gestión de riesgos: terremotos catastróficos, crisis financieras devastadoras, pandemias globales, blackouts en redes eléctricas —todos son eventos extremos que aparecen con frecuencia mayor que la predicha por modelos gaussianos. La planificación responsable debe contemplar estos "cisnes negros" como eventualidades esperables, no como anomalías raras.</p>
+
+  <p>Por otro lado, los sistemas críticos también son <strong>responsables</strong>: pequeñas intervenciones inteligentes pueden tener efectos significativos. Un trato terapéutico en cardiopatías que restaura la dinámica crítica del corazón puede ser más eficaz que un trato que intenta forzar un estado específico. Una intervención educativa en una red social crítica puede propagarse en cascada y producir cambios masivos en la opinión.</p>
+
+  <div class="info-box">
+    <h4>Per Bak y "How Nature Works"</h4>
+    <p>Per Bak publicó en 1996 su libro <em>How Nature Works: The Science of Self-Organized Criticality</em>, donde argumenta que la criticalidad autoorganizada es un principio universal de organización en la naturaleza. Su tesis es ambiciosa: las leyes de potencia ubicuas en sistemas naturales —desde terremotos hasta evolución biológica, desde tráfico hasta neurología— son todas manifestaciones del mismo mecanismo subyacente. La tesis sigue siendo debatida: algunos investigadores la consideran demasiado universal (no toda ley de potencia indica criticalidad autoorganizada), pero su poder unificador sigue inspirando investigación intensa. Bak murió en 2002 a los 54 años; su trabajo sigue siendo enormemente influyente en física, biología, sociología y ciencias de la computación.</p>
+  </div>
+
+  <div class="closing">
+    <p>La criticalidad autoorganizada es uno de los conceptos más fértiles de las ciencias de la complejidad. Demuestra que muchos sistemas naturales se conducen espontáneamente a estados de "filo del navaja" donde pequeñas perturbaciones pueden desencadenar respuestas de cualquier tamaño. Esto explica por qué los eventos extremos —terremotos catastróficos, crisis financieras, extinciones masivas— son mucho más comunes de lo que esperaríamos en sistemas gaussianos clásicos. La criticalidad autoorganizada conecta conceptualmente fenómenos en geofísica, biología, neurología, economía y sociología, sugiriendo que existe una matemática profunda y compartida detrás de la complejidad de la naturaleza. Cada vez que un terremoto sacude la corteza, una crisis financiera convulsiona la economía, o una extinción masiva remueve la biósfera, estamos viendo criticalidad autoorganizada en acción —el universo organizándose espontáneamente al borde del cataclismo—.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si los sistemas críticamente autoorganizados producen eventos extremos con frecuencia mucho mayor que la predicha por modelos gaussianos, ¿cómo deberían las sociedades modernas planificar para "cisnes negros" inevitables sin caer en parálisis ante el riesgo? ¿Es posible diseñar sistemas robustos a criticalidad?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

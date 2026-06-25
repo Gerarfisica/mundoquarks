@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redes complejas: mundo pequeño y libres de escala | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Topología de los Sistemas Conectados</div>
+  <h1><span class="hl">Redes</span><br>complejas</h1>
+  <p class="article-subtitle">Mundo pequeño, libres de escala y por qué internet sobrevive: la topología detrás de los sistemas modernos</p>
+  <div class="article-tags"><span class="tag active">// Sistemas Complejos</span><span class="tag">Redes</span><span class="tag">Mundo Pequeño</span><span class="tag">Barabási</span></div>
+</div>
+<div class="article-container">
+  <p>En 1967, el psicólogo Stanley Milgram realizó un experimento que se haría famoso: pidió a personas aleatorias en Nebraska que enviaran un paquete a una persona específica en Boston, pero solo podían enviarlo a personas que conocían personalmente. La pregunta era: ¿cuántos pasos se requerirían? La respuesta sorprendió a todos: en promedio, <strong>seis grados de separación</strong>. Décadas después, con la matemática moderna de redes y con conjuntos masivos de datos (internet, redes sociales, redes biológicas), comprendemos por qué: las redes complejas reales no son aleatorias ni regulares, sino que tienen propiedades estructurales sorprendentes —"mundo pequeño", libre de escala— que las hacen simultáneamente robustas y vulnerables, eficientes para difundir información y susceptibles a ataques estratégicos.</p>
+
+  <div class="math-block">Seis grados de separación: distancia media en redes sociales ≈ 6 · Distribución de grado en redes libres de escala: P(k) ∝ k^(-γ), γ entre 2 y 3 · Coeficiente de clustering típico: 0,1-0,5</div>
+
+  <h2>El Mundo Pequeño</h2>
+
+  <p>En 1998, Duncan Watts y Steven Strogatz formalizaron matemáticamente la observación de Milgram. Publicaron en <em>Nature</em> un modelo de "redes de mundo pequeño" que tiene tres propiedades simultáneamente: distancia media corta (pocas pasos entre dos nodos cualesquiera), alto coeficiente de clustering (los amigos de tus amigos son probablemente tus amigos), y baja proporción de "atajos" estructurales. Mostraron que redes reales —desde la red eléctrica de Estados Unidos hasta la red neuronal del nematodo C. elegans, pasando por las redes sociales de actores de Hollywood— exhibían estas propiedades.</p>
+
+  <p>El mecanismo es elegante. La mayoría de las conexiones son "locales" (entre nodos cercanos en algún sentido —geográfico, social, profesional—). Pero una pequeña fracción son "atajos" que conectan regiones distantes de la red. Estos atajos reducen dramáticamente la distancia media entre nodos arbitrarios sin afectar las propiedades locales. El resultado es una estructura que combina lo mejor de dos mundos: las redes regulares (alto clustering, bajo costo de comunicación local) y las redes aleatorias (distancias cortas).</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del sistema de subterráneos con atajos:</strong> Imaginá un sistema de subterráneos donde la mayoría de las líneas son locales, conectando barrios vecinos. Si solo existieran estas líneas locales, viajar de un extremo de la ciudad al otro requeriría muchísimos transbordos. Ahora añadí algunas líneas expresas que cruzan diagonalmente la ciudad, conectando regiones distantes. <strong>Súbitamente, llegar a cualquier punto requiere mucho menos pasos:</strong> usás líneas locales para acercarte a un atajo, lo tomás, y luego usás líneas locales del otro lado. Esa estructura mixta —densa localmente con atajos globales— es la receta del "mundo pequeño". Las redes sociales reales funcionan así: muchas conexiones locales (amigos, familia, colegas cercanos) más algunas conexiones distantes (amigos de viajes, contactos profesionales lejanos), que actúan como atajos sociales.</p>
+  </div>
+
+  <h2>Las Redes Libres de Escala</h2>
+
+  <p>En 1999, Albert-László Barabási y Réka Albert publicaron otro descubrimiento fundamental: muchas redes reales son <strong>libres de escala</strong> (scale-free), lo que significa que la distribución del número de conexiones de cada nodo (su "grado") sigue una ley de potencia: P(k) ∝ k^(-γ), típicamente con γ entre 2 y 3. La mayoría de los nodos tienen pocas conexiones, pero unos pocos —los <strong>hubs</strong>— tienen miles o millones.</p>
+
+  <p>La internet, la World Wide Web, las redes metabólicas celulares, las redes de citas científicas, las redes sociales en línea, las redes de transporte aéreo: todas exhiben esta distribución libre de escala. El mecanismo subyacente identificado por Barabási y Albert es el <strong>apego preferencial</strong>: cuando se agregan nuevos nodos a la red, tienden a conectarse a nodos que ya tienen muchas conexiones (los "ricos se vuelven más ricos"). Este proceso produce naturalmente distribuciones de grado tipo ley de potencia.</p>
+
+  <p>Las redes libres de escala son <strong>extraordinariamente robustas</strong> contra fallas aleatorias: como la mayoría de los nodos tienen pocas conexiones, eliminar nodos aleatorios casi nunca rompe la red. Pero son <strong>extremadamente vulnerables</strong> a ataques dirigidos contra los hubs: eliminar unos pocos hubs estratégicos puede fragmentar la red entera. Esta dualidad robustez/vulnerabilidad explica muchas observaciones reales: internet sobrevive a fallos masivos pero podría ser devastada por ataques coordinados contra routers principales; los ecosistemas resisten extinciones aleatorias pero colapsan si se pierden las especies clave (los hubs ecológicos); las economías resisten quiebras pequeñas pero pueden colapsar si los bancos sistémicamente importantes fallan.</p>
+
+  <h2>Las Aplicaciones Biológicas</h2>
+
+  <p>El estudio de las redes complejas ha transformado la biología. Las <strong>redes metabólicas celulares</strong> —conexiones entre las miles de reacciones químicas que ocurren en una célula— son libres de escala, con algunas moléculas (ATP, NADH, agua) actuando como hubs centrales. Las <strong>redes de regulación genética</strong> muestran estructuras similares. Las <strong>redes neuronales</strong> en el cerebro tienen propiedades de mundo pequeño y exhiben modularidad jerárquica.</p>
+
+  <p>La pandemia de COVID-19 reveló dramáticamente la importancia de la estructura de las redes en epidemiología. La propagación de enfermedades infecciosas en redes sociales libres de escala es radicalmente diferente de la propagación en redes regulares. Los super-difusores (personas con muchísimos contactos sociales) son hubs epidemiológicos críticos. Las intervenciones efectivas se enfocan en estos hubs, no en la población general.</p>
+
+  <div class="tech-note">
+    <p><strong>Las redes neuronales en deep learning:</strong> Las redes neuronales artificiales modernas que sustentan las inteligencias artificiales contemporáneas (ChatGPT, modelos de visión, sistemas autónomos) son redes complejas con miles de millones de parámetros organizados en arquitecturas específicas. Aunque inspiradas en redes neuronales biológicas, las redes artificiales modernas son enormemente más simples estructuralmente —típicamente regulares, en lugar de libres de escala—. Sin embargo, las propiedades emergentes de su entrenamiento (capacidad de generalización, robustez a ruido, transferencia de aprendizaje) están siendo estudiadas con herramientas de redes complejas. Es uno de los campos más activos en la intersección entre ciencias de la complejidad e inteligencia artificial.</p>
+  </div>
+
+  <h2>La Propagación en Redes</h2>
+
+  <p>Los procesos dinámicos que ocurren <em>sobre</em> redes complejas tienen propiedades únicas. La <strong>propagación de epidemias</strong> en redes libres de escala no tiene umbral epidémico —cualquier enfermedad con tasa de transmisión positiva puede propagarse a través de la red, mientras que en redes regulares hay un umbral mínimo de transmisión por debajo del cual la enfermedad se extingue—. Esto es una consecuencia matemática directa de la presencia de hubs.</p>
+
+  <p>La <strong>sincronización</strong> en redes (osciladores acoplados que se sincronizan dinámicamente) depende crucialmente de la topología de la red. Las <strong>cascadas de fallos</strong> en sistemas eléctricos, financieros o de transporte se propagan diferentemente según la estructura de red subyacente. La <strong>difusión de innovaciones</strong>, opiniones, modas y rumores en redes sociales sigue dinámicas similares.</p>
+
+  <h2>La Ciencia de Redes</h2>
+
+  <p>El campo de "ciencia de redes" ha florecido en las últimas dos décadas como una disciplina genuinamente interdisciplinaria, conectando matemáticas (teoría de grafos), física (mecánica estadística), informática (algoritmos de grafos), sociología (análisis de redes sociales), biología (genómica de sistemas), economía (redes de comercio), y muchas otras. Universidades de todo el mundo tienen ahora departamentos o institutos dedicados específicamente al estudio de redes.</p>
+
+  <p>Las herramientas analíticas son sofisticadas: <em>centralidades</em> de varios tipos (degree, betweenness, closeness, eigenvector), <em>detección de comunidades</em>, <em>análisis de modularidad</em>, <em>algoritmos de embedding</em>, <em>redes dinámicas</em>, <em>redes multilayer</em>. Estas herramientas permiten extraer información significativa de conjuntos de datos relacionales masivos —desde el genoma hasta las redes sociales—.</p>
+
+  <div class="info-box">
+    <h4>La importancia económica de las redes</h4>
+    <p>Las plataformas tecnológicas que dominan la economía moderna (Google, Facebook, Amazon, Microsoft) son fundamentalmente "negocios de redes". Su valor proviene en gran parte de los efectos de red: cuanto más usuarios tiene la plataforma, más valiosa es para nuevos usuarios. Esto crea dinámicas de "ganador se lleva todo" donde el primer entrante exitoso puede dominar el mercado entero. La economía digital es indistinguible de la economía de redes, y entender la dinámica de las redes complejas es esencial para entender la economía contemporánea. Algunas de las regulaciones más debatidas (sobre monopolios, antitrust, neutralidad de la red) son en última instancia disputas sobre quién controla los hubs de las redes económicas digitales.</p>
+  </div>
+
+  <div class="closing">
+    <p>Las redes complejas son uno de los marcos conceptuales más poderosos para entender los sistemas modernos. Han revelado que la estructura subyacente de muchísimos sistemas —desde la biología celular hasta las redes sociales digitales, desde la internet hasta los ecosistemas— sigue principios matemáticos comunes: mundo pequeño, libre de escala, modularidad jerárquica. Estas propiedades emergen espontáneamente de procesos de crecimiento simples (apego preferencial, optimización local) y producen sistemas que son simultáneamente robustos y vulnerables, eficientes y frágiles. Comprender las redes es comprender el tejido conectivo de la realidad moderna. Cada conexión que hacés en una red social, cada vez que clickeás un enlace en internet, cada vez que un gen se expresa en una célula, estás participando de la dinámica de un sistema con miles de millones de nodos cuyas propiedades emergen colectivamente de millones de interacciones locales.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si las redes complejas son simultáneamente robustas contra fallas aleatorias y vulnerables a ataques dirigidos, ¿cómo deberían diseñarse infraestructuras críticas modernas (redes eléctricas, redes financieras, internet)? ¿Es preferible la robustez distribuida o la concentración eficiente, considerando los riesgos diferentes que cada estrategia implica?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

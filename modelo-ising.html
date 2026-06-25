@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modelo de Ising: del ferromagnetismo a la epidemiología | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Universalidad en Transiciones de Fase</div>
+  <h1>El <span class="hl">modelo</span><br>de Ising</h1>
+  <p class="article-subtitle">Del ferromagnetismo a la propagación de opiniones: el modelo más universal de la física estadística</p>
+  <div class="article-tags"><span class="tag active">// Sistemas Complejos</span><span class="tag">Modelo de Ising</span><span class="tag">Transiciones de Fase</span><span class="tag">Universalidad</span></div>
+</div>
+<div class="article-container">
+  <p>En 1920, Wilhelm Lenz propuso un modelo extremadamente simplificado del ferromagnetismo a su estudiante de doctorado Ernst Ising: imaginar una red de "espines" que solo pueden apuntar hacia arriba o hacia abajo, y que interactúan únicamente con sus vecinos inmediatos favoreciendo la alineación paralela. Ising resolvió el caso unidimensional en su tesis de 1924 y concluyó —incorrectamente— que el modelo no producía transición ferromagnética en ninguna dimensión. Dos décadas después, en 1944, Lars Onsager resolvió analíticamente el caso bidimensional y demostró que sí existía transición de fase, con propiedades extraordinariamente ricas. <strong>El modelo de Ising se convirtió en uno de los modelos más estudiados de la física estadística</strong>, y en una herramienta universal para entender transiciones de fase, criticalidad, y fenómenos colectivos en sistemas tan diversos como imanes, fluidos, mercados financieros, propagación de epidemias y opiniones sociales.</p>
+
+  <div class="math-block">Hamiltoniano de Ising: H = -J·Σ(s_i·s_j) - h·Σs_i · Temperatura crítica 2D (Onsager): T_c = 2J/k_B·ln(1+√2) ≈ 2,269 J/k_B · Exponente crítico β en 2D: 1/8 · Universalidad: misma física para sistemas muy diferentes</div>
+
+  <h2>El Modelo Original: Ferromagnetismo Simplificado</h2>
+
+  <p>El modelo de Ising consiste en una red regular de espines, cada uno tomando solo dos valores posibles: +1 (espín hacia arriba) o -1 (espín hacia abajo). Cada par de espines vecinos contribuye al Hamiltoniano con una energía -J·s_i·s_j: si los espines son paralelos (ambos +1 o ambos -1), la energía es -J (negativa, favoreciendo el estado); si son antiparalelos, +J (positiva, desfavoreciéndolo). El parámetro J controla la fuerza de la interacción y su signo determina si el modelo es ferromagnético (J > 0) o antiferromagnético (J < 0).</p>
+
+  <p>A temperaturas altas, la agitación térmica desordena los espines completamente: cada espín fluctúa independientemente, la magnetización promedio es cero, no hay orden colectivo. A temperaturas bajas, las interacciones dominan: los espines tienden a alinearse, generando dominios magnéticos coherentes. <strong>Entre estos dos regímenes hay una temperatura crítica T_c donde ocurre la transición de fase ferromagnética</strong>, con propiedades singulares: divergencia de la susceptibilidad magnética, fluctuaciones críticas a todas las escalas, y leyes de potencia universales.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del equipo deportivo:</strong> Imaginá un equipo deportivo donde cada jugador puede estar "comprometido" o "desinteresado". A cada jugador le gusta estar en el mismo estado que sus compañeros cercanos (interacción local positiva), pero también es susceptible al estrés y al cansancio (agitación térmica). En épocas de alta presión (alta temperatura), cada jugador fluctúa independientemente: no hay ánimo colectivo, el equipo está dividido. En épocas de baja presión, las interacciones dominan: todo el equipo se "compromete" o "desinteresa" colectivamente. <strong>Y en una zona intermedia muy específica, el equipo está en estado crítico</strong>: las opiniones individuales son frágiles, pequeños eventos pueden propagar cambios colectivos masivos, y la dinámica social del equipo se vuelve muy sensible a perturbaciones. El modelo de Ising describe matemáticamente este tipo de dinámica colectiva.</p>
+  </div>
+
+  <h2>La Solución de Onsager</h2>
+
+  <p>La solución analítica del modelo de Ising bidimensional por Lars Onsager en 1944 es considerada una de las grandes hazañas de la física teórica del siglo XX. Onsager demostró que en una red cuadrada infinita, el modelo exhibe una transición de fase exacta a la temperatura T_c = 2J/[k_B·ln(1+√2)] ≈ 2,269 J/k_B. Por debajo de T_c, hay magnetización espontánea no nula; por encima, la magnetización promedio es cero.</p>
+
+  <p>Más importante aún, Onsager calculó exactamente los <strong>exponentes críticos</strong>: la magnetización cerca de T_c se comporta como m(T) ∝ (T_c - T)^β con β = 1/8, la susceptibilidad diverge como χ ∝ |T - T_c|^(-γ) con γ = 7/4, el calor específico tiene una divergencia logarítmica. Estos exponentes son <em>universales</em>: no dependen de los detalles microscópicos del modelo (la forma exacta de la red, el valor preciso de J), sino solo de propiedades generales (dimensión espacial, simetría del parámetro de orden).</p>
+
+  <p>El problema 3D nunca se resolvió analíticamente —es uno de los grandes problemas no resueltos de la física estadística—. Pero las simulaciones numéricas y los métodos de renormalización han determinado sus exponentes críticos con altísima precisión.</p>
+
+  <h2>La Universalidad y los Grupos de Renormalización</h2>
+
+  <p>El descubrimiento más profundo asociado con el modelo de Ising es la <strong>universalidad</strong>: sistemas físicos completamente diferentes pueden tener los mismos exponentes críticos si comparten ciertas características generales (dimensión espacial, simetría del parámetro de orden, alcance de las interacciones). El modelo de Ising 3D pertenece a la misma "clase de universalidad" que la condensación del CO₂ en su punto crítico, la separación de fases en aleaciones binarias, la transición superfluido-fluido normal en el ³He, y muchos otros sistemas.</p>
+
+  <p>Kenneth Wilson explicó teóricamente esta universalidad en los años 70 mediante el desarrollo del <strong>grupo de renormalización</strong>. La idea es que cerca de un punto crítico, el sistema exhibe estructura autosemejante a múltiples escalas: hacer "zoom" preserva las propiedades estadísticas. Esto implica que las propiedades críticas dependen solo de las simetrías globales del problema, no de los detalles microscópicos. Wilson recibió el Nobel de Física 1982 por este trabajo, que constituye uno de los avances más profundos de la física teórica.</p>
+
+  <div class="tech-note">
+    <p><strong>Las aplicaciones más allá del magnetismo:</strong> El modelo de Ising y sus variantes se han usado para modelar una variedad asombrosa de sistemas que no tienen nada que ver con el magnetismo original. En <em>biología</em>: el modelo de "interacción entre neuronas" basado en variantes del Ising explica patrones de actividad cerebral; modelos tipo Ising describen la conformación de proteínas y el plegamiento de polímeros. En <em>sociología</em>: el modelo Sznajd y otros descendientes del Ising modelan la formación de opiniones, la dinámica electoral, la polarización política. En <em>epidemiología</em>: la propagación de enfermedades infecciosas tiene transiciones de fase tipo Ising (umbral epidémico). En <em>economía</em>: modelos basados en Ising describen comportamiento de manada en mercados financieros. En <em>computación</em>: el problema de satisfacibilidad lógica (SAT) tiene transiciones de fase tipo Ising entre regiones fáciles y difíciles. La universalidad del modelo lo convierte en una herramienta interdisciplinar fundamental.</p>
+  </div>
+
+  <h2>Las Variantes y Generalizaciones</h2>
+
+  <p>El modelo de Ising básico ha sido generalizado de muchas maneras. El <strong>modelo de Heisenberg</strong> permite a los espines apuntar en cualquier dirección 3D (no solo arriba/abajo). El <strong>modelo XY</strong> los restringe a un plano. El <strong>modelo de Potts</strong> permite cada espín tomar uno de q estados (con q = 2 recuperándose Ising). El <strong>modelo de Edwards-Anderson</strong> introduce interacciones aleatorias (positivas o negativas), modelando vidrios de espín.</p>
+
+  <p>Cada generalización captura características de sistemas físicos específicos y exhibe sus propias transiciones de fase y exponentes críticos. Algunas tienen aplicaciones tecnológicas directas: los vidrios de espín han inspirado algoritmos de optimización (recocido simulado) que se usan en circuitos integrados, logística, machine learning, y muchos otros problemas computacionales difíciles.</p>
+
+  <h2>El Modelo de Ising Cuántico</h2>
+
+  <p>Las versiones cuánticas del modelo de Ising —donde los espines son operadores cuánticos con propiedades adicionales (campo transverso, entrelazamiento)— son centrales en la física teórica contemporánea. El <strong>modelo de Ising con campo transverso</strong> exhibe transiciones de fase cuánticas a temperatura cero, controladas por el campo en lugar de la temperatura. Estos sistemas son laboratorios ideales para estudiar entrelazamiento cuántico macroscópico, computación cuántica adiabática, y la frontera entre física cuántica y clásica.</p>
+
+  <p>Empresas como D-Wave Systems han construido procesadores cuánticos que físicamente realizan modelos de Ising acoplados, usándolos para resolver problemas de optimización que se mapean a la búsqueda del estado fundamental del Ising. Aunque controvertidos en cuanto a su "ventaja cuántica" real, estos sistemas son una manifestación tecnológica concreta del modelo.</p>
+
+  <div class="info-box">
+    <h4>El error de Ising</h4>
+    <p>Ernst Ising resolvió correctamente el caso unidimensional en su tesis de 1924 (donde el modelo efectivamente NO tiene transición de fase a temperatura finita) y, basándose en argumentos físicos plausibles pero incorrectos, concluyó que el modelo tampoco la tendría en dimensiones superiores. Esto frustró su entusiasmo y, aunque continuó trabajando en física, nunca volvió a investigar el modelo. Murió en 1998 a los 98 años, habiendo vivido lo suficiente para ver "su" modelo convertido en uno de los más importantes de la física. Es un ejemplo de cómo las conclusiones tempranas en una investigación pueden cerrar puertas que otros eventualmente abren —y de la fragilidad de las intuiciones físicas frente a la matemática rigurosa—.</p>
+  </div>
+
+  <div class="closing">
+    <p>El modelo de Ising es uno de los modelos más estudiados, exitosos y aplicados de toda la física estadística. Lo que comenzó como un intento simplificado de modelar el ferromagnetismo se ha convertido en una herramienta universal para entender transiciones de fase, criticalidad, fenómenos colectivos, y emergencia en sistemas complejos. Desde la magnetización del hierro hasta la propagación de epidemias, desde la dinámica de mercados hasta la computación cuántica, desde la formación de opiniones hasta el plegamiento de proteínas, el modelo de Ising y sus generalizaciones aparecen una y otra vez. Es un ejemplo paradigmático de cómo la matemática simple, aplicada con visión, puede revelar verdades profundas y universales sobre la organización de la naturaleza. Cada vez que un sistema complejo se acerca a un punto crítico —donde pequeñas perturbaciones pueden propagar transformaciones colectivas masivas— estamos viendo, en algún sentido fundamental, física de Ising en acción.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si el modelo de Ising captura propiedades universales que aparecen en sistemas tan diversos como imanes, neuronas, mercados y opiniones, ¿qué nos dice esto sobre la unidad subyacente de la naturaleza? ¿Hay una "teoría general de los fenómenos colectivos" implícita en la universalidad de Ising?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

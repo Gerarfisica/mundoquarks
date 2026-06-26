@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spin cuántico y el experimento de Stern-Gerlach | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="fisica-moderna.html" class="nav-back">Física Moderna</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Física Moderna <span>·</span> Momento Angular Sin Análogo Clásico</div>
+  <h1><span class="hl">Spin</span><br>cuántico</h1>
+  <p class="article-subtitle">El momento angular intrínseco sin análogo clásico: del experimento de Stern-Gerlach al MRI</p>
+  <div class="article-tags"><span class="tag active">// Física Cuántica</span><span class="tag">Spin</span><span class="tag">Stern-Gerlach</span><span class="tag">Fermiones</span></div>
+</div>
+<div class="article-container">
+  <p>En febrero de 1922, dos físicos alemanes —Otto Stern y Walther Gerlach— realizaron un experimento aparentemente simple en Frankfurt: hicieron pasar un haz de átomos de plata a través de un campo magnético inhomogéneo, y observaron qué pasaba con su trayectoria. El resultado fue absolutamente desconcertante: el haz no se desviaba continuamente como predeciría la física clásica, sino que se <strong>dividía en exactamente dos haces discretos</strong> que viajaban con desviaciones opuestas. Los átomos parecían tener un momento angular intrínseco cuantizado, que solo podía tomar dos valores: hacia arriba o hacia abajo, sin nada intermedio. Este fenómeno —el <em>spin cuántico</em>— es una de las propiedades más extrañas y fundamentales de las partículas subatómicas, sin ningún análogo en la mecánica clásica.</p>
+
+  <div class="math-block">Spin del electrón: s = 1/2 (semi-entero) · Componente medible: ±ℏ/2 · Momento magnético: μ_s = g_s·μ_B·s, con g_s ≈ 2 · Magnetón de Bohr: μ_B ≈ 9,274×10⁻²⁴ J/T</div>
+
+  <h2>La Expectativa Clásica</h2>
+
+  <p>En la física clásica, si una partícula tiene un momento magnético dipolar, su comportamiento en un campo magnético inhomogéneo depende de la orientación del dipolo respecto al campo. Si los dipolos están orientados aleatoriamente (como cabría esperar para átomos térmicamente equilibrados), las desviaciones también deberían ser aleatorias y continuas, produciendo una distribución continua de impactos en el detector.</p>
+
+  <p>Lo que Stern y Gerlach esperaban era exactamente esto: una mancha continua en el detector que reflejara la distribución continua de orientaciones de los dipolos atómicos. El experimento estaba diseñado precisamente para verificar esta expectativa clásica.</p>
+
+  <p>El resultado fue radicalmente diferente. En lugar de una mancha continua, los átomos de plata producían <strong>exactamente dos manchas discretas</strong>, separadas por la cantidad predicha para dipolos completamente alineados o anti-alineados con el campo. No había átomos con orientaciones intermedias; solo "arriba" y "abajo". Era como si los átomos solo pudieran elegir dos orientaciones específicas, independientemente de cómo estuvieran orientados antes de entrar al campo.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del trompo cuántico imposible:</strong> Imaginá miles de trompos girando sobre una superficie, cada uno con su eje de rotación apuntando en una dirección aleatoria. Si los hicieras pasar por un detector que mide la inclinación de su eje, esperarías encontrar una distribución continua de inclinaciones —algunos casi verticales, otros casi horizontales, otros en cualquier ángulo intermedio—. Pero los "trompos cuánticos" del experimento de Stern-Gerlach hacen algo absurdo: <strong>al medirlos, todos resultan tener sus ejes exactamente verticales —algunos hacia arriba, otros hacia abajo, ninguno en posición intermedia</strong>. Es como si al observarlos los obligaras a "elegir" entre solo dos posibilidades, sin importar cómo estaban orientados antes. Esa imposibilidad clásica es precisamente la firma del spin cuántico.</p>
+  </div>
+
+  <h2>El Descubrimiento del Spin</h2>
+
+  <p>El experimento de Stern-Gerlach fue inicialmente interpretado como evidencia del momento angular orbital cuantizado del electrón en el átomo (una predicción del modelo de Bohr). Pero esta interpretación tenía problemas: el momento angular orbital de los electrones de valencia de los átomos de plata es cero (estado s), por lo que no debería haber ninguna desviación magnética en absoluto.</p>
+
+  <p>La resolución llegó en 1925, cuando George Uhlenbeck y Samuel Goudsmit propusieron que los electrones tienen un <strong>momento angular intrínseco adicional</strong> —no asociado con movimiento orbital, sino con una propiedad fundamental del electrón mismo—. Llamaron a esto "spin", inspirados en la analogía visual de un electrón "girando sobre su propio eje" (aunque, como veremos, esta analogía es engañosa).</p>
+
+  <p>El spin del electrón es semi-entero: s = 1/2. Su componente en cualquier dirección espacial específica solo puede tomar dos valores: +ℏ/2 (espín-arriba) o -ℏ/2 (espín-abajo). No hay estados intermedios. Esta cuantización extraña no tiene análogo clásico: ningún objeto clásico puede tener un momento angular que solo tome dos valores específicos.</p>
+
+  <h2>Por Qué "Spin" es un Nombre Engañoso</h2>
+
+  <p>La metáfora original —el electrón girando sobre su propio eje como un planeta—es engañosa por varias razones. Primero, los cálculos muestran que para que un electrón clásico produjera el momento angular observado por rotación física, su superficie tendría que moverse <strong>más rápido que la velocidad de la luz</strong>, lo cual es imposible.</p>
+
+  <p>Segundo, los electrones son partículas puntuales en el modelo estándar: no tienen tamaño finito sobre el cual rotar. El spin no es una rotación geométrica de un objeto extendido.</p>
+
+  <p>Tercero, el spin tiene propiedades genuinamente cuánticas que no tienen análogo clásico: por ejemplo, una rotación completa de 360° <em>no devuelve</em> un electrón con spin 1/2 a su estado original; se requieren 720° (dos rotaciones completas) para volver al estado inicial. Esto es propio de los <em>espinores</em> matemáticos, no de objetos geométricos clásicos.</p>
+
+  <p>Hoy entendemos el spin como una propiedad cuántica fundamental, sin equivalente clásico, asociada con cómo los estados de las partículas transforman bajo rotaciones en el grupo de simetría apropiado. Es un atributo tan intrínseco al electrón como su carga eléctrica o su masa.</p>
+
+  <div class="tech-note">
+    <p><strong>Las clases de partículas por spin:</strong> Todas las partículas elementales tienen spin cuantizado, pero diferentes partículas tienen diferentes valores de spin. Los electrones, quarks, protones, neutrones y todos los fermiones tienen spin semi-entero (1/2, 3/2, etc.). Los fotones, gluones, los bosones W y Z tienen spin entero (1). El gravitón hipotético tendría spin 2. El bosón de Higgs tiene spin 0. Esta clasificación tiene consecuencias profundas: los <em>fermiones</em> (spin semi-entero) obedecen el principio de exclusión de Pauli y forman la materia ordinaria; los <em>bosones</em> (spin entero) pueden ocupar el mismo estado y son los mediadores de las fuerzas fundamentales. La estabilidad de la materia, la diversidad química, las propiedades estadísticas de los gases, todas dependen últimamente del spin de las partículas que componen la materia.</p>
+  </div>
+
+  <h2>Las Aplicaciones Tecnológicas</h2>
+
+  <p>El spin no es solo una curiosidad: es la base de tecnologías que sustentan la civilización moderna. La <strong>resonancia magnética nuclear</strong> (NMR) y su pariente médica, la <strong>resonancia magnética por imágenes</strong> (MRI), se basan en manipular el spin nuclear de los protones del agua en los tejidos. Aplicando pulsos electromagnéticos a frecuencias específicas, se manipulan los espines y se detectan las señales emitidas durante su relajación, produciendo imágenes detalladas del cuerpo sin radiación ionizante.</p>
+
+  <p>La <strong>espintrónica</strong> es una rama emergente de la electrónica que usa el spin (no solo la carga) de los electrones para procesar y almacenar información. Las cabezas de lectura de discos duros modernos —basadas en magnetorresistencia gigante (GMR, Nobel 2007 a Fert y Grünberg)— usan el efecto del spin sobre la conducción eléctrica para leer bits magnéticos con altísima sensibilidad. Las memorias MRAM y los dispositivos espintrónicos futuros prometen electrónica más eficiente energéticamente que la electrónica convencional.</p>
+
+  <p>Las <strong>computadoras cuánticas</strong> usan a menudo el spin de electrones o núcleos como qubits físicos. Los espines son sistemas naturales de dos niveles (espín-arriba o espín-abajo) que pueden ponerse en superposición cuántica y entrelazarse, características esenciales para procesamiento cuántico de información.</p>
+
+  <h2>El Spin como Sonda</h2>
+
+  <p>El spin también es una herramienta poderosa para investigar la estructura de la materia. La <strong>espectroscopia de espín</strong> revela información sobre los enlaces químicos, la conectividad atómica, la dinámica molecular y los estados electrónicos. La <strong>polarimetría de espín</strong> en física de partículas permite investigar las simetrías fundamentales del universo (simetría CP, violación de paridad).</p>
+
+  <p>El spin de partículas cosmológicas (especialmente fotones del fondo cósmico de microondas) está siendo medido con creciente precisión para sondear las condiciones del universo primitivo y posibles signos de inflación cosmológica. La polarización del CMB es esencialmente un mapa del spin de los fotones cosmológicos.</p>
+
+  <div class="info-box">
+    <h4>El error afortunado de Stern y Gerlach</h4>
+    <p>El experimento original de Stern-Gerlach casi no se realizó. Tenían dificultades financieras durante la inflación alemana de los años 20, y Stern usaba cigarros baratos cuyo humo dejaba depósitos de azufre. Por casualidad, esos depósitos reaccionaron con la plata depositada en el detector formando una capa visible (sulfuro de plata negro), permitiendo "ver" claramente los dos puntos donde se acumulaba la plata. Sin esos depósitos accidentales, los átomos de plata habrían sido invisibles y el experimento podría haber fracasado. Stern y Gerlach reconocieron después que los hábitos de fumar baratos de Stern fueron, irónicamente, esenciales para uno de los descubrimientos más importantes de la física cuántica. Stern recibió el Premio Nobel en 1943; Gerlach quedó injustamente excluido, posiblemente por motivos políticos relacionados con la Segunda Guerra Mundial.</p>
+  </div>
+
+  <div class="closing">
+    <p>El spin cuántico es probablemente la propiedad más característicamente cuántica de las partículas: sin análogo clásico, fundamental para la estabilidad de la materia, esencial para todas las tecnologías de información y computación cuántica. Su descubrimiento en 1922 fue una de las muchas confirmaciones tempranas de que la naturaleza microscópica opera bajo reglas radicalmente diferentes de la intuición cotidiana. Hoy, un siglo después del experimento Stern-Gerlach, el spin sigue siendo un campo activo de investigación tanto fundamental (en física de partículas) como aplicada (en espintrónica, computación cuántica, NMR). Cada vez que tu doctor te hace un MRI, cada vez que guardás un archivo en un disco duro magnético, cada vez que se manipula un qubit en una computadora cuántica, estás aprovechando esta propiedad cuántica extraña descubierta por accidente con cigarros baratos hace exactamente 100 años.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si el spin no corresponde a una rotación física en el sentido clásico, ¿en qué sentido es legítimo seguir usando esa palabra para describirlo? ¿Es solo una etiqueta histórica conveniente, o hay algo en el spin cuántico que efectivamente "rota" en algún espacio matemático abstracto?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="fisica-moderna.html" class="back-btn">← Volver a Física Moderna</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Computación cuántica: qubits y supremacía | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="fisica-moderna.html" class="nav-back">Física Moderna</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Física Moderna <span>·</span> La Nueva Frontera Tecnológica</div>
+  <h1><span class="hl">Computación</span><br>cuántica</h1>
+  <p class="article-subtitle">Qubits, superposición y supremacía: la respuesta tecnológica al desafío de Feynman</p>
+  <div class="article-tags"><span class="tag active">// Física Cuántica</span><span class="tag">Computación Cuántica</span><span class="tag">Qubits</span><span class="tag">Shor-Grover</span></div>
+</div>
+<div class="article-container">
+  <p>En 1981, el físico Richard Feynman planteó una pregunta provocadora en una conferencia en MIT: "¿Pueden las computadoras clásicas simular eficientemente la naturaleza? La naturaleza no es clásica, maldita sea, y si querés hacer una simulación de la naturaleza, mejor que la hagas mecanocuántica". La <strong>computación cuántica</strong> es la respuesta tecnológica a esa pregunta: máquinas que usan los principios de superposición y entrelazamiento cuántico para resolver problemas que serían prácticamente imposibles para computadoras clásicas. Cuarenta años después, las computadoras cuánticas están saliendo del laboratorio hacia el mercado comercial, prometiendo revolucionar áreas tan diversas como criptografía, descubrimiento de fármacos, optimización logística, y simulación de materiales.</p>
+
+  <div class="math-block">Qubit: |ψ⟩ = α|0⟩ + β|1⟩, con |α|² + |β|² = 1 · N qubits codifican 2^N estados simultáneamente · Algoritmo de Shor: factorización en O((log N)³) vs O(exp(log N)¹ᐟ³) clásico · Algoritmo de Grover: búsqueda en O(√N) vs O(N) clásico</div>
+
+  <h2>Bits vs Qubits</h2>
+
+  <p>Una computadora clásica almacena información en <strong>bits</strong>: unidades que pueden estar en uno de dos estados definidos (0 o 1). N bits clásicos pueden codificar 2^N estados posibles, pero solo uno de ellos en cualquier momento dado.</p>
+
+  <p>Una computadora cuántica usa <strong>qubits</strong>: sistemas cuánticos de dos niveles que pueden estar en cualquier superposición de los estados |0⟩ y |1⟩: |ψ⟩ = α|0⟩ + β|1⟩, donde α y β son números complejos con |α|² + |β|² = 1. La superposición no es solo "incertidumbre sobre cuál estado": es un genuino estado cuántico donde la partícula ocupa simultáneamente ambos estados básicos.</p>
+
+  <p>Cuando combinas N qubits, el sistema puede estar en una superposición de los 2^N estados básicos simultáneamente, con coeficientes complejos para cada uno. <strong>Procesar este estado superposicionado equivale, en cierto sentido, a procesar 2^N estados clásicos simultáneamente</strong>. Para N = 50, son 2⁵⁰ ≈ 10¹⁵ estados; para N = 300, son 2³⁰⁰ ≈ 10⁹⁰ estados —más que el número de átomos en el universo observable—. Esta es la fuente del potencial extraordinario de la computación cuántica.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del laberinto y el explorador cuántico:</strong> Imaginá un laberinto con un millón de caminos posibles y solo uno conduce a la salida. Una computadora clásica funcionaría como un explorador que prueba un camino a la vez: en el peor caso, debe probar todos los caminos antes de encontrar la salida. <strong>Una computadora cuántica funciona como un "explorador en superposición"</strong>: simultáneamente entra por todos los caminos posibles, y por interferencia cuántica, las amplitudes correspondientes a los caminos incorrectos se cancelan entre sí, mientras que la del camino correcto se amplifica. Al medir al final, el explorador "aparece" con altísima probabilidad en la salida. La superposición no permite probar todo "simultáneamente" en un sentido mágico —no podés leer todos los caminos al mismo tiempo—, pero permite ciertas computaciones que aprovechan la interferencia para descartar exponencialmente caminos incorrectos.</p>
+  </div>
+
+  <h2>Los Algoritmos Cuánticos Clave</h2>
+
+  <p>No todas las computaciones se aceleran cuánticamente. La ventaja cuántica requiere algoritmos diseñados específicamente para aprovechar la superposición e interferencia cuántica. Los algoritmos más importantes son:</p>
+
+  <p>El <strong>algoritmo de Shor</strong> (Peter Shor, 1994) factoriza números enteros en tiempo polinomial en el número de dígitos: O((log N)³). El mejor algoritmo clásico conocido (criba general de campo numérico) tarda tiempo subexponencial: O(exp((log N)¹ᐟ³ (log log N)²ᐟ³)). Para números de 2048 bits (clave RSA estándar), Shor sería millones de veces más rápido que cualquier algoritmo clásico. Esto rompería completamente la criptografía RSA actual, una amenaza tomada muy en serio por gobiernos y empresas que están migrando hacia "criptografía post-cuántica".</p>
+
+  <p>El <strong>algoritmo de Grover</strong> (Lov Grover, 1996) busca en una base de datos no estructurada en O(√N) operaciones, vs O(N) clásico. Para una base de datos de un millón de elementos, Grover encontraría el elemento buscado en unas 1000 operaciones; clásicamente requeriría revisar hasta un millón. Es una aceleración cuadrática, no exponencial como Shor, pero aplicable a muchísimos problemas prácticos.</p>
+
+  <p>Los <strong>algoritmos de simulación cuántica</strong> permiten simular eficientemente sistemas cuánticos —moléculas químicas complejas, materiales superconductores, reacciones nucleares— que son intratables clásicamente. Es la aplicación original prevista por Feynman, y posiblemente la más impactante a largo plazo para química, materiales y farmacéutica.</p>
+
+  <h2>Las Plataformas Físicas</h2>
+
+  <p>Hay varias plataformas físicas compitiendo para implementar qubits prácticos. Los <strong>qubits superconductores</strong> (IBM, Google, Rigetti) usan circuitos eléctricos superconductores que se comportan como átomos artificiales con dos niveles cuánticos. Tienen ventajas en velocidad de operación y escalabilidad de fabricación, pero requieren temperaturas extremadamente bajas (~15 mK). Google demostró "supremacía cuántica" con un procesador de 53 qubits en 2019.</p>
+
+  <p>Las <strong>trampas iónicas</strong> (IonQ, Quantinuum) atrapan iones individuales en campos electromagnéticos. Tienen tiempos de coherencia mucho más largos (minutos vs microsegundos) y fidelidades operacionales superiores, pero son más lentas. Permiten conectividad total entre qubits (cualquier par puede entrelazarse).</p>
+
+  <p>Los <strong>átomos neutros</strong> (QuEra, Pasqal, Atom Computing) usan átomos individuales atrapados por pinzas ópticas. Combinan ventajas de los iones (largos tiempos de coherencia) con escalabilidad mejor (cientos de qubits arreglados en geometrías arbitrarias).</p>
+
+  <p>Otras plataformas incluyen <strong>fotones</strong> (PsiQuantum, Xanadu), <strong>defectos en diamante</strong> (NV centers), y <strong>topológicos</strong> (Microsoft, basados en fermiones de Majorana hipotéticos). Cada plataforma tiene ventajas y desventajas; no está claro cuál dominará el futuro.</p>
+
+  <div class="tech-note">
+    <p><strong>La "supremacía cuántica" y sus controversias:</strong> En octubre de 2019, Google anunció haber alcanzado "supremacía cuántica": su procesador Sycamore de 53 qubits resolvió un problema específico de muestreo de circuitos aleatorios en 200 segundos, una tarea que estimaron tomaría 10.000 años a la supercomputadora clásica más potente. El anuncio fue celebrado como un hito histórico, pero también controvertido: IBM cuestionó las estimaciones del tiempo clásico, argumentando que con algoritmos optimizados, la tarea podría hacerse clásicamente en 2,5 días. Más importante, el problema resuelto no tenía utilidad práctica directa: era específicamente diseñado para ser difícil clásicamente pero relativamente fácil cuánticamente. China alcanzó hitos similares con procesadores fotónicos (Jiuzhang, 2020-2021). Hoy se prefiere el término "ventaja cuántica" para tareas con utilidad práctica, que aún no se ha demostrado conclusivamente para problemas de interés económico real. El campo está progresando rápidamente, pero "computadora cuántica útil" sigue siendo un objetivo en el horizonte, no una realidad presente.</p>
+  </div>
+
+  <h2>Los Desafíos Persistentes</h2>
+
+  <p>El desafío más fundamental de la computación cuántica es la <strong>decoherencia</strong>: las interacciones inevitables de los qubits con su entorno destruyen rápidamente las superposiciones cuánticas. Los tiempos de coherencia típicos son microsegundos (qubits superconductores) a segundos (trampas iónicas), pero los algoritmos cuánticos útiles requieren millones o miles de millones de operaciones consecutivas.</p>
+
+  <p>La <strong>corrección de errores cuánticos</strong> es la solución teórica: codificar cada qubit "lógico" usando muchos qubits "físicos" redundantes, de manera que los errores pueden detectarse y corregirse antes de propagarse. Pero las técnicas conocidas requieren proporciones enormes: típicamente 1000-10000 qubits físicos por cada qubit lógico útil. Los procesadores actuales tienen cientos o miles de qubits físicos; pasaríamos a necesitar millones para problemas de utilidad práctica con corrección de errores completa.</p>
+
+  <p>Otros desafíos incluyen la <strong>escalabilidad</strong> (mantener fidelidades altas al agregar más qubits), la <strong>conectividad</strong> (permitir interacciones entre cualquier par de qubits), y los <strong>algoritmos</strong> (encontrar problemas prácticos para los que la ventaja cuántica sea suficiente para justificar el costo y complejidad de la tecnología cuántica).</p>
+
+  <h2>Las Aplicaciones Potenciales</h2>
+
+  <p>Las áreas de mayor impacto potencial son varias. La <strong>química cuántica</strong> podría revolucionar el diseño de fármacos, catalizadores y materiales, simulando con precisión moléculas que requieren tratamiento cuántico completo. La <strong>optimización combinatoria</strong> en logística, finanzas, planificación de rutas podría obtener aceleraciones significativas. La <strong>simulación de materiales</strong> ayudaría a diseñar superconductores de alta temperatura, baterías más eficientes, fotovoltaicos avanzados. La <strong>criptoanálisis</strong> (con algoritmo de Shor) eventualmente romperá la criptografía actual basada en factorización, motivando ya la migración hacia criptografía post-cuántica resistente.</p>
+
+  <p>Las <strong>aplicaciones cercanas</strong> (próximos 5-10 años) probablemente serán en simulación química y materiales, donde computadoras cuánticas ruidosas (NISQ - Noisy Intermediate-Scale Quantum) pueden ya proporcionar ventajas para problemas específicos. Las <strong>aplicaciones a largo plazo</strong> (10-30 años) dependerán del desarrollo de corrección de errores cuánticos escalable.</p>
+
+  <div class="info-box">
+    <h4>La inversión global</h4>
+    <p>El campo de la computación cuántica está atrayendo inversiones masivas. China ha invertido más de 15 mil millones de dólares en investigación cuántica. Estados Unidos lanzó la "National Quantum Initiative" en 2018 con 1.200 millones de dólares iniciales. La Unión Europea financia el "Quantum Flagship" con 1.000 millones de euros. Empresas como IBM, Google, Microsoft, Amazon, Intel, y docenas de startups están invirtiendo miles de millones en desarrollar hardware y software cuántico. Es una de las áreas tecnológicas más competitivas del siglo XXI, con paralelos a las primeras décadas de la electrónica clásica. La carrera por la primera "computadora cuántica útil" tiene tanto componentes científicas como geopolíticas: el primer país o empresa que logre ventaja cuántica práctica podría obtener ventajas estratégicas significativas en seguridad nacional, economía e investigación científica.</p>
+  </div>
+
+  <div class="closing">
+    <p>La computación cuántica representa una de las fronteras más emocionantes de la tecnología contemporánea. Aprovecha los principios cuánticos —superposición, entrelazamiento, interferencia— para realizar cálculos que serían imposibles para computadoras clásicas. Después de cuatro décadas de desarrollo teórico y experimental, las computadoras cuánticas están saliendo del laboratorio hacia aplicaciones reales. Aunque los desafíos técnicos siguen siendo enormes (decoherencia, corrección de errores, escalabilidad), el progreso ha sido extraordinario. Es difícil predecir cuándo y cómo exactamente la computación cuántica transformará la sociedad, pero está claro que es una de las tecnologías más potencialmente disruptivas de las próximas décadas. Sus impactos abarcarán química, medicina, logística, finanzas, seguridad informática, y posiblemente otras áreas que aún no anticipamos. Es la materialización tecnológica de la predicción visionaria de Feynman: para entender una naturaleza fundamentalmente cuántica, necesitamos máquinas fundamentalmente cuánticas.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si las computadoras cuánticas eventualmente romperán la criptografía actual basada en factorización, ¿qué implicaciones tiene esto para la privacidad y seguridad de las comunicaciones digitales actuales? ¿Debemos asumir que cualquier información cifrada hoy podría ser desencriptada en el futuro y planificar accordingly?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="fisica-moderna.html" class="back-btn">← Volver a Física Moderna</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

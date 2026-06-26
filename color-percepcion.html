@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color y percepción visual | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="ondas-optica.html" class="nav-back">Ondas y Óptica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Ondas y Óptica <span>·</span> Una Construcción del Sistema Visual</div>
+  <h1><span class="hl">Color</span><br>y percepción visual</h1>
+  <p class="article-subtitle">Por qué el color no existe en la realidad física: una construcción del cerebro a partir de tres detectores químicos</p>
+  <div class="article-tags"><span class="tag active">// Ondas y Óptica</span><span class="tag">Color</span><span class="tag">Percepción</span><span class="tag">Tricromacia</span></div>
+</div>
+<div class="article-container">
+  <p>El color no existe en la realidad física. Lo que existen son fotones de diferentes frecuencias —ondas electromagnéticas que oscilan a distintas velocidades—. El "rojo", el "azul", el "verde" no son propiedades intrínsecas de la luz: son <strong>experiencias subjetivas construidas por nuestro sistema visual</strong> a partir de la información que llega a la retina. Diferentes especies perciben colores muy diferentes a partir de la misma luz incidente: las abejas ven ultravioleta, las aves perciben cuatro dimensiones de color en lugar de tres, los perros ven solo dos dimensiones. La <strong>percepción del color</strong> es uno de los fenómenos más fascinantes en la intersección entre física, biología, neurociencia y filosofía. Es donde se hace visible que el "mundo que vemos" no es una transcripción objetiva de la realidad física: es una construcción mental que evolucionó para servir necesidades específicas.</p>
+
+  <div class="math-block">Visible humano: 380-750 nm · Conos humanos: S (azul ~420 nm), M (verde ~534 nm), L (rojo ~564 nm) · Espacio de color: típicamente tridimensional · Aves: cuatro tipos de conos (tetracromacia)</div>
+
+  <h2>La Retina como Detector</h2>
+
+  <p>El ojo humano detecta la luz mediante células especializadas en la retina: <strong>conos</strong> y <strong>bastones</strong>. Los bastones son extremadamente sensibles a la luz pero no distinguen colores: dominan en visión nocturna y producen imágenes en escalas de grises. Los conos requieren más luz para activarse pero distinguen colores: dominan en visión diurna.</p>
+
+  <p>Los humanos tenemos tres tipos de conos, cada uno con sensibilidad máxima a diferentes longitudes de onda: los conos <strong>S</strong> (Short) a aproximadamente 420 nm (azul), los <strong>M</strong> (Medium) a 534 nm (verde), y los <strong>L</strong> (Long) a 564 nm (rojo-amarillento). Cada cono no responde solo a una longitud de onda específica, sino a una banda relativamente ancha alrededor de su máximo. Las tres curvas de sensibilidad se solapan considerablemente.</p>
+
+  <p>Cuando luz de cualquier color incide en la retina, los tres tipos de conos responden con intensidades relativas que dependen del espectro de la luz. El cerebro recibe estas tres señales (una por cada tipo de cono) y construye nuestra percepción de color a partir de esa información tridimensional. Esto se llama <strong>tricromacia</strong>.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del trío de micrófonos:</strong> Imaginá que querés capturar el sonido completo de una orquesta usando solo tres micrófonos, cada uno sintonizado para responder más fuerte a frecuencias diferentes: uno para graves, uno para medios, uno para agudos. Cada micrófono produce una sola señal, pero combinando las tres podés reconstruir aproximadamente el sonido completo. <strong>Eso hace nuestro ojo con la luz</strong>: tres "micrófonos" químicos (los conos S, M, L) reportan sus señales al cerebro, que combina las tres respuestas para "escuchar" el color completo. La diferencia es que el sonido tiene muchísimas más dimensiones que los tres canales que el ojo captura; nuestra "percepción de color" es por tanto una simplificación dramática del espectro físico real de la luz que llega. Dos espectros físicamente muy diferentes pueden producir las mismas tres señales en los conos y aparentar el mismo color (<em>metameros</em>).</p>
+  </div>
+
+  <h2>Los Metameros y la Ambigüedad del Color</h2>
+
+  <p>Una consecuencia profunda de la tricromacia es que <strong>el mismo color percibido puede corresponder a infinitos espectros físicos diferentes</strong>. El "amarillo" que vemos puede ser luz monocromática a 580 nm, o una mezcla de luz roja (650 nm) y verde (530 nm), o cualquier otra combinación que produzca las mismas tres respuestas en los conos. Estos espectros físicamente distintos pero perceptualmente idénticos se llaman <em>metameros</em>.</p>
+
+  <p>Las pantallas modernas (TV, monitores, smartphones) explotan este principio: en lugar de reproducir el espectro físico de los colores, producen mezclas de solo tres colores primarios (rojo, verde, azul - RGB) que producen los mismos triplete de respuestas en los conos que el color "real". El resultado es que vemos el mismo color, aunque el espectro físico de la pantalla sea completamente diferente del original.</p>
+
+  <p>El cine, la televisión, la fotografía digital, la impresión —toda la tecnología moderna de color— depende fundamentalmente de la tricromacia humana. Si tuviéramos cuatro tipos de conos como las aves, las pantallas RGB no podrían reproducir muchos colores que percibiríamos: necesitaríamos pantallas tetracromáticas con cuatro primarios.</p>
+
+  <h2>Más Allá de la Tricromacia: Otras Especies</h2>
+
+  <p>La tricromacia es humana —y compartida con otros primates—, pero no es universal en el reino animal. La diversidad de sistemas visuales en la naturaleza es asombrosa:</p>
+
+  <ul style="margin-left: 2rem; color: var(--gray); line-height: 1.7;">
+    <li><strong>Dicromacia</strong>: dos tipos de conos. Es típica de mamíferos no primates (perros, gatos, caballos, vacas). Distinguen menos colores que los humanos pero tienen buena visión nocturna.</li>
+    <li><strong>Tetracromacia</strong>: cuatro tipos de conos. Las aves, reptiles y peces típicamente tienen un cuarto tipo de cono sensible al ultravioleta. Pueden percibir colores que para nosotros son indistinguibles.</li>
+    <li><strong>Pentacromacia</strong>: cinco tipos de conos. Algunas especies de mariposas tienen cinco o más tipos de fotorreceptores.</li>
+    <li><strong>El camarón mantis</strong>: tiene <em>doce</em> tipos diferentes de fotorreceptores, junto con detección de polarización lineal y circular. Es el sistema visual más complejo conocido, aunque investigaciones recientes sugieren que no necesariamente perciben "más colores" que nosotros sino que procesan la información de manera diferente.</li>
+  </ul>
+
+  <p>Hay también casos extraordinarios de <strong>tetracromacia humana</strong>: algunas mujeres heredan dos versiones diferentes del gen del cono rojo (uno de cada cromosoma X), produciendo cuatro tipos funcionales de conos en lugar de tres. Pueden distinguir cientos de tonos en lo que para una persona tricromáta normal es un solo color. Concetta Antico, una artista estadounidense, es probablemente la tetracromata humana mejor documentada: percibe distinciones de color que la mayoría no podemos imaginar.</p>
+
+  <div class="tech-note">
+    <p><strong>El daltonismo y sus variedades:</strong> El daltonismo —llamado así por John Dalton, quien lo padecía y lo describió por primera vez en 1798— afecta aproximadamente al 8% de los hombres y 0,5% de las mujeres. Es una condición genética donde uno o más tipos de conos no funcionan adecuadamente. El más común es la <em>deuteranopia/deuteranomalia</em> (problema con los conos M, verdes), que dificulta distinguir entre rojos y verdes. La <em>protanopia/protanomalia</em> afecta los conos L (rojos), con efectos similares. La <em>tritanopia</em> (muy rara) afecta los conos S (azules). Las personas daltónicas no ven "en blanco y negro" como un mito popular sugiere: ven colores, pero con un espacio cromático reducido. Las pruebas de Ishihara (los famosos círculos con números coloreados) son el método estándar de detección. Hay tecnologías modernas —anteojos especiales como EnChroma— que mejoran la discriminación de color en algunos tipos de daltonismo, aunque su efectividad varía individualmente.</p>
+  </div>
+
+  <h2>Las Mezclas de Color: Aditiva y Sustractiva</h2>
+
+  <p>Hay dos maneras fundamentales de "mezclar" colores, y producen resultados diferentes. La <strong>mezcla aditiva</strong> ocurre cuando se superponen luces de diferentes colores: las intensidades se suman. Los primarios aditivos son rojo, verde y azul (RGB); su combinación produce blanco. Esta es la forma en que funcionan las pantallas y los proyectores: cada píxel emite combinaciones de rojo, verde y azul para producir todos los colores percibibles.</p>
+
+  <p>La <strong>mezcla sustractiva</strong> ocurre cuando se combinan pigmentos o tintas: cada uno absorbe ciertas longitudes de onda y refleja otras. Los primarios sustractivos son cian, magenta y amarillo (CMY); su combinación produce negro (en teoría; en la práctica las impresoras agregan negro adicional, K, para mejor calidad: CMYK). Esta es la forma en que funcionan los pigmentos, las tintas, los pintores. Cada pigmento "sustrae" ciertos colores del espectro de luz blanca incidente.</p>
+
+  <p>Es una distinción importante porque mucha gente confunde los dos sistemas. Los "tres colores primarios" de las clases de arte de primaria (rojo, amarillo, azul) son una simplificación inexacta del sistema sustractivo CMY. En la realidad, los pintores profesionales usan típicamente más colores primarios para lograr mayor gama cromática.</p>
+
+  <h2>El Color Como Construcción del Cerebro</h2>
+
+  <p>La percepción del color no es solo procesamiento óptico: involucra construcción activa del cerebro. Los fenómenos de <strong>constancia de color</strong> son notables: percibimos los objetos como si tuvieran un color "intrínseco" relativamente invariante, aunque el espectro de luz que reflejan cambie dramáticamente según las condiciones de iluminación. Una manzana roja se ve roja bajo luz solar (rica en azules), bajo luz incandescente (rica en rojos), o bajo luz fluorescente (con picos en verdes y violetas). El cerebro "compensa" automáticamente la iluminación.</p>
+
+  <p>El famoso <strong>"vestido azul/dorado"</strong> que se viralizó en 2015 ilustra dramáticamente este fenómeno: una foto donde algunas personas veían un vestido como azul y negro, y otras como blanco y dorado. La diferencia era que cada cerebro asumía implícitamente diferentes condiciones de iluminación (luz amarilla artificial vs luz azul natural) y "compensaba" en consecuencia, llegando a percepciones radicalmente diferentes del mismo estímulo visual.</p>
+
+  <p>Otros fenómenos: la <strong>adaptación cromática</strong> (después de mirar un color por mucho tiempo, ves su complementario en una superficie blanca), los <strong>contrastes simultáneos</strong> (un gris parece más oscuro junto a blanco y más claro junto a negro), las <strong>ilusiones cromáticas</strong> donde colores idénticos físicamente aparecen diferentes según el contexto. Todo esto muestra que el color es una construcción cognitiva activa, no una transcripción pasiva.</p>
+
+  <div class="info-box">
+    <h4>¿De qué color es el cielo?</h4>
+    <p>Una pregunta filosófica sutil: ¿de qué color es el cielo "realmente"? Una respuesta es: la luz solar dispersada por Rayleigh en la atmósfera tiene un espectro con más energía en longitudes de onda cortas (~470 nm), que nosotros percibimos como azul. Pero esta es una descripción de la respuesta de los conos humanos a ese espectro. Un perro vería el cielo como un gris ligeramente azulado (dicromacia). Una abeja lo vería como una combinación rica de polarizaciones y ultravioletas que nosotros no podemos imaginar. Una cámara digital con sensores diferentes lo "vería" diferente según la calibración. ¿Cuál es la percepción "correcta"? Ninguna: el color es siempre relativo al sistema visual que lo procesa. Esto plantea preguntas profundas sobre la naturaleza de la experiencia subjetiva. Cuando vos y yo decimos "veo el cielo azul", ¿estamos teniendo la misma experiencia? Filosóficamente, no podemos verificarlo: solo podemos verificar que ambos respondemos consistentemente al mismo estímulo. Es el famoso "problema del qualia" en filosofía de la mente.</p>
+  </div>
+
+  <div class="closing">
+    <p>El color es uno de los fenómenos más sutiles y fascinantes en la intersección entre física, biología y psicología. La luz tiene propiedades físicas objetivas (frecuencia, intensidad, polarización), pero el "color" es una construcción del sistema visual que depende de la anatomía de los detectores, la programación neuronal del cerebro, y el contexto en el que se observa. Diferentes especies tienen espacios cromáticos completamente diferentes; incluso entre humanos hay variaciones (daltonismo, tetracromatas, diferencias cualitativas que no podemos comunicar). La tecnología moderna de color (pantallas, impresoras, fotografía, video) explota astutamente las limitaciones de la tricromacia humana, reproduciendo "colores" que físicamente son muy diferentes a los originales pero perceptualmente equivalentes. Cada vez que mirás una imagen colorida en una pantalla, estás siendo "engañado" en un sentido técnico —pero ese "engaño" es exactamente la cualidad de lo que llamamos vivir en un mundo coloreado—.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si el color es una construcción del cerebro y diferentes personas (especialmente tetracromatas humanas) pueden tener experiencias cromáticas radicalmente diferentes, ¿en qué sentido podemos hablar de "el color" de un objeto? ¿Es legítimo el sentido común que asume colores objetivos compartidos universalmente?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="ondas-optica.html" class="back-btn">← Volver a Ondas y Óptica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dispersión cromática y el arcoíris | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="ondas-optica.html" class="nav-back">Ondas y Óptica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Ondas y Óptica <span>·</span> Cómo se Separan los Colores</div>
+  <h1><span class="hl">Dispersión</span><br>cromática</h1>
+  <p class="article-subtitle">De Newton y su prisma a los arcoíris: cómo se separan los colores y por qué la espectroscopía cambió la ciencia</p>
+  <div class="article-tags"><span class="tag active">// Ondas y Óptica</span><span class="tag">Dispersión</span><span class="tag">Arcoíris</span><span class="tag">Newton</span></div>
+</div>
+<div class="article-container">
+  <p>En 1666, un joven Isaac Newton encerrado en su casa rural durante la peste de Cambridge realizó uno de los experimentos más bellos y consecuentes de la historia de la ciencia: hizo pasar un rayo de luz solar a través de un prisma de vidrio y observó cómo se descomponía en los siete colores del arcoíris —rojo, naranja, amarillo, verde, azul, índigo, violeta—. Antes de Newton, se creía que los colores eran "modificaciones" de la luz blanca pura producidas por el prisma. Newton demostró que <strong>la luz blanca es en realidad una mezcla de todos los colores, y el prisma simplemente los separa</strong>. Lo hizo recombinando los colores separados con un segundo prisma para reproducir la luz blanca original. Este experimento, simple y elegante, transformó nuestra comprensión de la naturaleza de la luz y abrió el camino a la espectroscopía, la astrofísica moderna y la mecánica cuántica.</p>
+
+  <div class="math-block">Índice de refracción del vidrio (Crown): n_rojo ≈ 1,514 · n_violeta ≈ 1,524 · Diferencia ≈ 0,7% · Ángulo del arcoíris primario: 42° (rojo a violeta) · Arcoíris secundario: 51°</div>
+
+  <h2>La Dispersión Cromática</h2>
+
+  <p>La causa física de la separación de colores en un prisma es que <strong>el índice de refracción depende ligeramente de la frecuencia (o longitud de onda) de la luz</strong>. Cuando la luz de diferentes colores atraviesa un material, cada color experimenta un índice de refracción ligeramente diferente, y por tanto se desvía un ángulo ligeramente diferente. Esta dependencia del índice con la frecuencia se llama <em>dispersión cromática</em>.</p>
+
+  <p>Para el vidrio común (crown glass), el índice para luz roja es aproximadamente 1,514, mientras que para luz violeta es 1,524 —una diferencia de solo 0,7%—. Pero esta diferencia diminuta, multiplicada por la geometría del prisma, es suficiente para separar visiblemente los colores. La luz roja, con índice menor, se desvía menos; la luz violeta, con índice mayor, se desvía más. Entre ambas, todos los colores intermedios se distribuyen en un arco continuo.</p>
+
+  <p>La causa microscópica de esta dependencia con la frecuencia está relacionada con las resonancias atómicas del material. Los electrones en los átomos del vidrio tienen frecuencias naturales de oscilación; cuando la luz incidente tiene una frecuencia cercana a alguna resonancia, los electrones responden con mayor amplitud, alterando la velocidad efectiva de propagación. Para el vidrio óptico común, las resonancias principales están en el ultravioleta, lo que hace que el índice de refracción aumente gradualmente desde el rojo hasta el violeta en el rango visible.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía de los corredores en distintas pistas:</strong> Imaginá una carrera donde múltiples corredores entran simultáneamente a un campo embarrado, pero cada corredor tiene zapatos ligeramente diferentes. Los que tienen zapatos con buen agarre se ralentizan poco; los que tienen suelas lisas, se ralentizan mucho. Cuando salen del campo embarrado, los corredores con diferentes zapatos están en posiciones distintas, separados según cuánto los frenó el barro. <strong>La luz blanca atravesando un prisma es análoga</strong>: cada color tiene "zapatos" ligeramente diferentes (resonancias atómicas), y por tanto se ralentiza de manera diferente en el vidrio. Al salir, los colores están separados según cuánto los frenó el material. Esa es la dispersión cromática.</p>
+  </div>
+
+  <h2>El Arcoíris</h2>
+
+  <p>Los arcoíris son uno de los fenómenos atmosféricos más espectaculares producidos por dispersión cromática. Se forman cuando la luz solar incide sobre gotitas de agua suspendidas en el aire (típicamente después de una lluvia). En cada gota, la luz sufre tres procesos: refracción al entrar (donde se descompone en colores), reflexión interna en la superficie posterior, y refracción al salir.</p>
+
+  <p>El ángulo total de desviación entre la luz incidente y la luz emergente depende de la longitud de onda. Para gotitas esféricas y luz solar, el ángulo de máxima concentración de luz emergente es aproximadamente 42° para luz roja y 40° para luz violeta. Esto significa que ves el rojo en la parte exterior del arcoíris y el violeta en la interior, con los demás colores distribuidos en el medio.</p>
+
+  <p>Geométricamente, el arcoíris es un círculo de aproximadamente 42° de radio centrado en el punto antisolar (la sombra de tu cabeza). En la práctica vemos solo un arco porque la tierra bloquea la parte inferior del círculo; desde un avión, se pueden ver arcoíris circulares completos. El arcoíris no está "en un lugar específico": cada observador ve "su" arcoíris en una posición ligeramente diferente, formada por gotitas diferentes.</p>
+
+  <h2>El Arcoíris Secundario</h2>
+
+  <p>Mirando con atención después de una lluvia intensa, a veces se puede ver un <strong>arcoíris secundario</strong> más tenue, fuera del primario, con los colores en orden invertido (violeta afuera, rojo adentro). Este arcoíris se forma cuando la luz sufre dos reflexiones internas en las gotitas antes de emerger. El ángulo correspondiente es aproximadamente 51°, y la inversión de colores resulta de la geometría adicional de la reflexión extra.</p>
+
+  <p>Entre el arcoíris primario y el secundario hay una región notablemente oscura llamada "banda oscura de Alexander" (descrita por Alejandro de Afrodisias en el siglo II d.C.): es una región donde casi no hay luz reflejada por las gotitas, porque las geometrías necesarias no producen máximos de concentración. El cielo entre el arcoíris primario y el secundario suele verse más oscuro que las regiones inmediatamente fuera del secundario o dentro del primario.</p>
+
+  <p>Pueden formarse arcoíris terciarios, cuaternarios y de orden superior con múltiples reflexiones, pero su intensidad cae tan rápido que rara vez son visibles a simple vista. Los arcoíris terciarios se forman <em>en dirección al Sol</em> (no opuesta), lo que los hace difíciles de observar contra el resplandor solar; algunos fotografos especializados han logrado capturarlos con técnicas avanzadas.</p>
+
+  <div class="tech-note">
+    <p><strong>Los siete colores y la cultura:</strong> Newton describió siete colores en el arcoíris (rojo, naranja, amarillo, verde, azul, índigo, violeta), pero el "índigo" es algo arbitrario y refleja una elección cultural más que física. Newton estaba influenciado por el simbolismo numerológico de los antiguos —siete planetas, siete notas musicales, siete días de la semana— y forzó la división del espectro en siete colores. En realidad, el espectro es un continuo donde los humanos pueden distinguir gradualmente entre cientos de tonos. Diferentes culturas dividen el espectro en diferentes números de "colores básicos": el ruso distingue azul claro (голубой) y azul oscuro (синий) como colores básicos separados; algunas lenguas tienen solo cinco palabras para colores básicos. La percepción del color es a la vez fisiológica (cómo funcionan nuestros conos) y cultural (cómo nombramos y dividimos el continuo).</p>
+  </div>
+
+  <h2>Halos, Coronas y Otros Fenómenos</h2>
+
+  <p>La dispersión cromática produce muchos otros fenómenos atmosféricos espectaculares. Los <strong>halos solares y lunares</strong> son anillos luminosos a 22° o 46° del Sol o la Luna, formados por refracción en cristales de hielo hexagonales en cirros altos. Tienen colores tenues pero perceptibles: rojo en la parte interior, azul en la exterior.</p>
+
+  <p>Las <strong>coronas</strong> son anillos cromáticos cerca del Sol o la Luna, formados por difracción (no refracción) en gotas de agua o cristales de hielo de tamaño muy específico. Los <strong>parhelios</strong> ("soles falsos") son manchas brillantes a 22° del Sol producidas por cristales de hielo orientados horizontalmente. Las <strong>iridiscencias</strong> en nubes son patrones de colores tenues producidos por difracción en gotitas microscópicas.</p>
+
+  <p>Todos estos fenómenos —incluyendo el azul del cielo (dispersión de Rayleigh), los atardeceres rojos, los crepúsculos púrpuras— son manifestaciones de cómo la luz blanca solar interactúa cromáticamente con la atmósfera.</p>
+
+  <h2>Las Aplicaciones Científicas</h2>
+
+  <p>La dispersión cromática es la base de la <strong>espectroscopía</strong>, una de las herramientas más poderosas de toda la física. Usando prismas o redes de difracción, se puede descomponer la luz emitida o absorbida por sustancias en sus colores constituyentes, revelando las "huellas digitales" químicas y físicas. Como cada elemento tiene un espectro característico, la espectroscopía permite identificar composiciones químicas a distancias enormes —desde análisis de muestras en laboratorio hasta determinación de la composición de estrellas a miles de años luz—.</p>
+
+  <p>Los <strong>espectrómetros</strong> modernos pueden analizar la luz con precisión asombrosa: detectar elementos con concentraciones de partes por billón, medir velocidades de objetos astronómicos por corrimiento Doppler, identificar moléculas orgánicas en atmósferas planetarias, e incluso detectar exoplanetas por el efecto que ejercen en el espectro de su estrella. Es difícil exagerar la importancia de la espectroscopía: sin ella, no podríamos hacer química analítica moderna, astrofísica, ni mecánica cuántica fundamental.</p>
+
+  <div class="info-box">
+    <h4>Newton, el reductor del arcoíris</h4>
+    <p>El experimento de Newton con el prisma fue revolucionario científicamente, pero provocó reacciones culturales fascinantes. El poeta John Keats lamentó en su poema "Lamia" (1820) que Newton había "destruido" el arcoíris al explicarlo, reduciéndolo a "una lista común de cosas comunes". Para Keats, la explicación científica le quitaba el misterio y la belleza al fenómeno. Esta tensión entre "comprensión" y "asombro" sigue siendo debatida en filosofía de la ciencia: ¿la explicación reduce la belleza del fenómeno o la profundiza? Richard Feynman argumentaba elocuentemente que el conocimiento científico amplifica el asombro: comprender el arcoíris físicamente no resta su belleza visual, pero agrega capas adicionales de maravilla (la geometría, la dispersión, las resonancias atómicas, etc.). La pregunta de Keats sigue siendo profunda: ¿qué relación hay entre comprensión y maravilla?</p>
+  </div>
+
+  <div class="closing">
+    <p>La dispersión cromática es uno de los fenómenos ópticos más bellos y científicamente fértiles. Lo que comenzó como un experimento curioso de Newton con un prisma se transformó en la base de la espectroscopía moderna, una de las herramientas más poderosas de la ciencia. Cada arcoíris que ves después de una lluvia es un experimento natural a gran escala demostrando la dispersión cromática de la luz solar. Cada análisis espectroscópico, desde la identificación de elementos en laboratorio hasta la caracterización de atmósferas de exoplanetas, descansa en el mismo principio físico que Newton descubrió. Es un ejemplo elegante de cómo un fenómeno cotidiano y aparentemente simple esconde una riqueza conceptual que ha alimentado siglos de investigación científica.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si Newton describió siete colores en el arcoíris influenciado por simbolismo numerológico, y diferentes culturas dividen el espectro de manera distinta, ¿en qué medida los "colores" son propiedades objetivas de la luz vs. construcciones perceptivas/culturales? ¿Existe el "verde" sin observadores que lo perciban como tal?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="ondas-optica.html" class="back-btn">← Volver a Ondas y Óptica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cómo funciona un láser: emisión estimulada | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="ondas-optica.html" class="nav-back">Ondas y Óptica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Ondas y Óptica <span>·</span> La Predicción de Einstein</div>
+  <h1><span class="hl">Láser</span><br>emisión estimulada</h1>
+  <p class="article-subtitle">De la predicción teórica de Einstein en 1917 al primer láser de Maiman: la luz coherente que cambió el mundo</p>
+  <div class="article-tags"><span class="tag active">// Ondas y Óptica</span><span class="tag">Láser</span><span class="tag">Einstein</span><span class="tag">Emisión Estimulada</span></div>
+</div>
+<div class="article-container">
+  <p>En 1917, Albert Einstein publicó un artículo aparentemente técnico titulado "Sobre la teoría cuántica de la radiación". En él predijo teóricamente la existencia de un proceso físico hasta entonces desconocido: la <strong>emisión estimulada</strong>. Un átomo en un estado excitado, cuando es alcanzado por un fotón de la frecuencia "correcta", puede ser inducido a emitir otro fotón idéntico —misma frecuencia, misma dirección, misma fase, misma polarización—. Casi medio siglo después, Theodore Maiman construyó en 1960 el primer láser operativo: una lámpara de rubí pulsada que produjo el primer haz coherente de luz roja jamás generado en laboratorio. Hoy los láseres están en todas partes: lectores de códigos de barras, reproductores de DVD, cirugía ocular, comunicaciones por fibra, fabricación de microchips, investigación científica, espectáculos visuales. <strong>El láser es probablemente la aplicación tecnológica más importante de la mecánica cuántica</strong>, y su principio físico fundamental es la emisión estimulada predicha por Einstein.</p>
+
+  <div class="math-block">LASER = Light Amplification by Stimulated Emission of Radiation · Coherencia temporal: longitud >> longitud de onda · Coherencia espacial: divergencia mínima · Potencia: desde nanowatts hasta petawatts</div>
+
+  <h2>Los Tres Procesos de Einstein</h2>
+
+  <p>Einstein identificó tres procesos básicos por los que átomos pueden interactuar con la luz. La <strong>absorción</strong>: un átomo en estado base absorbe un fotón y queda excitado. Esto es lo que ocurre cuando vemos colores en objetos (algunos colores son absorbidos, otros reflejados). La <strong>emisión espontánea</strong>: un átomo excitado emite un fotón espontáneamente y vuelve al estado base. La dirección, fase y polarización del fotón emitido son aleatorias. Este es el mecanismo detrás de la luz incandescente, fluorescente, y la mayoría de las fuentes lumínicas naturales.</p>
+
+  <p>El tercer proceso fue la novedad: la <strong>emisión estimulada</strong>. Un átomo excitado, alcanzado por un fotón de la frecuencia "resonante" (correspondiente a la diferencia de energía entre los niveles atómicos involucrados), puede ser inducido a emitir un segundo fotón. Lo crucial es que el fotón emitido es <em>idéntico</em> al fotón estimulante: misma frecuencia, misma dirección, misma fase, misma polarización. Después del proceso, tenemos dos fotones donde antes había uno (más un átomo desexcitado).</p>
+
+  <p>La emisión estimulada es lo que permite la <strong>amplificación coherente de luz</strong>: si tenés un medio con muchos átomos excitados y mandás un fotón a través, cada átomo iluminado puede ser inducido a emitir otro fotón idéntico, multiplicando exponencialmente el número de fotones coherentes. Es el principio fundamental del láser.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del coro perfectamente sincronizado:</strong> Imaginá un coro donde cada cantante puede estar en uno de dos estados: callado o cantando. En un coro normal, los cantantes empiezan a cantar en momentos aleatorios y producen un sonido caótico (como la luz incoherente de una bombilla). Pero supongá que existe una regla mágica: si un cantante callado escucha a otro cantando una nota, se le "contagia" instantáneamente la misma nota, con la misma frecuencia, ritmo y fase. <strong>Eso es la emisión estimulada</strong>: un sonido coherente se propaga por el coro, multiplicándose como una avalancha sincronizada. Todos los cantantes terminan cantando exactamente la misma nota, en la misma fase, produciendo un sonido enormemente más potente y puro que cualquier coro normal. Eso es la luz láser: fotones perfectamente coherentes generados por contagio cuántico.</p>
+  </div>
+
+  <h2>La Inversión de Población</h2>
+
+  <p>Para que un láser funcione, no basta con que algunos átomos estén excitados: necesitamos que <strong>la mayoría</strong> de los átomos del medio activo estén excitados. Esta condición se llama <em>inversión de población</em>: invertir la distribución térmica normal donde la mayoría de los átomos están en el estado base. Es una condición de no-equilibrio termodinámico, lo que la hace difícil de mantener.</p>
+
+  <p>El "bombeo" del láser es el mecanismo que mantiene la inversión de población. Puede ser óptico (otra fuente de luz inyectando energía, como una lámpara de flash), eléctrico (corriente eléctrica excitando átomos directamente), químico (reacciones químicas exotérmicas), o nuclear (en algunos casos exóticos). El bombeo "recarga" continuamente el nivel superior, manteniendo más átomos excitados que en estado base.</p>
+
+  <p>Una vez establecida la inversión de población, basta con un solo fotón espontáneo del color correcto para iniciar una avalancha de emisión estimulada. Ese fotón estimula otro, esos dos estimulan dos más, esos cuatro estimulan otros cuatro, y así. En microsegundos, el medio activo está produciendo torrentes de luz coherente.</p>
+
+  <h2>La Cavidad Resonante</h2>
+
+  <p>El medio activo solo, sin más, produce amplificación pero no coherencia perfecta. Para fabricar un láser de calidad, se coloca el medio activo dentro de una <strong>cavidad óptica</strong>: dos espejos enfrentados a los extremos. Uno de los espejos es completamente reflectante; el otro es parcialmente reflectante (típicamente reflejando el 95-99% de la luz incidente, dejando pasar el resto).</p>
+
+  <p>La luz amplificada por emisión estimulada rebota entre los dos espejos, pasando por el medio activo decenas o cientos de veces antes de salir. Cada paso amplifica adicionalmente la luz coherente, mientras filtra cualquier componente no resonante de la cavidad. El resultado es un haz altamente colimado, de una longitud de onda extremadamente pura (estrecho ancho espectral), con coherencia espacial y temporal asombrosas.</p>
+
+  <p>Por eso el haz láser es tan distintivo: muy estrecho (todos los fotones viajan casi paralelos), muy puro espectralmente (color muy bien definido), muy intenso (la potencia se concentra en un haz angosto), y muy coherente (los fotones mantienen relaciones de fase definidas a través de grandes distancias).</p>
+
+  <div class="tech-note">
+    <p><strong>El primer láser de Maiman:</strong> Theodore Maiman construyó el primer láser operativo en mayo de 1960 en los Laboratorios Hughes en California. Era un láser de rubí: un cilindro de cristal sintético de rubí (óxido de aluminio dopado con cromo) rodeado por una lámpara helicoidal de flash que servía como bombeo óptico. El láser producía pulsos breves de luz roja a 694 nm. Maiman sometió su artículo a <em>Physical Review Letters</em>, que lo rechazó por considerarlo "demasiado especulativo"; tuvo que publicarlo en <em>Nature</em>. Pocos meses después, decenas de grupos en todo el mundo habían replicado el experimento. Hoy el láser de rubí se considera el dispositivo que inauguró la era de la fotónica. Hay láseres de prácticamente todos los colores y características: estado sólido, de gas (helio-neón, CO₂, argón), semiconductores (diodos láser de los punteros y reproductores DVD), químicos, de electrones libres, etc. La diversidad refleja la versatilidad del principio físico de la emisión estimulada.</p>
+  </div>
+
+  <h2>Los Tipos de Láser</h2>
+
+  <p>Los <strong>láseres de gas</strong> (helio-neón, argón ionizado, CO₂) usan un gas o mezcla de gases como medio activo, bombeados por descarga eléctrica. Los punteros láser baratos eran tradicionalmente He-Ne (rojos a 632,8 nm); los láseres industriales de corte y soldadura suelen ser CO₂ (infrarrojos a 10,6 μm).</p>
+
+  <p>Los <strong>láseres de estado sólido</strong> (rubí, Nd:YAG, Ti:zafiro) usan cristales o vidrios dopados como medio activo, típicamente bombeados ópticamente. Son extremadamente potentes y se usan en aplicaciones científicas e industriales. El Ti:zafiro permite generar pulsos ultracortos (femtosegundos) y se usa en investigación de óptica no lineal.</p>
+
+  <p>Los <strong>láseres semiconductores</strong> (diodos láser) son los más comunes: los hay en cada lector de código de barras, cada reproductor de DVD/Bluray, cada puntero láser moderno. Son pequeños, eficientes y baratos. La invención del diodo láser azul (Akasaki, Amano, Nakamura, Nobel 2014) permitió los Blu-ray y la iluminación LED blanca eficiente.</p>
+
+  <p>Los <strong>láseres de fibra</strong> usan fibras ópticas dopadas con elementos como erbio o iterbio como medio activo. Son compactos, eficientes y robustos, y han desplazado muchos otros tipos en aplicaciones industriales. Los <strong>láseres de electrones libres</strong> (XFEL) son fuentes de rayos X coherentes de inmensa potencia, usadas en investigación científica de frontera.</p>
+
+  <h2>Las Aplicaciones</h2>
+
+  <p>Las aplicaciones de los láseres son innumerables. En <strong>comunicaciones</strong>: las fibras ópticas que sostienen internet son alimentadas por diodos láser. En <strong>medicina</strong>: cirugía LASIK ocular, eliminación de tumores, depilación, dermatología. En <strong>fabricación</strong>: corte y soldadura de metales, fabricación de microchips por litografía. En <strong>almacenamiento</strong>: CDs, DVDs, Blu-rays, discos magneto-ópticos. En <strong>medición</strong>: distanciómetros, interferómetros (LIGO usa láseres para detectar ondas gravitacionales), velocímetros Doppler.</p>
+
+  <p>En <strong>investigación científica</strong>: enfriamiento láser de átomos (Premio Nobel 1997), trampas iónicas, espectroscopía ultraprecisa, condensados de Bose-Einstein, computación cuántica. En <strong>aplicaciones militares</strong>: armas láser de alta potencia, designadores de blancos, sistemas de comunicación seguros. En <strong>arte y entretenimiento</strong>: shows láser, escáneres 3D, hologramas de seguridad.</p>
+
+  <p>Los láseres más potentes del mundo (NIF en Estados Unidos, ELI en Europa) generan pulsos con potencias instantáneas de petawatts (10¹⁵ W) —más que toda la potencia eléctrica de la civilización humana, concentrada en pulsos de femtosegundos—. Se usan para investigación de fusión nuclear por confinamiento inercial y para explorar regímenes de física relativista de altas energías.</p>
+
+  <div class="info-box">
+    <h4>La búsqueda del primer láser</h4>
+    <p>En los años 50, varios grupos competían por construir el primer láser. Charles Townes y Arthur Schawlow publicaron en 1958 un artículo teórico clave proponiendo cómo construir un "maser óptico" (la palabra "láser" se acuñaría poco después). Townes ya había construido el primer máser (amplificador de microondas) en 1954, lo que le valió compartir el Nobel 1964. Pero Maiman, trabajando en una compañía privada con relativamente poco financiamiento y poca atención académica, fue el primero en hacerlo funcionar con luz visible. La controversia sobre las patentes y prioridades duró décadas: Gordon Gould, otro pionero, registró la idea en su cuaderno de laboratorio en 1957 pero no patentó inmediatamente; finalmente ganó las patentes en una larga batalla legal en los años 80, recibiendo cientos de millones de dólares en regalías de los fabricantes de láseres. Es una historia ilustrativa de cómo la innovación tecnológica se mezcla con propiedad intelectual y prioridad científica.</p>
+  </div>
+
+  <div class="closing">
+    <p>El láser es probablemente la aplicación más exitosa y omnipresente de la mecánica cuántica. Nacido como una predicción teórica de Einstein en 1917 sobre la emisión estimulada, materializado experimentalmente por Maiman en 1960, hoy está en prácticamente todos los aspectos de la civilización tecnológica moderna. Cada vez que pasás un código de barras, ves un DVD, te haces una cirugía LASIK, hablás por teléfono celular (cuya señal probablemente viaja parte del camino por fibra óptica), o ves una luz LED blanca (que combina un LED azul con fósforos), estás aprovechando el principio de emisión estimulada y la tecnología láser que se construyó alrededor de él. Es uno de los ejemplos más claros de cómo la investigación en física fundamental, aparentemente alejada de aplicaciones prácticas, eventualmente transforma el mundo en formas que nadie podía prever.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si Einstein predijo teóricamente la emisión estimulada en 1917 pero el primer láser no se construyó hasta 1960, ¿qué obstáculos —tecnológicos, conceptuales, sociales— explican esos 43 años de retraso? ¿Hay predicciones teóricas actuales de la física que podrían transformar la tecnología en las próximas décadas si se materializaran?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="ondas-optica.html" class="back-btn">← Volver a Ondas y Óptica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

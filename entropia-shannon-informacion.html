@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entropía e información: Shannon | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="termodinamica.html" class="nav-back">Termodinámica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Termodinámica <span>·</span> La Unidad entre Termo y Comunicaciones</div>
+  <h1><span class="hl">Shannon</span><br>la entropía de la información</h1>
+  <p class="article-subtitle">Cómo Claude Shannon descubrió que la información es termodinámica: la base matemática de la era digital</p>
+  <div class="article-tags"><span class="tag active">// Termodinámica</span><span class="tag">Shannon</span><span class="tag">Información</span><span class="tag">Comunicaciones</span></div>
+</div>
+<div class="article-container">
+  <p>En 1948, un ingeniero eléctrico de Bell Labs llamado <strong>Claude Shannon</strong> publicó un artículo que cambió el mundo: "Una teoría matemática de la comunicación". En él definió una cantidad matemática para medir la "incertidumbre" o el "contenido de información" de un mensaje, y notó que su fórmula tenía exactamente la misma estructura matemática que la entropía termodinámica de Boltzmann. John von Neumann le sugirió llamarla "entropía" precisamente por esta razón —y porque, en sus palabras, "nadie sabe realmente qué es la entropía, así que en cualquier discusión siempre tendrás la ventaja"—. Lo que comenzó como una analogía formal se reveló como una conexión profunda y fundamental. Hoy sabemos que la <strong>entropía termodinámica y la entropía informacional son la misma cosa</strong> en sentido riguroso, y esta unidad es la base de la teoría moderna de la información, las telecomunicaciones, la compresión de datos, la criptografía, la computación cuántica, e incluso la termodinámica de la vida.</p>
+
+  <div class="math-block">Entropía de Shannon: H = -Σ p_i·log(p_i) · Bit: unidad de información cuando log es base 2 · Capacidad de canal Shannon: C = B·log₂(1 + S/N) · Relación con Boltzmann: H_termo = k_B·H_Shannon</div>
+
+  <h2>El Problema de Shannon</h2>
+
+  <p>Shannon trabajaba en Bell Labs, donde el problema central era cómo transmitir información eficientemente por canales ruidosos: líneas telefónicas, telegrafía, comunicaciones de radio. La pregunta práctica era: ¿cuánta información puede llevar un canal de comunicación dado, y cómo se puede codificar mensajes para maximizar la eficiencia?</p>
+
+  <p>Para responder esto, Shannon necesitaba primero definir qué <em>es</em> la información. Su insight clave fue notar que la información tiene que ver con la <strong>reducción de incertidumbre</strong>. Si te digo "mañana saldrá el sol", no te doy mucha información porque ya lo sabías. Si te digo "mañana habrá un eclipse total", te doy mucha información porque era altamente improbable. <strong>La información contenida en un mensaje es inversamente proporcional a su probabilidad previa</strong>.</p>
+
+  <p>Cuantitativamente, Shannon definió la información de un evento con probabilidad p como I = -log(p). El logaritmo asegura propiedades deseables (la información de dos eventos independientes es la suma de sus informaciones individuales) y la base del logaritmo define las unidades (base 2 para "bits", base e para "nats", base 10 para "hartleys").</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del juego de adivinanzas:</strong> Imaginá que estás jugando "adivina mi número entre 1 y 16". Cada pregunta de sí/no que hacés reduce tu incertidumbre. La pregunta "¿es par o impar?" te da exactamente 1 bit de información: divide las 16 posibilidades en dos grupos iguales. La pregunta "¿es 7?" generalmente te da menos de 1 bit (probable respuesta: "no"). Con preguntas óptimas (cada una dividiendo el espacio restante a la mitad), necesitás exactamente log₂(16) = 4 preguntas para identificar cualquier número. <strong>Esa es la entropía de Shannon</strong>: la cantidad promedio de "preguntas óptimas de sí/no" que necesitás para identificar el resultado de un proceso aleatorio. Para distribuciones uniformes (todos los resultados igualmente probables), H = log₂(N) donde N es el número de resultados posibles. Para distribuciones no uniformes, H es menor (porque podés usar preguntas asimétricas para los resultados más probables).</p>
+  </div>
+
+  <h2>La Fórmula de Shannon</h2>
+
+  <p>Para un proceso aleatorio con resultados posibles 1, 2, ..., N y probabilidades p_1, p_2, ..., p_N, la <strong>entropía de Shannon</strong> es:</p>
+
+  <p style="text-align:center; padding:1rem; font-family:monospace;">H = -Σ p_i · log(p_i)</p>
+
+  <p>Esta fórmula tiene propiedades elegantes. Es máxima cuando todos los resultados son igualmente probables (máxima incertidumbre), y mínima (cero) cuando un resultado tiene probabilidad 1 (cero incertidumbre, perfectamente predecible). Para una moneda equilibrada (dos resultados, 50/50), H = 1 bit. Para un dado equilibrado (seis resultados), H = log₂(6) ≈ 2,58 bits.</p>
+
+  <p>La conexión con la termodinámica es directa: la fórmula de Boltzmann S = k_B·ln(W) puede reescribirse como S = -k_B·Σ p_i·ln(p_i) cuando los microestados no son igualmente probables. Aparte del factor k_B (que esencialmente convierte unidades termodinámicas en informacionales), las dos fórmulas son idénticas. <strong>La entropía termodinámica de un sistema es exactamente k_B veces su entropía informacional</strong> (donde "información" se refiere a la incertidumbre sobre el microestado dado el macroestado observado).</p>
+
+  <h2>Las Aplicaciones de Shannon</h2>
+
+  <p>La teoría de Shannon tiene aplicaciones tecnológicas masivas:</p>
+
+  <p><strong>Compresión de datos</strong>: la entropía de una fuente de información establece un límite inferior absoluto sobre cuán pequeña puede ser su representación. Si una fuente tiene entropía H bits por símbolo, no se puede comprimir por debajo de H bits por símbolo en promedio (teorema de codificación de Shannon). Algoritmos como Huffman, ZIP, JPEG, MP3 explotan exactamente esto: identifican patrones predecibles (baja entropía) y los codifican eficientemente. El texto en español tiene entropía de ~1,5 bits por carácter (mucho menos que los 8 bits del ASCII), por eso los archivos de texto se comprimen bien.</p>
+
+  <p><strong>Capacidad de canal</strong>: Shannon demostró que cualquier canal de comunicación tiene una capacidad máxima C = B·log₂(1 + S/N), donde B es el ancho de banda y S/N la relación señal/ruido. Esta es probablemente la fórmula más fundamental de las telecomunicaciones modernas. Las redes 5G, las fibras ópticas, los satélites, todos operan con técnicas diseñadas para acercarse al límite de Shannon en sus respectivos canales.</p>
+
+  <p><strong>Códigos de corrección de errores</strong>: para canales ruidosos, Shannon demostró que con codificación suficientemente sofisticada se puede transmitir información casi sin errores hasta la capacidad del canal. Esto motivó décadas de investigación en códigos correctores (Hamming, Reed-Solomon, turbo codes, LDPC) que sustentan toda comunicación digital moderna —cada vez que tu celular recibe una señal limpia a pesar del ruido ambiental, está usando estos códigos—.</p>
+
+  <p><strong>Criptografía</strong>: Shannon también fundó la teoría matemática de la criptografía moderna, definiendo conceptos como "secreto perfecto" y demostrando que requiere claves del mismo tamaño que el mensaje (one-time pad). La criptografía contemporánea (RSA, AES, criptografía cuántica) descansa en marcos conceptuales que Shannon estableció.</p>
+
+  <div class="tech-note">
+    <p><strong>La extropía y otras medidas:</strong> Más allá de la entropía de Shannon, hay muchas otras medidas de información. La <em>entropía de Rényi</em> generaliza a una familia parametrizada de entropías. La <em>entropía de Kolmogorov-Sinai</em> mide la incertidumbre dinámica en sistemas caóticos. La <em>complejidad de Kolmogorov</em> mide la información en una secuencia individual, no en una distribución probabilística. La <em>información mutua</em> mide cuánto saber sobre una variable reduce la incertidumbre sobre otra. La <em>divergencia de Kullback-Leibler</em> mide cuán "diferente" es una distribución de otra. La <em>entropía de Von Neumann</em> generaliza Shannon al ámbito cuántico, esencial para información cuántica. Cada una tiene aplicaciones específicas: machine learning, física estadística, biología, neurociencia. La "teoría de la información" en sentido amplio es mucho más rica que solo la entropía de Shannon, aunque esta sea el concepto central.</p>
+  </div>
+
+  <h2>La Conexión Termodinámica</h2>
+
+  <p>La unidad entre entropía termodinámica e informacional no es solo formal. Tiene consecuencias físicas reales, manifestadas en el <strong>principio de Landauer</strong>: borrar un bit de información requiere disipar al menos k_B·T·ln(2) de calor al ambiente (ver artículo sobre el demonio de Maxwell). Esto convierte la información en una cantidad termodinámicamente real, con costos energéticos.</p>
+
+  <p>Otras manifestaciones de la unidad: la entropía termodinámica de un sistema en equilibrio puede calcularse contando "cuánta información hace falta para especificar el microestado dado el macroestado observado". Los sistemas a menor entropía son más predecibles (necesitamos menos información para especificarlos); los a mayor entropía son menos predecibles (necesitamos más).</p>
+
+  <p>El <strong>principio de máxima entropía</strong> (formulado por Jaynes en 1957) es una poderosa herramienta para inferir distribuciones probabilísticas: dada cierta información parcial sobre un sistema (valores promedio de algunas cantidades, por ejemplo), la distribución "menos sesgada" es la que maximiza la entropía sujeto a esas restricciones. Esta es la base estadística de la mecánica estadística clásica: las distribuciones de Maxwell-Boltzmann, Fermi-Dirac y Bose-Einstein son todas distribuciones de máxima entropía dadas restricciones específicas de energía y partículas.</p>
+
+  <h2>Aplicaciones Más Allá de la Comunicación</h2>
+
+  <p>La teoría de Shannon se ha aplicado extensamente más allá de las telecomunicaciones:</p>
+
+  <p>En <strong>biología</strong>: la cantidad de información en el genoma humano (~3 mil millones de pares de bases) puede caracterizarse rigurosamente con Shannon. La evolución puede pensarse como un proceso de incremento de información en los genomas. La biología molecular usa conceptos informacionales (codificación, traducción, transcripción) que no son metáforas: son aplicaciones literales de la teoría de Shannon.</p>
+
+  <p>En <strong>neurociencia</strong>: el procesamiento de información en el cerebro se analiza con herramientas de Shannon. Las tasas de disparo neuronal, los códigos neurales, la eficiencia del procesamiento sensorial se cuantifican en bits por segundo. La hipótesis del "cerebro crítico" (operando en estados de máxima información mutua) deriva de estos análisis.</p>
+
+  <p>En <strong>física</strong>: la entropía de entrelazamiento en mecánica cuántica, la entropía de agujeros negros (Bekenstein-Hawking), la información cosmológica en el fondo cósmico de microondas, todas son aplicaciones directas o generalizaciones de Shannon. La hipótesis "It from bit" de John Wheeler propone que la realidad física es fundamentalmente informacional.</p>
+
+  <p>En <strong>economía y finanzas</strong>: la incertidumbre en mercados, la eficiencia de la información, los procesos de aprendizaje y decisión, se modelan con conceptos informacionales. La teoría de la información ha influido en economía conductual, teoría de juegos, y diseño de mecanismos.</p>
+
+  <div class="info-box">
+    <h4>Claude Shannon, el "padre olvidado"</h4>
+    <p>Claude Shannon (1916-2001) es probablemente el científico más influyente del siglo XX cuyo nombre la mayoría no reconoce. Sus contribuciones fundamentales —teoría de la información (1948), aplicación del álgebra booleana a circuitos (1937, en su tesis de maestría a los 21 años), teoría matemática de la criptografía (1949)— sentaron las bases para toda la era digital. La computadora donde estás leyendo esto, internet, los teléfonos celulares, las comunicaciones por satélite, la criptografía moderna, la compresión de datos: todo descansa en los marcos conceptuales que Shannon estableció. Era además una persona excéntrica y juguetona: construyó máquinas que jugaban ajedrez, computadoras analógicas que resolvían cubos de Rubik, sistemas para hacer malabarismo en monociclo. Inventó la primera máquina "useless" (una caja con un único botón que, al presionarse, hace que salga una mano que apaga el botón). Su personalidad y enfoque lúdico contrastaban con su importancia científica monumental. Shannon es uno de los grandes héroes de la ciencia del siglo XX, y probablemente el menos celebrado popularmente.</p>
+  </div>
+
+  <div class="closing">
+    <p>La entropía de Shannon y su unidad profunda con la entropía termodinámica son uno de los logros conceptuales más importantes del siglo XX. Conectaron campos aparentemente sin relación —la termodinámica del siglo XIX y las telecomunicaciones del siglo XX— en un marco matemático unificado. Esta unificación no es solo elegante: ha generado tecnologías que transformaron el mundo, desde la compresión de archivos hasta las comunicaciones inalámbricas, desde la criptografía hasta la computación cuántica. Y aún más: nos ha permitido entender que la "información" es una cantidad física real, con costos termodinámicos, con leyes propias de conservación y transformación. Cada vez que envías un mensaje por celular, descargas un archivo, o ves un video por internet, estás aprovechando la teoría que Shannon construyó hace tres cuartos de siglo. La era de la información es, literalmente, la era de Shannon —y su unidad fundamental con la termodinámica revela que la información no es solo abstracción matemática, sino parte de la estructura física de la realidad—.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si la entropía termodinámica y la informacional son la misma cosa, ¿en qué sentido la información es "física"? ¿Estamos viviendo en un universo fundamentalmente computacional/informacional, como sugieren algunas interpretaciones modernas de la física?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="termodinamica.html" class="back-btn">← Volver a Termodinámica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

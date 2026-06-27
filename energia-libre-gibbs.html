@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Energía libre de Gibbs | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="termodinamica.html" class="nav-back">Termodinámica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Termodinámica <span>·</span> La Brújula Termodinámica</div>
+  <h1><span class="hl">Energía libre</span><br>de Gibbs</h1>
+  <p class="article-subtitle">La función que predice si un proceso puede ocurrir espontáneamente: la herramienta universal de la termodinámica química</p>
+  <div class="article-tags"><span class="tag active">// Termodinámica</span><span class="tag">Energía Libre</span><span class="tag">Gibbs</span><span class="tag">Bioquímica</span></div>
+</div>
+<div class="article-container">
+  <p>¿Por qué un cubo de hielo se derrite a temperatura ambiente, pero no espontáneamente se vuelve a formar? ¿Por qué algunas reacciones químicas ocurren explosivamente (combustión, mezcla agua-sodio) mientras otras requieren aporte constante de energía (electrólisis del agua)? ¿Por qué los organismos vivos pueden mantener su estructura ordenada, pero solo mientras estén "vivos" (manteniendo flujos metabólicos)? Todas estas preguntas tienen la misma respuesta termodinámica: dependen del <strong>cambio en la energía libre de Gibbs</strong> del proceso. La energía libre de Gibbs, formulada por <strong>Josiah Willard Gibbs</strong> en 1873, es la función termodinámica más útil para predecir la espontaneidad de procesos químicos y físicos a temperatura y presión constantes. Es la cantidad que químicos, biólogos, ingenieros y físicos consultan rutinariamente para entender qué procesos pueden ocurrir y cuáles no. Es probablemente el concepto más importante de toda la termodinámica química, y subyace prácticamente toda la química, bioquímica y procesos industriales modernos.</p>
+
+  <div class="math-block">G = H - TS (entalpía menos T por entropía) · ΔG = ΔH - TΔS · ΔG < 0: proceso espontáneo · ΔG > 0: proceso no espontáneo (requiere aporte de trabajo) · ΔG = 0: equilibrio</div>
+
+  <h2>El Problema de la Espontaneidad</h2>
+
+  <p>La segunda ley de la termodinámica nos dice que la entropía del universo siempre aumenta. Pero usar esta ley directamente es engorroso: requiere calcular el cambio de entropía del sistema más del entorno, lo cual a menudo es difícil. Necesitamos una manera más práctica de predecir si un proceso ocurrirá espontáneamente.</p>
+
+  <p>Gibbs propuso una solución elegante: en lugar de pensar en términos de entropía total, definamos una nueva función del sistema solamente que <em>incorpore</em> implícitamente el efecto del entorno. La <strong>energía libre de Gibbs</strong> es:</p>
+
+  <p style="text-align:center; padding:1rem; font-family:monospace;">G = H - T·S</p>
+
+  <p>Donde H es la entalpía del sistema, T la temperatura absoluta, y S la entropía del sistema. La gran utilidad de G es que su cambio en un proceso a temperatura y presión constantes (ΔG) tiene un significado simple:</p>
+
+  <ul style="margin-left: 2rem; color: var(--gray); line-height: 1.7;">
+    <li>Si <strong>ΔG < 0</strong>: el proceso es <em>espontáneo</em>. Ocurrirá por sí solo, liberando trabajo aprovechable.</li>
+    <li>Si <strong>ΔG > 0</strong>: el proceso es <em>no espontáneo</em>. Solo ocurrirá si se aporta trabajo externo.</li>
+    <li>Si <strong>ΔG = 0</strong>: el sistema está en <em>equilibrio</em>. No hay tendencia neta en ninguna dirección.</li>
+  </ul>
+
+  <p>La energía libre de Gibbs es esencialmente "la cantidad de trabajo útil máximo extraíble del sistema" a temperatura y presión constantes. Si ΔG es negativo, el proceso puede liberar trabajo; si es positivo, requiere absorberlo.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del presupuesto familiar:</strong> Imaginá que tenés que decidir si comprás un nuevo electrodoméstico. Hay dos factores a considerar: cuánto cuesta (ΔH, "el precio") y cuánto vas a gastar en mantenimiento, energía, reparaciones futuras (TΔS, "el costo a largo plazo"). Si el costo total (precio + futuro) es menor que el dinero que tenés disponible (ΔG < 0), podés comprarlo: la decisión es "espontánea". Si excede tu presupuesto (ΔG > 0), no podés —a menos que consigas dinero adicional de fuera (trabajo externo)—. <strong>La energía libre de Gibbs es esencialmente "el presupuesto termodinámico" de un sistema</strong>: combina las consideraciones de "costo energético" (entalpía) y "desorden inevitable" (entropía a temperatura T) en un único criterio que predice si el proceso puede ocurrir espontáneamente. Es por eso que ΔG es el "número mágico" que químicos y bioquímicos siempre calculan: les dice de inmediato si una reacción puede proceder.</p>
+  </div>
+
+  <h2>La Competencia Entalpía vs Entropía</h2>
+
+  <p>La fórmula ΔG = ΔH - T·ΔS revela una competencia fundamental entre dos factores en cualquier proceso:</p>
+
+  <p><strong>El factor entalpía (ΔH)</strong>: representa el cambio en energía del sistema. Procesos <em>exotérmicos</em> (que liberan calor) tienen ΔH < 0 y son favorecidos. Procesos <em>endotérmicos</em> (que absorben calor) tienen ΔH > 0 y son desfavorecidos. Esto refleja la "preferencia" por estados de menor energía.</p>
+
+  <p><strong>El factor entropía (T·ΔS)</strong>: representa el cambio en "desorden" del sistema, multiplicado por la temperatura. Procesos que aumentan la entropía (ΔS > 0) son favorecidos. Esto refleja la "preferencia" estadística por estados de mayor desorden microscópico.</p>
+
+  <p>El balance depende de la temperatura. <strong>A bajas temperaturas, el término entrópico es pequeño y la entalpía domina</strong>: los procesos espontáneos son aquellos que liberan calor (cristalización, combinación química con energía favorable). <strong>A altas temperaturas, el término entrópico es grande y la entropía domina</strong>: los procesos espontáneos son aquellos que aumentan el desorden (sublimación, descomposición, evaporación).</p>
+
+  <p>Esto explica muchísimos fenómenos cotidianos. El hielo es estable a baja temperatura (entalpía favorable: hidrógeno-bonding ordenado) pero se derrite a alta temperatura (entropía favorable: agua líquida tiene más microestados). El agua hierve a 100 °C porque a esa temperatura, T·ΔS supera ΔH para la vaporización. Las proteínas se desnaturalizan a alta temperatura (la entropía supera las interacciones intramoleculares estabilizadoras).</p>
+
+  <h2>Aplicaciones en Química</h2>
+
+  <p>La energía libre de Gibbs es la herramienta fundamental para predecir el comportamiento de reacciones químicas. Para cualquier reacción A + B → C + D, se puede calcular ΔG° (cambio estándar de energía libre, a condiciones estándar de 1 atm y 25 °C) a partir de propiedades tabuladas. Si ΔG° < 0, la reacción procede espontáneamente en condiciones estándar.</p>
+
+  <p>Para condiciones no estándar (concentraciones diferentes), se usa la ecuación: ΔG = ΔG° + RT·ln(Q), donde Q es el "cociente de reacción" (relación de productos sobre reactivos). En equilibrio (ΔG = 0), Q = K (constante de equilibrio), dando la famosa relación ΔG° = -RT·ln(K). Esta ecuación conecta termodinámica con equilibrio químico: las constantes de equilibrio están determinadas por los cambios de energía libre estándar.</p>
+
+  <p>La energía libre también predice las direcciones de las reacciones espontáneas. Por ejemplo, la combustión del metano (CH₄ + 2O₂ → CO₂ + 2H₂O) tiene ΔG = -818 kJ/mol: enormemente negativo, por lo que ocurre espontáneamente y libera mucha energía aprovechable. La síntesis de glucosa por fotosíntesis (6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂) tiene ΔG = +2870 kJ/mol: muy positivo, no puede ocurrir espontáneamente —de ahí la necesidad de la energía solar como aporte externo—.</p>
+
+  <div class="tech-note">
+    <p><strong>Las baterías y celdas electroquímicas:</strong> Una de las aplicaciones tecnológicas más importantes de la energía libre de Gibbs es en electroquímica. La energía libre estándar de una reacción de óxido-reducción se relaciona directamente con el voltaje de celda: ΔG° = -n·F·E°, donde n es el número de electrones transferidos y F la constante de Faraday. Las baterías que usamos diariamente (alcalinas, litio-ion, plomo-ácido) operan según este principio: reacciones químicas con ΔG° suficientemente negativo pueden generar trabajo eléctrico utilizable. La densidad de energía de una batería está limitada por ΔG° de la reacción y la cantidad de reactivos. Las baterías de litio-ion modernas tienen densidades de ~250 Wh/kg; las de litio-aire teóricas podrían alcanzar ~1000 Wh/kg gracias a ΔG° más favorable. El desarrollo de baterías mejores es esencialmente la búsqueda de reacciones electroquímicas con ΔG° más negativo y más electrones intercambiados por unidad de masa.</p>
+  </div>
+
+  <h2>Aplicaciones en Bioquímica</h2>
+
+  <p>La bioquímica está dominada por consideraciones de energía libre. Casi todos los procesos biológicos importantes son no espontáneos termodinámicamente (ΔG > 0) y requieren acoplamiento a procesos espontáneos para ocurrir. El "acoplamiento bioquímico" usa una reacción favorable (ΔG < 0) para "pagar" una desfavorable (ΔG > 0), siempre que el ΔG total sea negativo.</p>
+
+  <p>El <strong>ATP</strong> (adenosina trifosfato) es la "moneda energética universal" del metabolismo. La hidrólisis de ATP a ADP + fosfato tiene ΔG° = -30,5 kJ/mol (espontánea, libera energía). Las células acoplan esta hidrólisis a reacciones desfavorables (síntesis de proteínas, transporte activo, contracción muscular) para hacerlas posibles. Sin ATP (o moléculas equivalentes), la vida sería termodinámicamente imposible.</p>
+
+  <p>La <strong>fotosíntesis</strong> usa la energía solar para superar el ΔG positivo de fijar CO₂ en moléculas orgánicas. Cada fotón absorbido aporta ~178 kJ/einstein (un mol de fotones de luz visible), suficiente para sintetizar moléculas energéticas que después alimentarán al resto de la biósfera.</p>
+
+  <p>La <strong>respiración celular</strong> revierte el proceso: oxida moléculas orgánicas (glucosa, lípidos) liberando energía libre que se captura en ATP. La eficiencia es notable: ~40% de la energía libre disponible se conserva como ATP utilizable.</p>
+
+  <h2>Otras Energías Libres</h2>
+
+  <p>La energía libre de Gibbs es la más útil para sistemas a presión constante (típica de química en solución, biología). Hay otras energías libres para diferentes condiciones:</p>
+
+  <p>La <strong>energía libre de Helmholtz</strong> (F = U - TS) se usa para sistemas a volumen constante. Es relevante en termodinámica de gases en recipientes cerrados, mecánica estadística teórica, condensados cuánticos.</p>
+
+  <p>La <strong>entalpía libre de Massieu</strong> (Φ = -F/T) y otras "funciones de Massieu" son combinaciones alternativas usadas en contextos termodinámicos específicos.</p>
+
+  <p>Para sistemas <em>fuera del equilibrio</em>, se generalizan estos conceptos con cuidado: la "energía libre instantánea" no siempre tiene el mismo significado, y predecir procesos requiere análisis más sofisticado (termodinámica estocástica, principios variacionales generalizados).</p>
+
+  <h2>La Visión de Conjunto</h2>
+
+  <p>La energía libre de Gibbs es probablemente el concepto más útil y aplicado de toda la termodinámica química. Combina las dos "fuerzas motoras" fundamentales de los procesos físicos —reducción de energía y aumento de entropía— en una única función que predice espontaneidad con simplicidad notable.</p>
+
+  <p>Su utilidad se manifiesta en innumerables contextos prácticos: diseño de procesos químicos industriales, desarrollo de nuevos materiales, comprensión del metabolismo, optimización de baterías y celdas de combustible, predicción de equilibrios químicos, análisis de cinética de reacciones (a través de la teoría del estado de transición), comprensión de fenómenos geoquímicos y atmosféricos.</p>
+
+  <p>Es también un concepto profundo filosóficamente: revela que los "objetivos" implícitos de los procesos naturales no son ni "minimizar energía" ni "maximizar entropía" individualmente, sino un balance específico que depende de la temperatura. La naturaleza no es ni puramente económica (minimizando costos energéticos) ni puramente estadística (favoreciendo desorden): combina ambas tendencias en una optimización elegante codificada en la energía libre de Gibbs.</p>
+
+  <div class="info-box">
+    <h4>Josiah Willard Gibbs</h4>
+    <p>Josiah Willard Gibbs (1839-1903) fue probablemente el científico estadounidense más importante del siglo XIX, aunque su nombre es menos reconocido que sus contemporáneos europeos. Trabajaba en la Universidad de Yale en relativo aislamiento, publicando sus trabajos fundamentales en las "Transactions" de la Connecticut Academy of Arts and Sciences —una revista de muy poca circulación—. Sus contribuciones a la termodinámica química (la regla de las fases, la energía libre, los potenciales termodinámicos, los diagramas de fase) fueron publicadas entre 1873 y 1878 pero permanecieron casi desconocidas en Europa hasta que Maxwell, Wilhelm Ostwald y otros las redescubrieron y diseminaron. Maxwell, al leer el trabajo de Gibbs, comentó: "<em>nadie sabe de él porque está enterrado en revistas obscuras americanas</em>". Gibbs también hizo contribuciones fundamentales a la mecánica estadística (su libro de 1902 es uno de los textos clásicos del campo), al análisis vectorial (desarrolló muchos de los métodos hoy estándar) y a la física matemática general. Era una persona modesta, soltero, vivió toda su vida en la casa familiar de Yale, y nunca recibió el reconocimiento popular que merecía. Pero entre físicos y químicos, su nombre es uno de los más respetados de toda la historia de la ciencia.</p>
+  </div>
+
+  <div class="closing">
+    <p>La energía libre de Gibbs es uno de los conceptos más prácticos y poderosos de toda la termodinámica. Su elegancia matemática esconde una utilidad enorme: con un solo número (ΔG), podés predecir si cualquier proceso a temperatura y presión constantes puede ocurrir espontáneamente. Desde reacciones químicas en laboratorios hasta el metabolismo celular, desde el diseño de baterías hasta el funcionamiento de motores moleculares biológicos, la energía libre de Gibbs es la herramienta universal. Es un ejemplo paradigmático de cómo la termodinámica, lejos de ser una abstracción teórica, es la base operativa de la química, la biología, la ingeniería química, la electroquímica y la bioquímica modernas. Cada vez que entendés por qué una reacción ocurre o no ocurre, por qué una batería tiene cierto voltaje, por qué una célula necesita ATP, estás invocando los conceptos que Gibbs desarrolló hace 150 años en su oficina obscura de Yale. La energía libre de Gibbs es probablemente el "concepto invisible" más importante de toda la química y bioquímica modernas: omnipresente, esencial, pero rara vez celebrado fuera de los círculos profesionales.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si la energía libre de Gibbs predice qué procesos pueden ocurrir espontáneamente, ¿significa que los procesos espontáneos en biología (metabolismo, evolución, embriogénesis) están todos "yendo cuesta abajo" termodinámicamente, o hay algún componente adicional que la termodinámica clásica no captura?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="termodinamica.html" class="back-btn">← Volver a Termodinámica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

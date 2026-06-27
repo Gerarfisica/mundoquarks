@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calor latente y transiciones de fase | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="termodinamica.html" class="nav-back">Termodinámica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Termodinámica <span>·</span> La Energía Oculta del Cambio</div>
+  <h1><span class="hl">Calor latente</span><br>y transiciones de fase</h1>
+  <p class="article-subtitle">Por qué el agua hirviendo no sube de temperatura: la energía oculta de los cambios de estado</p>
+  <div class="article-tags"><span class="tag active">// Termodinámica</span><span class="tag">Calor Latente</span><span class="tag">Transiciones de Fase</span><span class="tag">Clausius-Clapeyron</span></div>
+</div>
+<div class="article-container">
+  <p>Cuando ponés una olla con agua al fuego, la temperatura sube hasta llegar a 100 °C —y ahí se queda—. Por más fuerte que pongas la llama, mientras haya agua líquida hirviendo, la temperatura no sube. Toda la energía adicional que aportás se usa para convertir el agua líquida en vapor: <strong>cambiar de fase</strong>. Cuando todo el líquido se ha evaporado, recién entonces el vapor sigue calentándose. Lo mismo pasa al revés: hielo a -10 °C se calienta hasta 0 °C, y ahí se detiene mientras se derrite. Solo cuando todo el hielo se ha vuelto agua líquida, la temperatura sigue subiendo. Esta energía "escondida" que se absorbe o libera durante una transición de fase, sin cambiar la temperatura, se llama <em>calor latente</em>. Es responsable de fenómenos tan diversos como el funcionamiento de los aires acondicionados, la regulación de la temperatura corporal, la formación de huracanes, y la estabilidad climática de los océanos.</p>
+
+  <div class="math-block">Calor latente: Q = m·L · Fusión del agua: L_f ≈ 334 kJ/kg · Vaporización del agua: L_v ≈ 2260 kJ/kg · Sublimación del CO₂: L_s ≈ 590 kJ/kg · Ecuación de Clausius-Clapeyron: dP/dT = L/(T·ΔV)</div>
+
+  <h2>Las Fases de la Materia</h2>
+
+  <p>La materia ordinaria existe en tres fases principales: <strong>sólido</strong>, <strong>líquido</strong> y <strong>gas</strong>. Cada fase corresponde a una organización microscópica diferente de las moléculas. En un sólido, las moléculas están dispuestas en una estructura rígida (cristalina o amorfa) y solo vibran alrededor de posiciones fijas. En un líquido, las moléculas siguen en contacto pero pueden deslizarse unas sobre otras. En un gas, las moléculas vuelan libremente, separadas por distancias muchísimo mayores que su tamaño.</p>
+
+  <p>Hay además fases más exóticas: <strong>plasma</strong> (gas ionizado, como en estrellas y rayos), <strong>condensados de Bose-Einstein</strong> (estados cuánticos colectivos a temperaturas ultrabajas), <strong>cristales líquidos</strong> (con orientación pero sin orden posicional completo), <strong>materia degenerada</strong> (en enanas blancas y estrellas de neutrones), y muchas otras fases especializadas. Cada una tiene su propia organización molecular y propiedades distintivas.</p>
+
+  <p>El paso de una fase a otra es una <strong>transición de fase</strong>. Las transiciones más comunes son: fusión (sólido → líquido), solidificación (líquido → sólido), vaporización (líquido → gas), condensación (gas → líquido), sublimación (sólido → gas directamente), y deposición (gas → sólido directamente). Cada una requiere o libera una cantidad específica de energía, el <strong>calor latente</strong>.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía del estacionamiento congestionado:</strong> Imaginá un estacionamiento muy lleno donde los autos están pegados (sólido). Si querés que los autos puedan circular un poco (líquido), tenés que pagar a la gente para que mueva sus autos creando espacios: gastás energía no en hacer que los autos vayan más rápido (calentarlos), sino solo en reorganizarlos para tener más espacio. Igual al pasar de líquido a gas: tenés que pagar energía adicional para que los autos se separen por completo y puedan circular libremente, sin que eso aumente su velocidad. <strong>El calor latente es ese "pago por reorganización"</strong>: energía que se gasta en reordenar la estructura molecular sin cambiar la velocidad media (temperatura) de las moléculas. Por eso la temperatura "se queda estancada" durante el cambio de fase: toda la energía entrante se invierte en reestructurar, no en acelerar.</p>
+  </div>
+
+  <h2>Los Calores Latentes del Agua</h2>
+
+  <p>El agua tiene calores latentes excepcionalmente altos comparados con otras sustancias comunes. El <strong>calor latente de fusión</strong> (hielo → agua a 0 °C) es L_f = 334 kJ/kg: para derretir 1 kg de hielo, tenés que aportar la misma energía que para calentar 1 kg de agua líquida desde 0 °C hasta 80 °C. El <strong>calor latente de vaporización</strong> (agua → vapor a 100 °C) es L_v = 2260 kJ/kg: convertir 1 kg de agua líquida a 100 °C en vapor a 100 °C requiere casi siete veces más energía que calentar esa agua desde 0 °C hasta 100 °C.</p>
+
+  <p>Esta es la razón por la que el agua es un refrigerante tan efectivo: cuando una pequeña cantidad de agua se evapora de tu piel (sudoración), absorbe enormes cantidades de calor sin que la temperatura del agua suba mucho. Es también por qué los huracanes (que extraen energía del agua oceánica caliente y la transfieren a la atmósfera mediante evaporación-condensación) son tan destructivos: cada gramo de agua que se condensa en una nube libera 2260 J de calor a la atmósfera.</p>
+
+  <p>Los océanos almacenan cantidades colosales de calor latente. La "estabilidad climática" de las regiones costeras vs. las continentales se debe directamente a esto: el océano puede absorber o liberar enormes cantidades de energía con cambios mínimos de temperatura, moderando los climas vecinos.</p>
+
+  <h2>Aplicaciones Tecnológicas</h2>
+
+  <p>El calor latente es la base de muchísimas tecnologías de refrigeración y climatización. Los <strong>refrigeradores</strong> y <strong>aires acondicionados</strong> usan ciclos donde un refrigerante absorbe calor evaporándose (lado frío) y lo libera condensándose (lado caliente). El refrigerante (típicamente freones, ahora hidrofluorocarburos como R-410A) absorbe muchísima energía durante su evaporación, permitiendo extraer calor eficientemente. El compresor recupera el refrigerante después de que cede su calor al exterior.</p>
+
+  <p>Los <strong>almacenadores de energía térmica</strong> usan calores latentes para acumular energía: ciertos materiales (cera de parafina, sales hidratadas) se pueden fundir absorbiendo grandes cantidades de calor durante el día, y luego liberarlo al solidificarse durante la noche. Esta es una técnica creciente en construcción sostenible y almacenamiento de energía solar.</p>
+
+  <p>El <strong>cuerpo humano</strong> usa el calor latente de vaporización para regular su temperatura: cuando hace calor, sudamos, y la evaporación del sudor absorbe el calor de la piel. Cada gramo de sudor que se evapora absorbe ~2400 J, lo que es equivalente al calor producido por unos minutos de metabolismo basal. Sin este mecanismo, no podríamos sobrevivir a temperaturas ambientales superiores a la temperatura corporal.</p>
+
+  <div class="tech-note">
+    <p><strong>La ecuación de Clausius-Clapeyron:</strong> La relación entre el calor latente y la dependencia de la presión de vapor con la temperatura está dada por la ecuación de Clausius-Clapeyron: dP/dT = L/(T·ΔV), donde L es el calor latente molar, T la temperatura, y ΔV el cambio de volumen específico durante la transición. Esta ecuación es la razón por la que el agua hierve a temperaturas más bajas a grandes alturas: la presión atmosférica es menor, y por tanto el punto de ebullición es menor (a 4000 m, el agua hierve a aproximadamente 87 °C). Es también la base para entender la "presión de vapor de saturación", crucial en meteorología, química, y muchísimas otras áreas. La ecuación permite calcular cómo cambian los diagramas de fase con altitud, en sistemas presurizados, en condiciones planetarias diferentes.</p>
+  </div>
+
+  <h2>El Punto Triple y el Punto Crítico</h2>
+
+  <p>En un diagrama de fase típico (presión vs temperatura), las tres fases convergen en un <strong>punto triple</strong>: una combinación única de P y T donde las tres fases coexisten en equilibrio. Para el agua, el punto triple está a 0,01 °C y 611 Pa. La temperatura del punto triple del agua era hasta hace poco la <em>definición</em> del kelvin (desde 1954); en la redefinición del SI de 2019, se cambió a una definición basada en la constante de Boltzmann.</p>
+
+  <p>A presiones y temperaturas altas, la distinción entre líquido y gas eventualmente desaparece en un <strong>punto crítico</strong>: a partir de ahí, no hay diferencia entre las dos fases (no hay menisco, no hay calor latente). Para el agua, el punto crítico es a 374 °C y 22 MPa. Más allá del punto crítico, la sustancia existe en un estado <em>supercrítico</em> con propiedades intermedias entre líquido y gas. El agua supercrítica es un solvente extraordinariamente potente, usado en procesos industriales especializados.</p>
+
+  <p>Cerca del punto crítico, las propiedades termodinámicas se vuelven anómalas: divergencias en la susceptibilidad, opalescencia crítica, fluctuaciones a todas las escalas. Estos <strong>fenómenos críticos</strong> son universales en el sentido técnico: los exponentes que describen las divergencias son los mismos para sustancias químicamente muy diferentes (agua, CO₂, Xe). Esta universalidad fue explicada por Kenneth Wilson con la teoría del grupo de renormalización (Nobel 1982).</p>
+
+  <h2>Transiciones de Fase Exóticas</h2>
+
+  <p>Más allá de las transiciones sólido/líquido/gas, hay transiciones de fase más sutiles. La transición <strong>superconductora</strong> (un metal pasa de conductor normal a superconductor a temperaturas críticas) es una transición de fase termodinámica. La transición <strong>ferromagnética</strong> (un imán pierde su magnetización al calentarse por encima de la temperatura de Curie) también lo es. La <strong>condensación de Bose-Einstein</strong> es una transición de fase donde un gas de átomos bosónicos colapsa al estado fundamental cuántico.</p>
+
+  <p>Las transiciones de fase se clasifican como <em>de primer orden</em> (con calor latente, como fusión/vaporización) o <em>de segundo orden</em> (sin calor latente, pero con discontinuidades en derivadas de propiedades termodinámicas, como ferromagnetismo). Las de segundo orden son particularmente interesantes porque exhiben fenómenos críticos universales.</p>
+
+  <p>En el universo temprano, hubo transiciones de fase fundamentales: la <strong>transición electrodébil</strong> (donde las fuerzas electromagnética y débil se separaron), la <strong>transición de QCD</strong> (donde los quarks se confinaron en protones y neutrones). Estas son transiciones cósmicas a escalas energéticas muchísimo mayores que las terrestres, pero gobernadas por las mismas matemáticas termodinámicas. La cosmología moderna estudia activamente las consecuencias observacionales de estas transiciones primordiales.</p>
+
+  <div class="info-box">
+    <h4>James Black y el descubrimiento del calor latente</h4>
+    <p>Joseph Black, profesor escocés de medicina y química en la Universidad de Glasgow, descubrió el calor latente en 1761 mediante experimentos cuidadosos. Observó que al calentar hielo en agua tibia, el hielo absorbía calor sin que la temperatura de la mezcla cambiara —el calor "desaparecía" en algún proceso oculto—. De manera similar, observó que cuando el agua hirviendo se condensaba, liberaba grandes cantidades de calor sin enfriarse inmediatamente. Black razonó que había una forma "oculta" de calor (literalmente <em>latente</em>, de <em>latere</em> = "estar oculto" en latín) involucrada en los cambios de fase. Esta observación fue fundamental para el desarrollo posterior de la termodinámica. James Watt, alumno de Black, aplicó este conocimiento al diseño de máquinas de vapor más eficientes, contribuyendo significativamente a la Revolución Industrial. Es un ejemplo elegante de cómo una observación científica básica puede transformar la tecnología y la sociedad.</p>
+  </div>
+
+  <div class="closing">
+    <p>El calor latente y las transiciones de fase son conceptos termodinámicos centrales con implicaciones que se extienden mucho más allá del laboratorio. Explican cómo funcionan los refrigeradores y aires acondicionados, cómo regula nuestro cuerpo su temperatura, cómo se forman los huracanes, cómo los océanos moderan el clima planetario, cómo evolucionaron las primeras milésimas de segundo después del Big Bang. La fase de la materia no es solo un detalle químico: es una propiedad fundamental con consecuencias macroscópicas profundas. Cada vez que hierve agua en una olla, se forma hielo en un congelador, suda tu piel en un día caluroso, o cae nieve del cielo, estás presenciando física termodinámica en acción —el mismo principio que Joseph Black observó hace 260 años en su laboratorio de Glasgow—.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si el agua tiene calores latentes excepcionalmente altos comparada con otras sustancias, ¿en qué medida esto influyó en la posibilidad de vida en la Tierra? ¿Sería posible vida química con un disolvente diferente que tuviera comportamientos termodinámicos muy distintos?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="termodinamica.html" class="back-btn">← Volver a Termodinámica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

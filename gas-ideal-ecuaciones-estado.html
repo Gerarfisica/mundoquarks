@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gas ideal y ecuaciones de estado | Mundo Quarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="termodinamica.html" class="nav-back">Termodinámica</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Termodinámica <span>·</span> La Ecuación Más Útil</div>
+  <h1>El <span class="hl">gas ideal</span><br>y PV = nRT</h1>
+  <p class="article-subtitle">La ecuación más útil de la termodinámica: cómo cuatro variables predicen el comportamiento de cualquier gas</p>
+  <div class="article-tags"><span class="tag active">// Termodinámica</span><span class="tag">Gas Ideal</span><span class="tag">Boyle</span><span class="tag">Van der Waals</span></div>
+</div>
+<div class="article-container">
+  <p>El aire que respirás, el helio en un globo, el vapor en una olla a presión, el plasma solar: todos son gases, y todos obedecen aproximadamente la misma ley fundamental. La <strong>ley del gas ideal</strong>, PV = nRT, es probablemente la ecuación más útil de toda la termodinámica. Conecta cuatro variables —presión, volumen, cantidad y temperatura— en una relación simple y predictiva que sirve para diseñar motores, predecir el clima, calcular órbitas espaciales y entender la atmósfera de las estrellas. Pero detrás de su simplicidad hay una historia fascinante: cómo siglos de mediciones empíricas se condensaron en una ecuación, cómo Boltzmann y Maxwell explicaron su origen microscópico, y por qué los gases reales se desvían de este ideal en condiciones extremas. Es uno de los ejemplos más bellos de cómo la ciencia construye leyes universales a partir de observaciones aparentemente desconectadas.</p>
+
+  <div class="math-block">Gas ideal: PV = nRT · R = 8,314 J/(mol·K) · k_B = R/N_A · Energía cinética media: ⟨E⟩ = (3/2)k_B·T · Velocidad cuadrática media: v_rms = √(3k_B·T/m) · Van der Waals: (P + a·n²/V²)(V - nb) = nRT</div>
+
+  <h2>Las Tres Leyes Empíricas</h2>
+
+  <p>La ley del gas ideal es la síntesis de tres leyes empíricas descubiertas independientemente entre los siglos XVII y XIX. La <strong>ley de Boyle-Mariotte</strong> (1662, redescubierta por Mariotte en 1676) establece que a temperatura constante, el volumen de un gas es inversamente proporcional a su presión: P·V = constante. Si comprimís un gas a la mitad del volumen, su presión se duplica.</p>
+
+  <p>La <strong>ley de Charles</strong> (1787) establece que a presión constante, el volumen de un gas es proporcional a su temperatura absoluta: V/T = constante. Si calentás un globo, se expande proporcionalmente al aumento de temperatura medido en Kelvin. La <strong>ley de Gay-Lussac</strong> (1809) establece que a volumen constante, la presión es proporcional a la temperatura: P/T = constante. Si calentás un gas encerrado, su presión sube.</p>
+
+  <p>Combinando estas tres leyes, llegamos a la <strong>ley del gas ideal</strong>: PV/T = constante para una cantidad fija de gas. Si introducimos la cantidad de gas como n moles, obtenemos PV = nRT, donde R es la <em>constante universal de los gases</em>: R ≈ 8,314 J/(mol·K). Esta constante es notablemente la misma para cualquier gas idealizado, sin importar su composición química. Es uno de los primeros ejemplos en la historia de la física de una "constante universal" emergiendo de observaciones empíricas.</p>
+
+  <div class="analogy-box">
+    <p><strong>Analogía de la pelota golpeando paredes:</strong> Imaginá un cuarto cerrado con millones de pelotas pequeñas rebotando contra las paredes y entre sí. La <strong>presión</strong> es la fuerza promedio que las pelotas ejercen al chocar con las paredes (más choques o choques más fuertes = más presión). La <strong>temperatura</strong> es proporcional a la velocidad promedio al cuadrado de las pelotas (pelotas más rápidas = más caliente). El <strong>volumen</strong> es el tamaño del cuarto. La <strong>cantidad</strong> es cuántas pelotas hay. <strong>La ley del gas ideal es simplemente la matemática que conecta estas cantidades de manera obligatoria</strong>: si comprimís el cuarto (V baja), o agregás más pelotas (n sube), o calentás (T sube), la presión necesariamente sube. Es la combinatoria de millones de colisiones microscópicas reducida a una ecuación macroscópica simple.</p>
+  </div>
+
+  <h2>La Interpretación Microscópica</h2>
+
+  <p>La derivación microscópica de la ley del gas ideal —desarrollada por Maxwell, Clausius y Boltzmann en el siglo XIX— es uno de los grandes logros de la mecánica estadística. La presión surge de las colisiones de moléculas contra las paredes del recipiente. Cada colisión transmite cierta cantidad de momento; el promedio temporal de estas transferencias de momento por unidad de área es lo que llamamos presión.</p>
+
+  <p>Cuantitativamente, para un gas ideal de N moléculas de masa m moviéndose con velocidades distribuidas según Maxwell-Boltzmann, la presión es P = (1/3)·n·m·⟨v²⟩, donde ⟨v²⟩ es la velocidad cuadrática media. La <strong>temperatura</strong> emerge como una medida directa de la energía cinética media de las moléculas: ⟨E_cinética⟩ = (3/2)k_B·T. Cuando "calentás" un gas, simplemente estás acelerando sus moléculas.</p>
+
+  <p>Combinando estas dos relaciones, se recupera exactamente PV = nRT. La ley del gas ideal no es un postulado misterioso: es una consecuencia directa de aplicar mecánica newtoniana a un sistema de muchas partículas pequeñas. La constante R no es arbitraria: R = N_A·k_B, el producto del número de Avogadro y la constante de Boltzmann.</p>
+
+  <h2>Las Limitaciones del Modelo Ideal</h2>
+
+  <p>La ley del gas ideal asume dos cosas: (1) las moléculas no tienen volumen propio (son puntuales), y (2) no hay fuerzas atractivas entre ellas (no se "pegan" ni se atraen). Estas suposiciones son buenas aproximaciones para gases diluidos a temperaturas no demasiado bajas, pero fallan en regímenes específicos.</p>
+
+  <p>Cuando la presión es muy alta, las moléculas están comprimidas a distancias comparables con su tamaño, y el volumen propio empieza a importar. Cuando la temperatura es muy baja, las moléculas se mueven lentamente y las fuerzas atractivas (van der Waals) se vuelven relativamente importantes —tanto que el gas eventualmente se condensa en líquido—.</p>
+
+  <p>Johannes van der Waals propuso en 1873 una ecuación de estado mejorada que tiene en cuenta ambos efectos: <strong>(P + a·n²/V²)·(V - n·b) = nRT</strong>. El término "b" representa el volumen propio de cada mol de moléculas, y "a" representa la fuerza atractiva entre ellas. La <em>ecuación de Van der Waals</em> predice cualitativamente la condensación gas-líquido y los puntos críticos, fenómenos completamente ausentes en el modelo ideal. Van der Waals recibió el Nobel de 1910 por este trabajo.</p>
+
+  <div class="tech-note">
+    <p><strong>La cero de la escala absoluta:</strong> Una predicción importante de la ley de Charles es que el volumen de un gas idealizado se hace cero a una temperatura específica: aproximadamente -273,15 °C, que llamamos "cero absoluto". Esto era una predicción matemática limitada por la suposición de gas ideal (los gases reales se condensan antes de llegar ahí), pero apuntaba a una escala de temperatura "absoluta" con un cero físicamente significativo. Lord Kelvin propuso en 1848 redefinir la temperatura usando esta escala absoluta, con kelvin como unidad. Hoy, el cero kelvin (-273,15 °C) marca la temperatura más baja teóricamente alcanzable —donde la energía térmica se hace cero (excepto por el "punto cero" cuántico)—. Los laboratorios modernos han alcanzado temperaturas de menos de un nanokelvin (10⁻⁹ K) usando técnicas de enfriamiento láser, pero el cero absoluto exacto sigue siendo inalcanzable (tercera ley de la termodinámica).</p>
+  </div>
+
+  <h2>Aplicaciones Diarias</h2>
+
+  <p>La ley del gas ideal es ubicua en aplicaciones tecnológicas. Los <strong>motores de combustión interna</strong> aprovechan la expansión rápida de gases calientes (productos de combustión) para producir trabajo mecánico. Los <strong>refrigeradores y aires acondicionados</strong> usan ciclos de compresión y expansión de gases refrigerantes para mover calor. Los <strong>compresores neumáticos</strong> almacenan energía comprimiendo aire. Los <strong>airbags</strong> de automóviles generan rápidamente grandes volúmenes de gas (nitrógeno típicamente) para inflarse en milisegundos.</p>
+
+  <p>En <strong>meteorología</strong>: la ley del gas ideal describe el comportamiento de la atmósfera. Los gradientes de temperatura y presión determinan el clima, los vientos, las masas de aire. Los modelos meteorológicos usan formas refinadas de la ley para predecir el tiempo. En <strong>astronomía</strong>: la ley se aplica al gas en estrellas, nebulosas, atmósferas planetarias, y medios interestelares. La estructura de las estrellas depende del balance entre la gravedad que comprime y la presión del gas (más radiación) que expande.</p>
+
+  <p>En <strong>biología</strong>: los pulmones funcionan mediante cambios de volumen que producen cambios de presión (ley de Boyle). La sangre transporta oxígeno y dióxido de carbono cumpliendo (parcialmente) la ley del gas ideal en su solubilidad. En <strong>buceo</strong>: las leyes del gas ideal explican por qué los buzos deben ascender lentamente para evitar la enfermedad de descompresión.</p>
+
+  <h2>Los Gases Reales y los Diagramas de Fase</h2>
+
+  <p>Los gases reales no son ideales: a temperaturas y presiones específicas, condensan en líquidos o sólidos. Los <strong>diagramas de fase</strong> muestran qué fase (sólido, líquido, gas) existe estable a cada combinación de P y T. Hay <strong>puntos triples</strong> (donde coexisten las tres fases simultáneamente —para el agua, a 0,01 °C y 611 Pa), <strong>puntos críticos</strong> (donde la distinción gas-líquido desaparece —para el agua, a 374 °C y 22 MPa), y <strong>transiciones de fase</strong> (fusión, ebullición, sublimación).</p>
+
+  <p>Cerca de los puntos críticos, los gases exhiben fenómenos espectaculares: <em>opalescencia crítica</em> (fluctuaciones de densidad a todas las escalas que producen dispersión intensa de luz), <em>universalidad</em> de los exponentes críticos (las propiedades cerca del punto crítico son las mismas para gases físicamente muy diferentes). Estos fenómenos críticos conectan la termodinámica con la mecánica estadística moderna y la teoría de transiciones de fase.</p>
+
+  <p>Para aplicaciones precisas en ingeniería química, se usan ecuaciones de estado más sofisticadas: Redlich-Kwong, Peng-Robinson, ecuaciones del virial, modelos de Gibbs para mezclas. Cada una con su rango de validez y precisión. La ley del gas ideal sigue siendo el "punto de partida" conceptual y a menudo una aproximación adecuada para condiciones moderadas.</p>
+
+  <div class="info-box">
+    <h4>El número de Avogadro</h4>
+    <p>El número de Avogadro N_A = 6,022×10²³ es uno de los números más importantes de la química y termodinámica: es el número de moléculas en un mol de cualquier sustancia. Amedeo Avogadro propuso en 1811 que "volúmenes iguales de gases a la misma temperatura y presión contienen igual número de moléculas" —una hipótesis revolucionaria que fue ignorada o rechazada durante medio siglo—. Cuando Stanislao Cannizzaro la rescató en 1860 en el Congreso de Karlsruhe, la química moderna pudo finalmente construirse sobre bases firmes. La medición precisa de N_A llevó décadas: Jean Perrin lo midió mediante movimiento browniano (Nobel 1926), confirmando definitivamente la existencia de átomos. Hoy N_A es una constante exactamente definida en el SI (desde 2019): es el factor que conecta la escala microscópica (moléculas individuales) con la escala macroscópica (moles, gramos). Cada vez que usás la ley del gas ideal, estás invocando este número.</p>
+  </div>
+
+  <div class="closing">
+    <p>La ley del gas ideal es probablemente la ecuación más útil de toda la termodinámica. Síntesis de tres leyes empíricas independientes, fundamentada teóricamente por la mecánica estadística, refinada por las correcciones de van der Waals y otros, sigue siendo la primera aproximación en innumerables cálculos prácticos. Desde diseñar motores hasta predecir el clima, desde entender la respiración humana hasta modelar la atmósfera de exoplanetas, PV = nRT es una herramienta que aparece una y otra vez. Es un ejemplo paradigmático de cómo la física construye comprensión: empezando con observaciones empíricas dispersas, descubriendo patrones matemáticos, explicando los patrones desde principios más profundos, y finalmente refinando el modelo para casos donde las idealizaciones fallan. La simplicidad elegante de la ley oculta siglos de investigación, miles de mediciones cuidadosas, y la genialidad de quienes vieron unidad en aparente diversidad.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si la ley del gas ideal funciona tan bien para tantos gases distintos a pesar de sus diferencias químicas, ¿qué nos dice esto sobre las propiedades "universales" de la materia gaseosa? ¿Por qué la naturaleza prefiere relaciones tan simples para fenómenos complejos?</p>
+  </div>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.</p>
+  <a href="termodinamica.html" class="back-btn">← Volver a Termodinámica</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+</script>
+</body>
+</html>

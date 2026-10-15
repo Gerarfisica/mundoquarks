@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Batidos transversales G1-P8</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la comparación transversal contra longitudinal como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --m1:#36d4ff; --m2:#ff7ad9; --q1:#ffcf3a; --q2:#9d8cff; --warn:#ffb03a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:230px}
+.cpl{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.sw{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.sw input{accent-color:var(--sys)}
+.warnline{padding:6px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--warn)}
+.cmp{display:grid;grid-template-columns:auto 1fr 1fr;gap:2px 14px;font-size:12.5px;padding:8px 12px;border-top:1px solid var(--line)}
+.cmp .h{color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.cmp .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 1 · Pulsaciones entre modos normales</span>
+  <h1>Batidos <i>· oscilaciones transversales</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 1">
+    <h2><a href="index.html" style="color:inherit;text-decoration:none">Guía 1</a></h2>
+    <ol>
+      <li><a href="p1-oscilador.html"><b class="code">P1</b>Péndulo y resortes</a></li>
+      <li><a href="p2-amortiguado.html"><b class="code">P2–3</b>Amortiguado y crítico</a></li>
+      <li><a href="p4-forzado.html"><b class="code">P4</b>Oscilador forzado</a></li>
+      <li><a href="p5-resonancia.html"><b class="code">P5</b>Resonancia</a></li>
+      <li><a href="p6-modos-normales.html"><b class="code">P6</b>Modos normales</a></li>
+      <li><a href="p7-acoplamiento-debil.html"><b class="code">P7</b>Acoplamiento débil</a></li>
+      <li><a href="p8-batidos-longitudinal.html"><b class="code">P8</b>Batidos longitudinal</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P8</b>Batidos transversal</a></li>
+      <li><a href="p9-molecula-triatomica.html"><b class="code">P9</b>Combinación de modos</a></li>
+      <li><a href="p10-modos-2d.html"><b class="code">P10</b>Modos 2D</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Dos masas sobre una mesa unidas a las paredes por resortes, oscilando en dirección transversal"></canvas>
+      <div class="clock num" id="clock">t = 0.00 s</div>
+      <div class="readout num">
+        <span class="cpl" id="ro-cpl">—</span>
+        <span><span class="k">tensión T</span> <span id="ro-T">—</span></span>
+        <span><span class="k">período de batido</span> <span id="ro-tb" style="color:var(--x)">—</span></span>
+      </div>
+      <div class="cmp num" id="cmp"></div>
+      <div class="warnline" id="warn" hidden></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-1" max="3" step="1" value="1"><span class="num" id="speed-v">2×</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Resortes</div>
+        <div class="chips" id="chips-s">
+          <button class="chip" data-s="guia">k′ ≪ k (batido)</button>
+          <button class="chip" data-s="sli">Slinkies: l₀ = l₀′ = 0</button>
+          <button class="chip" data-s="long">Resorte central largo, k′ = k</button>
+        </div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Condición inicial (en reposo)</div>
+        <div class="chips" id="chips-ic">
+          <button class="chip" data-ic="beat" aria-pressed="true">Batido: y₁ = A, y₂ = 0</button>
+          <button class="chip" data-ic="m1">Modo 1 (en fase)</button>
+          <button class="chip" data-ic="m2">Modo 2 (contrafase)</button>
+        </div>
+      </div>
+      <div class="params" id="params"></div>
+      <div style="font-size:12px;color:var(--faint);margin-top:-6px">m = 1 kg y paredes a 3 m. Las longitudes de equilibrio L₁ y L₂ salen de que los tres resortes tengan la misma tensión. Oscilaciones transversales chicas (A = 0,15 m).</div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="y" aria-pressed="true">y(t)</button>
+          <button data-view="fq" aria-pressed="false">Transversal vs longitudinal</button>
+        </div>
+        <div class="toggles" id="tg"><label class="sw"><input type="checkbox" id="t-env" checked> Envolventes</label></div>
+      </div>
+      <div data-vpanel="y">
+        <div class="plot"><canvas id="p1" style="height:150px"></canvas><div class="tag" style="color:var(--m1)">y₁ / A</div></div>
+        <div class="plot" style="border-top:1px solid var(--line)"><canvas id="p2" style="height:150px"></canvas><div class="tag" style="color:var(--m2)">y₂ / A</div></div>
+      </div>
+      <div data-vpanel="fq" hidden>
+        <div class="plot"><canvas id="pf" style="height:300px"></canvas><div class="tag">Frecuencias de los modos en función de k′</div><div class="legend"><span><i style="border-color:var(--q1)"></i>ω₁ transversal</span><span><i style="border-color:var(--q2)"></i>ω₂ transversal</span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>longitudinales</span></div></div>
+        <div class="pcap">Hay batido cuando ω₁ y ω₂ quedan juntas. En las longitudinales la separación la controla k′/k. En las transversales la controla κ′/κ₁ = L₁/L₂: el cociente de longitudes, no el de constantes. Con slinkies las curvas transversales y las longitudinales coinciden.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G1-P8</summary>
+      <p>Las masas están apoyadas en una mesa sin rozamiento, sujetas a las paredes por resortes de constante k y unidas por otro resorte de constante k′. <b>a)</b> Obtenga las frecuencias y los modos transversales del sistema. <b>b)</b> ¿Bajo qué condiciones espera observar batidos? ¿Qué son los batidos?</p>
+      <p class="src">Física 2 (Físicos), Guía 1. Versión longitudinal en la página anterior (P8).</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>En la versión longitudinal el acople lo da k′: con k′ ≪ k hay batido. Si dejás k′ = k (los tres resortes iguales) pero el resorte del medio es mucho más largo que los de afuera, el movimiento <b>transversal</b>…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="no">no bate: con k′ = k el acople es fuerte</button>
+          <button class="opt" data-ans="si">sí bate</button>
+          <button class="opt" data-ans="inest">es inestable</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: resorte central largo con k′ = k</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3>La tensión hace de resorte</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Movimiento con la condición inicial actual</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> Lográ un batido transversal de 20 s (± 0,5 s).<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> Lográ batido transversal claro (κ′/κ₁ &lt; 0,15) sin batido longitudinal (k′/k &gt; 0,5). ¿Qué tenés que mover?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Con resortes tensionados (l₀ y l₀′ &gt; 0), encontrá una combinación donde el batido transversal y el longitudinal tengan el mismo período (± 2 %) sin usar slinkies.<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución analítica exacta de las ecuaciones transversales linealizadas, por modos normales. Las constantes transversales efectivas son κ = T/L de cada resorte, con T la tensión común en el equilibrio. Colores: celeste masa 1, rosa masa 2, amarillo modo 1, lila modo 2.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--panel-2','--line','--line-2','--fg','--muted','--faint','--sys','--x','--m1','--m2','--q1','--q2','--crit','--warn'].forEach(k=>C[k.slice(2)]=css(k));
+const D=1.5, M=1, AMP=0.15;
+
+// ================= Parámetros =================
+const P={k:10,kp:1,l0:0.3,l0p:0.3};
+const DEF=[
+  {id:'k',lab:'k',unit:'N/m',min:0.5,max:30,step:0.1},
+  {id:'kp',lab:'k′',unit:'N/m',min:0.1,max:30,step:0.05},
+  {id:'l0',lab:'l₀',unit:'m',min:0,max:1.2,step:0.01},
+  {id:'l0p',lab:'l₀′',unit:'m',min:0,max:2.9,step:0.01},
+];
+
+// ================= Física =================
+function geom(p=P){ // equilibrio horizontal: misma tensión en los tres resortes
+  const L2=(p.k*(D-p.l0)+p.kp*p.l0p)/(p.k/2+p.kp), L1=D-L2/2, T=p.kp*(L2-p.l0p);
+  return {L1,L2,T,ok:T>1e-6&&L1>0.02&&L2>0.02};
+}
+function modesT(p=P){ const g=geom(p); if(!g.ok) return null; const k1=g.T/g.L1, kp=g.T/g.L2; return {...g,k1,kp,w1:Math.sqrt(k1/M),w2:Math.sqrt((k1+2*kp)/M)}; }
+function modesL(p=P){ return {w1:Math.sqrt(p.k/M),w2:Math.sqrt((p.k+2*p.kp)/M)}; }
+const S={t:0,running:true,speed:2,view:'y',ic:'beat',m:null,A1:0,A2:0,q0:[1,0]};
+function setup(){
+  S.m=modesT(); S.t=0;
+  S.q0= S.ic==='beat'?[1,0]: S.ic==='m1'?[1,1]:[1,-1];
+  S.A1=(S.q0[0]+S.q0[1])/2; S.A2=(S.q0[0]-S.q0[1])/2; // u1=(1,1), u2=(1,−1)
+}
+function at(t){ if(!S.m) return {a:S.q0[0],b:S.q0[1]}; const c1=Math.cos(S.m.w1*t), c2=Math.cos(S.m.w2*t); return {a:S.A1*c1+S.A2*c2, b:S.A1*c1-S.A2*c2}; }
+function env(t,i){ const d=(S.m.w2-S.m.w1)*t, s=i?-1:1; return Math.hypot(S.A1+s*S.A2*Math.cos(d), s*S.A2*Math.sin(d)); }
+const Tb=(m=S.m)=>2*Math.PI/(m.w2-m.w1);
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param';
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab} en ${d.unit}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; changed(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+const PRE={guia:{k:10,kp:1,l0:0.3,l0p:0.3}, sli:{k:10,kp:1,l0:0,l0p:0}, long:{k:10,kp:10,l0:0.1,l0p:2.5}};
+function sync(){
+  DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); });
+  document.querySelectorAll('#chips-ic .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ic===S.ic));
+  document.querySelectorAll('#chips-s .chip').forEach(b=>{ const p=PRE[b.dataset.s]; b.setAttribute('aria-pressed',Object.keys(p).every(k=>Math.abs(P[k]-p[k])<1e-9)); });
+}
+function changed(){ sync(); setup(); refresh(); if(!S.running) togglePlay(true); }
+document.querySelectorAll('#chips-s .chip').forEach(b=>b.onclick=()=>{ Object.assign(P,PRE[b.dataset.s]); changed(); });
+document.querySelectorAll('#chips-ic .chip').forEach(b=>b.onclick=()=>{ S.ic=b.dataset.ic; changed(); });
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('reset').onclick=()=>{ S.t=0; togglePlay(true); };
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==S.view); $('tg').style.visibility=S.view==='y'?'visible':'hidden'; draw(); });
+$('t-env').addEventListener('change',draw);
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+function refresh(){
+  const m=S.m, L=modesL(), warn=$('warn');
+  if(!m){ warn.hidden=false; warn.textContent='Con estos valores algún resorte queda comprimido en el equilibrio (T ≤ 0): la posición recta es inestable en la dirección transversal y la masa se sale de la línea (pandeo). Aumentá la separación o achicá l₀, l₀′.';
+    $('ro-cpl').textContent='sin equilibrio estable'; $('ro-cpl').style.color=C.warn; $('ro-T').textContent='≤ 0'; $('ro-tb').textContent='—'; $('cmp').innerHTML=''; renderCuentas(false); updateChal(); return; }
+  warn.hidden=true;
+  const r=m.kp/m.k1, el=$('ro-cpl'); el.textContent= r<0.3?`acople débil · κ′/κ₁ = ${r.toFixed(2)}`:`acople fuerte · κ′/κ₁ = ${r.toFixed(2)}`; el.style.color=r<0.3?C.x:C.m2;
+  $('ro-T').textContent=`${m.T.toFixed(2)} N`; $('ro-tb').textContent=`${Tb(m).toFixed(2)} s`;
+  $('cmp').innerHTML=`<span class="h"></span><span class="h">transversal</span><span class="h">longitudinal</span>
+    <span class="k">ω₁</span><span>${m.w1.toFixed(3)} rad/s</span><span>${L.w1.toFixed(3)} rad/s</span>
+    <span class="k">ω₂</span><span>${m.w2.toFixed(3)} rad/s</span><span>${L.w2.toFixed(3)} rad/s</span>
+    <span class="k">acople</span><span>κ′/κ₁ = ${r.toFixed(3)}</span><span>k′/k = ${(P.kp/P.k).toFixed(3)}</span>
+    <span class="k">batido</span><span>${Tb(m).toFixed(2)} s</span><span>${Tb(L).toFixed(2)} s</span>`;
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  Object.assign(P,PRE.long); S.ic='beat'; changed(); togglePlay(true);
+  const m=S.m, L=modesL();
+  document.querySelector('#pred-opts [data-ans=si]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='si'?'<b>Bien.</b> ':'<b>Mirá los gráficos.</b> ')+`Con k′ = k el batido longitudinal dura <span class="num">${Tb(L).toFixed(1)} s</span>: casi no se distingue de una oscilación común. Pero el transversal dura <span class="num">${Tb(m).toFixed(1)} s</span>: un batido clarísimo. En la dirección transversal cada resorte empuja con T·y/L: lo que importa es la tensión dividida por la longitud. Los tres tienen la misma tensión, así que el acople es κ′/κ₁ = L₁/L₂ = <span class="num">${(m.L1/m.L2).toFixed(2)}</span>: el resorte central largo acopla poco aunque sea igual de duro.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const m=S.m, L=modesL();
+  if(!m){ ['c1','c2','c3'].forEach(id=>{ $(id).textContent='Primero volvé a un equilibrio estable'; $(id).classList.remove('done'); }); return; }
+  const tb=Tb(m), ok1=Math.abs(tb-20)<0.5; $('c1').textContent= ok1?`Logrado: T batido = ${tb.toFixed(2)} s`:`Ahora ${tb.toFixed(2)} s`; $('c1').classList.toggle('done',ok1);
+  const r=m.kp/m.k1, rl=P.kp/P.k, ok2=r<0.15&&rl>0.5; $('c2').textContent= ok2?`Logrado: κ′/κ₁ = ${r.toFixed(3)} con k′/k = ${rl.toFixed(2)}. La clave es L₂ ≫ L₁ (resorte central de longitud natural grande).`:`Ahora κ′/κ₁ = ${r.toFixed(3)}, k′/k = ${rl.toFixed(2)}`; $('c2').classList.toggle('done',ok2);
+  const tl=Tb(L), ok3=P.l0>0.01&&P.l0p>0.01&&Math.abs(tb/tl-1)<0.02; $('c3').textContent= ok3?`Logrado: ${tb.toFixed(2)} s contra ${tl.toFixed(2)} s. Ojo: las ω no tienen por qué coincidir, solo su diferencia.`:`Ahora: transversal ${tb.toFixed(2)} s, longitudinal ${tl.toFixed(2)} s${P.l0<=0.01||P.l0p<=0.01?' (usá l₀ y l₀′ > 0)':''}`; $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const m=S.m, g=geom(); const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    const steps=[
+      ['Equilibrio horizontal: los tres resortes tienen la misma tensión T, y la mitad de la separación entre paredes es D = 1,5 m', `\\[k(L_1-l_0)=k'(L_2-l_0')=T,\\qquad L_1+\\tfrac12L_2=D\\]\\[L_1=${f(g.L1)}\\ \\text{m},\\quad L_2=${f(g.L2)}\\ \\text{m},\\quad T=${f(g.T)}\\ \\text{N}\\]`],
+      ['Un resorte tenso desplazado y en un extremo empuja de vuelta con su tensión proyectada: a primer orden en y/L', `\\[F_y\\approx-T\\,\\frac{y}{L}\\;\\Rightarrow\\;\\kappa_1=\\frac{T}{L_1}${m?'='+f(m.k1):''},\\qquad \\kappa'=\\frac{T}{L_2}${m?'='+f(m.kp):''}\\ \\text{N/m}\\]`],
+      ['Ecuaciones transversales: las mismas que las longitudinales con k → κ₁ y k′ → κ′', `\\[\\begin{aligned}m\\ddot y_1&=-\\kappa_1y_1+\\kappa'(y_2-y_1)\\\\ m\\ddot y_2&=-\\kappa_1y_2-\\kappa'(y_2-y_1)\\end{aligned}\\]`],
+      ['a) Modos: en fase (el resorte central no se inclina) y en contrafase', m?`\\[\\omega_1=\\sqrt{\\frac{\\kappa_1}{m}}=${f(m.w1)},\\qquad \\omega_2=\\sqrt{\\frac{\\kappa_1+2\\kappa'}{m}}=${f(m.w2)}\\ \\text{rad/s}\\]`:`\\[T\\le0:\\ \\text{no hay oscilación transversal estable}\\]`],
+      ['b) Batidos: si κ′ ≪ κ₁ las dos frecuencias quedan juntas y la energía va y viene entre las masas. Como κ′/κ₁ = L₁/L₂, la condición es geométrica', m?`\\[\\omega_2-\\omega_1\\approx\\frac{\\kappa'}{m\\,\\omega_1}\\;\\Rightarrow\\;T_b=\\frac{2\\pi}{\\omega_2-\\omega_1}=${f(Tb(m),2)}\\ \\text{s};\\qquad \\text{slinky: }\\kappa=k\\]`:`\\[-\\]`],
+    ];
+    $('steps').innerHTML=steps.map(li).join('');
+    if(m){ const tm=(c,w)=>Math.abs(c)<1e-9?'':`${c<0?'-':'+'}${f(Math.abs(c),2)}\\cos(${f(w,3)}\\,t)`, cl=s=>s.replace(/^\+/,'')||'0';
+      $('final').innerHTML=`\\[\\frac{y_1}{A}=${cl(tm(S.A1,m.w1)+tm(S.A2,m.w2))},\\qquad \\frac{y_2}{A}=${cl(tm(S.A1,m.w1)+tm(-S.A2,m.w2))}\\]`; }
+    else $('final').innerHTML='—';
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function spring(ctx,x0,y0,x1,y1,col,n,amp=6){ const dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L,uy=dy/L,px=-uy,py=ux,lead=Math.min(8,L*.1); ctx.strokeStyle=col; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x0+ux*lead,y0+uy*lead); for(let i=1;i<2*n;i++){ const s=lead+(L-2*lead)*i/(2*n), o=i%2?-amp:amp; ctx.lineTo(x0+ux*s+px*o,y0+uy*s+py*o); } ctx.lineTo(x1-ux*lead,y1-uy*lead); ctx.lineTo(x1,y1); ctx.stroke(); }
+const scene=$('scene');
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h);
+  const g=geom(), sc=(w-60)/(2*D), cx=w/2, cy=h/2+4, X=x=>cx+x*sc, ys=Math.min(h*0.32,70); // ys: píxeles por unidad de y/A
+  const st=at(S.t);
+  [-D,D].forEach((xw,i)=>{ const x=X(xw), s=i?1:-1; ctx.fillStyle=C['line-2']; ctx.fillRect(i?x:x-7,cy-ys-24,7,2*ys+48); ctx.strokeStyle=C.faint; ctx.lineWidth=1; for(let y=cy-ys-24;y<cy+ys+24;y+=8){ ctx.beginPath(); ctx.moveTo(x+s*7,y); ctx.lineTo(x+s*13,y+6); ctx.stroke(); } });
+  ctx.setLineDash([3,4]); ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(X(-D),cy); ctx.lineTo(X(D),cy); ctx.stroke(); ctx.setLineDash([]);
+  const L2=g.ok?g.L2:D, x1=-L2/2, x2=L2/2; const ya=cy-st.a*ys, yb=cy-st.b*ys;
+  // grosor de las espiras ∝ k
+  const nOut=Math.round(Math.max(5,Math.min(16,(g.ok?g.L1:0.5)*10))), nMid=Math.round(Math.max(5,Math.min(22,L2*7)));
+  spring(ctx,X(-D),cy,X(x1),ya,C.muted,nOut,4+Math.min(4,P.k/6)); spring(ctx,X(x1),ya,X(x2),yb,C.crit,nMid,4+Math.min(4,P.kp/6)); spring(ctx,X(x2),yb,X(D),cy,C.muted,nOut,4+Math.min(4,P.k/6));
+  [[X(x1),ya,C.m1,'1'],[X(x2),yb,C.m2,'2']].forEach(([x,y,col,l])=>{ ctx.beginPath(); ctx.arc(x,y,13,0,7); ctx.fillStyle=C.panel; ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=col; ctx.stroke(); ctx.fillStyle=col; ctx.font=`600 12px ${css('--font-ui')}`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(l,x,y+1); ctx.textBaseline='alphabetic'; });
+  ctx.fillStyle=C.faint; ctx.font=`11px ${css('--font-num')}`; ctx.textAlign='center';
+  if(g.ok){ ctx.fillText(`L₁ = ${g.L1.toFixed(2)} m`,X((-D+x1)/2),cy+ys+20); ctx.fillText(`L₂ = ${g.L2.toFixed(2)} m`,X(0),cy+ys+20); ctx.fillText(`L₁ = ${g.L1.toFixed(2)} m`,X((D+x2)/2),cy+ys+20); }
+  ctx.textAlign='left'; ctx.fillText('desplazamientos transversales exagerados',12,h-8);
+  $('clock').textContent=`t = ${S.t.toFixed(1)} s`;
+}
+function winT(){ return S.m? Math.max(10,Math.min(120,1.25*Tb())) : 10; }
+function plotFn(cv,fn,col,envFn){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=50,R=12,T=22,B=20,pw=w-L-R,ph=h-T-B, W=winT(), t1=Math.max(S.t,W), t0=t1-W, ym=1.15;
+  const X=t=>L+(t-t0)/W*pw, Y=v=>T+(ym-v)/(2*ym)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  [-1,0,1].forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText(v,L-6,Y(v)); });
+  const step=niceMax(W/6); ctx.textAlign='center'; ctx.textBaseline='top'; for(let s=Math.ceil(t0/step)*step;s<=t1+1e-9;s+=step){ ctx.beginPath(); ctx.moveTo(X(s),T); ctx.lineTo(X(s),T+ph); ctx.stroke(); ctx.fillText(s.toFixed(0)+' s',X(s),T+ph+3); }
+  if(!S.m) return;
+  ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip();
+  const N=Math.min(3000,Math.max(600,Math.round(W*S.m.w2/2/Math.PI*24))); const pts=[]; for(let i=0;i<=N;i++){ const t=t0+(S.t-t0)*i/N; if(t<0) continue; pts.push([X(t),Y(fn(t))]); } line(ctx,pts,col,1.4);
+  if($('t-env').checked){ const e1=[],e2=[]; for(let i=0;i<=300;i++){ const t=t0+(S.t-t0)*i/300; if(t<0) continue; const e=envFn(t); e1.push([X(t),Y(e)]); e2.push([X(t),Y(-e)]); } line(ctx,e1,C.fg,1,[3,4],.6); line(ctx,e2,C.fg,1,[3,4],.6); }
+  ctx.restore();
+}
+function drawFq(){
+  const cv=$('pf'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=50,R=14,T=30,B=30,pw=w-L-R,ph=h-T-B, kmax=30; const pts={t1:[],t2:[],l1:[],l2:[]}; let ym=1;
+  for(let i=0;i<=300;i++){ const kp=0.1+(kmax-0.1)*i/300, q={...P,kp}, m=modesT(q), l=modesL(q); if(m){ pts.t1.push([kp,m.w1]); pts.t2.push([kp,m.w2]); ym=Math.max(ym,m.w2); } else { pts.t1.push([kp,NaN]); pts.t2.push([kp,NaN]); } pts.l1.push([kp,l.w1]); pts.l2.push([kp,l.w2]); ym=Math.max(ym,l.w2); }
+  ym=niceMax(ym*1.05); const X=k=>L+k/kmax*pw, Y=v=>T+(ym-v)/ym*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  [0,ym/2,ym].forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText(v.toFixed(1),L-6,Y(v)); });
+  ctx.textAlign='center'; ctx.textBaseline='top'; [0,5,10,15,20,25,30].forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText(v,X(v),T+ph+4); });
+  ctx.textAlign='right'; ctx.fillText('k′ (N/m)',L+pw,T+ph+16); ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('ω (rad/s)',L+6,T+4);
+  const seg=(arr,col,w,dash)=>{ let cur=[]; arr.forEach(p=>{ if(isFinite(p[1])) cur.push([X(p[0]),Y(p[1])]); else { if(cur.length>1) line(ctx,cur,col,w,dash); cur=[]; } }); if(cur.length>1) line(ctx,cur,col,w,dash); };
+  seg(pts.l1,C.muted,1.2,[5,4]); seg(pts.l2,C.muted,1.2,[5,4]); seg(pts.t1,C.q1,2.2); seg(pts.t2,C.q2,2.2);
+  line(ctx,[[X(P.kp),T],[X(P.kp),T+ph]],C.fg,1,[3,3],.6);
+  if(S.m){ [[S.m.w1,C.q1],[S.m.w2,C.q2]].forEach(([v,c])=>{ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(X(P.kp),Y(v),4.5,0,7); ctx.fill(); }); }
+}
+function draw(){ drawScene(); if(S.view==='y'){ plotFn($('p1'),t=>at(t).a,C.m1,t=>env(t,0)); plotFn($('p2'),t=>at(t).b,C.m2,t=>env(t,1)); } else drawFq(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running&&S.m) S.t+=dt*S.speed; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); setup(); refresh();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

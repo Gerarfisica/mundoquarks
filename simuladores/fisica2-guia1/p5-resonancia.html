@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Resonancia con pulsos G1-P5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, un control protagonista (la frecuencia de repetición). */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:4px 10px;font-size:12.5px;cursor:pointer;color:var(--muted);font-family:var(--font-num)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+.chip.yes{border-color:var(--x);color:var(--x)}
+.chip.no{border-color:var(--line-2);color:var(--faint);text-decoration:line-through}
+.frc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.frc input[type=range]{width:100%;accent-color:var(--sys)}
+@media (max-width:600px){.frc{grid-template-columns:minmax(0,1fr)}}
+.res{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.badges span{font-family:var(--font-num);font-size:12px;width:46px;text-align:center;padding:3px 0;border-radius:5px;border:1px solid var(--line-2);color:var(--faint)}
+.badges span.yes{border-color:var(--x);color:var(--x)}
+.badges span.no{border-color:var(--a);color:var(--a)}
+.plot canvas.strip{height:56px}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 1 · Oscilaciones libres y forzadas</span>
+  <h1>Resonancia con pulsos <i>· armónicos de Fourier</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 1">
+    <h2><a href="index.html" style="color:inherit;text-decoration:none">Guía 1</a></h2>
+    <ol>
+      <li><a href="p1-oscilador.html"><b class="code">P1</b>Péndulo y resortes</a></li>
+      <li><a href="p2-amortiguado.html"><b class="code">P2–3</b>Amortiguado y crítico</a></li>
+      <li><a href="p4-forzado.html"><b class="code">P4</b>Oscilador forzado</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P5</b>Resonancia</a></li>
+      <li><a href="p6-modos-normales.html"><b class="code">P6</b>Modos normales</a></li>
+      <li><a href="p7-acoplamiento-debil.html"><b class="code">P7</b>Acoplamiento débil</a></li>
+      <li><a href="p8-batidos-longitudinal.html"><b class="code">P8</b>Batidos</a></li>
+      <li><a href="p9-molecula-triatomica.html"><b class="code">P9</b>Combinación de modos</a></li>
+      <li><a href="p10-modos-2d.html"><b class="code">P10</b>Modos 2D</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Masa con resorte golpeada por pulsos de fuerza periódicos"></canvas>
+      <div class="clock num" id="clock">t = 0.00 s</div>
+      <div class="readout num">
+        <span class="res" id="ro-res">—</span>
+        <span><span class="k">ν₀ / ν_r</span> <span id="ro-ratio">—</span></span>
+        <span><span class="k">armónico más cercano</span> <span id="ro-n">—</span></span>
+        <span><span class="k">amplitud estacionaria</span> <span id="ro-amp" style="color:var(--x)">—</span></span>
+      </div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset" title="Masa en reposo, t = 0">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-3" max="1" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Pulsos por segundo <span style="text-transform:none;letter-spacing:0;color:var(--faint)">· casos de la guía</span></div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="frc">
+        <input type="range" id="fr" min="0.5" max="12" step="0.001" aria-label="Frecuencia de repetición de los pulsos">
+        <div class="gbox"><label for="frn"><b>ν<sub>r</sub></b></label><input type="number" id="frn" min="0.5" max="12" step="0.001"><span class="unit">Hz</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="x" aria-pressed="true">x(t)</button>
+          <button data-view="spec" aria-pressed="false">Espectro</button>
+          <button data-view="sweep" aria-pressed="false">Amplitud vs ν_r</button>
+        </div>
+      </div>
+      <div data-vpanel="x">
+        <div class="plot"><canvas id="px" style="height:240px"></canvas><div class="tag" style="color:var(--x)">x / x₁ <span style="color:var(--muted);font-weight:400">(en unidades de la respuesta a un pulso aislado)</span></div><div class="legend"><span><i style="border-color:var(--fg);border-top-style:dashed"></i>amplitud estacionaria</span></div></div>
+        <div class="plot" style="border-top:1px solid var(--line)"><canvas id="pf" class="strip"></canvas><div class="tag" style="color:var(--a);top:3px">F(t)</div></div>
+      </div>
+      <div data-vpanel="spec" hidden>
+        <div class="plot"><canvas id="ps" style="height:340px"></canvas></div>
+        <div class="pcap">Arriba: los armónicos del tren de pulsos están en n·ν<sub>r</sub>, con alturas que siguen una envolvente sen(x)/x cuyo primer cero está en 1/ancho. La campana es la respuesta del oscilador, angosta porque el decaimiento es largo. Abajo: cuánto mueve al oscilador cada armónico. Resuena solo si algún armónico cae dentro de la campana.</div>
+      </div>
+      <div data-vpanel="sweep" hidden>
+        <div class="plot"><canvas id="pw" style="height:300px"></canvas><div class="tag">Amplitud estacionaria / x₁ en función de los pulsos por segundo</div></div>
+        <div class="pcap">Los picos están en ν<sub>r</sub> = ν₀/n: hay resonancia cada vez que un armónico n·ν<sub>r</sub> coincide con ν₀. Cuanto más seguido llegan los pulsos, más alto el pico: llegan más empujones por cada tiempo de decaimiento.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G1-P5</summary>
+      <p>Un oscilador armónico con ν₀ = 10 Hz y un tiempo de decaimiento muy largo resuena si se lo alimenta con una fuerza armónica de 10 Hz; ninguna otra fuerza armónica produce una gran amplitud. <b>a)</b> Justifique. <b>b)</b> Suponga una pulsación cuadrada de 0,01 s repetida una vez por segundo; describa su análisis de Fourier. <b>c)</b> ¿Resonará el oscilador? <b>d)</b> ¿Y si la pulsación se repite dos veces por segundo? ¿Y de 3 a 9 veces por segundo?</p>
+      <p class="src">Física 2 (Físicos), Guía 1. Acá el tiempo de decaimiento τ es el de la amplitud: x ∝ e<sup>−t/τ</sup> sin fuerza.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>El oscilador tiene ν₀ = 10 Hz. Si lo golpeás con un pulso de 0,01 s <b>una vez por segundo</b> (1 Hz, diez veces más lento que su frecuencia natural), el oscilador…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="no">no resuena: 1 Hz está lejos de 10 Hz</button>
+          <button class="opt" data-ans="si">resuena</button>
+          <button class="opt" data-ans="dep">resuena solo si el pulso dura justo 0,1 s</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: 1 pulso por segundo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3>Fourier más forzado</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Con los valores actuales</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> El inciso d): probá de 1 a 9 pulsos por segundo con ν₀ = 10 Hz y el pulso de 0,01 s. Cada caso que visites queda marcado como resuena (verde) o no resuena (rojo). ¿Qué tienen en común los que resuenan?<div class="badges" id="badges"></div><div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> Encontrá una frecuencia de repetición <i>no entera</i> entre 3 y 4 Hz que haga resonar al oscilador. ¿Qué armónico lo está excitando?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Con 1 pulso por segundo, alargá el pulso hasta que el oscilador deje de resonar aunque 10·ν<sub>r</sub> = ν₀. Mirá el Espectro: ¿qué le pasó al décimo armónico?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>La curva x(t) sale de integrar ẍ + (2/τ)ẋ + ω₀²x = F(t)/m con RK4 (paso 0,25 ms). La amplitud estacionaria y el barrido en ν<sub>r</sub> salen de la suma exacta de las respuestas a todos los pulsos anteriores. Colores del sitio: verde posición, rojo fuerza, celeste oscilador.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--panel-2','--line','--line-2','--fg','--muted','--faint','--sys','--x','--v','--a','--sob','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const TAU2=2*Math.PI;
+
+// ================= Parámetros =================
+const P={fr:3, nu0:10, w:0.01, tau:5};
+const DEF=[
+  {id:'nu0', lab:'ν₀', unit:'Hz', min:2, max:20, step:0.1},
+  {id:'w',   lab:'ancho', unit:'s', min:0.002, max:0.15, step:0.001},
+  {id:'tau', lab:'τ', unit:'s', min:0.3, max:20, step:0.1},
+];
+
+// ================= Física =================
+// complejos mínimos
+const cx=(r,i)=>({r,i}), cmul=(a,b)=>cx(a.r*b.r-a.i*b.i,a.r*b.i+a.i*b.r), cdiv=(a,b)=>{const d=b.r*b.r+b.i*b.i;return cx((a.r*b.r+a.i*b.i)/d,(a.i*b.r-a.r*b.i)/d);}, cexp=z=>{const e=Math.exp(z.r);return cx(e*Math.cos(z.i),e*Math.sin(z.i));}, csub=(a,b)=>cx(a.r-b.r,a.i-b.i);
+function osc(){ const g=1/P.tau, w0=TAU2*P.nu0, wd=Math.sqrt(Math.max(w0*w0-g*g,1e-9)); return {g,w0,wd,lam:cx(-g,wd)}; }
+// después de un pulso de altura 1: x = Im[Z e^{λt}]
+function Zof(o=osc(),w=P.w){ return cdiv(csub(cx(1,0),cexp(cx(o.g*w,-o.wd*w))), cmul(o.lam,cx(o.wd,0))); }
+let A1=1; // altura de F/m tal que el pico de la respuesta a un pulso aislado sea 1
+function single(){ const o=osc(), Z=Zof(o); A1=1/Math.hypot(Z.r,Z.i); }
+function steadyAmp(fr=P.fr){ // máximo de |x| en el estado estacionario, en unidades de x1
+  const o=osc(), Z=Zof(o), T=1/fr, w=Math.min(P.w,0.9*T), q=csub(cx(1,0),cexp(cx(o.lam.r*T,o.lam.i*T))), Zs=cdiv(Z,q);
+  let m=0; for(let i=0;i<=360;i++){ const t=w+(T-w)*i/360; const v=cmul(Zs,cexp(cx(o.lam.r*t,o.lam.i*t))).i; m=Math.max(m,Math.abs(v)); }
+  return m*A1;
+}
+function harm(n,fr=P.fr){ const T=1/fr, d=Math.min(P.w,0.9*T); return 2/(n*Math.PI)*Math.sin(n*Math.PI*d/T); } // coef. de cos(nω_r t), fuerza unitaria
+function chi(nu){ const o=osc(), w=TAU2*nu; return 1/Math.hypot(o.w0*o.w0-w*w, 2*o.g*w); }
+function nearest(){ const n=Math.max(1,Math.round(P.nu0/P.fr)); return {n, det:n*P.fr-P.nu0}; }
+const halfW=()=>1/(TAU2*P.tau); // semiancho de la campana en Hz
+function resonates(fr=P.fr){ const n=Math.max(1,Math.round(P.nu0/fr)); return Math.abs(n*fr-P.nu0)<2*halfW() && steadyAmp(fr)>2; }
+
+// ================= Simulación =================
+const S={t:0,x:0,v:0,ph:0,running:true,speed:1,view:'x',hist:[],last:0};
+const DT=0.00025, SAMPLE=1/500, WIN=5;
+function force(ph){ return (ph*1/P.fr)<Math.min(P.w,0.9/P.fr) ? A1 : 0; } // ph en [0,1)
+function stepRK(dt){
+  const F=force(S.ph), o=osc(), a=(x,v)=>F-2*o.g*v-o.w0*o.w0*x;
+  const x=S.x,v=S.v; const k1x=v,k1v=a(x,v), k2x=v+k1v*dt/2,k2v=a(x+k1x*dt/2,v+k1v*dt/2), k3x=v+k2v*dt/2,k3v=a(x+k2x*dt/2,v+k2v*dt/2), k4x=v+k3v*dt,k4v=a(x+k3x*dt,v+k3v*dt);
+  S.x+=dt/6*(k1x+2*k2x+2*k3x+k4x); S.v+=dt/6*(k1v+2*k2v+2*k3v+k4v); S.t+=dt; S.ph=(S.ph+P.fr*dt)%1;
+}
+function restart(){ S.t=0;S.x=0;S.v=0;S.ph=0;S.hist=[];S.last=0; yS.x=0; }
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param';
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab} en ${d.unit}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; changed(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+const chipsEl=$('chips');
+for(let k=1;k<=10;k++){ const b=document.createElement('button'); b.className='chip'; b.dataset.k=k; b.textContent=k+'/s'; b.onclick=()=>{ P.fr=k; changed(); }; chipsEl.appendChild(b); }
+const fr=$('fr'), frn=$('frn');
+fr.addEventListener('input',()=>{ P.fr=+fr.value; changed(); });
+frn.addEventListener('change',()=>{ const v=Math.min(12,Math.max(0.5,+frn.value)); if(isFinite(v)){ P.fr=v; changed(); } });
+function sync(){
+  DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); });
+  fr.value=P.fr; if(document.activeElement!==frn) frn.value=+P.fr.toFixed(3);
+  document.querySelectorAll('#chips .chip').forEach(b=>b.setAttribute('aria-pressed',Math.abs(P.fr-b.dataset.k)<1e-9));
+}
+let visited={};
+function changed(){
+  sync(); single(); SW=null;
+  const k=Math.round(P.fr); if(Math.abs(P.fr-k)<1e-9&&k>=1&&k<=9&&Math.abs(P.nu0-10)<1e-9&&Math.abs(P.w-0.01)<1e-9) visited[k]=resonates();
+  updateReadout(); renderCuentas(false); updateChal(); if(!S.running) togglePlay(true);
+}
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('reset').onclick=()=>{ restart(); togglePlay(true); };
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(3).replace(/0+$/,''):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==S.view); draw(); });
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+let AMP=1;
+function updateReadout(){
+  AMP=steadyAmp(); const {n,det}=nearest(), r=resonates();
+  const el=$('ro-res'); el.textContent=r?'resuena':'no resuena'; el.style.color=r?C.x:C.muted;
+  $('ro-ratio').textContent=(P.nu0/P.fr).toFixed(3);
+  $('ro-n').textContent=`n = ${n} → ${(n*P.fr).toFixed(2)} Hz (Δ = ${det>=0?'+':''}${det.toFixed(2)} Hz)`;
+  $('ro-amp').textContent=`${AMP.toFixed(2)} × x₁`;
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  Object.assign(P,{fr:1,nu0:10,w:0.01}); restart(); changed(); document.querySelector('[data-view=x]').click(); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=si]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='si'?'<b>Bien.</b> ':'<b>Mirá cómo crece.</b> ')+`La amplitud crece pulso a pulso hasta <span class="num">${AMP.toFixed(1)}</span> veces la de un pulso aislado. El tren de pulsos no es una fuerza armónica de 1 Hz: es la suma de armónicos en 1, 2, 3, … Hz, y el <b>décimo</b> cae justo en 10 Hz. Físicamente: cada golpe llega cuando el oscilador completó exactamente 10 oscilaciones, siempre en la misma fase, y se suma al anterior. Mirá la vista <b>Espectro</b>.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  $('badges').innerHTML=[1,2,3,4,5,6,7,8,9].map(k=>`<span class="${k in visited?(visited[k]?'yes':'no'):''}">${k}/s</span>`).join('');
+  const all=[1,2,3,4,5,6,7,8,9].every(k=>k in visited);
+  $('c1').textContent= all?'Completo: resuenan 1, 2 y 5 pulsos/s, los divisores de 10. Solo ahí un armónico n·ν_r cae exactamente en 10 Hz.':`Visitados ${Object.keys(visited).length} de 9${Math.abs(P.nu0-10)>1e-9||Math.abs(P.w-0.01)>1e-9?' (usá ν₀ = 10 Hz y ancho 0,01 s)':''}`;
+  $('c1').classList.toggle('done',all);
+  const ok2=P.fr>3&&P.fr<4&&resonates(); const {n}=nearest();
+  $('c2').textContent= ok2?`Logrado: ν_r = ${P.fr.toFixed(3)} Hz excita el armónico n = ${n} (${(n*P.fr).toFixed(3)} Hz). ν₀/3 = 3,333… también vale: resonar no exige ν_r entera.`:(P.fr>3&&P.fr<4?`Cerca: el armónico ${n} está en ${(n*P.fr).toFixed(3)} Hz`:'Mové ν_r entre 3 y 4 Hz');
+  $('c2').classList.toggle('done',ok2);
+  const on1=Math.abs(P.fr-1)<1e-9, h10=harm(Math.round(P.nu0/P.fr)), ok3=on1&&Math.abs(P.nu0-10)<1e-9&&!resonates()&&P.w>0.05;
+  $('c3').textContent= ok3?`Logrado: con ancho ${P.w.toFixed(3)} s el décimo armónico casi se anula (coeficiente ${h10.toFixed(4)}). Con ancho = 0,1 s = 1/ν₀ el pulso dura exactamente un período del oscilador: lo que empuja en la primera mitad lo quita en la segunda.`:(on1?`Ahora el armónico 10 vale ${h10.toFixed(4)} (con 0,01 s vale ${(2/(10*Math.PI)*Math.sin(10*Math.PI*0.01)).toFixed(4)})`:'Poné 1 pulso por segundo');
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null; const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const T=1/P.fr, {n,det}=nearest(), cn=harm(n), r=resonates();
+    const steps=[
+      ['a) Ecuación del oscilador. Con τ largo la campana de respuesta es angosta: ancho ≈ 1/(2πτ) en Hz', `\\[\\ddot x+\\frac{2}{\\tau}\\dot x+\\omega_0^2x=\\frac{F(t)}{m},\\qquad \\Delta\\nu\\approx\\frac{1}{2\\pi\\tau}=${f(halfW(),3)}\\ \\text{Hz}\\]`],
+      ['b) Serie de Fourier del tren de pulsos de ancho d y período T = 1/ν_r', `\\[F(t)=F_0\\Big[\\frac{d}{T}+\\sum_{n\\ge1}\\frac{2}{n\\pi}\\sin\\!\\Big(\\frac{n\\pi d}{T}\\Big)\\cos(2\\pi n\\nu_r t)\\Big]\\]`],
+      ['Armónicos en n·ν_r; la envolvente sen(x)/x tiene su primer cero en 1/d. Con d chico, todos los armónicos cerca de ν₀ tienen casi la misma altura', `\\[\\frac1d=${f(1/P.w,1)}\\ \\text{Hz}\\gg\\nu_0=${f(P.nu0,1)}\\ \\text{Hz}\\]`],
+      ['c) Por superposición (P4 f), cada armónico es una fuerza armónica independiente. Resuena si alguno cae en la campana:', `\\[n\\,\\nu_r=\\nu_0\\;\\Rightarrow\\;\\frac{\\nu_0}{\\nu_r}=\\frac{${f(P.nu0,2)}}{${f(P.fr,3)}}=${f(P.nu0/P.fr,3)}\\]`],
+      ['d) El armónico más cercano y su desintonía', `\\[n=${n}:\\quad n\\nu_r=${f(n*P.fr,3)}\\ \\text{Hz},\\quad |n\\nu_r-\\nu_0|=${f(Math.abs(det),3)}\\ \\text{Hz}\\ ${r?'<':'>'}\\ 2\\Delta\\nu\\]`],
+    ];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join('');
+    $('final').innerHTML=`\\[c_{${n}}=\\frac{2}{${n}\\pi}\\sin\\!\\Big(\\frac{${n}\\pi\\cdot${f(P.w,3)}}{${f(T,3)}}\\Big)=${f(cn,4)},\\qquad \\frac{x_{\\max}}{x_1}=${f(AMP,2)}\\;\\Rightarrow\\;\\text{${r?'resuena':'no resuena'}}\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function fmt(v){ const a=Math.abs(v); if(a===0) return '0'; return a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3).replace(/0+$/,'').replace(/\.$/,''); }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function spring(ctx,x0,x1,y,col,n=11,amp=7){ const L=x1-x0, lead=Math.min(10,Math.abs(L)*.12); ctx.strokeStyle=col; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x0+lead,y); for(let i=1;i<2*n;i++) ctx.lineTo(x0+lead+(L-2*lead)*i/(2*n), y+(i%2?-amp:amp)); ctx.lineTo(x1-lead,y); ctx.lineTo(x1,y); ctx.stroke(); }
+const scene=$('scene'); let scS=0;
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h);
+  const xw=34, eq=w*0.5, bw=Math.max(34,Math.min(46,w*0.06)), cy=h/2+8;
+  let mx=Math.max(1,AMP); S.hist.forEach(p=>mx=Math.max(mx,Math.abs(p.x)));
+  const tgt=Math.min(eq-xw-bw-30,w-eq-bw-70)/mx; scS=scS?scS+(tgt-scS)*.08:tgt; const X=v=>eq+v*scS;
+  ctx.fillStyle=C['line-2']; ctx.fillRect(xw-8,cy-46,8,82); ctx.strokeStyle=C.faint; ctx.lineWidth=1; for(let y=cy-46;y<cy+36;y+=8){ ctx.beginPath(); ctx.moveTo(xw-8,y); ctx.lineTo(xw-14,y+6); ctx.stroke(); }
+  ctx.strokeStyle=C['line-2']; ctx.beginPath(); ctx.moveTo(xw,cy+bw/2+6); ctx.lineTo(w-14,cy+bw/2+6); ctx.stroke();
+  ctx.setLineDash([3,4]); ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(X(0),cy-bw/2-14); ctx.lineTo(X(0),cy+bw/2+6); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle=C.x; ctx.globalAlpha=.5; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(-AMP),cy+bw/2+6); ctx.lineTo(X(AMP),cy+bw/2+6); ctx.stroke(); ctx.globalAlpha=1;
+  const mxp=X(S.x)-bw/2; spring(ctx,xw,mxp,cy,C.muted,12,7);
+  ctx.fillStyle=C.panel; ctx.fillRect(mxp,cy-bw/2,bw,bw); ctx.strokeStyle=C.sys; ctx.lineWidth=2.5; ctx.strokeRect(mxp,cy-bw/2,bw,bw);
+  ctx.fillStyle=C.sys; ctx.font=`600 14px ${css('--font-ui')}`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('m',mxp+bw/2,cy+1); ctx.textBaseline='alphabetic';
+  // martillo: destella durante el pulso
+  const on=force(S.ph)>0, hx=mxp+bw+10;
+  ctx.fillStyle=C.a; ctx.globalAlpha=on?1:.25; ctx.beginPath(); ctx.moveTo(hx,cy); ctx.lineTo(hx+12,cy-7); ctx.lineTo(hx+12,cy+7); ctx.closePath(); ctx.fill(); ctx.fillRect(hx+12,cy-2,22,4); ctx.globalAlpha=1;
+  ctx.fillStyle=C.a; ctx.font=`11px ${css('--font-num')}`; ctx.textAlign='left'; ctx.fillText('pulsos',hx+38,cy+4);
+  $('clock').textContent=`t = ${S.t.toFixed(2)} s`;
+}
+const yS={x:0};
+function drawX(){
+  const cv=$('px'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=50,R=12,T=26,B=22,pw=w-L-R,ph=h-T-B; const t1=Math.max(S.t,WIN), t0=t1-WIN; const H=S.hist;
+  let mx=Math.max(AMP,1); H.forEach(p=>{ if(p.t>=t0) mx=Math.max(mx,Math.abs(p.x)); });
+  const tgt=niceMax(mx*1.05); yS.x=yS.x?yS.x+(tgt-yS.x)*.1:tgt; const ym=yS.x;
+  const X=t=>L+(t-t0)/WIN*pw, Y=v=>T+(ym-v)/(2*ym)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  [-ym,0,ym].forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText(fmt(v),L-6,Y(v)); });
+  ctx.textAlign='center'; ctx.textBaseline='top'; for(let s=Math.ceil(t0);s<=t1+1e-9;s+=1){ ctx.beginPath(); ctx.moveTo(X(s),T); ctx.lineTo(X(s),T+ph); ctx.stroke(); ctx.fillText(s+' s',X(s),T+ph+4); }
+  ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip();
+  line(ctx,[[L,Y(AMP)],[L+pw,Y(AMP)]],C.fg,1,[5,4],.6); line(ctx,[[L,Y(-AMP)],[L+pw,Y(-AMP)]],C.fg,1,[5,4],.6);
+  const pts=[]; H.forEach(p=>{ if(p.t>=t0) pts.push([X(p.t),Y(p.x)]); }); line(ctx,pts,C.x,1.3);
+  ctx.restore();
+  // tira de fuerza
+  const cf=$('pf'); const g=fit(cf); const c2=g.ctx; c2.clearRect(0,0,g.w,g.h);
+  const Y2=v=>g.h-8-v*(g.h-22); c2.strokeStyle=C.a; c2.lineWidth=1.4; c2.beginPath(); let first=true;
+  H.forEach(p=>{ if(p.t<t0) return; const x=X(p.t), y=Y2(p.f?1:0); if(first){c2.moveTo(x,y);first=false;} else c2.lineTo(x,y); }); c2.stroke();
+}
+let SW=null;
+function drawSweep(){
+  const cv=$('pw'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  if(!SW){ SW=[]; for(let i=0;i<=900;i++){ const f_=0.5+11.5*i/900; SW.push([f_,steadyAmp(f_)]); } [1,2,3,4,5,6,7,8,9,10].forEach(k=>SW.push([k,steadyAmp(k)])); for(let n=1;n<=24;n++){ const f_=P.nu0/n; if(f_>=0.5&&f_<=12) SW.push([f_,steadyAmp(f_)]); } SW.sort((a,b)=>a[0]-b[0]); }
+  const L=50,R=12,T=30,B=26,pw=w-L-R,ph=h-T-B; let mx=1; SW.forEach(p=>mx=Math.max(mx,p[1])); const ym=niceMax(mx*1.05);
+  const X=f_=>L+(f_-0.5)/11.5*pw, Y=v=>T+(ym-v)/ym*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  [0,ym/2,ym].forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText(fmt(v),L-6,Y(v)); });
+  ctx.textAlign='center'; ctx.textBaseline='top'; for(let k=1;k<=12;k++){ ctx.beginPath(); ctx.moveTo(X(k),T); ctx.lineTo(X(k),T+ph); ctx.stroke(); ctx.fillText(k,X(k),T+ph+4); }
+  ctx.textAlign='right'; ctx.fillText('ν_r (Hz)',L+pw,T+ph+14);
+  ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip();
+  ctx.beginPath(); ctx.moveTo(X(0.5),Y(0)); SW.forEach(p=>ctx.lineTo(X(p[0]),Y(p[1]))); ctx.lineTo(X(12),Y(0)); ctx.closePath(); ctx.fillStyle=C.x; ctx.globalAlpha=.12; ctx.fill(); ctx.globalAlpha=1;
+  line(ctx,SW.map(p=>[X(p[0]),Y(p[1])]),C.x,1.6);
+  ctx.fillStyle=C.muted; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font=`11px ${css('--font-num')}`;
+  for(let n=1;n<=4;n++){ const f_=P.nu0/n; if(f_<0.5||f_>12) continue; ctx.fillText(`ν₀/${n}`,X(f_),Y(steadyAmp(f_))-4); }
+  line(ctx,[[X(P.fr),T],[X(P.fr),T+ph]],C.fg,1,[3,3],.7);
+  ctx.fillStyle=C.a; ctx.beginPath(); ctx.arc(X(P.fr),Y(AMP),4.5,0,7); ctx.fill();
+  ctx.restore();
+}
+function drawSpec(){
+  const cv=$('ps'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const numax=Math.max(2.2*P.nu0, 3*P.fr), L=50,R=12, pw=w-L-R; const X=nu=>L+nu/numax*pw;
+  const top={T:26,h:(h-60)*0.58}, bot={T:26+(h-60)*0.58+30,h:(h-60)*0.42};
+  const N=Math.floor(numax/P.fr); const cs=[]; for(let n=1;n<=N;n++) cs.push([n*P.fr,harm(n)]);
+  const cmax=Math.max(...cs.map(c=>Math.abs(c[1])),1e-9);
+  // panel superior
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.muted; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.font=`600 12px ${css('--font-ui')}`;
+  ctx.fillText('Armónicos de la fuerza |cₙ| y campana del oscilador',L,top.T-6);
+  const Yt=v=>top.T+top.h-v*top.h*0.92;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,Yt(0)); ctx.lineTo(L+pw,Yt(0)); ctx.stroke();
+  // campana (normalizada)
+  const c0=chi(P.nu0); const bell=[]; for(let i=0;i<=800;i++){ const nu=numax*i/800; bell.push([X(nu),Yt(chi(nu)/c0)]); }
+  ctx.beginPath(); ctx.moveTo(X(0),Yt(0)); bell.forEach(p=>ctx.lineTo(p[0],p[1])); ctx.lineTo(X(numax),Yt(0)); ctx.closePath(); ctx.fillStyle=C.sys; ctx.globalAlpha=.14; ctx.fill(); ctx.globalAlpha=1; line(ctx,bell,C.sys,1.4);
+  // envolvente sinc
+  const env=[]; for(let i=1;i<=400;i++){ const nu=numax*i/400, xx=Math.PI*nu*Math.min(P.w,0.9/P.fr); env.push([X(nu),Yt(Math.abs(Math.sin(xx)/xx)*(2*Math.min(P.w,0.9/P.fr)*P.fr)/cmax)]); }
+  line(ctx,env,C.faint,1,[3,4]);
+  const {n:nn}=nearest();
+  cs.forEach(([nu,c],i)=>{ const hit=i+1===nn; ctx.strokeStyle=hit?C.a:C.v; ctx.lineWidth=hit?2.6:1.6; ctx.beginPath(); ctx.moveTo(X(nu),Yt(0)); ctx.lineTo(X(nu),Yt(Math.abs(c)/cmax)); ctx.stroke(); ctx.fillStyle=ctx.strokeStyle; ctx.beginPath(); ctx.arc(X(nu),Yt(Math.abs(c)/cmax),2.5,0,7); ctx.fill(); });
+  ctx.fillStyle=C.sys; ctx.font=`11px ${css('--font-num')}`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('ν₀',X(P.nu0),top.T+8);
+  // panel inferior: respuesta por armónico
+  const rs=cs.map(([nu,c])=>[nu,Math.abs(c)*chi(nu)]); const rmax=Math.max(...rs.map(r=>r[1]),1e-12);
+  ctx.fillStyle=C.muted; ctx.textAlign='left'; ctx.font=`600 12px ${css('--font-ui')}`; ctx.fillText('Respuesta a cada armónico |cₙ|·|χ(nν_r)|',L,bot.T-6);
+  const Yb=v=>bot.T+bot.h-v*bot.h*0.92;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L,Yb(0)); ctx.lineTo(L+pw,Yb(0)); ctx.stroke();
+  rs.forEach(([nu,r],i)=>{ const hit=i+1===nn; ctx.strokeStyle=hit?C.a:C.x; ctx.lineWidth=hit?2.6:1.6; ctx.beginPath(); ctx.moveTo(X(nu),Yb(0)); ctx.lineTo(X(nu),Yb(r/rmax)); ctx.stroke(); });
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='center'; ctx.textBaseline='top';
+  const step=numax>40?10:5; for(let nu=0;nu<=numax;nu+=step) ctx.fillText(nu,X(nu),Yb(0)+4);
+  ctx.textAlign='right'; ctx.fillText('ν (Hz)',L+pw,Yb(0)+16);
+  ctx.textAlign='left'; ctx.fillStyle=C.a; ctx.fillText(`n = ${nn}`,X(nn*P.fr)+5,Yb(rs[nn-1]?rs[nn-1][1]/rmax:0)-2);
+}
+function draw(){ drawScene(); if(S.view==='x') drawX(); else if(S.view==='spec') drawSpec(); else drawSweep(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  if(S.running){ const n=Math.round(dt*S.speed/DT); for(let i=0;i<n;i++){ stepRK(DT); if(S.t-S.last>=SAMPLE-1e-12){ S.last=S.t; S.hist.push({t:S.t,x:S.x,f:force(S.ph)>0}); } } const cut=S.t-WIN-0.5; let k=0; while(k<S.hist.length&&S.hist[k].t<cut) k++; if(k) S.hist.splice(0,k); }
+  draw(); requestAnimationFrame(loop);
+}
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); changed(); restart();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

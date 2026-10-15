@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Tubos sonoros G2-P4</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, el aire del tubo como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --psi:#34e08a; --dp:#ff5c3a; --rare:#36d4ff; --fork:#ffcf3a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:250px}
+.nrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbtn{min-width:34px;border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:5px 0;font-family:var(--font-num);font-size:13px;cursor:pointer;color:var(--muted)}
+.nbtn[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.1)}
+.found{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.found span{font-family:var(--font-num);font-size:12px;padding:2px 8px;border-radius:5px;border:1px solid var(--line-2);color:var(--faint)}
+.found span.on{border-color:var(--x);color:var(--x)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Oscilaciones en sistemas continuos</span>
+  <h1>Tubos sonoros <i>· desplazamiento y presión</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-modos-cuerda.html"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a href="p2-cuerdas-notas.html"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a href="p7-fourier-cuerdas.html"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a href="p11-dos-tramos.html"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a href="p12-cuerda-amortiguada.html"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a href="p13-tubo-tabique.html"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a href="p15-estacionarias-viajeras.html"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Tubo con el aire representado como columnas de partículas que se desplazan"></canvas>
+      <div class="clock num" id="clock">cámara lenta</div>
+      <div class="readout num" id="readout"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <div class="seg" role="group" aria-label="Problema">
+          <button data-mode="p4" aria-pressed="true">P4–5 · modos de un tubo</button>
+          <button data-mode="p6" aria-pressed="false">P6 · tubo y diapasón</button>
+        </div>
+        <button class="btn" id="listen">♪ Escuchar</button>
+        <button class="btn primary" id="play" style="margin-left:auto">Pausar</button>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Extremos del tubo</div>
+        <div class="chips" id="kind"></div>
+      </div>
+      <div id="ctl-n"><div class="lbl" style="margin-bottom:6px">Modo n</div><div class="nrow" id="nrow"></div></div>
+      <div class="params" id="params"></div>
+      <div style="font-size:12px;color:var(--faint);margin-top:-6px" id="note"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head"><span class="lbl" id="plot-title" style="margin-left:4px"></span></div>
+      <div class="plot"><canvas id="pl" style="height:250px"></canvas><div class="legend" id="leg"></div></div>
+      <div class="pcap" id="cap"></div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P4, P5 y P6</summary>
+      <p><b>4.</b> Tubo de longitud L, cerrado en ambos extremos, cerrado en uno y abierto en el otro, o abierto en ambos. Datos: v<sub>s</sub>, L, P₀, ρ₀ = γP₀/v<sub>s</sub>². Halle <b>a)</b> las longitudes de onda y frecuencias posibles; <b>b)</b> la expresión más general de Ψ(x,t); <b>c)</b> δp(x,t), su diferencia de fase con Ψ y la amplitud de presión; <b>d)</b> ρ(x,t) y su amplitud.</p>
+      <p><b>5.</b> ¿Qué longitud debe tener un tubo de órgano abierto en ambos extremos para producir 440 Hz? ¿Y uno cerrado en un extremo, en su primer armónico?</p>
+      <p><b>6.</b> Tubo cerrado en un extremo, de menos de 1 m; se acerca al extremo abierto un diapasón de 440 Hz (v<sub>s</sub> = 330 m/s). <b>a)</b> Halle las longitudes para las que hay resonancia y en qué modo vibra el aire. <b>b)</b> Ídem con el tubo abierto en ambos extremos.</p>
+      <p class="src">Física 2 (Físicos), Guía 2. Aire: P₀ = 101 325 Pa, γ = 1,4.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>En un tubo cerrado en un extremo y abierto en el otro, vibrando en su fundamental, ¿dónde varía más la presión?</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="abierto">en la boca abierta, donde el aire se mueve más</button>
+          <button class="opt" data-ans="cerrado">contra la tapa cerrada, donde el aire no se mueve</button>
+          <button class="opt" data-ans="medio">en el medio del tubo</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: tubo cerrado–abierto, n = 1</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Modos de un tubo</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Con los valores actuales</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> El P5 a): ajustá L para que un tubo abierto en los dos extremos dé 440 Hz en su fundamental (± 1 Hz).<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> El P5 b): lo mismo con un tubo cerrado en un extremo. ¿Por qué sale la mitad de largo?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> El P6: con el diapasón de 440 Hz, encontrá moviendo el pistón todas las longitudes de menos de 1 m que resuenan, primero con el tubo cerrado y después abierto.<div class="found" id="found"></div><div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Ondas estacionarias exactas en el tubo (sin corrección de extremo). En la escena cada punto es una porción de aire: el desplazamiento está exagerado y el fondo marca la presión, rojo comprimido y celeste enrarecido. Colores: verde desplazamiento Ψ, rojo presión δp, amarillo el diapasón.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--panel-2','--line','--line-2','--fg','--muted','--faint','--sys','--x','--psi','--dp','--rare','--fork'].forEach(k=>C[k.slice(2)]=css(k));
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d), fc=(x,d)=>x.toFixed(d).replace('.',',');
+const P0=101325, GAM=1.4;
+const KIND={cc:'cerrado – cerrado',ca:'cerrado – abierto',aa:'abierto – abierto'};
+
+// ================= Estado =================
+const P={L:1,v:340,A:10,nu:440,Lp:0.3};
+const S={mode:'p4',kind:'ca',kind6:'ca',n:1,t:0,running:true};
+const rho0=()=>GAM*P0/P.v**2;
+// P4: tubo de 0 a L. cc: sen(nπx/L); ca: cerrado en 0, sen((2n−1)πx/2L); aa: cos(nπx/L)
+function kN(){ return S.kind==='ca'? (2*S.n-1)*Math.PI/(2*P.L) : S.n*Math.PI/P.L; }
+const nuN=()=>P.v*kN()/(2*Math.PI);
+function psiShape(x){ const k=kN(); return S.kind==='aa'? Math.cos(k*x) : Math.sin(k*x); }
+function dpShape(x){ const k=kN(); return S.kind==='aa'? Math.sin(k*x) : -Math.cos(k*x); } // ∝ −∂Ψ/∂x / k
+// P6: diapasón en x = 0 (boca abierta), pistón en x = Lp (cerrado) o tubo abierto
+const k6=()=>2*Math.PI*P.nu/P.v, lam6=()=>P.v/P.nu, EPS=0.05;
+function resp(L=P.Lp,kind=S.kind6){ const c=kind==='ca'?Math.cos(k6()*L):Math.sin(k6()*L); return 1/Math.sqrt(c*c+EPS*EPS); }
+function psi6(x){ const k=k6(); return S.kind6==='ca'? Math.sin(k*(P.Lp-x)) : Math.cos(k*(P.Lp-x)); }
+function dp6(x){ const k=k6(); return S.kind6==='ca'? Math.cos(k*(P.Lp-x)) : -Math.sin(k*(P.Lp-x)); }
+function resLengths(kind){ const lam=lam6(), out=[]; for(let n=1;n<20;n++){ const L= kind==='ca'?(2*n-1)*lam/4 : n*lam/2; if(L<1) out.push(L); } return out; }
+
+// ================= Controles =================
+const DEF4=[{id:'L',lab:'L',unit:'m',min:0.05,max:2,step:0.0005},{id:'v',lab:'v<sub>s</sub>',unit:'m/s',min:300,max:360,step:1},{id:'A',lab:'A',unit:'µm',min:1,max:100,step:1}];
+const DEF6=[{id:'Lp',lab:'L',unit:'m',min:0.05,max:1,step:0.0005},{id:'nu',lab:'ν',unit:'Hz',min:200,max:1000,step:1},{id:'v',lab:'v<sub>s</sub>',unit:'m/s',min:300,max:360,step:1}];
+function mkParams(defs){
+  const el=$('params'); el.innerHTML='';
+  defs.forEach(d=>{
+    const w=document.createElement('div'); w.className='param';
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab} en ${d.unit}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; r.value=v; if(document.activeElement!==n) n.value=+v.toFixed(4); refresh(); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function setP(id,v){ P[id]=v; const r=$('r-'+id), n=$('n-'+id); if(r) r.value=v; if(n) n.value=+(+v).toFixed(4); }
+function buildKind(){
+  const el=$('kind'); el.innerHTML=''; const kinds= S.mode==='p4'?['cc','ca','aa']:['ca','aa'];
+  kinds.forEach(k=>{ const b=document.createElement('button'); b.className='chip'; b.textContent= S.mode==='p6'? (k==='ca'?'cerrado por el pistón':'abierto en los dos extremos') : KIND[k]; const cur=S.mode==='p4'?S.kind:S.kind6; b.setAttribute('aria-pressed',k===cur); b.onclick=()=>{ if(S.mode==='p4') S.kind=k; else S.kind6=k; buildKind(); refresh(); }; el.appendChild(b); });
+}
+function buildN(){ const el=$('nrow'); el.innerHTML=''; for(let n=1;n<=6;n++){ const b=document.createElement('button'); b.className='nbtn'; b.textContent=n; b.setAttribute('aria-pressed',n===S.n); b.onclick=()=>{ S.n=n; buildN(); refresh(); }; el.appendChild(b); } }
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+function setMode(m){ S.mode=m; document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.mode===m)); $('ctl-n').hidden=m!=='p4'; mkParams(m==='p4'?DEF4:DEF6); buildKind(); refresh(); }
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Sonido =================
+let AC=null;
+function actx(){ try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }catch(e){ AC=null; } return AC; }
+$('listen').onclick=()=>{ const a=actx(); if(!a){ $('cap').textContent='Este navegador no pudo iniciar el audio.'; return; }
+  const fq=S.mode==='p4'?nuN():P.nu, gain=S.mode==='p4'?0.18:0.02+0.2*Math.min(1,resp()*EPS);
+  const o=a.createOscillator(), g=a.createGain(), t=a.currentTime; o.frequency.value=Math.min(fq,a.sampleRate/2-1);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(gain,t+0.03); g.gain.exponentialRampToValueAtTime(0.0005,t+1.6); o.connect(g).connect(a.destination); o.start(t); o.stop(t+1.7); };
+
+// ================= Lecturas =================
+const found={ca:{},aa:{}};
+function refresh(){
+  if(S.mode==='p4'){
+    const k=kN(), lam=2*Math.PI/k, A=P.A*1e-6;
+    const xs=[]; for(let m=0;m<20;m++){ const x= S.kind==='aa'? (m+0.5)*Math.PI/k : m*Math.PI/k; if(x<=P.L+1e-9) xs.push(x); }
+    $('readout').innerHTML=`<span><span class="k">λ${S.n}</span> ${f(lam,3)} m</span><span><span class="k">ν${S.n}</span> <span style="color:var(--sys)">${nuN().toFixed(1)} Hz</span></span><span><span class="k">nodos de Ψ</span> <span style="color:var(--psi)">${xs.map(x=>f(x,2)).join(', ')} m</span></span><span><span class="k">δp máx</span> <span style="color:var(--dp)">${(rho0()*P.v**2*k*A).toFixed(1)} Pa</span></span><span><span class="k">δρ máx</span> ${(rho0()*k*A*1000).toFixed(3)} g/m³</span>`;
+    $('plot-title').textContent='Desplazamiento y presión a lo largo del tubo, ahora';
+    $('leg').innerHTML=`<span><i style="border-color:var(--psi)"></i>Ψ(x,t)</span><span><i style="border-color:var(--dp)"></i>δp(x,t)</span><span><i style="border-color:var(--faint);border-top-style:dashed"></i>envolventes</span>`;
+    $('cap').textContent=`Donde el aire no se mueve (nodo de Ψ) la presión oscila al máximo, y al revés: Ψ y δp están desfasadas un cuarto de longitud de onda en el espacio (y un cuarto de período en el tiempo, porque δp ∝ −∂Ψ/∂x). En una boca abierta la presión queda fija en P₀: nodo de presión.`;
+    $('note').textContent='x = 0 en el extremo izquierdo. Cerrado: Ψ = 0. Abierto: δp = 0, es decir ∂Ψ/∂x = 0. A es la amplitud de desplazamiento (en micrómetros).';
+    $('clock').textContent=`cámara lenta ×${(nuN()/0.5).toFixed(0)}`;
+  } else {
+    const r=resp(), lam=lam6(), Ls=resLengths(S.kind6), near=Ls.find(L=>Math.abs(L-P.Lp)<0.004);
+    if(near!==undefined) found[S.kind6][near.toFixed(4)]=true;
+    const n=near!==undefined? Ls.indexOf(near)+1 : null;
+    $('readout').innerHTML=`<span><span class="k">λ = v/ν</span> ${f(lam,4)} m</span><span><span class="k">L</span> ${f(P.Lp,4)} m = ${f(P.Lp/lam,3)} λ</span><span><span class="k">respuesta</span> <span style="color:${near!==undefined?'var(--x)':'var(--muted)'}">${(r*EPS*100).toFixed(0)} %</span></span><span>${near!==undefined?`<b style="color:var(--x)">resuena</b> · modo ${S.kind6==='ca'?(2*n-1)+'λ/4':n+'λ/2'}`:'<span class="k">no resuena</span>'}</span>`;
+    $('plot-title').textContent='Respuesta del aire del tubo en función de su largo';
+    $('leg').innerHTML=`<span><i style="border-color:var(--fork)"></i>amplitud relativa</span><span><i style="border-color:var(--x);border-top-style:dashed"></i>largos que resuenan</span>`;
+    $('cap').textContent= S.kind6==='ca'? `Cerrado por el pistón: resuena cuando L = (2n − 1) λ/4, con λ = ${f(lam,4)} m. Entre una resonancia y la siguiente el pistón se corre λ/2 = ${f(lam/2,4)} m: así se mide la velocidad del sonido en el laboratorio.` : `Abierto en los dos extremos: resuena cuando L = n λ/2. Los mismos ${f(lam/2,4)} m entre resonancias, pero la primera está al doble de distancia.`;
+    $('note').textContent='El diapasón está en la boca de la izquierda (abierta). Moviendo L corrés el pistón (o alargás el tubo abierto). La respuesta se calcula con una pequeña pérdida para que los picos tengan altura finita.';
+    $('clock').textContent='cámara lenta';
+    updateFound();
+  }
+  renderCuentas(false); updateChal(); drawPlot();
+}
+function updateFound(){ const el=$('found'); el.innerHTML=['ca','aa'].map(k=>resLengths(k).map(L=>`<span class="${found[k][L.toFixed(4)]?'on':''}">${k==='ca'?'cerr.':'abierto'} ${found[k][L.toFixed(4)]?fc(L,4)+' m':'?'}</span>`).join('')).join(''); }
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  if(S.mode!=='p4') setMode('p4'); S.kind='ca'; S.n=1; buildKind(); buildN(); refresh(); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=cerrado]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='cerrado'?'<b>Bien.</b> ':'<b>Mirá el fondo de la escena.</b> ')+`Contra la tapa el aire no puede moverse (nodo de Ψ), pero las porciones vecinas sí: se le amontonan encima o se alejan, así que ahí la presión oscila al máximo. En la boca pasa lo contrario: el aire va y viene al máximo pero la presión queda clavada en la atmosférica, porque el tubo se comunica con todo el aire de afuera. Por eso δp ∝ −∂Ψ/∂x: la presión sigue a la <i>pendiente</i> del desplazamiento, no al desplazamiento.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=S.mode==='p4'&&S.kind==='aa'&&S.n===1&&Math.abs(nuN()-440)<1;
+  $('c1').textContent= ok1?`Logrado: L = ${fc(P.L,4)} m = λ/2 (con v = ${P.v} m/s).`:'Elegí abierto – abierto, n = 1, y ajustá L';
+  $('c1').classList.toggle('done',ok1);
+  const ok2=S.mode==='p4'&&S.kind==='ca'&&S.n===1&&Math.abs(nuN()-440)<1;
+  $('c2').textContent= ok2?`Logrado: L = ${fc(P.L,4)} m = λ/4. Con un extremo cerrado entra un cuarto de onda en vez de media: mismo tono con la mitad de tubo (los órganos usan esto para los tubos graves).`:'Elegí cerrado – abierto, n = 1, y ajustá L';
+  $('c2').classList.toggle('done',ok2);
+  const tot=resLengths('ca').length+resLengths('aa').length, got=Object.keys(found.ca).length+Object.keys(found.aa).length, ok3=got>=tot&&Math.abs(P.nu-440)<1e-9&&Math.abs(P.v-330)<1e-9;
+  $('c3').textContent= Math.abs(P.nu-440)>1e-9||Math.abs(P.v-330)>1e-9? 'En el modo P6 usá ν = 440 Hz y vₛ = 330 m/s (los del enunciado)': ok3?'Completo: cerrado 0,1875 · 0,5625 · 0,9375 m (λ/4, 3λ/4, 5λ/4); abierto 0,375 · 0,75 m (λ/2, λ).':`Encontradas ${got} de ${tot}`;
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps,fin;
+    if(S.mode==='p4'){
+      $('cu-title').textContent='Modos de un tubo (P4)';
+      const k=kN(), A=P.A*1e-6;
+      const bc={cc:['Cerrado en 0 y en L: Ψ = 0 en los dos','\\Psi=A\\sin kx\\,\\cos\\omega t,\\quad \\sin kL=0\\Rightarrow k_n=\\frac{n\\pi}{L},\\ \\lambda_n=\\frac{2L}{n}'],
+                ca:['Cerrado en 0 (Ψ = 0) y abierto en L (∂Ψ/∂x = 0)','\\Psi=A\\sin kx\\,\\cos\\omega t,\\quad \\cos kL=0\\Rightarrow k_n=\\frac{(2n-1)\\pi}{2L},\\ \\lambda_n=\\frac{4L}{2n-1}'],
+                aa:['Abierto en 0 y en L: ∂Ψ/∂x = 0 en los dos','\\Psi=A\\cos kx\\,\\cos\\omega t,\\quad \\sin kL=0\\Rightarrow k_n=\\frac{n\\pi}{L},\\ \\lambda_n=\\frac{2L}{n}']}[S.kind];
+      steps=[
+        ['b) Modo normal del gas: misma ecuación de ondas que la cuerda, con vₛ² = γP₀/ρ₀', `\\[\\Psi(x,t)=A\\sin(kx+\\varphi)\\cos(\\omega t+\\theta),\\qquad \\omega=v_sk\\]`],
+        ['a) '+bc[0], `\\[${bc[1]}\\]`],
+        ['Con los valores actuales', `\\[\\lambda_{${S.n}}=${f(2*Math.PI/k,3)}\\ \\text{m},\\qquad \\nu_{${S.n}}=\\frac{v_s}{\\lambda_{${S.n}}}=${f(nuN(),1)}\\ \\text{Hz}\\]`],
+        ['c) Presión: el gas se comprime donde Ψ cambia con x. Ψ y δp quedan desfasadas π/2 en el espacio', `\\[\\delta p=-\\gamma P_0\\frac{\\partial\\Psi}{\\partial x}=-\\rho_0v_s^2\\frac{\\partial\\Psi}{\\partial x},\\qquad \\delta p_{\\max}=\\rho_0v_s^2kA=${f(rho0()*P.v**2*k*A,1)}\\ \\text{Pa}\\]`],
+        ['d) Densidad: la misma forma que la presión', `\\[\\delta\\rho=-\\rho_0\\frac{\\partial\\Psi}{\\partial x},\\qquad \\delta\\rho_{\\max}=\\rho_0kA=${f(rho0()*k*A*1000,4)}\\ \\text{g/m}^3,\\quad \\rho_0=\\frac{\\gamma P_0}{v_s^2}=${f(rho0(),3)}\\ \\tfrac{\\text{kg}}{\\text{m}^3}\\]`],
+      ];
+      fin=`\\[\\Psi=${P.A}\\,\\mu\\text{m}\\;${S.kind==='aa'?'\\cos':'\\sin'}(${f(k,3)}\\,x)\\cos(${f(2*Math.PI*nuN(),0)}\\,t),\\qquad \\delta p=${f(rho0()*P.v**2*k*A,1)}\\ \\text{Pa}\\;${S.kind==='aa'?'\\sin':'(-\\cos)'}(${f(k,3)}\\,x)\\cos(${f(2*Math.PI*nuN(),0)}\\,t)\\]`;
+    } else {
+      $('cu-title').textContent='Tubo y diapasón (P6)';
+      const lam=lam6(), c=resLengths('ca'), o=resLengths('aa');
+      steps=[
+        ['Longitud de onda que impone el diapasón', `\\[\\lambda=\\frac{v_s}{\\nu}=\\frac{${P.v}}{${P.nu}}=${f(lam,4)}\\ \\text{m}\\]`],
+        ['a) Cerrado en un extremo: la boca es vientre de Ψ y el pistón nodo; entran cuartos de onda impares', `\\[L=(2n-1)\\frac\\lambda4:\\quad ${c.map(L=>f(L,4)).join(',\\ ')}\\ \\text{m}\\]`],
+        ['b) Abierto en los dos extremos: vientre en las dos bocas; entran medias ondas', `\\[L=n\\frac\\lambda2:\\quad ${o.map(L=>f(L,4)).join(',\\ ')}\\ \\text{m}\\]`],
+        ['En cada resonancia el aire vibra en el modo cuyo ν coincide con el del diapasón: el n-ésimo modo del tubo de ese largo', `\\[\\nu_n^{\\text{tubo}}(L)=\\nu_{\\text{diapasón}}\\]`],
+      ];
+      fin=`\\[L=${f(P.Lp,4)}\\ \\text{m}=${f(P.Lp/lam,3)}\\,\\lambda\\;\\Rightarrow\\;\\text{respuesta }${(resp()*EPS*100).toFixed(0)}\\,\\%\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0); return {ctx:c,w:r.width,h:r.height}; }
+new ResizeObserver(()=>{ drawScene(); drawPlot(); }).observe(document.body);
+function line(c,pts,col,w=1.8,dash,alpha=1){ c.strokeStyle=col; c.lineWidth=w; c.setLineDash(dash||[]); c.globalAlpha=alpha; c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])); c.stroke(); c.setLineDash([]); c.globalAlpha=1; }
+function phase(){ const fq=S.mode==='p4'?nuN():P.nu; return 2*Math.PI*0.5*S.t; }
+function drawScene(){
+  const {ctx:c,w,h}=fit($('scene')); c.clearRect(0,0,w,h);
+  const p6=S.mode==='p6', Ltube=p6?P.Lp:P.L, Lmax=p6?1:Ltube;
+  const x0=p6?90:40, xR=w-30, x1=x0+(xR-x0)*(Ltube/Lmax), cy=h/2, th=Math.min(90,h*0.42);
+  const X=x=>x0+(x/Ltube)*(x1-x0), cs=Math.cos(phase());
+  const amp=p6? Math.min(1,resp()*EPS) : 1;
+  const ps=p6?psi6:psiShape, dps=p6?dp6:dpShape;
+  // fondo de presión
+  const N=Math.max(24,Math.round((x1-x0)/7));
+  for(let i=0;i<N;i++){ const x=(i+0.5)/N*Ltube, d=dps(x)*cs*amp; c.fillStyle=d>0?C.dp:C.rare; c.globalAlpha=Math.min(0.55,Math.abs(d)*0.55); c.fillRect(X(i/N*Ltube),cy-th/2,(x1-x0)/N+0.5,th); }
+  c.globalAlpha=1;
+  // partículas
+  const dxp=(x1-x0)/N, rows=7;
+  for(let i=0;i<=N;i++){ const xe=i/N*Ltube, dsp=ps(xe)*cs*amp*dxp*0.9; for(let j=0;j<rows;j++){ const y=cy-th/2+th*(j+0.5)/rows + ((i*7+j*3)%5-2)*1.2; c.fillStyle=C.fg; c.globalAlpha=0.75; c.beginPath(); c.arc(X(xe)+dsp,y,1.6,0,7); c.fill(); } }
+  c.globalAlpha=1;
+  // paredes del tubo
+  c.strokeStyle=C.muted; c.lineWidth=3; c.beginPath(); c.moveTo(x0,cy-th/2-2); c.lineTo(x1,cy-th/2-2); c.moveTo(x0,cy+th/2+2); c.lineTo(x1,cy+th/2+2); c.stroke();
+  const leftClosed=!p6&&(S.kind==='cc'||S.kind==='ca'), rightClosed=p6?S.kind6==='ca':S.kind==='cc';
+  c.fillStyle=C['line-2']; if(leftClosed) c.fillRect(x0-8,cy-th/2-4,8,th+8);
+  if(rightClosed){ c.fillRect(x1,cy-th/2-4,8,th+8); if(p6){ c.fillRect(x1+8,cy-3,Math.max(0,xR-x1+20),6); c.fillStyle=C.faint; c.font=`11px ${css('--font-num')}`; c.textAlign='center'; c.fillText('pistón',x1+4,cy+th/2+18); } }
+  // diapasón
+  if(p6){ const fx=x0-40, wob=3*Math.sin(2*Math.PI*1.3*S.t); c.strokeStyle=C.fork; c.lineWidth=4; c.beginPath(); c.moveTo(fx-8+wob,cy-30); c.lineTo(fx-8,cy+10); c.lineTo(fx+8,cy+10); c.lineTo(fx+8-wob,cy-30); c.moveTo(fx,cy+10); c.lineTo(fx,cy+38); c.stroke(); c.fillStyle=C.fork; c.font=`11px ${css('--font-num')}`; c.textAlign='center'; c.fillText(`${P.nu} Hz`,fx,cy+52); }
+  c.fillStyle=C.faint; c.font=`11px ${css('--font-num')}`; c.textAlign='left'; c.fillText(`0`,x0,cy+th/2+18); c.textAlign='right'; c.fillText(`${fc(Ltube,3)} m`,x1,cy-th/2-10);
+  c.textAlign='left'; c.fillText(p6?'boca abierta':(leftClosed?'cerrado':'abierto'),x0,cy-th/2-10);
+}
+function drawPlot(){
+  const {ctx:c,w,h}=fit($('pl')); c.clearRect(0,0,w,h);
+  const L0=52,R=16,T=28,B=26,pw=w-L0-R,ph=h-T-B;
+  c.font=`11px ${css('--font-num')}`;
+  if(S.mode==='p4'){
+    const X=x=>L0+x/P.L*pw, Y=v=>T+(1.15-v)/2.3*ph, cs=Math.cos(phase());
+    c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+    [-1,0,1].forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(v===0?'0':v>0?'máx':'−máx',L0-6,Y(v)); });
+    c.textAlign='center'; c.textBaseline='top'; [0,0.5,1].forEach(u=>c.fillText(u===0?'0':u===1?'L':'L/2',X(u*P.L),T+ph+4));
+    const e=[[psiShape,C.psi],[dpShape,C.dp]];
+    e.forEach(([fn,col])=>{ const a=[],b=[],cur=[]; for(let i=0;i<=300;i++){ const x=P.L*i/300, s=fn(x); a.push([X(x),Y(Math.abs(s))]); b.push([X(x),Y(-Math.abs(s))]); cur.push([X(x),Y(s*cs)]); } line(c,a,col,1,[3,4],.5); line(c,b,col,1,[3,4],.5); line(c,cur,col,2.4); });
+    return;
+  }
+  const X=L=>L0+L*pw, top=1.0, Y=v=>T+(top*1.05-v)/(top*1.05)*ph;
+  c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  [0,0.5,1].forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText((v*100)+' %',L0-6,Y(v)); });
+  c.textAlign='center'; c.textBaseline='top'; for(let L=0;L<=1.0001;L+=0.1){ c.beginPath(); c.moveTo(X(L),T); c.lineTo(X(L),T+ph); c.stroke(); c.fillText(fc(L,1),X(L),T+ph+4); }
+  c.textAlign='right'; c.fillText('L (m)',L0+pw,T+ph+14);
+  resLengths(S.kind6).forEach(L=>line(c,[[X(L),T],[X(L),T+ph]],C.x,1,[4,4],.6));
+  const pts=[]; for(let i=0;i<=1200;i++){ const L=0.001+0.999*i/1200; pts.push([X(L),Y(Math.min(1,resp(L)*EPS))]); }
+  c.beginPath(); c.moveTo(X(0.001),Y(0)); pts.forEach(p=>c.lineTo(p[0],p[1])); c.lineTo(X(1),Y(0)); c.closePath(); c.fillStyle=C.fork; c.globalAlpha=.12; c.fill(); c.globalAlpha=1; line(c,pts,C.fork,1.8);
+  c.fillStyle=C.fg; c.beginPath(); c.arc(X(P.Lp),Y(Math.min(1,resp()*EPS)),5,0,7); c.fill();
+}
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt; drawScene(); if(S.mode==='p4') drawPlot(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+buildN(); setMode('p4');
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

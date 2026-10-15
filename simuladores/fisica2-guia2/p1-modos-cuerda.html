@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Modos de una cuerda G2-P1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, las condiciones de contorno como protagonistas. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --ff:#36d4ff; --fl:#ffcf3a; --ll:#ff7ad9; --node:#ff5c3a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:280px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.nrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbtn{min-width:34px;border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:5px 0;font-family:var(--font-num);font-size:13px;cursor:pointer;color:var(--muted)}
+.nbtn[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.1)}
+.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.sw input{accent-color:var(--sys);width:16px;height:16px}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Oscilaciones en sistemas continuos</span>
+  <h1>Modos normales de una cuerda <i>· condiciones de contorno</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a href="p2-cuerdas-notas.html"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a href="p4-tubos-sonoros.html"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a href="p7-fourier-cuerdas.html"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a href="p11-dos-tramos.html"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a href="p12-cuerda-amortiguada.html"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a href="p13-tubo-tabique.html"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a href="p15-estacionarias-viajeras.html"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Cuerda vibrando en un modo normal con sus extremos fijos o libres"></canvas>
+      <div class="clock num" id="clock">cámara lenta</div>
+      <div class="readout num">
+        <span><span class="k">v = √(T₀/μ)</span> <span id="ro-v">—</span></span>
+        <span><span class="k">λ</span> <span id="ro-l">—</span></span>
+        <span><span class="k">ν</span> <span id="ro-nu" style="color:var(--sys)">—</span></span>
+        <span><span class="k">nodos</span> <span id="ro-nod">—</span></span>
+      </div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Extremos</div>
+        <div class="chips" id="bc">
+          <button class="chip" data-bc="ff" aria-pressed="true">a · fijo – fijo</button>
+          <button class="chip" data-bc="fl">b · fijo – libre</button>
+          <button class="chip" data-bc="ll">c · libre – libre</button>
+        </div>
+      </div>
+      <div class="row" style="gap:14px">
+        <div><div class="lbl" style="margin-bottom:6px">Modo n</div><div class="nrow" id="nrow"></div></div>
+        <label class="sw" style="margin-left:auto"><input type="checkbox" id="center"> d · origen en el centro</label>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="strobe" aria-pressed="true">Instantáneas</button>
+          <button data-view="spec" aria-pressed="false">Frecuencias</button>
+        </div>
+      </div>
+      <div data-vpanel="strobe">
+        <div class="plot"><canvas id="pst" style="height:240px"></canvas><div class="tag">Ψ(x) en ocho instantes de medio período</div></div>
+        <div class="pcap">Todos los puntos oscilan en fase (o en contrafase) con la misma frecuencia: la forma sen(kx + φ) no se mueve, solo cambia su amplitud. Eso es una onda estacionaria.</div>
+      </div>
+      <div data-vpanel="spec" hidden>
+        <div class="plot"><canvas id="psp" style="height:290px"></canvas><div class="tag">Frecuencias permitidas para la misma cuerda</div></div>
+        <div class="pcap">Fijo–fijo y libre–libre dan los mismos múltiplos de v/2L (libre–libre agrega n = 0). Fijo–libre da solo los múltiplos impares de v/4L: su fundamental es la mitad y faltan los armónicos pares.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P1</summary>
+      <p>Cuerda de longitud L y densidad μ con tensión T₀. Proponga Ψ(x,t) = A sen(kx + φ) cos(ωt + θ), con x = 0 en un extremo y x = L en el otro. Encuentre la forma particular para: <b>a)</b> ambos extremos fijos; <b>b)</b> uno fijo y otro libre (¿imponer que un extremo esté libre equivale a no imponer condición? ¿Cómo se logra un extremo libre?); <b>c)</b> ambos libres (¿a qué corresponde el modo de frecuencia mínima?); <b>d)</b> con x = 0 en el centro y ambos extremos fijos.</p>
+      <p class="src">Física 2 (Físicos), Guía 2.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>La cuerda vibra en su fundamental con los dos extremos fijos. Si soltás el extremo derecho (lo dejás libre), la frecuencia fundamental…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="igual">no cambia: depende de T₀, μ y L</button>
+          <button class="opt" data-ans="mitad">se reduce a la mitad</button>
+          <button class="opt" data-ans="doble">se duplica</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: pasar a fijo – libre</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3>De la propuesta a los modos</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Modo actual</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> El P2: cuerda de 20 cm y 5 g con 120 N. Cargá esos datos (fijo – fijo). ¿Cuál es el fundamental y cuántos modos caen por debajo de 20 kHz?<div class="state" id="c1">—</div><button class="btn" id="load-p2" style="margin-top:8px">Cargar datos del P2</button></div>
+          <div class="item"><b>2.</b> El inciso c): encontrá el modo de frecuencia mínima con los dos extremos libres. ¿Qué movimiento es?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> ¿Existe algún modo fijo – libre con la misma frecuencia que un modo fijo – fijo de la misma cuerda? Recorré las dos columnas de la vista Frecuencias y justificá.<div class="state" id="c3">Pregunta abierta: no se verifica automáticamente.</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta de la ecuación de ondas para cada modo normal. La animación va en cámara lenta (el factor se indica arriba a la derecha) para que se vea la oscilación; las frecuencias que se muestran son las reales. Colores: celeste fijo–fijo, amarillo fijo–libre, rosa libre–libre, rojo los nodos.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--panel-2','--line','--line-2','--fg','--muted','--faint','--sys','--x','--ff','--fl','--ll','--node'].forEach(k=>C[k.slice(2)]=css(k));
+const BCN={ff:'fijo – fijo',fl:'fijo – libre',ll:'libre – libre'}, BCC={ff:'ff',fl:'fl',ll:'ll'};
+
+// ================= Parámetros =================
+const P={L:1,mu:10,T:100};
+const DEF=[
+  {id:'L',lab:'L',unit:'m',min:0.1,max:2,step:0.01},
+  {id:'mu',lab:'μ',unit:'g/m',min:0.5,max:50,step:0.1},
+  {id:'T',lab:'T₀',unit:'N',min:1,max:500,step:1},
+];
+const S={bc:'ff',n:1,center:false,t:0,running:true,speed:1,view:'strobe'};
+const v=()=>Math.sqrt(P.T/(P.mu/1000));
+// número de onda y fase (origen en x = 0, el extremo izquierdo)
+function kOf(bc=S.bc,n=S.n){ return bc==='fl'? (n-0.5)*Math.PI/P.L : n*Math.PI/P.L; }
+function phi0(bc=S.bc){ return bc==='ll'? Math.PI/2 : 0; } // libre en 0 → cos
+const nu=(bc=S.bc,n=S.n)=>v()*kOf(bc,n)/(2*Math.PI);
+function shape(x){ // x medido desde el extremo izquierdo
+  if(S.bc==='ll'&&S.n===0) return 1;
+  return Math.sin(kOf()*x+phi0());
+}
+function nodes(){ const out=[]; if(S.bc==='ll'&&S.n===0) return out; const k=kOf(), f=phi0();
+  for(let m=-2;m<40;m++){ const x=(m*Math.PI-f)/k; if(x>-1e-9&&x<P.L+1e-9) out.push(Math.max(0,Math.min(P.L,x))); } return out; }
+// forma con el origen en el centro: sen(k x' + φc), x = x' + L/2
+function centeredForm(){
+  if(S.bc==='ll'&&S.n===0) return {txt:'A (traslación rígida)',tex:'A'};
+  const k=kOf(); let ph=(phi0()+k*P.L/2)%(2*Math.PI); if(ph<0) ph+=2*Math.PI;
+  const q=ph/(Math.PI/2), r=Math.round(q);
+  const kk=S.bc==='fl'?`${2*S.n-1}π x/2L`:`${S.n}π x/L`, kt=S.bc==='fl'?`\\frac{${2*S.n-1}\\pi x}{2L}`:`\\frac{${S.n}\\pi x}{L}`;
+  if(Math.abs(q-r)<1e-6){ const m=((r%4)+4)%4; return [{txt:`sen(${kk})`,tex:`\\sin ${kt}`},{txt:`cos(${kk})`,tex:`\\cos ${kt}`},{txt:`−sen(${kk})`,tex:`-\\sin ${kt}`},{txt:`−cos(${kk})`,tex:`-\\cos ${kt}`}][m]; }
+  const deg=(ph*180/Math.PI).toFixed(0); return {txt:`sen(${kk} + ${deg}°)`,tex:`\\sin\\!\\Big(${kt}+${deg}^\\circ\\Big)`};
+}
+function leftForm(){
+  if(S.bc==='ll'&&S.n===0) return {txt:'A (traslación rígida)',tex:'A'};
+  const kk=S.bc==='fl'?`${2*S.n-1}π x/2L`:`${S.n}π x/L`, kt=S.bc==='fl'?`\\frac{${2*S.n-1}\\pi x}{2L}`:`\\frac{${S.n}\\pi x}{L}`;
+  return S.bc==='ll'?{txt:`cos(${kk})`,tex:`\\cos ${kt}`}:{txt:`sen(${kk})`,tex:`\\sin ${kt}`};
+}
+const form=()=>S.center?centeredForm():leftForm();
+function slow(){ return 0.45/nu('ff',1); } // factor de cámara lenta: el fundamental fijo–fijo se ve a 0,45 Hz
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param';
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab} en ${d.unit}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function buildN(){ const el=$('nrow'); el.innerHTML=''; const start=S.bc==='ll'?0:1; for(let n=start;n<=8;n++){ const b=document.createElement('button'); b.className='nbtn'; b.textContent=n; b.setAttribute('aria-pressed',n===S.n); b.onclick=()=>{ S.n=n; buildN(); refresh(); }; el.appendChild(b); } }
+document.querySelectorAll('#bc .chip').forEach(b=>b.onclick=()=>{ S.bc=b.dataset.bc; if(S.bc!=='ll'&&S.n===0) S.n=1; document.querySelectorAll('#bc .chip').forEach(x=>x.setAttribute('aria-pressed',x===b)); buildN(); refresh(); });
+$('center').addEventListener('change',()=>{ S.center=$('center').checked; refresh(); });
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); }
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==S.view); draw(); });
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+$('load-p2').onclick=()=>{ Object.assign(P,{L:0.2,mu:25,T:120}); S.bc='ff'; S.n=1; document.querySelectorAll('#bc .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.bc==='ff')); sync(); buildN(); refresh(); };
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+function fmtHz(x){ return x>=1000?(x/1000).toFixed(3)+' kHz':x.toFixed(2)+' Hz'; }
+function refresh(){
+  const k=kOf(), zero=S.bc==='ll'&&S.n===0;
+  $('ro-v').textContent=`${v().toFixed(2)} m/s`;
+  $('ro-l').textContent= zero?'∞':`${(2*Math.PI/k).toFixed(3)} m`;
+  $('ro-nu').textContent= zero?'0 Hz':fmtHz(nu());
+  const nd=nodes(); $('ro-nod').textContent= zero?'ninguno': `${nd.length} (${nd.map(x=>(S.center?x-P.L/2:x).toFixed(2)).join(', ')} m)`;
+  const fm=form(); $('formula').innerHTML=`<span class="k">Ψ${S.n}(x,t) = </span>${zero?'A + Bt':'A '+fm.txt+' cos(ω'+S.n+'t + θ)'}<span class="k">   ·   origen en ${S.center?'el centro':'el extremo izquierdo'} · ω${S.n} = ${zero?'0':(2*Math.PI*nu()).toFixed(1)+' rad/s'}</span>`;
+  $('clock').textContent=`cámara lenta ×${(1/slow()).toFixed(0)}`;
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  const f1=nu('ff',1), f2=nu('fl',1); S.bc='fl'; S.n=1; document.querySelectorAll('#bc .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.bc==='fl')); buildN(); refresh(); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=mitad]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='mitad'?'<b>Bien.</b> ':'<b>Mirá la escena.</b> ')+`Pasa de <span class="num">${fmtHz(f1)}</span> a <span class="num">${fmtHz(f2)}</span>. Con los dos extremos fijos entra media longitud de onda (λ = 2L); con uno libre, el extremo libre es un vientre y entra solo un cuarto (λ = 4L). Misma v, el doble de λ: la mitad de frecuencia. El extremo libre <i>sí</i> impone una condición: pendiente nula, ∂Ψ/∂x = 0, porque un anillo sin masa ni rozamiento no puede soportar fuerza transversal.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const p2=Math.abs(P.L-0.2)<1e-6&&Math.abs(P.mu-25)<1e-6&&Math.abs(P.T-120)<1e-6;
+  const f1=nu('ff',1), nmax=Math.floor(20000/f1);
+  $('c1').textContent= p2? `Con estos datos: v = ${v().toFixed(1)} m/s, ν₁ = ${f1.toFixed(1)} Hz y los modos son múltiplos: ${nmax} modos por debajo de 20 kHz (ν${nmax} = ${(nmax*f1/1000).toFixed(2)} kHz). Todos los que el oído percibe son los primeros ${nmax}; el resto no.`:'Cargá los datos (μ = 5 g / 0,2 m = 25 g/m)';
+  $('c1').classList.toggle('done',p2);
+  const ok2=S.bc==='ll'&&S.n===0;
+  $('c2').textContent= ok2?'Logrado: n = 0, k = 0, ω = 0. No es una oscilación: es la traslación rígida de toda la cuerda (cuerda con anillos libres en las dos varillas). Ψ = A + Bt.':(S.bc==='ll'?'Bajá a n = 0':'Elegí libre – libre');
+  $('c2').classList.toggle('done',ok2);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const bcStep={
+      ff:['a) Fijo en 0 y fijo en L', `\\[\\Psi(0,t)=0\\Rightarrow\\sin\\varphi=0\\Rightarrow\\varphi=0;\\qquad \\Psi(L,t)=0\\Rightarrow\\sin kL=0\\Rightarrow k_n=\\frac{n\\pi}{L},\\ n=1,2,\\dots\\]`],
+      fl:['b) Fijo en 0 y libre en L: el extremo libre no tiene fuerza transversal, así que la pendiente es nula', `\\[\\varphi=0;\\qquad \\frac{\\partial\\Psi}{\\partial x}(L,t)=0\\Rightarrow\\cos kL=0\\Rightarrow k_n=\\frac{(2n-1)\\pi}{2L}\\]`],
+      ll:['c) Libre en los dos extremos', `\\[\\cos\\varphi=0\\Rightarrow\\varphi=\\tfrac\\pi2\\ (\\text{queda }\\cos kx);\\qquad \\sin kL=0\\Rightarrow k_n=\\frac{n\\pi}{L},\\ n=0,1,2,\\dots\\]`],
+    };
+    const zero=S.bc==='ll'&&S.n===0, fm=form();
+    const steps=[
+      ['La propuesta cumple la ecuación de ondas si k y ω están ligados por la velocidad de la cuerda', `\\[\\Psi=A\\sin(kx+\\varphi)\\cos(\\omega t+\\theta),\\qquad \\omega=v\\,k,\\quad v=\\sqrt{\\frac{T_0}{\\mu}}=\\sqrt{\\frac{${f(P.T,0)}}{${f(P.mu/1000,4)}}}=${f(v(),2)}\\ \\text{m/s}\\]`],
+      bcStep[S.bc],
+      ['Frecuencias del modo elegido', zero?`\\[k_0=0\\Rightarrow\\omega_0=0:\\ \\Psi=A+Bt\\ \\text{(traslación rígida)}\\]`:`\\[k_{${S.n}}=${f(kOf(),3)}\\ \\text{m}^{-1},\\quad \\lambda=${f(2*Math.PI/kOf(),3)}\\ \\text{m},\\quad \\nu=\\frac{v\\,k}{2\\pi}=${f(nu(),2)}\\ \\text{Hz}\\]`],
+      ['d) Con el origen en el centro, x = x′ + L/2: la misma onda escrita de otra forma. Con los dos extremos fijos alternan cosenos (n impar) y senos (n par)', `\\[\\Psi\\big(\\pm\\tfrac L2,t\\big)=0\\Rightarrow\\ \\Psi_n\\propto\\begin{cases}\\cos\\frac{n\\pi x}{L}, & n\\ \\text{impar}\\\\[2pt] \\sin\\frac{n\\pi x}{L}, & n\\ \\text{par}\\end{cases}\\]`],
+    ];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join('');
+    $('final').innerHTML= zero?`\\[\\Psi_0(x,t)=A+Bt\\]`:`\\[\\Psi_{${S.n}}(x,t)=A\\,${fm.tex}\\,\\cos\\big(${f(2*Math.PI*nu(),1)}\\,t+\\theta\\big)\\qquad(\\text{origen en ${S.center?'el centro':'el extremo'}})\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+const scene=$('scene');
+function endFixed(ctx,x,cy,side){ ctx.fillStyle=C['line-2']; ctx.fillRect(side<0?x-10:x,cy-60,10,120); ctx.strokeStyle=C.faint; ctx.lineWidth=1; for(let y=cy-60;y<cy+60;y+=8){ ctx.beginPath(); ctx.moveTo(x+side*10,y); ctx.lineTo(x+side*16,y+6); ctx.stroke(); } }
+function endFree(ctx,x,y,cy){ ctx.strokeStyle=C.muted; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x,cy-70); ctx.lineTo(x,cy+70); ctx.stroke(); ctx.fillStyle=C.panel; ctx.strokeStyle=C.fg; ctx.lineWidth=2; ctx.beginPath(); ctx.ellipse(x,y,7,5,0,0,7); ctx.fill(); ctx.stroke(); }
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h);
+  const m=46, x0=m, x1=w-m, cy=h/2+6, A=Math.min(62,h*0.24), X=x=>x0+(x/P.L)*(x1-x0);
+  const ph=2*Math.PI*nu()*S.t*slow(), amp=(S.bc==='ll'&&S.n===0)? ((S.t*0.35)%1.6)-0.8 : Math.cos(ph);
+  const zero=S.bc==='ll'&&S.n===0;
+  // envolvente
+  if(!zero){ const e1=[],e2=[]; for(let i=0;i<=300;i++){ const x=P.L*i/300, s=shape(x); e1.push([X(x),cy-A*s]); e2.push([X(x),cy+A*s]); } line(ctx,e1,C.faint,1,[3,4]); line(ctx,e2,C.faint,1,[3,4]); }
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0,cy); ctx.lineTo(x1,cy); ctx.stroke();
+  // extremos
+  const yL=cy-A*amp*shape(0), yR=cy-A*amp*shape(P.L);
+  if(S.bc==='ll') endFree(ctx,x0,yL,cy); else endFixed(ctx,x0,cy,-1);
+  if(S.bc==='ff') endFixed(ctx,x1,cy,1); else endFree(ctx,x1,yR,cy);
+  // cuerda
+  const col=C[BCC[S.bc]]; const pts=[]; for(let i=0;i<=400;i++){ const x=P.L*i/400; pts.push([X(x),cy-A*amp*shape(x)]); } line(ctx,pts,col,2.6);
+  // nodos y vientres
+  nodes().forEach(x=>{ ctx.fillStyle=C.node; ctx.beginPath(); ctx.arc(X(x),cy,4.5,0,7); ctx.fill(); });
+  // eje x con origen
+  const xo=S.center?X(P.L/2):X(0);
+  ctx.fillStyle=C.faint; ctx.font=`11px ${css('--font-num')}`; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(x0,h-22); ctx.lineTo(x1,h-22); ctx.stroke();
+  const ticks=S.center?[-P.L/2,0,P.L/2]:[0,P.L/2,P.L]; ticks.forEach(t=>{ const xx=S.center?X(t+P.L/2):X(t); ctx.beginPath(); ctx.moveTo(xx,h-26); ctx.lineTo(xx,h-18); ctx.stroke(); ctx.fillText(t===0?'0':(t<0?'−':'')+(Math.abs(t)===P.L?'L':'L/2'),xx,h-16); });
+  ctx.fillStyle=C.sys; ctx.beginPath(); ctx.moveTo(xo,h-30); ctx.lineTo(xo-5,h-38); ctx.lineTo(xo+5,h-38); ctx.closePath(); ctx.fill(); ctx.textBaseline='bottom'; ctx.fillText('origen',xo,h-40);
+  // λ
+  if(!zero){ const lam=2*Math.PI/kOf(); if(lam<=P.L*1.01){ const a=X(0), b=X(lam), yb=26; ctx.strokeStyle=C.muted; ctx.beginPath(); ctx.moveTo(a,yb); ctx.lineTo(b,yb); ctx.moveTo(a,yb-4); ctx.lineTo(a,yb+4); ctx.moveTo(b,yb-4); ctx.lineTo(b,yb+4); ctx.stroke(); ctx.fillStyle=C.muted; ctx.textBaseline='bottom'; ctx.fillText('λ',(a+b)/2,yb-2); } else { ctx.fillStyle=C.muted; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText(`λ = ${(lam/P.L).toFixed(2)} L (no entra entera)`,x0,12); } }
+  if(zero){ ctx.fillStyle=C.ll; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font=`600 12px ${css('--font-ui')}`; ctx.fillText('n = 0: toda la cuerda se traslada rígida sobre las varillas (ω = 0)',w/2,12); }
+}
+function drawStrobe(){
+  const cv=$('pst'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L0=50,R=16,T=26,B=24,pw=w-L0-R,ph=h-T-B, X=x=>L0+x/P.L*pw, Y=v=>T+(1.15-v)/2.3*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  [-1,0,1].forEach(v=>{ ctx.beginPath(); ctx.moveTo(L0,Y(v)); ctx.lineTo(L0+pw,Y(v)); ctx.stroke(); ctx.fillText(v===0?'0':(v>0?'A':'−A'),L0-6,Y(v)); });
+  ctx.textAlign='center'; ctx.textBaseline='top'; (S.center?[[0,'−L/2'],[P.L/2,'0'],[P.L,'L/2']]:[[0,'0'],[P.L/2,'L/2'],[P.L,'L']]).forEach(([x,l])=>{ ctx.beginPath(); ctx.moveTo(X(x),T); ctx.lineTo(X(x),T+ph); ctx.stroke(); ctx.fillText(l,X(x),T+ph+4); });
+  const col=C[BCC[S.bc]];
+  if(S.bc==='ll'&&S.n===0){ for(let j=0;j<8;j++){ const c=-0.8+1.6*j/7; line(ctx,[[X(0),Y(c)],[X(P.L),Y(c)]],col,1.6,null,0.2+0.1*j); } return; }
+  for(let j=0;j<8;j++){ const c=Math.cos(Math.PI*j/7); const pts=[]; for(let i=0;i<=300;i++){ const x=P.L*i/300; pts.push([X(x),Y(c*shape(x))]); } line(ctx,pts,col,1.6,null,0.25+0.75*Math.abs(c)); }
+  nodes().forEach(x=>{ ctx.fillStyle=C.node; ctx.beginPath(); ctx.arc(X(x),Y(0),4,0,7); ctx.fill(); });
+}
+function drawSpec(){
+  const cv=$('psp'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const top=nu('ff',8)*1.08, L0=64,R=14,T=56,B=16,pw=w-L0-R,ph=h-T-B, Y=f_=>T+ph-f_/top*ph;
+  const cols=[['ff',L0+pw*0.18],['fl',L0+pw*0.5],['ll',L0+pw*0.82]];
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let i=0;i<=4;i++){ const f_=top*i/4; ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L0,Y(f_)); ctx.lineTo(L0+pw,Y(f_)); ctx.stroke(); ctx.fillText(f_>=1000?(f_/1000).toFixed(1)+'k':f_.toFixed(0),L0-6,Y(f_)); }
+  ctx.save(); ctx.translate(14,T+ph/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.fillText('ν (Hz)',0,0); ctx.restore();
+  cols.forEach(([bc,cx])=>{ const col=C[BCC[bc]]; ctx.fillStyle=col; ctx.font=`600 12px ${css('--font-ui')}`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(BCN[bc],cx,T-10);
+    for(let n=(bc==='ll'?0:1);n<=8;n++){ const f_=nu(bc,n); if(f_>top) continue; const on=bc===S.bc&&n===S.n; ctx.strokeStyle=col; ctx.lineWidth=on?3.5:1.6; ctx.globalAlpha=on?1:.75; ctx.beginPath(); ctx.moveTo(cx-40,Y(f_)); ctx.lineTo(cx+40,Y(f_)); ctx.stroke(); ctx.globalAlpha=1; ctx.fillStyle=on?C.fg:C.faint; ctx.font=`11px ${css('--font-num')}`; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(`n=${n}`,cx+46,Y(f_)); } });
+}
+function draw(){ drawScene(); if(S.view==='strobe') drawStrobe(); else drawSpec(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); buildN(); refresh();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

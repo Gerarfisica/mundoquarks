@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Cuerdas y notas G2-P2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la nota y el oído como protagonistas. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --al:#9fc3ff; --ny:#ffcf3a; --st:#e3e9ef; --aud:#34e08a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:250px;cursor:pointer}
+.nrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbtn{min-width:34px;border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:5px 0;font-family:var(--font-num);font-size:13px;cursor:pointer;color:var(--muted)}
+.nbtn[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.1)}
+.vtab{width:100%;border-collapse:collapse;font-size:12.5px}
+.vtab th{font-weight:500;color:var(--faint);text-align:right;padding:4px 6px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.04em}
+.vtab th:first-child,.vtab td:first-child{text-align:left}
+.vtab td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--font-num)}
+.vtab tr.sel td{background:var(--panel-2)}
+.vtab input{width:62px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:2px 4px;font-family:var(--font-num);font-size:12px;text-align:right}
+.vtab .play{border:1px solid var(--line-2);background:transparent;border-radius:5px;padding:2px 8px;cursor:pointer;color:var(--muted);font-size:12px}
+.vtab .play:hover{border-color:var(--sys);color:var(--fg)}
+.twrap{overflow-x:auto}
+.mat{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Oscilaciones en sistemas continuos</span>
+  <h1>Cuerdas y notas <i>· lo que se oye</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-modos-cuerda.html"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a href="p4-tubos-sonoros.html"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a href="p7-fourier-cuerdas.html"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a href="p11-dos-tramos.html"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a href="p12-cuerda-amortiguada.html"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a href="p13-tubo-tabique.html"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a href="p15-estacionarias-viajeras.html"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Cuerdas vibrando"></canvas>
+      <div class="clock num" id="clock">cámara lenta</div>
+      <div class="readout num" id="readout"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <div class="seg" role="group" aria-label="Problema">
+          <button data-mode="p2" aria-pressed="true">P2 · una cuerda</button>
+          <button data-mode="p3" aria-pressed="false">P3 · el violín</button>
+        </div>
+        <button class="btn" id="listen">♪ Escuchar</button>
+        <button class="btn primary" id="play" style="margin-left:auto">Pausar</button>
+      </div>
+      <div id="ctl-p2">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><div class="lbl" style="margin-bottom:6px">Modo que se dibuja y se escucha</div><div class="nrow" id="nrow"></div></div>
+          <div class="params" id="params2"></div>
+          <div style="font-size:12px;color:var(--faint)">Valores iniciales: los del P2 (20 cm, 5 g, 120 N). «Escuchar» toca el modo elegido como un tono puro; con n = 1 toca la cuerda pulsada, con todos sus armónicos.</div>
+        </div>
+      </div>
+      <div id="ctl-p3" hidden>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="twrap"><table class="vtab" id="vtab"></table></div>
+          <div class="params" id="params3"></div>
+          <div style="font-size:12px;color:var(--faint)">Tocá una cuerda en la escena (o su fila) para elegirla; el dedo acorta solo esa cuerda. Los diámetros se pueden editar. Para las tensiones absolutas se supone el largo vibrante de un violín, 32,5 cm.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head"><span class="lbl" id="plot-title" style="margin-left:4px">Espectro de la cuerda y oído humano</span></div>
+      <div class="plot"><canvas id="pl" style="height:250px"></canvas></div>
+      <div class="pcap" id="cap"></div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P2 y P3</summary>
+      <p><b>2.</b> Una cuerda de 20 cm de longitud y 5 g de masa está sometida a una tensión de 120 N. Calcule sus modos naturales de oscilación. ¿Son todos audibles para el oído humano?</p>
+      <p><b>3.</b> Las cuatro cuerdas de un violín, de igual longitud, emiten en su fundamental sol₂ (198 Hz), re₃ (297 Hz), la₃ (440 Hz) y mi₄ (660 Hz). La primera es de aluminio (ρ = 2,6 g/cm³, d₁ = 0,09 cm); las dos siguientes de otro material (ρ = 1,2 g/cm³, d₂ = 0,12 cm y d₃ = 0,1 cm) y la cuarta de acero (ρ = 7,5 g/cm³, d₄ = 0,1 cm). Calcule las tensiones con respecto a la primera.</p>
+      <p class="src">Física 2 (Físicos), Guía 2. Rango audible tomado como 20 Hz a 20 kHz.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>De las cuatro cuerdas del violín del P3, ¿cuál tiene que estar más tensa?</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="sol">la de sol: es la más grave y la más gruesa</button>
+          <button class="opt" data-ans="la">la de la: está en el medio</button>
+          <button class="opt" data-ans="mi">la de mi: es la más aguda</button>
+          <button class="opt" data-ans="igual">todas parecido: si no, el puente se tuerce</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: ver las tensiones</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Modos y oído</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Con los valores actuales</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> Con la cuerda del P2 (20 cm, 5 g), ¿qué tensión hace que el fundamental sea el la de 440 Hz (± 1 Hz)? ¿La aguantaría una cuerda real de ese grosor?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> En el violín, poné el dedo sobre la cuerda de sol hasta que suene el re de la cuerda vecina, 297 Hz (± 1 Hz). ¿En qué fracción del largo quedó? ¿Qué intervalo hay entre cuerdas vecinas?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> La cuerda de mi de acero de 1 mm del enunciado necesita casi 40 veces la tensión de la de sol. Cambiá su diámetro para que su tensión sea igual a la de sol (± 2 %). Compará con una cuerda de mi real, de unos 0,25 mm.<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Frecuencias exactas de una cuerda con extremos fijos, ν_n = n v / 2L. El sonido se sintetiza en el navegador con los armónicos de una cuerda pulsada a 1/5 de su largo (amplitudes ∝ sen(nπ/5)/n²). La animación va en cámara lenta. Colores: celeste aluminio, amarillo el «otro material», blanco acero, verde la banda audible.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--panel-2','--line','--line-2','--fg','--muted','--faint','--sys','--x','--a','--al','--ny','--st','--aud'].forEach(k=>C[k.slice(2)]=css(k));
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d)=>x.toFixed(d).replace('.',',');
+
+// ================= Estado =================
+const P={L:20,m:5,T:120,Lv:32.5,finger:1};
+const S={mode:'p2',n:1,sel:0,t:0,running:true};
+const VIO=[
+  {nota:'sol₂',nu:198,rho:2.6,d:0.09,mat:'aluminio',col:'al'},
+  {nota:'re₃',nu:297,rho:1.2,d:0.12,mat:'otro (ρ = 1,2)',col:'ny'},
+  {nota:'la₃',nu:440,rho:1.2,d:0.10,mat:'otro (ρ = 1,2)',col:'ny'},
+  {nota:'mi₄',nu:660,rho:7.5,d:0.10,mat:'acero',col:'st'},
+];
+// P2
+const mu2=()=>P.m/1000/(P.L/100), v2=()=>Math.sqrt(P.T/mu2()), nu2=n=>n*v2()/(2*P.L/100);
+const nAud=()=>Math.floor(20000/nu2(1)), nLow=()=>nu2(1)<20? Math.ceil(20/nu2(1)) : 1;
+// P3
+const muV=s=>s.rho*1000*Math.PI*(s.d/100)**2/4;          // kg/m
+const TV=s=>muV(s)*(2*P.Lv/100*s.nu)**2;                   // N
+const ratio=s=>TV(s)/TV(VIO[0]);
+const nuFinger=()=>VIO[S.sel].nu/P.finger;
+
+// ================= Controles =================
+function mkParams(el,defs){
+  $(el).innerHTML='';
+  defs.forEach(d=>{
+    const w=document.createElement('div'); w.className='param';
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab} en ${d.unit}"> <span class="unit">${d.unit}</span></span>`;
+    $(el).appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; r.value=v; if(document.activeElement!==n) n.value=+v.toFixed(3); refresh(); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+mkParams('params2',[{id:'L',lab:'L',unit:'cm',min:5,max:100,step:0.5},{id:'m',lab:'m',unit:'g',min:0.5,max:20,step:0.1},{id:'T',lab:'T₀',unit:'N',min:5,max:1200,step:0.5}]);
+mkParams('params3',[{id:'finger',lab:'dedo',unit:'× L',min:0.45,max:1,step:0.001}]);
+function setP(id,v){ P[id]=v; const r=$('r-'+id), n=$('n-'+id); if(r) r.value=v; if(n) n.value=+(+v).toFixed(3); }
+function buildN(){ const el=$('nrow'); el.innerHTML=''; for(const n of [1,2,3,4,5,6,8,10]){ const b=document.createElement('button'); b.className='nbtn'; b.textContent=n; b.setAttribute('aria-pressed',n===S.n); b.onclick=()=>{ S.n=n; buildN(); refresh(); }; el.appendChild(b); } }
+function buildTable(){
+  $('vtab').innerHTML=`<tr><th>cuerda</th><th>material</th><th>ρ g/cm³</th><th>d (cm)</th><th>ν Hz</th><th>μ g/m</th><th>T / T₁</th><th>T (N)</th><th></th></tr>`+
+    VIO.map((s,i)=>`<tr data-i="${i}" class="${i===S.sel?'sel':''}"><td><span class="mat" style="background:var(--${s.col})"></span>${s.nota}</td><td style="font-family:var(--font-ui);color:var(--muted)">${s.mat}</td><td>${fc(s.rho,1)}</td><td><input type="number" min="0.005" max="0.3" step="0.001" value="${s.d}" data-d="${i}" aria-label="diámetro de la cuerda ${s.nota}"></td><td>${s.nu}</td><td>${(muV(s)*1000).toFixed(3)}</td><td><b>${ratio(s).toFixed(2)}</b></td><td>${TV(s).toFixed(1)}</td><td><button class="play" data-p="${i}">♪</button></td></tr>`).join('');
+  $('vtab').querySelectorAll('tr[data-i]').forEach(tr=>tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; S.sel=+tr.dataset.i; if(e.target.dataset.p===undefined) {} refresh(); }));
+  $('vtab').querySelectorAll('input[data-d]').forEach(inp=>inp.addEventListener('change',()=>{ const v=Math.min(0.3,Math.max(0.005,+inp.value)); if(isFinite(v)){ VIO[+inp.dataset.d].d=v; refresh(); } }));
+  $('vtab').querySelectorAll('.play').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); S.sel=+b.dataset.p; refresh(); pluck(nuFinger()); }));
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+function setMode(m){ S.mode=m; document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.mode===m)); $('ctl-p2').hidden=m!=='p2'; $('ctl-p3').hidden=m!=='p3'; refresh(); }
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('listen').onclick=()=>{ if(S.mode==='p2'){ if(S.n===1) pluck(nu2(1)); else tone(nu2(S.n)); } else pluck(nuFinger()); };
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+$('scene').addEventListener('click',e=>{ if(S.mode!=='p3'||!SX) return; const r=$('scene').getBoundingClientRect(), y=e.clientY-r.top; let best=0,bd=1e9; SX.ys.forEach((yy,i)=>{ const d=Math.abs(y-yy); if(d<bd){bd=d;best=i;} }); if(bd<26){ S.sel=best; refresh(); pluck(nuFinger()); } });
+
+// ================= Sonido =================
+let AC=null;
+function ctx(){ try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }catch(e){ AC=null; } return AC; }
+function tone(fq,dur=1.4){ const a=ctx(); if(!a||fq>a.sampleRate/2) { flash(fq>20000?'Ese tono está por encima de 20 kHz: no se oye (y el parlante tampoco lo reproduce).':'Este navegador no pudo iniciar el audio.'); return; }
+  const o=a.createOscillator(), g=a.createGain(), t=a.currentTime; o.frequency.value=fq; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.18,t+0.02); g.gain.exponentialRampToValueAtTime(0.0005,t+dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+0.05);
+  if(fq>20000) flash('Por encima de 20 kHz: el oído humano no lo percibe.'); else if(fq<20) flash('Por debajo de 20 Hz: se siente más que se oye.'); }
+function pluck(fq,dur=2.2){ const a=ctx(); if(!a){ flash('Este navegador no pudo iniciar el audio.'); return; }
+  const t=a.currentTime, master=a.createGain(); master.gain.value=0.22; master.connect(a.destination); let norm=0; const hs=[];
+  for(let n=1;n<=40&&n*fq<Math.min(16000,a.sampleRate/2);n++){ const amp=Math.abs(Math.sin(n*Math.PI/5))/(n*n); if(amp<1e-4) continue; hs.push([n,amp]); norm+=amp; }
+  hs.forEach(([n,amp])=>{ const o=a.createOscillator(), g=a.createGain(); o.frequency.value=n*fq; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(amp/norm,t+0.005); g.gain.exponentialRampToValueAtTime(0.0001,t+dur/(1+0.25*(n-1))); o.connect(g).connect(master); o.start(t); o.stop(t+dur+0.05); });
+}
+let flashT=null; function flash(msg){ $('cap').textContent=msg; clearTimeout(flashT); flashT=setTimeout(()=>refresh(),3500); }
+
+// ================= Lecturas =================
+function refresh(){
+  if(S.mode==='p2'){
+    const n1=nu2(1), na=nAud();
+    $('readout').innerHTML=`<span><span class="k">μ</span> ${(mu2()*1000).toFixed(2)} g/m</span><span><span class="k">v</span> ${v2().toFixed(1)} m/s</span><span><span class="k">ν₁</span> <span style="color:var(--sys)">${n1.toFixed(1)} Hz</span></span><span><span class="k">ν${S.n}</span> ${nu2(S.n)>=1000?(nu2(S.n)/1000).toFixed(2)+' kHz':nu2(S.n).toFixed(1)+' Hz'}</span><span><span class="k">modos audibles</span> <span style="color:var(--aud)">${nLow()>1?'del '+nLow()+' al '+na:na}</span></span>`;
+    $('plot-title').textContent='Espectro de la cuerda y oído humano (escala logarítmica)';
+    $('cap').textContent=`Cada raya es un modo, ν_n = n·${n1.toFixed(1)} Hz. Los modos son infinitos pero solo ${na-nLow()+1} caen entre 20 Hz y 20 kHz. Además, los modos altos casi no se excitan al pulsar: sus amplitudes caen como 1/n².`;
+  } else {
+    const s=VIO[S.sel], nf=nuFinger();
+    $('readout').innerHTML=`<span><span class="k">cuerda</span> <b>${s.nota}</b> (${s.mat})</span><span><span class="k">al aire</span> ${s.nu} Hz</span><span><span class="k">con el dedo</span> <span style="color:var(--sys)">${nf.toFixed(1)} Hz</span> (largo ${fc(P.finger*100,1)} %)</span><span><span class="k">T / T₁</span> <b>${ratio(s).toFixed(2)}</b></span>`;
+    $('plot-title').textContent='Tensión de cada cuerda relativa a la de sol';
+    $('cap').textContent=`T = 4L²ν²μ y μ = ρπd²/4, así que a igual largo T ∝ ρ d² ν². La de mi gana por las dos cosas: es la más aguda (ν² es 11 veces el de sol) y el acero es el más denso. Con los datos del enunciado el puente soportaría unos ${VIO.reduce((a,s)=>a+TV(s),0).toFixed(0)} N en total.`;
+    buildTable();
+  }
+  $('clock').textContent=S.mode==='p2'?`cámara lenta ×${(nu2(S.n)/0.6).toFixed(0)}`:''; $('clock').hidden=S.mode!=='p2';
+  renderCuentas(false); updateChal(); drawPlot();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setMode('p3'); S.sel=3; setP('finger',1); refresh();
+  document.querySelector('#pred-opts [data-ans=mi]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='mi'?'<b>Bien.</b> ':'<b>Mirá las barras.</b> ')+`Con los datos del enunciado la de mi necesita <span class="num">${ratio(VIO[3]).toFixed(1)}</span> veces la tensión de la de sol. La de sol es gruesa pero de aluminio y grave; la de mi es de acero (casi 3 veces más densa) y 3,3 veces más aguda, y la frecuencia entra al cuadrado. En un violín real las cuerdas tienen tensiones parecidas porque se eligen diámetros y materiales justamente para eso: la de mi real es mucho más fina (desafío 3).`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=Math.abs(P.L-20)<1e-6&&Math.abs(P.m-5)<1e-6&&Math.abs(nu2(1)-440)<1;
+  $('c1').textContent= ok1?`Logrado: T₀ = ${P.T.toFixed(1)} N, unos ${(P.T/9.8).toFixed(0)} kg colgados. Para no cortarse, una cuerda de acero de 5 g en 20 cm (≈ 2 mm de diámetro) aguanta unos 3000 N: sí, pero sería una cuerda gruesísima para tocar.`:(Math.abs(P.L-20)>1e-6||Math.abs(P.m-5)>1e-6?'Volvé a L = 20 cm y m = 5 g':`Ahora ν₁ = ${nu2(1).toFixed(1)} Hz con T₀ = ${P.T.toFixed(1)} N`);
+  $('c1').classList.toggle('done',ok1);
+  const ok2=S.sel===0&&Math.abs(nuFinger()-297)<1;
+  $('c2').textContent= ok2?`Logrado: ${fc(P.finger,3)} L ≈ 2/3. Entre cuerdas vecinas hay una quinta (cociente 3/2): 297/198 = 1,5; 440/297 ≈ 1,48; 660/440 = 1,5. El violín se afina en quintas.`:(S.sel!==0?'Elegí la cuerda de sol':`Ahora suena ${nuFinger().toFixed(1)} Hz`);
+  $('c2').classList.toggle('done',ok2);
+  const r4=ratio(VIO[3]), ok3=Math.abs(r4-1)<0.02;
+  $('c3').textContent= ok3?`Logrado: d = ${(VIO[3].d*10).toFixed(2)} mm. Una cuerda de mi real mide unos 0,25 mm y lleva más tensión que la de sol (≈ 75 N frente a ≈ 45 N), porque las cuerdas graves reales están entorchadas, con un núcleo y un alambre enrollado que suma masa sin sumar rigidez.`:`Ahora T₄/T₁ = ${r4.toFixed(2)} con d₄ = ${(VIO[3].d*10).toFixed(2)} mm`;
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps,fin;
+    if(S.mode==='p2'){
+      $('cu-title').textContent='Modos y oído (P2)';
+      steps=[
+        ['Densidad lineal y velocidad de la onda', `\\[\\mu=\\frac{m}{L}=\\frac{${f(P.m/1000,4)}}{${f(P.L/100,3)}}=${f(mu2(),4)}\\ \\tfrac{\\text{kg}}{\\text{m}},\\qquad v=\\sqrt{\\frac{T_0}{\\mu}}=${f(v2(),1)}\\ \\tfrac{\\text{m}}{\\text{s}}\\]`],
+        ['Extremos fijos: entran semiondas enteras', `\\[\\nu_n=\\frac{n\\,v}{2L}=n\\cdot${f(nu2(1),1)}\\ \\text{Hz},\\qquad n=1,2,3,\\dots\\]`],
+        ['Audibles: los que caen entre 20 Hz y 20 kHz', `\\[n\\le\\frac{20\\,000}{${f(nu2(1),1)}}=${f(20000/nu2(1),1)}\\;\\Rightarrow\\;\\text{los primeros }${nAud()}\\]`],
+      ];
+      fin=`\\[\\nu_1=${f(nu2(1),1)}\\ \\text{Hz},\\quad \\nu_2=${f(nu2(2),1)},\\quad \\nu_3=${f(nu2(3),1)},\\ \\dots,\\ \\nu_{${nAud()}}=${f(nu2(nAud())/1000,2)}\\ \\text{kHz}\\]`;
+    } else {
+      $('cu-title').textContent='Tensiones del violín (P3)';
+      const r=VIO.map(ratio);
+      steps=[
+        ['Fundamental de una cuerda fija en los dos extremos, y densidad lineal de un cilindro de diámetro d', `\\[\\nu=\\frac{1}{2L}\\sqrt{\\frac{T}{\\mu}}\\;\\Rightarrow\\;T=4L^2\\nu^2\\mu,\\qquad \\mu=\\rho\\,\\frac{\\pi d^2}{4}\\]`],
+        ['Mismo largo L: el cociente no depende de L', `\\[\\frac{T_i}{T_1}=\\frac{\\rho_i\\,d_i^2\\,\\nu_i^2}{\\rho_1\\,d_1^2\\,\\nu_1^2}\\]`],
+        ['Con los valores actuales', `\\[\\frac{T_2}{T_1}=\\frac{1{,}2\\cdot ${f(VIO[1].d,3)}^2\\cdot 297^2}{2{,}6\\cdot ${f(VIO[0].d,3)}^2\\cdot 198^2}=${f(r[1],2)},\\quad \\frac{T_3}{T_1}=${f(r[2],2)},\\quad \\frac{T_4}{T_1}=${f(r[3],2)}\\]`],
+        ['Con el dedo, el largo vibrante pasa a fL y la frecuencia sube como 1/f', `\\[\\nu'=\\frac{\\nu}{f}=\\frac{${VIO[S.sel].nu}}{${f(P.finger,3)}}=${f(nuFinger(),1)}\\ \\text{Hz}\\]`],
+      ];
+      fin=`\\[T_1:T_2:T_3:T_4=1:${f(r[1],2)}:${f(r[2],2)}:${f(r[3],2)}\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0); return {ctx:c,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(c,pts,col,w=1.8,dash,alpha=1){ c.strokeStyle=col; c.lineWidth=w; c.setLineDash(dash||[]); c.globalAlpha=alpha; c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])); c.stroke(); c.setLineDash([]); c.globalAlpha=1; }
+let SX=null;
+function drawScene(){
+  const {ctx:c,w,h}=fit($('scene')); c.clearRect(0,0,w,h);
+  if(S.mode==='p2'){
+    const x0=50,x1=w-50,cy=h/2,A=Math.min(56,h*0.24), ph=2*Math.PI*0.6*S.t;
+    [x0,x1].forEach((x,i)=>{ c.fillStyle=C['line-2']; c.fillRect(i?x:x-10,cy-60,10,120); });
+    const pts=[]; for(let i=0;i<=400;i++){ const u=i/400; pts.push([x0+u*(x1-x0),cy-A*Math.cos(ph)*Math.sin(S.n*Math.PI*u)]); } line(c,pts,C.sys,2.4);
+    for(let k=1;k<S.n;k++){ c.fillStyle=C.a; c.beginPath(); c.arc(x0+(x1-x0)*k/S.n,cy,4,0,7); c.fill(); }
+    c.fillStyle=C.faint; c.font=`11px ${css('--font-num')}`; c.textAlign='center'; c.fillText(`L = ${fc(P.L,1)} cm · modo n = ${S.n}`,w/2,h-14);
+    SX=null; return;
+  }
+  // violín: cuatro cuerdas
+  const x0=60,x1=w-40, gap=Math.min(46,(h-60)/4), y0=h/2-1.5*gap, ys=[0,1,2,3].map(i=>y0+(3-i)*gap); SX={ys};
+  c.fillStyle=C['panel-2']; c.fillRect(x0-8,y0-gap*0.6,x1-x0+16,gap*3+gap*1.2);
+  c.fillStyle=C['line-2']; c.fillRect(x0-12,y0-gap*0.7,6,gap*3+gap*1.4); c.fillRect(x1+6,y0-gap*0.7,6,gap*3+gap*1.4);
+  c.fillStyle=C.faint; c.font=`11px ${css('--font-num')}`; c.textAlign='center'; c.fillText('cejilla',x0-9,y0-gap*0.8); c.fillText('puente',x1+9,y0-gap*0.8);
+  VIO.forEach((s,i)=>{ const y=ys[i], sel=i===S.sel, Lf=sel?P.finger:1, xf=x1-(x1-x0)*Lf, A=gap*0.28, fq=(i===S.sel?nuFinger():s.nu)/198*0.5, ph=2*Math.PI*fq*S.t;
+    const col=C[s.col], th=Math.max(1,s.d*22);
+    if(sel&&Lf<0.999){ line(c,[[x0,y],[xf,y]],col,th,null,.35); c.fillStyle=C.fg; c.beginPath(); c.ellipse(xf,y,7,9,0,0,7); c.fill(); }
+    const pts=[]; for(let k=0;k<=200;k++){ const u=k/200; pts.push([xf+u*(x1-xf),y-A*Math.cos(ph)*Math.sin(Math.PI*u)]); } line(c,pts,col,th,null,sel?1:.7);
+    c.fillStyle=sel?C.fg:C.muted; c.font=`${sel?600:400} 12px ${css('--font-ui')}`; c.textAlign='left'; c.textBaseline='middle'; c.fillText(s.nota,10,y);
+  });
+  c.textBaseline='alphabetic'; c.fillStyle=C.faint; c.font=`11px ${css('--font-num')}`; c.textAlign='left'; c.fillText('tocá una cuerda para elegirla y escucharla',x0,h-8);
+}
+function drawPlot(){
+  const {ctx:c,w,h}=fit($('pl')); c.clearRect(0,0,w,h);
+  if(S.mode==='p2'){
+    const L0=40,R=16,T=30,B=30,pw=w-L0-R,ph=h-T-B, lo=Math.log10(10), hi=Math.log10(100000), X=fq=>L0+(Math.log10(fq)-lo)/(hi-lo)*pw;
+    c.fillStyle=C.aud; c.globalAlpha=.1; c.fillRect(X(20),T,X(20000)-X(20),ph); c.globalAlpha=1;
+    c.strokeStyle=C.aud; c.globalAlpha=.6; [20,20000].forEach(fq=>{ c.beginPath(); c.moveTo(X(fq),T); c.lineTo(X(fq),T+ph); c.stroke(); }); c.globalAlpha=1;
+    c.fillStyle=C.aud; c.font=`11px ${css('--font-num')}`; c.textAlign='center'; c.fillText('rango audible',(X(20)+X(20000))/2,T-10);
+    c.fillStyle=C.faint; c.textBaseline='top'; [10,100,1000,10000,100000].forEach(fq=>{ c.strokeStyle=C.line; c.beginPath(); c.moveTo(X(fq),T+ph); c.lineTo(X(fq),T+ph+4); c.stroke(); c.fillText(fq>=1000?(fq/1000)+' kHz':fq+' Hz',X(fq),T+ph+6); });
+    const n1=nu2(1); for(let n=1;n*n1<=100000&&n<6000;n++){ const fq=n*n1; if(fq<10) continue; const aud=fq>=20&&fq<=20000, hgt=ph*(0.35+0.6/Math.sqrt(n)); c.strokeStyle=n===S.n?C.sys:(aud?C.fg:C.faint); c.lineWidth=n===S.n?2.6:1; c.globalAlpha=n===S.n?1:(aud?0.55:0.35); c.beginPath(); c.moveTo(X(fq),T+ph); c.lineTo(X(fq),T+ph-hgt); c.stroke(); }
+    c.globalAlpha=1; c.fillStyle=C.sys; c.textBaseline='bottom'; c.font=`600 12px ${css('--font-num')}`; c.fillText(`n = ${S.n}`,X(nu2(S.n)),T+ph-ph*(0.35+0.6/Math.sqrt(S.n))-4);
+    return;
+  }
+  const L0=90,R=70,T=20,B=16,ph=h-T-B, bh=Math.min(34,ph/4-12), mx=Math.max(...VIO.map(ratio))*1.05, X=v=>L0+v/mx*(w-L0-R);
+  VIO.forEach((s,i)=>{ const y=T+i*(ph/4)+(ph/4-bh)/2, r=ratio(s); c.fillStyle=C[s.col]; c.globalAlpha=i===S.sel?1:.7; c.fillRect(L0,y,Math.max(2,X(r)-L0),bh); c.globalAlpha=1;
+    c.fillStyle=C.fg; c.font=`12px ${css('--font-ui')}`; c.textAlign='right'; c.textBaseline='middle'; c.fillText(`${s.nota}`,L0-10,y+bh/2);
+    c.font=`12px ${css('--font-num')}`; c.textAlign='left'; c.fillText(`${r.toFixed(2)} · ${TV(s).toFixed(0)} N`,X(r)+6,y+bh/2); });
+  c.strokeStyle=C.faint; c.setLineDash([3,3]); c.beginPath(); c.moveTo(X(1),T); c.lineTo(X(1),T+ph); c.stroke(); c.setLineDash([]);
+}
+function draw(){ drawScene(); drawPlot(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt; drawScene(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+buildN(); refresh(); drawPlot();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

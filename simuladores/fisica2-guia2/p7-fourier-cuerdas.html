@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Fourier en cuerdas G2-P7</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --str:#36d4ff; --init:#8693a1; --An:#34e08a; --Bn:#ffcf3a; --zero:#ff5c3a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:270px;touch-action:none}
+#scene.draw{cursor:crosshair}
+.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.sw input{accent-color:var(--sys);width:16px;height:16px}
+.tgo{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tgo button{border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:4px 9px;font-family:var(--font-num);font-size:12.5px;cursor:pointer;color:var(--muted)}
+.tgo button:hover{border-color:var(--sys);color:var(--fg)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Serie de Fourier: condiciones iniciales en cuerdas</span>
+  <h1>Fourier en cuerdas <i>· de la forma inicial a los modos</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-modos-cuerda.html"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a href="p2-cuerdas-notas.html"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a href="p4-tubos-sonoros.html"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a href="p11-dos-tramos.html"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a href="p12-cuerda-amortiguada.html"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a href="p13-tubo-tabique.html"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a href="p15-estacionarias-viajeras.html"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Cuerda evolucionando a partir de una forma inicial"></canvas>
+      <div class="hint" id="hint" style="display:none;top:auto;bottom:96px">Dibujá la forma inicial arrastrando sobre la cuerda</div>
+      <div class="clock num" id="clock">ω₁t = 0</div>
+      <div class="readout num" id="readout"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">t = 0</button>
+        <div class="tgo" id="tgo"><span class="lbl">ir a ω₁t =</span></div>
+        <div class="speed"><label class="lbl" for="speed">Velocidad</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Condición inicial</div>
+        <div class="chips" id="presets">
+          <button class="chip" data-p="p7">P7 · tres senos</button>
+          <button class="chip" data-p="p8">P8 · escalón, fijo–libre</button>
+          <button class="chip" data-p="p9">P9 · velocidad inicial, libre–fijo</button>
+          <button class="chip" data-p="p10">P10 · simétrica</button>
+          <button class="chip" data-p="pluck">Pulsada en a</button>
+          <button class="chip" data-p="draw">Dibujar</button>
+        </div>
+      </div>
+      <div class="row" style="gap:14px">
+        <div><div class="lbl" style="margin-bottom:6px">Extremos</div><div class="chips" id="bc"><button class="chip" data-bc="ff">fijo – fijo</button><button class="chip" data-bc="fl">fijo – libre</button><button class="chip" data-bc="lf">libre – fijo</button></div></div>
+        <label class="sw" style="margin-left:auto"><input type="checkbox" id="comp"> Mostrar los modos por separado</label>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="coef" aria-pressed="true">Coeficientes</button>
+          <button data-view="snap" aria-pressed="false">Instantáneas</button>
+        </div>
+      </div>
+      <div data-vpanel="coef">
+        <div class="plot"><canvas id="pc" style="height:240px"></canvas><div class="legend"><span><i style="border-color:var(--An)"></i>Aₙ (de la forma inicial)</span><span><i style="border-color:var(--Bn)"></i>Bₙ/ωₙ (de la velocidad inicial)</span></div></div>
+        <div class="pcap" id="cap-c"></div>
+      </div>
+      <div data-vpanel="snap" hidden>
+        <div class="plot"><canvas id="ps" style="height:260px"></canvas><div class="legend" id="leg-s"></div></div>
+        <div class="pcap" id="cap-s"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P7 a P10</summary>
+      <p><b>7.</b> Cuerda fija en ambos extremos, soltada con Ψ(x,0) = sen(πx/L) + ⅓ sen(3πx/L) + ⅕ sen(5πx/L). <b>a)</b> Halle Ψ(x,t). <b>b)</b> Grafique para ω₁t = 0, π/5, π/3 y π/2. ¿Qué simetría tiene alrededor de ω₁t = π/2? ¿Y de π? ¿Cómo es en ω₁t = 2π?</p>
+      <p><b>8.</b> Cuerda fija en x = 0 y libre en x = L, soltada con Ψ = 0 para x &lt; L/4 y Ψ = Ψ₀ para x &gt; L/4. Halle Ψ(x,t) y grafique para ω₁t = 0, π y 2π. ¿Qué cambiaría con el origen en el extremo libre?</p>
+      <p><b>9.</b> Extremo libre en x = 0 y fijo en x = L; Φ(x,0) = 0 y Φ̇(x,0) = V₀ cos(3πx/2L). Halle la amplitud y fase de cada modo y Φ(x,t).</p>
+      <p><b>10.</b> Cuerda fija en ambos extremos: demuestre que si Φ(x,0) y Φ̇(x,0) son simétricas respecto del centro, los modos con k = 2pπ/L no se excitan.</p>
+      <p class="src">Física 2 (Físicos), Guía 2. x en unidades de L; el tiempo se mide como ω₁t, con ω₁ la frecuencia fundamental.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>La cuerda del P7 arranca con la forma H(x) = sen(πx/L) + ⅓ sen(3πx/L) + ⅕ sen(5πx/L), en reposo. Un cuarto de período después (ω₁t = π/2), la cuerda…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="plana">está completamente plana</button>
+          <button class="opt" data-ans="inv">tiene la forma inicial invertida</button>
+          <button class="opt" data-ans="otra">tiene una forma nueva, mezcla de las tres</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: ir a ω₁t = π/2</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Superposición de modos</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Con la condición inicial actual</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> Con el escalón del P8, llevá el tiempo a ω₁t = π. ¿Qué forma tiene la cuerda? ¿Por qué en una cuerda fijo–libre pasa siempre lo mismo a medio período?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> El P10 a mano: con «Dibujar» y extremos fijos, dibujá una forma simétrica respecto del centro (los coeficientes pares deben quedar por debajo del 3 % del mayor).<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Pulsá la cuerda (fija–fija) en a = L/3. ¿Qué modos no aparecen? ¿Y si la pulsás en L/4?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Ψ(x,t) = Σ φₙ(x)[Aₙ cos ωₙt + (Bₙ/ωₙ) sen ωₙt], con coeficientes calculados por integración numérica de la condición inicial sobre cada modo φₙ. La suma se corta en N modos (control abajo): con pocos modos aparece el fenómeno de Gibbs en los saltos. Colores: celeste la cuerda, gris la forma inicial, verde y amarillo los coeficientes.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--panel-2','--line','--line-2','--fg','--muted','--faint','--sys','--x','--str','--init','--An','--Bn','--zero','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d), PI=Math.PI;
+
+// ================= Estado =================
+const NX=400; // muestras en [0,1]
+const S={preset:'p7',bc:'ff',N:30,a:0.2,tau:0,running:true,speed:1,view:'coef',drawn:null,A:[],B:[]};
+const P={N:30,a:0.2};
+// modos (x en [0,1]); r = ωₙ/ω₁
+function phi(n,x,bc=S.bc){ if(bc==='ff') return Math.sin(n*PI*x); if(bc==='fl') return Math.sin((2*n-1)*PI*x/2); return Math.cos((2*n-1)*PI*x/2); }
+function ratio(n,bc=S.bc){ return bc==='ff'? n : 2*n-1; }
+function kLabel(n,bc=S.bc){ return bc==='ff'? `${n}π` : `${2*n-1}π/2`; }
+// condiciones iniciales: forma f y velocidad g (en unidades de ω₁)
+function initial(x){
+  switch(S.preset){
+    case 'p7': return [Math.sin(PI*x)+Math.sin(3*PI*x)/3+Math.sin(5*PI*x)/5,0];
+    case 'p8': return [x>0.25?1:0,0];
+    case 'p9': return [0,Math.cos(3*PI*x/2)];
+    case 'p10': return [x<0.5? (x<0.25?0:(x-0.25)*4) : (x>0.75?0:(0.75-x)*4), 0];
+    case 'pluck': return [x<S.a? x/S.a : (1-x)/(1-S.a),0];
+    case 'draw': { if(!S.drawn) return [0,0]; const i=Math.min(NX,Math.max(0,Math.round(x*NX))); return [S.drawn[i],0]; }
+  }
+  return [0,0];
+}
+function project(){
+  const M=200; S.A=[]; S.B=[];
+  const xs=[], fs=[], gs=[]; for(let i=0;i<=2000;i++){ const x=i/2000, v=initial(x); xs.push(x); fs.push(v[0]); gs.push(v[1]); }
+  for(let n=1;n<=M;n++){ let sa=0,sb=0; for(let i=0;i<=2000;i++){ const w=(i===0||i===2000)?1:(i%2?4:2), p=phi(n,xs[i]); sa+=w*fs[i]*p; sb+=w*gs[i]*p; } const h=1/2000/3; S.A.push(2*sa*h); S.B.push(2*sb*h/ratio(n)); }
+}
+function psi(x,tau,N=P.N){ let s=0; for(let n=1;n<=N;n++){ const r=ratio(n); s+=phi(n,x)*(S.A[n-1]*Math.cos(r*tau)+S.B[n-1]*Math.sin(r*tau)); } return s; }
+function maxCoef(){ let m=0; for(let n=0;n<P.N;n++) m=Math.max(m,Math.hypot(S.A[n],S.B[n])); return m||1; }
+
+// ================= Controles =================
+const pEl=$('params');
+[{id:'N',lab:'N modos',unit:'',min:1,max:120,step:1},{id:'a',lab:'a',unit:'× L',min:0.05,max:0.95,step:0.005}].forEach(d=>{
+  const w=document.createElement('div'); w.className='param'; w.id='w-'+d.id;
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; r.value=v; if(document.activeElement!==n) n.value=v; if(d.id==='a'){ S.a=v; project(); } refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+const BCOF={p7:'ff',p8:'fl',p9:'lf',p10:'ff',pluck:'ff',draw:'ff'};
+document.querySelectorAll('#presets .chip').forEach(b=>b.onclick=()=>setPreset(b.dataset.p));
+function setPreset(p){ S.preset=p; if(BCOF[p]) S.bc=BCOF[p]; if(p==='draw'&&!S.drawn){ S.drawn=new Array(NX+1).fill(0); togglePlay(false); } S.tau=0; project(); syncUI(); refresh(); }
+document.querySelectorAll('#bc .chip').forEach(b=>b.onclick=()=>{ S.bc=b.dataset.bc; project(); syncUI(); refresh(); });
+function syncUI(){
+  document.querySelectorAll('#presets .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.p===S.preset));
+  document.querySelectorAll('#bc .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.bc===S.bc));
+  $('w-a').style.display=S.preset==='pluck'?'':'none';
+  $('scene').classList.toggle('draw',S.preset==='draw'); $('hint').style.display=S.preset==='draw'?'':'none';
+  const T={p7:[[0,'0'],[PI/5,'π/5'],[PI/3,'π/3'],[PI/2,'π/2'],[PI,'π'],[2*PI,'2π']],p8:[[0,'0'],[PI/2,'π/2'],[PI,'π'],[2*PI,'2π']]}[S.preset]||[[0,'0'],[PI/2,'π/2'],[PI,'π'],[2*PI,'2π']];
+  $('tgo').innerHTML='<span class="lbl">ir a ω₁t =</span>'+T.map(([v,l])=>`<button data-t="${v}">${l}</button>`).join('');
+  $('tgo').querySelectorAll('button').forEach(b=>b.onclick=()=>{ S.tau=+b.dataset.t; togglePlay(false); refresh(); });
+}
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('reset').onclick=()=>{ S.tau=0; refresh(); };
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+$('comp').addEventListener('change',draw);
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==S.view); draw(); });
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ----- dibujo de la forma inicial -----
+let drawing=false, lastI=null;
+const scene=$('scene'); let SX=null;
+function drawAt(e){ if(!SX) return; const r=scene.getBoundingClientRect(), x=(e.clientX-r.left-SX.x0)/(SX.x1-SX.x0), y=(SX.cy-(e.clientY-r.top))/SX.A; const i=Math.round(Math.min(1,Math.max(0,x))*NX), v=Math.max(-1.2,Math.min(1.2,y));
+  if(lastI===null) S.drawn[i]=v; else { const a=Math.min(lastI,i), b=Math.max(lastI,i); for(let k=a;k<=b;k++){ const u=b===a?1:(k-a)/(b-a); S.drawn[k]= lastI<i? S.drawn[lastI]+(v-S.drawn[lastI])*u : v+(S.drawn[lastI]-v)*(1-u); } S.drawn[i]=v; } lastI=i; }
+scene.addEventListener('pointerdown',e=>{ if(S.preset!=='draw') return; drawing=true; lastI=null; togglePlay(false); S.tau=0; scene.setPointerCapture(e.pointerId); drawAt(e); draw(); });
+scene.addEventListener('pointermove',e=>{ if(!drawing) return; drawAt(e); draw(); });
+scene.addEventListener('pointerup',()=>{ if(!drawing) return; drawing=false; lastI=null; project(); refresh(); });
+
+// ================= Lecturas =================
+function zeroModes(){ const m=maxCoef(), out=[]; for(let n=1;n<=Math.min(P.N,12);n++) if(Math.hypot(S.A[n-1],S.B[n-1])<0.01*m) out.push(n); return out; }
+function refresh(){
+  const z=zeroModes(), m=maxCoef();
+  const top=[]; for(let n=1;n<=Math.min(P.N,40);n++) top.push([n,Math.hypot(S.A[n-1],S.B[n-1])]); top.sort((a,b)=>b[1]-a[1]);
+  $('readout').innerHTML=`<span><span class="k">extremos</span> ${{ff:'fijo – fijo',fl:'fijo – libre',lf:'libre – fijo'}[S.bc]}</span><span><span class="k">ωₙ/ω₁</span> ${S.bc==='ff'?'1, 2, 3, …':'1, 3, 5, …'}</span><span><span class="k">modos más fuertes</span> ${top.slice(0,3).map(t=>'n='+t[0]).join(', ')}</span><span><span class="k">modos ausentes (n ≤ 12)</span> <span style="color:var(--zero)">${z.length?z.join(', '):'ninguno'}</span></span>`;
+  $('cap-c').textContent= S.preset==='p9'? 'La velocidad inicial V₀cos(3πx/2L) es exactamente la forma del modo n = 2: solo ese modo arranca, con fase de seno (empieza en Ψ = 0 con velocidad máxima).' : S.preset==='p7'? 'Tres modos, con amplitudes 1, ⅓ y ⅕: la condición inicial ya estaba escrita como serie de Fourier.' : S.preset==='pluck'? `Pulsada en a = ${f(P.a,3)} L: Aₙ ∝ sen(nπa)/n². Falta todo modo con un nodo justo donde se pulsó.` : S.preset==='p8'? 'El salto de la forma inicial hace que los coeficientes caigan lento (como 1/n): hacen falta muchos modos y en el salto queda el sobrepico de Gibbs (bajá N para verlo).' : 'Coeficiente de cada modo: cuánto de la condición inicial se proyecta sobre él.';
+  $('clock').textContent=`ω₁t = ${(S.tau/PI).toFixed(2)} π`;
+  renderCuentas(false); updateChal(); draw();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setPreset('p7'); S.tau=PI/2; togglePlay(false); refresh(); document.querySelector('[data-view=snap]').click();
+  document.querySelector('#pred-opts [data-ans=plana]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='plana'?'<b>Bien.</b> ':'<b>Mirá la cuerda.</b> ')+`Los tres modos tienen ωₙ = nω₁ con n impar: en ω₁t = π/2 los tres cosenos valen cos(nπ/2) = 0 a la vez. La cuerda pasa plana, pero con velocidad máxima. Además Ψ(π − t) = −Ψ(t) (antisimétrica alrededor de π/2), en π vale −H(x) y en 2π vuelve a H(x): todo período del fundamental es período de la cuerda.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=S.preset==='p8'&&Math.abs(S.tau-PI)<0.03;
+  $('c1').textContent= ok1?'Logrado: la cuerda tiene la forma inicial invertida, −Ψ(x,0). En fijo–libre todas las ωₙ son múltiplos impares de ω₁, así que cos((2n−1)π) = −1 para todos los modos a la vez.':(S.preset!=='p8'?'Elegí el escalón del P8':`Ahora ω₁t = ${(S.tau/PI).toFixed(2)} π`);
+  $('c1').classList.toggle('done',ok1);
+  let even=0, mx=maxCoef(); for(let n=2;n<=Math.min(P.N,30);n+=2) even=Math.max(even,Math.hypot(S.A[n-1],S.B[n-1]));
+  const drew=S.preset==='draw'&&S.drawn&&S.drawn.some(v=>Math.abs(v)>0.05), ok2=drew&&S.bc==='ff'&&even<0.03*mx;
+  $('c2').textContent= ok2?`Logrado: el mayor coeficiente par es el ${(100*even/mx).toFixed(1)} % del mayor. Los modos pares, sen(2pπx/L), son antisimétricos respecto del centro: su producto con una forma simétrica integra cero.`:(!drew?'Elegí «Dibujar», extremos fijos, y dibujá':`Ahora los pares llegan al ${(100*even/mx).toFixed(1)} % del mayor`);
+  $('c2').classList.toggle('done',ok2);
+  const ok3=S.preset==='pluck'&&S.bc==='ff'&&Math.abs(P.a-1/3)<0.004;
+  $('c3').textContent= ok3?`Logrado: faltan n = ${zeroModes().join(', ')}, los múltiplos de 3: esos modos tienen un nodo en L/3 y no se pueden excitar empujando justo ahí. En L/4 faltarían los múltiplos de 4.`:(S.preset!=='pluck'?'Elegí «Pulsada en a»':`Ahora a = ${f(P.a,3)} L`);
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const ph={ff:'\\sin\\frac{n\\pi x}{L}',fl:'\\sin\\frac{(2n-1)\\pi x}{2L}',lf:'\\cos\\frac{(2n-1)\\pi x}{2L}'}[S.bc];
+    const base=[
+      ['Solución general: superposición de modos normales con los extremos actuales', `\\[\\Psi(x,t)=\\sum_n\\varphi_n(x)\\big[A_n\\cos\\omega_nt+B_n\\sin\\omega_nt\\big],\\qquad \\varphi_n=${ph}\\]`],
+      ['Los coeficientes salen de proyectar la forma y la velocidad iniciales (los φₙ son ortogonales)', `\\[A_n=\\frac2L\\int_0^L\\Psi(x,0)\\,\\varphi_n\\,dx,\\qquad B_n=\\frac{2}{L\\,\\omega_n}\\int_0^L\\dot\\Psi(x,0)\\,\\varphi_n\\,dx\\]`],
+    ];
+    const spec={
+      p7:['P7: la forma inicial ya es una suma de modos; con ωₙ = nω₁', `\\[\\Psi=\\sin\\tfrac{\\pi x}{L}\\cos\\omega_1t+\\tfrac13\\sin\\tfrac{3\\pi x}{L}\\cos3\\omega_1t+\\tfrac15\\sin\\tfrac{5\\pi x}{L}\\cos5\\omega_1t\\]\\[\\Psi\\big(x,\\tfrac\\pi2\\big)=0,\\quad \\Psi(x,\\pi-\\omega_1t)=-\\Psi(x,\\omega_1t),\\quad \\Psi(x,\\pi)=-H(x),\\quad \\Psi(x,2\\pi)=H(x)\\]`],
+      p8:['P8: escalón en L/4 con cos(kₙL) = 0 en el extremo libre', `\\[A_n=\\frac{2\\Psi_0}{L\\,k_n}\\cos\\frac{k_nL}{4}=\\frac{4\\Psi_0}{(2n-1)\\pi}\\cos\\frac{(2n-1)\\pi}{8}:\\quad A_1=${f(S.A[0])},\\ A_2=${f(S.A[1])},\\ A_3=${f(S.A[2])},\\ A_4=${f(S.A[3])}\\]`],
+      p9:['P9: Φ(x,0) = 0 ⇒ Aₙ = 0; la velocidad es exactamente el modo n = 2 (k = 3π/2L)', `\\[\\Phi(x,t)=\\frac{V_0}{\\omega_2}\\cos\\frac{3\\pi x}{2L}\\,\\sin\\omega_2t,\\qquad \\omega_2=\\frac{3\\pi v}{2L}=3\\omega_1\\]`],
+      p10:['P10: los modos pares son antisimétricos respecto del centro', `\\[\\sin\\frac{2p\\pi(L-x)}{L}=-\\sin\\frac{2p\\pi x}{L}\\;\\Rightarrow\\;\\int_0^L(\\text{simétrica})\\cdot(\\text{antisimétrica})\\,dx=0\\;\\Rightarrow\\;A_{2p}=B_{2p}=0\\]`],
+      pluck:['Pulsada en a con altura h (cuerda fija–fija)', `\\[A_n=\\frac{2h\\,\\sin(n\\pi a/L)}{n^2\\pi^2\\,(a/L)(1-a/L)}:\\quad A_n=0\\ \\text{si}\\ \\frac{na}{L}\\in\\mathbb Z\\]`],
+      draw:['Forma dibujada: los coeficientes se calculan numéricamente', `\\[A_1=${f(S.A[0])},\\ A_2=${f(S.A[1])},\\ A_3=${f(S.A[2])},\\ A_4=${f(S.A[3])}\\]`],
+    }[S.preset];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=[...base,spec].map(li).join('');
+    const terms=[]; for(let n=1;n<=Math.min(P.N,40)&&terms.length<4;n++){ const a=S.A[n-1], b=S.B[n-1]; if(Math.abs(a)>1e-4) terms.push(`${f(a,3)}\\,\\varphi_{${n}}\\cos ${ratio(n)}\\omega_1t`); if(Math.abs(b)>1e-4) terms.push(`${f(b,3)}\\,\\varphi_{${n}}\\sin ${ratio(n)}\\omega_1t`); }
+    $('final').innerHTML=`\\[\\Psi(x,t)=${terms.join('+').replace(/\+-/g,'-')||'0'}+\\dots\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0); return {ctx:c,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(c,pts,col,w=1.8,dash,alpha=1){ c.strokeStyle=col; c.lineWidth=w; c.setLineDash(dash||[]); c.globalAlpha=alpha; c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])); c.stroke(); c.setLineDash([]); c.globalAlpha=1; }
+function endFixed(c,x,cy,side){ c.fillStyle=C['line-2']; c.fillRect(side<0?x-10:x,cy-70,10,140); }
+function endFree(c,x,y,cy){ c.strokeStyle=C.muted; c.lineWidth=3; c.beginPath(); c.moveTo(x,cy-80); c.lineTo(x,cy+80); c.stroke(); c.fillStyle=C.panel; c.strokeStyle=C.fg; c.lineWidth=2; c.beginPath(); c.ellipse(x,y,7,5,0,0,7); c.fill(); c.stroke(); }
+function yScale(){ let m=0.5; for(let i=0;i<=100;i++){ const v=initial(i/100); m=Math.max(m,Math.abs(v[0])); } if(S.preset==='p9'){ let mm=0; for(let n=1;n<=P.N;n++) mm+=Math.hypot(S.A[n-1],S.B[n-1]); m=Math.max(0.2,mm); } return m*1.1; }
+function drawScene(){
+  const {ctx:c,w,h}=fit(scene); c.clearRect(0,0,w,h);
+  const x0=46,x1=w-46,cy=h/2+6, ym=yScale(), A=(h*0.36)/ym, X=x=>x0+x*(x1-x0); SX={x0,x1,cy,A};
+  c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(x0,cy); c.lineTo(x1,cy); c.stroke();
+  const leftFree=S.bc==='lf', rightFree=S.bc==='fl';
+  // forma inicial
+  const ini=[]; for(let i=0;i<=NX;i++){ const x=i/NX; ini.push([X(x),cy-A*initial(x)[0]]); } line(c,ini,C.init,1.2,[4,4],.7);
+  if(S.preset==='draw'&&drawing){ line(c,ini,C.str,2.4); return; }
+  if($('comp').checked){ const cols=[C.An,C.Bn,C.crit,C.x,C.zero]; let k=0; for(let n=1;n<=Math.min(P.N,40)&&k<5;n++){ const a=S.A[n-1],b=S.B[n-1]; if(Math.hypot(a,b)<0.02*maxCoef()) continue; const r=ratio(n), pts=[]; for(let i=0;i<=200;i++){ const x=i/200; pts.push([X(x),cy-A*phi(n,x)*(a*Math.cos(r*S.tau)+b*Math.sin(r*S.tau))]); } line(c,pts,cols[k%5],1.2,null,.6); k++; } }
+  const pts=[]; for(let i=0;i<=NX;i++){ const x=i/NX; pts.push([X(x),cy-A*psi(x,S.tau)]); } line(c,pts,C.str,2.6);
+  if(leftFree) endFree(c,x0,cy-A*psi(0,S.tau),cy); else endFixed(c,x0,cy,-1);
+  if(rightFree) endFree(c,x1,cy-A*psi(1,S.tau),cy); else endFixed(c,x1,cy,1);
+  c.fillStyle=C.faint; c.font=`11px ${css('--font-num')}`; c.textAlign='center'; c.textBaseline='top'; [[0,'0'],[0.25,'L/4'],[0.5,'L/2'],[1,'L']].forEach(([x,l])=>c.fillText(l,X(x),h-18));
+  c.textAlign='left'; c.textBaseline='top'; c.fillText(S.preset==='p9'?'Φ en unidades de V₀/ω₁ · gris: forma inicial (plana)':'gris: forma inicial',x0,10);
+}
+function drawCoef(){
+  const {ctx:c,w,h}=fit($('pc')); c.clearRect(0,0,w,h);
+  const Nn=Math.min(P.N,30), L0=46,R=12,T=30,B=26,pw=w-L0-R,ph=h-T-B, m=maxCoef(), Y=v=>T+ph/2-v/m*ph*0.46, bw=pw/Nn;
+  c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(L0,Y(0)); c.lineTo(L0+pw,Y(0)); c.stroke();
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle'; [m,0,-m].forEach(v=>c.fillText(f(v,2),L0-6,Y(v)));
+  for(let n=1;n<=Nn;n++){ const a=S.A[n-1], b=S.B[n-1], x=L0+(n-1)*bw, zero=Math.hypot(a,b)<0.01*m;
+    if(Math.abs(b)>1e-6){ c.fillStyle=C.Bn; c.fillRect(x+bw*0.52,Math.min(Y(0),Y(b)),bw*0.36,Math.abs(Y(b)-Y(0))); c.fillStyle=C.An; c.fillRect(x+bw*0.12,Math.min(Y(0),Y(a)),bw*0.36,Math.abs(Y(a)-Y(0))); }
+    else { c.fillStyle=C.An; c.fillRect(x+bw*0.15,Math.min(Y(0),Y(a)),bw*0.7,Math.abs(Y(a)-Y(0))); }
+    if(zero){ c.fillStyle=C.zero; c.beginPath(); c.arc(x+bw/2,Y(0),2.2,0,7); c.fill(); }
+    if(Nn<=30&&(n<=10||n%5===0)){ c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; c.fillText(n,x+bw/2,T+ph+4); } }
+  c.fillStyle=C.faint; c.textAlign='left'; c.textBaseline='top'; c.fillText('n →',L0,T+ph+14);
+}
+function drawSnap(){
+  const {ctx:c,w,h}=fit($('ps')); c.clearRect(0,0,w,h);
+  const L0=46,R=14,T=26,B=24,pw=w-L0-R,ph=h-T-B, ym=yScale(), X=x=>L0+x*pw, Y=v=>T+ph/2-v/ym*ph*0.48;
+  c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(L0,Y(0)); c.lineTo(L0+pw,Y(0)); c.stroke();
+  const times={p7:[[0,'0'],[PI/5,'π/5'],[PI/3,'π/3'],[PI/2,'π/2']],p8:[[0,'0'],[PI,'π'],[2*PI,'2π']]}[S.preset]||[[0,'0'],[PI/4,'π/4'],[PI/2,'π/2'],[3*PI/4,'3π/4'],[PI,'π']];
+  const cols=[C.fg,C.An,C.Bn,C.crit,C.zero];
+  times.slice().reverse().forEach(([tau,l],jj)=>{ const j=times.length-1-jj; const pts=[]; for(let i=0;i<=NX;i++){ const x=i/NX; pts.push([X(x),Y(psi(x,tau))]); } line(c,pts,cols[j%5],j===0?2.2:1.8,j===0?null:null,0.9); });
+  $('leg-s').innerHTML=times.map(([t,l],j)=>`<span><i style="border-color:${cols[j%5]}"></i>ω₁t = ${l}</span>`).join('');
+  $('cap-s').textContent= S.preset==='p7'?'P7 b): en π/5 y π/3 la forma cambia porque los modos 3 y 5 van más rápido que el fundamental; en π/2 los tres pasan por cero juntos.':S.preset==='p8'?'P8 b): en π la cuerda es la forma inicial invertida y en 2π vuelve a ser la inicial (todas las ωₙ son múltiplos impares de ω₁).':'Formas en varios instantes de medio período del fundamental.';
+}
+function draw(){ drawScene(); if(S.view==='coef') drawCoef(); else drawSnap(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running&&!drawing){ S.tau+=dt*0.9*S.speed; if(S.tau>2*PI*50) S.tau-=2*PI*50; $('clock').textContent=`ω₁t = ${((S.tau%(2*PI))/PI).toFixed(2)} π`; } drawScene(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+project(); syncUI(); refresh();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

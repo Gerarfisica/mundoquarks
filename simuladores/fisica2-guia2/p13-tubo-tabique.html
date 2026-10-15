@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Tubo con tabique G2-P13</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --comp:#ff5c3a; --rare:#36d4ff; --psi:#34e08a; --four:#ffcf3a; --wall:#2b3644; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:250px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.sw input{accent-color:var(--sys);width:16px;height:16px}
+.scrub{display:flex;align-items:center;gap:8px;flex:1;min-width:220px}
+.scrub input{flex:1;accent-color:var(--sys)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Oscilaciones en sistemas continuos</span>
+  <h1>Tubo con tabique <i>· condiciones iniciales y Fourier</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-modos-cuerda.html"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a href="p2-cuerdas-notas.html"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a href="p4-tubos-sonoros.html"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a href="p7-fourier-cuerdas.html"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a href="p11-dos-tramos.html"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a href="p12-cuerda-amortiguada.html"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a href="p15-estacionarias-viajeras.html"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Tubo con gas a dos densidades separado por un tabique"></canvas>
+      <div class="clock num" id="clock">t = 0</div>
+      <div class="readout num">
+        <span><span class="k">v<sub>s</sub></span> <span id="ro-v">—</span></span>
+        <span><span class="k">período</span> <span id="ro-T">—</span></span>
+        <span><span class="k">λₙ</span> <span id="ro-l">—</span></span>
+        <span><span class="k">t</span> <span id="ro-t" style="color:var(--sys)">—</span></span>
+      </div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="mode">
+          <button class="chip" data-mode="p13" aria-pressed="true">P13 · cerrado – cerrado, ρ₀ ∓ Δ</button>
+          <button class="chip" data-mode="p14">P14 · cerrado – abierto, P₀ + Δp</button>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="play">Quitar el tabique</button>
+        <button class="btn" id="reset">Volver a poner</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="row" style="gap:14px">
+        <div class="scrub"><label class="lbl" for="scrub">t / período</label><input id="scrub" type="range" min="0" max="1" step="0.001" value="0"><span class="num" id="scrub-v">0,000</span></div>
+        <label class="sw"><input type="checkbox" id="four" checked> suma de Fourier</label>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="prof" aria-pressed="true">Perfiles</button>
+          <button data-view="map" aria-pressed="false">Mapa x – t</button>
+          <button data-view="coef" aria-pressed="false">Coeficientes</button>
+        </div>
+      </div>
+      <div data-vpanel="prof">
+        <div class="plot"><canvas id="ppr" style="height:320px"></canvas></div>
+        <div class="pcap" id="cap-prof"></div>
+      </div>
+      <div data-vpanel="map" hidden>
+        <div class="plot"><canvas id="pmp" style="height:320px"></canvas><div class="tag" id="tag-map">δρ(x,t) en un período</div></div>
+        <div class="pcap">Cada escalón inicial se parte en dos frentes de la mitad de altura que viajan a ±v<sub>s</sub>: son las rectas inclinadas. En una pared cerrada el frente rebota igual; en una boca abierta rebota invertido (la compresión vuelve como rarefacción).</div>
+      </div>
+      <div data-vpanel="coef" hidden>
+        <div class="plot"><canvas id="pcf" style="height:260px"></canvas><div class="tag" id="tag-coef">Coeficiente de cada modo</div></div>
+        <div class="pcap" id="cap-coef"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P13 y P14</summary>
+      <p><b>13.</b> Tubo de longitud L cerrado en ambos extremos, con un tabique en la mitad. De un lado hay gas de densidad ρ₀ − Δ y del otro ρ₀ + Δ (Δ ≪ ρ₀), todo en reposo. A t = 0 se quita el tabique. <b>a)</b> Escriba un modo normal Ψₙ(x,t) imponiendo las condiciones de contorno. ¿Qué longitudes de onda se permiten? <b>b)</b> Escriba ρ(x,0) y Ψ(x,0) y grafíquelas (sugerencia: Ψ(x,0) a partir de ρ(x,0) con las condiciones de contorno). <b>c)</b> Con las condiciones iniciales, halle Ψ(x,t) y ρ(x,t).</p>
+      <p><b>14.</b> Tubo dividido por un tabique: de un lado (largo L/3, cerrado) la presión es P₀ + Δp; el otro (largo 2L/3) está abierto a la atmósfera, a P₀. A t = 0 se quita el tabique. Halle δp(x,t), Ψ(x,t) y δρ(x,t). Datos: P₀, Δp ≪ P₀, L, γ, v<sub>s</sub>.</p>
+      <p class="src">Física 2 (Físicos), Guía 2.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>En el P13 sacás el tabique de golpe. El salto de densidad que había en el medio del tubo…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="difunde">se va suavizando de a poco, como una mezcla</button>
+          <button class="opt" data-ans="parte">se parte en dos saltos de la mitad que viajan en sentidos opuestos</button>
+          <button class="opt" data-ans="bloque">desaparece y todo el gas oscila en bloque</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: quitar el tabique y mirar el mapa</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">P13 paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> En el P13 faltan la mitad de los modos. ¿Cuáles y por qué? Mirá los coeficientes.<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> En el P13, encontrá con la barra de tiempo un instante en que la densidad es uniforme en todo el tubo. ¿Está el gas quieto en ese momento?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> En el P14, ¿cuándo llega la compresión a la boca abierta y qué vuelve de ahí?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta por d'Alembert (extensión de la condición inicial, par en una pared cerrada e impar en una boca abierta para la presión), comparada con la suma de los primeros N modos normales. Los desplazamientos de las partículas están muy exagerados y la animación va en cámara lenta. Colores: rojo compresión, celeste rarefacción, verde Ψ, amarillo la suma de Fourier.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--comp','--rare','--psi','--four','--wall','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+
+// ================= Parámetros =================
+// Unidades internas: x̂ = x/L ∈ [0,1], τ = v_s t / L. q = δρ/Δ (P13) o δp/Δp (P14); ψ = Ψ/(εL) con q = −∂ψ/∂x̂.
+const P={vs:340,L:1,a:1/3,N:15};
+const DEF=[
+  {id:'vs',lab:'v<sub>s</sub>',unit:'m/s',min:100,max:1000,step:1},
+  {id:'L',lab:'L',unit:'m',min:0.2,max:3,step:0.01},
+  {id:'a',lab:'tabique / L',unit:'',min:0.05,max:0.95,step:0.01,p14:true},
+  {id:'N',lab:'N modos',unit:'',min:1,max:60,step:1},
+];
+const S={mode:'p13',tau:0,running:false,released:false,speed:1,view:'prof',four:true,map:null,mapKey:''};
+const per=()=>S.mode==='p13'?2:4; // período en τ
+const a=()=>S.mode==='p13'?0.5:P.a;
+function q0(x){ return S.mode==='p13'? (x<0.5?-1:1) : (x<P.a?1:0); }
+function psi0(x){ return S.mode==='p13'? (x<0.5?x:1-x) : (x<P.a?-x:-P.a); }
+const md=(y,m)=>((y%m)+m)%m;
+// extensiones de d'Alembert
+function Qext(y){ if(S.mode==='p13'){ let u=md(y,2); if(u>1) u=2-u; return q0(u); }
+  const u=md(y,4); if(u<1) return q0(u); if(u<2) return -q0(2-u); if(u<3) return -q0(u-2); return q0(4-u); }
+function Pext(y){ if(S.mode==='p13'){ const u=md(y,2); return u<1? psi0(u) : -psi0(2-u); }
+  const u=md(y,4); if(u<1) return psi0(u); if(u<2) return psi0(2-u); if(u<3) return -psi0(u-2); return -psi0(4-u); }
+const qx=(x,t)=>0.5*(Qext(x-t)+Qext(x+t)), px=(x,t)=>0.5*(Pext(x-t)+Pext(x+t)), ux=(x,t)=>0.5*(Qext(x-t)-Qext(x+t));
+// modos
+const kn=n=>S.mode==='p13'? n*PI : (2*n-1)*PI/2;
+function An(n){ const k=kn(n); return S.mode==='p13'? 4*Math.sin(n*PI/2)/(n*n*PI*PI) : -2*Math.sin(k*P.a)/(k*k); }
+function qN(x,t){ let s=0; for(let n=1;n<=P.N;n++){ const k=kn(n); s+=-An(n)*k*Math.cos(k*x)*Math.cos(k*t); } return s; }
+function pN(x,t){ let s=0; for(let n=1;n<=P.N;n++){ const k=kn(n); s+=An(n)*Math.sin(k*x)*Math.cos(k*t); } return s; }
+const Treal=()=>per()*P.L/P.vs; // s
+function slow(){ return 6/Treal(); } // un período en ~6 s
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${+P[d.id].toFixed(3)}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelector('.param[data-id=a]').hidden=S.mode!=='p14'; }
+function setMode(m){ S.mode=m; document.querySelectorAll('#mode .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m)); resetT(); sync(); refresh(); }
+document.querySelectorAll('#mode .chip').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; if(S.running) S.released=true; playBtn.textContent=S.running?'Pausar':(S.released?'Reproducir':'Quitar el tabique'); }
+function resetT(){ S.tau=0; S.released=false; togglePlay(false); }
+playBtn.onclick=()=>togglePlay();
+$('reset').onclick=()=>resetT();
+$('scrub').addEventListener('input',e=>{ S.released=true; togglePlay(false); S.tau=(+e.target.value)*per(); });
+$('four').addEventListener('change',e=>{ S.four=e.target.checked; });
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); updateChal(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+function fmtT(s){ return s<0.1? (s*1000).toFixed(2)+' ms' : s.toFixed(3)+' s'; }
+function refresh(){
+  const p13=S.mode==='p13';
+  $('ro-v').textContent=`${P.vs.toFixed(0)} m/s`;
+  $('ro-T').textContent=`${p13?'2L':'4L'}/v<sub>s</sub> = ${fmtT(Treal())}`; $('ro-T').innerHTML=$('ro-T').textContent;
+  $('ro-l').textContent= p13? '2L/n (solo n impar)' : '4L/(2n−1)';
+  $('formula').innerHTML= p13
+    ? `<span class="k">Ψ(x,t) = </span>Σ<sub>n impar</sub> (4ΔL/ρ₀n²π²) sen(nπ/2) sen(nπx/L) cos(nπv<sub>s</sub>t/L)<span class="k">  ·  δρ = −ρ₀ ∂Ψ/∂x</span>`
+    : `<span class="k">δp(x,t) = </span>Σ (2Δp/L) sen(kₙa)/kₙ · cos(kₙx) cos(kₙv<sub>s</sub>t)<span class="k">  ·  kₙ = (2n−1)π/2L, a = ${fc(P.a)} L  ·  δρ = δp/v<sub>s</sub>²</span>`;
+  $('tag-coef').textContent= p13? 'Coeficiente de cada modo en δρ(x,0)/Δ: −(4/nπ) sen(nπ/2)' : 'Coeficiente de cada modo en δp(x,0)/Δp: 2 sen(kₙa)/kₙL';
+  $('tag-map').textContent= p13? 'δρ(x,t)/Δ en un período' : 'δp(x,t)/Δp en un período';
+  $('cap-prof').innerHTML= p13
+    ? 'Arriba δρ/Δ, abajo Ψ en unidades de ΔL/ρ₀. La densidad es menos la pendiente de Ψ: donde Ψ sube hay rarefacción, donde baja hay compresión. Ψ(x,0) es un triángulo: el gas liviano está "estirado" hacia la derecha respecto del equilibrio final.'
+    : 'Arriba δp/Δp, abajo Ψ en unidades de ΔpL/γP₀. En la boca abierta la presión queda fija en P₀ (δp = 0) y el desplazamiento es libre; en la pared cerrada es al revés.';
+  $('cap-coef').innerHTML= p13
+    ? 'Ψ(x,0) es simétrica respecto de L/2 y los modos con n par son antisimétricos: no se excitan. En δρ los impares bajan como 1/n (la densidad tiene un salto) y alternan signo; en Ψ bajan como 1/n², porque Ψ es continua y solo tiene un pico.'
+    : 'Solo hay modos de cuarto de onda: λₙ = 4L/(2n−1). En δp el coeficiente es 2 sen(kₙa)/(kₙL) (en Ψ, ∝ sen(kₙa)/kₙ²). Un modo no se excita si el tabique cae justo en un nodo de su desplazamiento (sen kₙa = 0). Con a = L/3 no pasa con ninguno; probá a = 0,67 (se apaga n = 2) o a = 0,40 (se apaga n = 3).';
+  S.mapKey=''; renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setMode('p13'); setView('map'); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=parte]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='parte'?'<b>Bien.</b> ':'<b>Mirá el mapa.</b> ')+'La ecuación de ondas no difunde: toda forma se escribe como f(x − v<sub>s</sub>t) + g(x + v<sub>s</sub>t). Con el gas en reposo, f = g = ½ δρ(x,0), así que el salto de 2Δ se parte en dos saltos de Δ que viajan a ±v<sub>s</sub>, rebotan en las paredes y se vuelven a juntar a t = 2L/v<sub>s</sub>. La serie de Fourier dice lo mismo, pero sumando infinitos modos estacionarios.';
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const p13=S.mode==='p13', ph=md(S.tau,per())/per();
+  const ok1=p13&&S.view==='coef';
+  $('c1').textContent= ok1? 'Logrado: A₂ = A₄ = … = 0. Ψ(x,0) es simétrica respecto de L/2 (el triángulo) y sen(nπx/L) con n par es antisimétrica respecto del centro: la integral se anula. Es el mismo argumento que el P10.' : (p13?'Pasá a la vista Coeficientes':'Elegí el P13');
+  $('c1').classList.toggle('done',ok1);
+  const ok2=p13&&S.released&&!S.running&&(Math.abs(ph-0.25)<0.012||Math.abs(ph-0.75)<0.012);
+  const umax=Math.max(...[0.1,0.3,0.5,0.7,0.9].map(x=>Math.abs(ux(x,S.tau))));
+  $('c2').textContent= ok2? `Logrado: t = ${ph<0.5?'T/4':'3T/4'} = ${fmtT(ph*Treal())}. Los frentes llegaron a las paredes y δρ = 0 en todo el tubo, pero el gas no está quieto: se mueve en bloque con velocidad |u| = ${umax.toFixed(2)} Δv<sub>s</sub>/ρ₀. La energía es toda cinética.`.replace(/<\/?sub>/g,'') : (p13?`Ahora t = ${fc(ph,3)} período (pausá y mové la barra)`:'Elegí el P13');
+  $('c2').classList.toggle('done',ok2);
+  const tArr=1-P.a, ok3=!p13&&S.released&&S.tau>tArr+0.05&&S.tau<per();
+  $('c3').textContent= ok3? `Logrado: el frente de compresión (altura Δp/2) llega a x = L en t = (L − a)/v_s = ${fmtT(tArr*P.L/P.vs)}. En la boca la presión no puede cambiar (δp = 0), así que se refleja invertido: vuelve una rarefacción de −Δp/2 hacia la pared.` : (p13?'Elegí el P14':`Llega en t = (L − a)/v_s; seguí la animación un poco más`);
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps, fin;
+    if(S.mode==='p13'){
+      $('cu-title').textContent='P13 paso a paso';
+      steps=[
+        ['a) Paredes cerradas: el gas no las atraviesa, Ψ = 0 en x = 0 y x = L', `\\[\\Psi_n=\\sin\\frac{n\\pi x}{L}\\,\\big(A_n\\cos\\omega_nt+B_n\\sin\\omega_nt\\big),\\quad \\lambda_n=\\frac{2L}n,\\quad \\omega_n=\\frac{n\\pi v_s}{L}\\]`],
+        ['b) Conservación de la masa: la densidad cambia donde el desplazamiento se estira o se comprime', `\\[\\delta\\rho=-\\rho_0\\,\\frac{\\partial\\Psi}{\\partial x}\\ \\Rightarrow\\ \\frac{\\partial\\Psi}{\\partial x}(x,0)=\\begin{cases}+\\Delta/\\rho_0 & x<L/2\\\\ -\\Delta/\\rho_0 & x>L/2\\end{cases}\\]`],
+        ['Integrando desde Ψ(0,0) = 0. Ψ(L,0) = 0 sale sola: la masa total no cambia', `\\[\\Psi(x,0)=\\frac{\\Delta}{\\rho_0}\\begin{cases}x & x<L/2\\\\ L-x & x>L/2\\end{cases}\\]`],
+        ['c) Gas en reposo: Bₙ = 0. Proyectando el triángulo sobre cada modo', `\\[A_n=\\frac2L\\int_0^L\\Psi(x,0)\\sin\\frac{n\\pi x}L\\,dx=\\frac{4\\Delta L}{\\rho_0\\,n^2\\pi^2}\\,\\sin\\frac{n\\pi}2\\quad(\\text{cero para }n\\text{ par})\\]`],
+      ];
+      fin=`\\[\\Psi=\\frac{4\\Delta L}{\\rho_0\\pi^2}\\sum_{n\\,\\text{impar}}\\frac{(-1)^{\\frac{n-1}2}}{n^2}\\sin\\frac{n\\pi x}L\\cos\\frac{n\\pi v_st}L,\\qquad \\rho=\\rho_0-\\frac{4\\Delta}{\\pi}\\sum_{n\\,\\text{impar}}\\frac{(-1)^{\\frac{n-1}2}}{n}\\cos\\frac{n\\pi x}L\\cos\\frac{n\\pi v_st}L\\]`;
+    } else {
+      $('cu-title').textContent='P14 paso a paso';
+      steps=[
+        ['Pared cerrada en x = 0 (Ψ = 0) y boca abierta en x = L, donde la presión es la atmosférica (δp = 0 ⇒ ∂Ψ/∂x = 0)', `\\[\\Psi_n=\\sin k_nx\\,\\cos(\\omega_nt+\\varphi_n),\\quad k_n=\\frac{(2n-1)\\pi}{2L},\\quad \\lambda_n=\\frac{4L}{2n-1}\\]`],
+        ['Gas adiabático: la presión responde a la compresión', `\\[\\delta p=-\\gamma P_0\\frac{\\partial\\Psi}{\\partial x}=-\\rho_0v_s^2\\frac{\\partial\\Psi}{\\partial x},\\qquad \\delta\\rho=\\frac{\\delta p}{v_s^2}\\]`],
+        [`Condición inicial con el tabique en a = ${fc(P.a)} L, integrando desde Ψ(0,0) = 0`, `\\[\\Psi(x,0)=-\\frac{\\Delta p}{\\gamma P_0}\\begin{cases}x & x<a\\\\ a & x>a\\end{cases},\\qquad \\dot\\Psi(x,0)=0\\]`],
+        ['Proyección sobre cada modo', `\\[A_n=\\frac2L\\int_0^L\\Psi(x,0)\\sin k_nx\\,dx=-\\frac{2\\Delta p}{\\gamma P_0L}\\,\\frac{\\sin k_na}{k_n^2}\\]`],
+      ];
+      fin=`\\[\\delta p(x,t)=\\frac{2\\Delta p}{L}\\sum_{n\\ge1}\\frac{\\sin k_na}{k_n}\\cos k_nx\\,\\cos(k_nv_st),\\qquad \\Psi=\\sum_nA_n\\sin k_nx\\cos(k_nv_st)\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join('');
+    $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function drawScene(){
+  const {ctx:c,w,h}=fit($('scene')); c.clearRect(0,0,w,h);
+  const p13=S.mode==='p13', x0=40, x1=w-(p13?40:70), cy=h/2+2, th=Math.min(96,h*0.42), X=x=>x0+x*(x1-x0), t=S.tau;
+  const N=Math.max(30,Math.round((x1-x0)/6));
+  for(let i=0;i<N;i++){ const x=(i+0.5)/N, d=qx(x,t); if(d===0) continue; c.fillStyle=d>0?C.comp:C.rare; c.globalAlpha=Math.min(0.5,Math.abs(d)*0.5); c.fillRect(X(i/N),cy-th/2,(x1-x0)/N+0.5,th); }
+  c.globalAlpha=1;
+  const dxp=(x1-x0)/N, K=dxp*1.6/(p13?0.5:Math.max(P.a,0.2)), rows=8;
+  for(let i=0;i<=N;i++){ const xe=i/N, dsp=px(xe,t)*K; for(let j=0;j<rows;j++){ const y=cy-th/2+th*(j+0.5)/rows+((i*7+j*3)%5-2)*1.2; c.fillStyle=C.fg; c.globalAlpha=0.75; c.beginPath(); c.arc(X(xe)+dsp,y,1.6,0,7); c.fill(); } }
+  c.globalAlpha=1;
+  c.strokeStyle=C.muted; c.lineWidth=3; c.beginPath(); c.moveTo(x0,cy-th/2-2); c.lineTo(x1,cy-th/2-2); c.moveTo(x0,cy+th/2+2); c.lineTo(x1,cy+th/2+2); c.stroke();
+  c.fillStyle=C['line-2']; c.fillRect(x0-8,cy-th/2-4,8,th+8); if(p13) c.fillRect(x1,cy-th/2-4,8,th+8);
+  // tabique
+  if(!S.released){ c.fillStyle=C.muted; c.fillRect(X(a())-3,cy-th/2-6,6,th+12); }
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top';
+  [[0,'0'],[a(),p13?'L/2':'a'],[1,'L']].forEach(([x,l])=>c.fillText(l,X(x),cy+th/2+10));
+  c.textBaseline='bottom'; c.font=`600 12px ${css('--font-ui')}`;
+  if(p13){ c.fillStyle=C.rare; c.fillText('ρ₀ − Δ',X(0.25),cy-th/2-10); c.fillStyle=C.comp; c.fillText('ρ₀ + Δ',X(0.75),cy-th/2-10); }
+  else { c.fillStyle=C.comp; c.fillText('P₀ + Δp',X(P.a/2),cy-th/2-10); c.fillStyle=C.muted; c.fillText('P₀',X((1+P.a)/2),cy-th/2-10); c.textAlign='center'; c.textBaseline='middle'; c.fillText('atmósfera',x1+34,cy-8); c.fillText('P₀',x1+34,cy+8); }
+}
+function drawProf(){
+  const {ctx:c,w,h}=fit($('ppr')); c.clearRect(0,0,w,h);
+  const p13=S.mode==='p13', L0=52,R=14,gap=26,T1=26,ph=(h-T1-gap-24-22)/2, pw=w-L0-R, T2=T1+ph+gap+22, t=S.tau;
+  const X=x=>L0+x*pw;
+  const panels=[[T1,1.25,(x,tt)=>qx(x,tt),(x,tt)=>qN(x,tt),p13?'δρ / Δ':'δp / Δp',q0],[T2,p13?0.62:Math.max(P.a,0.15)*1.25,(x,tt)=>px(x,tt),(x,tt)=>pN(x,tt),p13?'Ψ / (ΔL/ρ₀)':'Ψ / (ΔpL/γP₀)',psi0]];
+  c.font=`11px ${css('--font-num')}`;
+  panels.forEach(([T,M,ex,fs,lab,init],pi)=>{
+    const Y=v=>T+(M-v)/(2*M)*ph;
+    c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+    const tk=pi===0?[-1,0,1]:[-M/1.25,0,M/1.25];
+    tk.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(fc(v,pi?2:0),L0-6,Y(v)); });
+    c.textAlign='left'; c.textBaseline='bottom'; c.font=`600 12px ${css('--font-ui')}`; c.fillStyle=pi?C.psi:C.comp; c.fillText(lab,L0,T-6); c.font=`11px ${css('--font-num')}`;
+    const M2=400, ini=[],cur=[],fo=[];
+    for(let i=0;i<=M2;i++){ const x=Math.min(1-2e-4,Math.max(2e-4,i/M2)); ini.push([X(x),Y(init(x))]); cur.push([X(x),Y(ex(x,t))]); if(S.four) fo.push([X(x),Y(Math.max(-M,Math.min(M,fs(x,t))))]); }
+    line(c,ini,C.faint,1.2,[4,4]);
+    if(pi===0){ // relleno compresión / rarefacción
+      for(let i=0;i<M2;i++){ const x=(i+0.5)/M2, v=ex(x,t); if(Math.abs(v)<1e-9) continue; c.fillStyle=v>0?C.comp:C.rare; c.globalAlpha=0.18; const y0=Y(0), y1=Y(v); c.fillRect(X(i/M2),Math.min(y0,y1),pw/M2+0.5,Math.abs(y1-y0)); } c.globalAlpha=1;
+    }
+    line(c,cur,pi?C.psi:C.fg,2.2);
+    if(S.four) line(c,fo,C.four,1.3,null,0.9);
+  });
+  c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; [[0,'0'],[a(),p13?'L/2':'a'],[1,'L']].forEach(([x,l])=>c.fillText(l,X(x),T2+ph+4));
+  c.textAlign='right'; c.textBaseline='bottom'; c.font=`11px ${css('--font-num')}`;
+  let lx=L0+pw; const leg=[['inicial',C.faint],['exacta',C.fg]]; if(S.four) leg.push([`${P.N} modos`,C.four]);
+  leg.reverse().forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,lx,T1-6); lx-=c.measureText(s).width+14; });
+}
+function buildMap(W,H){
+  const key=`${S.mode}|${P.a}|${W}|${H}`; if(S.mapKey===key&&S.map) return S.map;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d'), im=g.createImageData(W,H);
+  const hex=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16)), cc=hex(C.comp), cr=hex(C.rare), bg=hex(C.panel);
+  for(let j=0;j<H;j++){ const t=per()*(H-1-j)/(H-1); for(let i=0;i<W;i++){ const v=qx((i+0.5)/W,t), col=v>0?cc:cr, s=Math.min(1,Math.abs(v)); const o=4*(j*W+i); for(let k=0;k<3;k++) im.data[o+k]=bg[k]+(col[k]-bg[k])*s*0.85; im.data[o+3]=255; } }
+  g.putImageData(im,0,0); S.map=cv; S.mapKey=key; return cv;
+}
+function drawMap(){
+  const {ctx:c,w,h}=fit($('pmp')); c.clearRect(0,0,w,h);
+  const L0=58,R=14,T=30,B=28,pw=w-L0-R,ph=h-T-B;
+  const m=buildMap(240,200); c.imageSmoothingEnabled=false; c.drawImage(m,L0,T,pw,ph);
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top';
+  [[0,'0'],[a(),S.mode==='p13'?'L/2':'a'],[1,'L']].forEach(([x,l])=>c.fillText(l,L0+x*pw,T+ph+4));
+  c.textAlign='right'; c.textBaseline='middle'; const lab=S.mode==='p13'?['0','L/2v','L/v','3L/2v','2L/v']:['0','L/v','2L/v','3L/v','4L/v'];
+  lab.forEach((l,i)=>c.fillText(l,L0-6,T+ph-ph*i/4));
+  c.save(); c.translate(12,T+ph/2); c.rotate(-PI/2); c.textAlign='center'; c.fillText('t',0,0); c.restore();
+  const yy=T+ph-ph*md(S.tau,per())/per(); c.strokeStyle=C.fg; c.lineWidth=1.2; c.setLineDash([4,3]); c.beginPath(); c.moveTo(L0,yy); c.lineTo(L0+pw,yy); c.stroke(); c.setLineDash([]);
+}
+function drawCoef(){
+  const {ctx:c,w,h}=fit($('pcf')); c.clearRect(0,0,w,h);
+  const L0=48,R=14,T=34,B=40,pw=w-L0-R,ph=h-T-B, NB=16; const A=[...Array(NB)].map((_,i)=>-An(i+1)*kn(i+1)), M=Math.max(...A.map(Math.abs))*1.12;
+  const Y=v=>T+ph/2-v/M*ph/2, bw=pw/NB;
+  c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(L0,Y(0)); c.lineTo(L0+pw,Y(0)); c.stroke();
+  c.font=`11px ${css('--font-num')}`;
+  A.forEach((v,i)=>{ const x=L0+i*bw+bw*0.2, inN=i<P.N; c.fillStyle=Math.abs(v)<1e-9*M?C.faint:(v>0?C.psi:C.four); c.globalAlpha=inN?1:0.35; c.fillRect(x,Math.min(Y(0),Y(v)),bw*0.6,Math.max(1,Math.abs(Y(v)-Y(0)))); c.globalAlpha=1;
+    c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; c.fillText(i+1,x+bw*0.3,T+ph+4);
+    if(Math.abs(v)<1e-9*M){ c.fillStyle=C.comp; c.fillText('0',x+bw*0.3,Y(0)-14); } });
+  c.fillStyle=C.faint; c.textAlign='right'; c.fillText('n',L0+pw,T+ph+18);
+}
+function draw(){ drawScene(); if(S.view==='prof') drawProf(); else if(S.view==='map') drawMap(); else drawCoef(); }
+
+// ================= Bucle =================
+let lastT=performance.now(), lastChal=0;
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  if(S.running) S.tau+=dt*S.speed*per()/6;
+  const ph=md(S.tau,per())/per(); $('scrub').value=ph; $('scrub-v').textContent=fc(ph,3);
+  $('clock').textContent= S.released? `t = ${fmtT(S.tau*P.L/P.vs)} · cámara lenta ×${Math.round(1/(Treal()/6))}` : 'tabique puesto';
+  $('ro-t').textContent=`${fc(S.tau/per(),3)} período`;
+  if(now-lastChal>200){ updateChal(); lastChal=now; }
+  draw(); requestAnimationFrame(loop); }
+sync(); refresh(); togglePlay(false);
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

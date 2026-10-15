@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Estacionarias y viajeras G2-P15</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --sum:#e3e9ef; --w1:#ff7ad9; --w2:#34e08a; --node:#ff5c3a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:290px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap;display:flex;flex-direction:column;gap:2px}
+.formula .k{color:var(--muted)}
+.nrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbtn{min-width:34px;border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:5px 0;font-family:var(--font-num);font-size:13px;cursor:pointer;color:var(--muted)}
+.nbtn[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.1)}
+.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.sw input{width:16px;height:16px}
+.scrub{display:flex;align-items:center;gap:8px;flex:1;min-width:220px}
+.scrub input{flex:1;accent-color:var(--sys)}
+.c1{color:var(--w1)} .c2{color:var(--w2)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Oscilaciones en sistemas continuos</span>
+  <h1>Estacionarias y viajeras <i>· Ψ = Ψ₁(x − vt) + Ψ₂(x + vt)</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-modos-cuerda.html"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a href="p2-cuerdas-notas.html"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a href="p4-tubos-sonoros.html"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a href="p7-fourier-cuerdas.html"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a href="p11-dos-tramos.html"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a href="p12-cuerda-amortiguada.html"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a href="p13-tubo-tabique.html"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Onda estacionaria en una cuerda y las dos ondas viajeras que la forman"></canvas>
+      <div class="clock num" id="clock">t = 0</div>
+      <div class="readout num">
+        <span><span class="k">λ</span> <span id="ro-l">—</span></span>
+        <span><span class="k">k</span> <span id="ro-k">—</span></span>
+        <span><span class="k">ω</span> <span id="ro-w">—</span></span>
+        <span><span class="k">ν</span> <span id="ro-nu" style="color:var(--sys)">—</span></span>
+        <span><span class="k" id="ro-pk">Ψ(L/2,t)</span> <span id="ro-p">—</span></span>
+      </div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="mode">
+          <button class="chip" data-mode="p15" aria-pressed="true">P15 · fijo – fijo, Ψ(x,0) = 0</button>
+          <button class="chip" data-mode="p16">P16 · fijo – libre, Ψ(x,0) máximo</button>
+        </div>
+      </div>
+      <div class="row" style="gap:14px">
+        <div><div class="lbl" style="margin-bottom:6px">Modo n</div><div class="nrow" id="nrow"></div></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-left:auto">
+          <label class="sw c1"><input type="checkbox" id="s1" checked style="accent-color:var(--w1)"> Ψ₁ → derecha</label>
+          <label class="sw c2"><input type="checkbox" id="s2" checked style="accent-color:var(--w2)"> Ψ₂ ← izquierda</label>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+        <div class="scrub"><label class="lbl" for="scrub">t / T</label><input id="scrub" type="range" min="0" max="1" step="0.001" value="0"><span class="num" id="scrub-v">0,000</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="prof" aria-pressed="true">Perfil en mm</button>
+          <button data-view="map" aria-pressed="false">Mapa x – t</button>
+        </div>
+      </div>
+      <div data-vpanel="prof">
+        <div class="plot"><canvas id="ppr" style="height:260px"></canvas></div>
+        <div class="pcap">Las dos viajeras tienen la mitad de la amplitud de la estacionaria. En los nodos se cancelan siempre; en los vientres se suman cuando sus crestas pasan juntas, dos veces por período.</div>
+      </div>
+      <div data-vpanel="map" hidden>
+        <div class="plot"><canvas id="pmp" style="height:300px"></canvas><div class="tag">Ψ(x,t) en dos períodos, con las crestas de cada viajera</div></div>
+        <div class="pcap">La estacionaria es un tablero: franjas verticales fijas (nodos) que cambian de signo cada medio período. Las crestas de Ψ₁ son rectas que suben hacia la derecha con pendiente v, las de Ψ₂ hacia la izquierda: donde se cruzan está un vientre en su máximo.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P15 y P16</summary>
+      <p><b>15.</b> Cuerda de L = 0,6 m, fija en sus dos extremos, oscilando en el modo de la figura (una longitud de onda y media); v = 80 m/s. <b>a)</b> Escriba Ψ(x,t) sabiendo que a t = 0 la elongación de todos los puntos es nula, que la amplitud total máxima es 8 mm y que Ψ̇(L/2,0) &gt; 0. <b>b)</b> Halle Ψ₁(x − vt) y Ψ₂(x + vt) tales que Ψ = Ψ₁ + Ψ₂.</p>
+      <p><b>16.</b> Cuerda de L = 1 m con un extremo fijo y otro libre, en el modo de la figura (cinco cuartos de onda); v = 80 m/s. A t = 0 el desplazamiento es el máximo posible, con Ψ(L,0) &gt; 0; amplitud total máxima 8 mm. <b>a)</b> Resuelva lo mismo que en el 15. <b>b)</b> Repita para un modo arbitrario n.</p>
+      <p class="src">Física 2 (Físicos), Guía 2.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>La "amplitud total máxima" de la estacionaria es 8 mm: la distancia entre la cresta más alta y el valle más bajo de un vientre. ¿Qué amplitud tiene cada una de las dos viajeras?</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="8">8 mm</button>
+          <button class="opt" data-ans="4">4 mm</button>
+          <button class="opt" data-ans="2">2 mm</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: congelar cuando las crestas coinciden</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">P15 paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> En el P15, elegí un modo par. ¿Sigue alcanzando la condición Ψ̇(L/2,0) &gt; 0 para fijar el signo?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P16 b: recorré varios n. ¿Cómo depende de n el signo de la amplitud para que Ψ(L,0) &gt; 0?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Pausá y mirá los extremos. En el fijo, ¿cómo son Ψ₁ y Ψ₂ entre sí? ¿Y en el libre?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta: Ψ = A sen(kx)·sen(ωt) (P15) o A sen(kx)·cos(ωt) (P16), descompuesta con las identidades de producto a suma. Las viajeras se dibujan también fuera de la cuerda (más tenues) para que se vea que son ondas infinitas que viajan; solo su suma dentro de [0, L] es la cuerda real. Cámara lenta: un período se ve en unos 2,5 s. Colores: rosa Ψ₁ hacia la derecha, verde Ψ₂ hacia la izquierda, blanco la suma, rojo los nodos.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--sum','--w1','--w2','--node','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+
+// ================= Parámetros =================
+const P={L:0.6,v:80,pp:8};
+const DEF=[
+  {id:'L',lab:'L',unit:'m',min:0.1,max:2,step:0.01},
+  {id:'v',lab:'v',unit:'m/s',min:10,max:400,step:1},
+  {id:'pp',lab:'amplitud total',unit:'mm',min:1,max:20,step:0.5},
+];
+const PRE={p15:{L:0.6,v:80,pp:8,n:3},p16:{L:1,v:80,pp:8,n:3}};
+const S={mode:'p15',n:3,tau:0,running:true,speed:1,view:'prof',s1:true,s2:true};
+const ff=()=>S.mode==='p15';
+const kOf=()=>ff()? S.n*PI/P.L : (2*S.n-1)*PI/(2*P.L);
+const wOf=()=>kOf()*P.v, Tper=()=>2*PI/wOf();
+function amp(){ const Am=P.pp/2; if(ff()){ const s=Math.sin(S.n*PI/2); return Math.abs(s)<1e-9? Am : Am*Math.sign(s); } return Am*(S.n%2?1:-1); }
+const ambiguous=()=>ff()&&S.n%2===0;
+const tPhys=()=>S.tau*Tper();
+// Ψ, Ψ1, Ψ2 en mm
+function psi(x,t=tPhys()){ const k=kOf(), w=wOf(), A=amp(); return ff()? A*Math.sin(k*x)*Math.sin(w*t) : A*Math.sin(k*x)*Math.cos(w*t); }
+function psi1(x,t=tPhys()){ const k=kOf(), A=amp(); return ff()? A/2*Math.cos(k*(x-P.v*t)) : A/2*Math.sin(k*(x-P.v*t)); }
+function psi2(x,t=tPhys()){ const k=kOf(), A=amp(); return ff()? -A/2*Math.cos(k*(x+P.v*t)) : A/2*Math.sin(k*(x+P.v*t)); }
+// posición de una cresta de cada viajera a t = 0 (fase donde vale +|A|/2)
+function crest0(fn){ const lam=2*PI/kOf(); let best=0,bv=-1e9; for(let i=0;i<400;i++){ const x=lam*i/400, v=fn(x,0); if(v>bv){bv=v;best=x;} } return best; }
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param';
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); }
+function buildN(){ const el=$('nrow'); el.innerHTML=''; for(let n=1;n<=6;n++){ const b=document.createElement('button'); b.className='nbtn'; b.textContent=n; b.setAttribute('aria-pressed',n===S.n); b.onclick=()=>{ S.n=n; S.tau=0; buildN(); refresh(); }; el.appendChild(b); } }
+function setMode(m){ S.mode=m; const p=PRE[m]; P.L=p.L; P.v=p.v; P.pp=p.pp; S.n=p.n; S.tau=0; document.querySelectorAll('#mode .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m)); sync(); buildN(); refresh(); }
+document.querySelectorAll('#mode .chip').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$('s1').addEventListener('change',e=>S.s1=e.target.checked); $('s2').addEventListener('change',e=>S.s2=e.target.checked);
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('scrub').addEventListener('input',e=>{ togglePlay(false); S.tau=+e.target.value; updateChal(); });
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+function kTxt(){ const q=kOf()/PI; if(Math.abs(q-Math.round(q))<1e-6) return `${Math.round(q)===1?'':Math.round(q)}π`; const q2=2*q; if(Math.abs(q2-Math.round(q2))<1e-6) return `${Math.round(q2)===1?'':Math.round(q2)}π/2`; return `${fc(q,3)}π`; }
+function wTxt(){ const q=wOf()/PI; return Math.abs(q-Math.round(q))<1e-6? `${Math.round(q)}π` : `${fc(q,1)}π`; }
+function refresh(){
+  const k=kOf(), w=wOf(), A=amp();
+  $('ro-l').textContent=`${fc(2*PI/k,3)} m`;
+  $('ro-k').textContent=`${kTxt()} rad/m`;
+  $('ro-w').textContent=`${wTxt()} rad/s`;
+  $('ro-nu').textContent=`${fc(w/(2*PI),1)} Hz`;
+  $('ro-pk').textContent= ff()? 'Ψ(L/2,t)' : 'Ψ(L,t)';
+  const s=A<0?'−':'', a=fc(Math.abs(A),2), h=fc(Math.abs(A)/2,2);
+  if(ff()) $('formula').innerHTML=`<span><span class="k">Ψ = </span>${s}${a} mm · sen(${kTxt()} x) · sen(${wTxt()} t)</span><span><span class="k">   = </span><span class="c1">${A<0?'−':''}${h} cos(${kTxt()}(x − ${P.v}t))</span> <span class="c2">${A<0?'+':'−'} ${h} cos(${kTxt()}(x + ${P.v}t))</span><span class="k">  mm</span></span>`;
+  else $('formula').innerHTML=`<span><span class="k">Ψ = </span>${s}${a} mm · sen(${kTxt()} x) · cos(${wTxt()} t)</span><span><span class="k">   = </span><span class="c1">${A<0?'−':''}${h} sen(${kTxt()}(x − ${P.v}t))</span> <span class="c2">${A<0?'−':'+'} ${h} sen(${kTxt()}(x + ${P.v}t))</span><span class="k">  mm</span></span>`;
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setMode('p15'); setView('prof'); S.tau=0.25; togglePlay(false); $('s1').checked=$('s2').checked=S.s1=S.s2=true;
+  document.querySelector('#pred-opts [data-ans="2"]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='2'?'<b>Bien.</b> ':'<b>Mirá el perfil congelado en t = T/4.</b> ')+'"Amplitud total máxima" es pico a pico: 8 mm = 2A, así que la estacionaria tiene A = 4 mm. Y sen a·sen b = ½[cos(a − b) − cos(a + b)]: cada viajera lleva la mitad, 2 mm. En t = T/4 sus crestas coinciden sobre los vientres y se suman 2 + 2 = 4 mm; en t = 0 están en contrafase y la cuerda queda plana.';
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=ff()&&S.n%2===0;
+  $('c1').textContent= ok1? `Logrado: con n = ${S.n}, x = L/2 es un nodo: Ψ̇(L/2,0) = 0 para cualquier A, así que la condición no fija el signo. Habría que pedirla en otro punto, por ejemplo un vientre (x = L/2n).` : (ff()?'Elegí n = 2, 4 o 6':'Elegí el P15');
+  $('c1').classList.toggle('done',ok1);
+  if(!window.__v16) window.__v16=new Set(); if(!ff()) window.__v16.add(S.n);
+  const ok2=!ff()&&window.__v16.size>=3&&[...window.__v16].some(n=>n%2===0);
+  $('c2').textContent= ok2? 'Logrado: sen(kₙL) = sen((2n − 1)π/2) = (−1)ⁿ⁺¹. Para que Ψ(L,0) > 0 hace falta A = (−1)ⁿ⁺¹ · 4 mm: positiva para n impar, negativa para n par. Las viajeras heredan el signo: Ψ₁,₂ = (−1)ⁿ⁺¹ 2 mm sen(kₙ(x ∓ vt)).' : (ff()?'Elegí el P16':`Probados: n = ${[...window.__v16].sort().join(', ')} (probá al menos tres, alguno par)`);
+  $('c2').classList.toggle('done',ok2);
+  const t=tPhys(), L=P.L, a1=psi1(0,t), b1=psi2(0,t), a2=psi1(L,t), b2=psi2(L,t);
+  const ok3=!S.running&&!ff()&&Math.abs(a2)>0.3*Math.abs(amp())/2;
+  $('c3').textContent= ok3? `Logrado. En x = 0 (fijo): Ψ₁ = ${fc(a1)} y Ψ₂ = ${fc(b1)} mm, opuestas: la reflexión en un extremo fijo invierte la onda. En x = L (libre): Ψ₁ = ${fc(a2)} y Ψ₂ = ${fc(b2)} mm, iguales: la reflexión en un extremo libre no invierte, y lo que se cancela es la pendiente.` : (S.running?'Pausá la animación':(ff()?`En x = 0: Ψ₁ = ${fc(a1)}, Ψ₂ = ${fc(b1)} mm. Ahora pasá al P16 para ver un extremo libre`:'Mové la barra de tiempo hasta que Ψ₁(L) no sea casi cero'));
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const A=amp(), k=kTxt().replace(/^(\d*)π\/2$/,'\\frac{$1\\pi}{2}').replace('π','\\pi'), w=wTxt().replace('π','\\pi'), Am=fc(P.pp/2,2).replace(',','{,}'), h=fc(Math.abs(A)/2,2).replace(',','{,}'), sg=A<0?'-':'';
+    let steps, fin;
+    if(ff()){
+      $('cu-title').textContent='P15 paso a paso';
+      steps=[
+        [`Fijo – fijo, modo n = ${S.n}`, `\\[k=\\frac{n\\pi}{L}=${k}\\ \\text{rad/m},\\qquad \\omega=kv=${w}\\ \\text{rad/s}\\]`],
+        ['Ψ(x,0) = 0 para todo x elimina el coseno temporal: queda el seno', `\\[\\Psi=A\\sin(kx)\\,\\sin(\\omega t)\\]`],
+        [`Amplitud total máxima (pico a pico) ${fc(P.pp,1)} mm ⇒ |A| = ${fc(P.pp/2,2)} mm. El signo sale de Ψ̇(L/2,0) = Aω sen(nπ/2) > 0`, ambiguous()? `\\[\\sin\\frac{${S.n}\\pi}{2}=0:\\ \\text{la condición no fija el signo}\\]` : `\\[\\sin\\frac{${S.n}\\pi}{2}=${Math.round(Math.sin(S.n*PI/2))}\\ \\Rightarrow\\ A=${sg}${Am}\\ \\text{mm}\\]`],
+        ['b) Producto a suma: sen a · sen b = ½[cos(a − b) − cos(a + b)]', `\\[\\Psi=\\frac A2\\cos\\big(k(x-vt)\\big)-\\frac A2\\cos\\big(k(x+vt)\\big)\\]`],
+      ];
+      fin=`\\[\\Psi_1=${sg}${h}\\cos\\big(${k}(x-${P.v}t)\\big),\\qquad \\Psi_2=${A<0?'':'-'}${h}\\cos\\big(${k}(x+${P.v}t)\\big)\\quad[\\text{mm}]\\]`;
+    } else {
+      $('cu-title').textContent='P16 paso a paso';
+      steps=[
+        [`Fijo en 0, libre en L (pendiente nula), modo n = ${S.n}`, `\\[k_n=\\frac{(2n-1)\\pi}{2L}=${k}\\ \\text{rad/m},\\qquad \\omega_n=k_nv=${w}\\ \\text{rad/s}\\]`],
+        ['Desplazamiento máximo a t = 0 (velocidad nula): queda el coseno temporal', `\\[\\Psi=A\\sin(k_nx)\\,\\cos(\\omega_nt)\\]`],
+        ['Signo: Ψ(L,0) = A sen(kₙL) > 0, con sen(kₙL) = sen((2n − 1)π/2) = (−1)ⁿ⁺¹', `\\[A=(-1)^{n+1}\\,${Am}\\ \\text{mm}=${sg}${Am}\\ \\text{mm}\\]`],
+        ['b) Producto a suma: sen a · cos b = ½[sen(a − b) + sen(a + b)]', `\\[\\Psi=\\frac A2\\sin\\big(k_n(x-vt)\\big)+\\frac A2\\sin\\big(k_n(x+vt)\\big)\\]`],
+      ];
+      fin=`\\[\\Psi_1=${sg}${h}\\sin\\big(${k}(x-${P.v}t)\\big),\\qquad \\Psi_2=${sg}${h}\\sin\\big(${k}(x+${P.v}t)\\big)\\quad[\\text{mm}]\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join('');
+    $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function endFixed(ctx,x,cy,side,hh){ ctx.fillStyle=C['line-2']; ctx.fillRect(side<0?x-8:x,cy-hh,8,2*hh); }
+function endFree(ctx,x,y,cy,hh){ ctx.strokeStyle=C.muted; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x,cy-hh); ctx.lineTo(x,cy+hh); ctx.stroke(); ctx.fillStyle=C.panel; ctx.strokeStyle=C.fg; ctx.lineWidth=2; ctx.beginPath(); ctx.ellipse(x,y,7,5,0,0,7); ctx.fill(); ctx.stroke(); }
+function nodes(){ const k=kOf(), out=[]; for(let m=0;m*PI/k<=P.L+1e-9;m++) out.push(m*PI/k); return out; }
+function drawScene(){
+  const {ctx:c,w,h}=fit($('scene')); c.clearRect(0,0,w,h);
+  const ext=0.16, m=24, x0=m+(w-2*m)*ext/(1+2*ext), x1=w-m-(w-2*m)*ext/(1+2*ext), cy=h/2+6, Am=Math.abs(amp()), Ay=Math.min(80,h*0.3)/Am;
+  const X=x=>x0+x/P.L*(x1-x0), xa=-ext*P.L, xb=P.L*(1+ext), t=tPhys();
+  c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(X(xa),cy); c.lineTo(X(xb),cy); c.stroke();
+  const draw1=(fn,col,on)=>{ if(!on) return; const out=[],ins=[]; for(let i=0;i<=500;i++){ const x=xa+(xb-xa)*i/500, p=[X(x),cy-Ay*fn(x,t)]; if(x<0||x>P.L) out.push(p); else ins.push(p); }
+    const left=out.filter(p=>p[0]<X(0)), right=out.filter(p=>p[0]>X(P.L)); line(c,left,col,1.4,[4,4],0.45); line(c,right,col,1.4,[4,4],0.45); line(c,ins,col,1.8,null,0.9);
+    // crestas viajando
+    const lam=2*PI/kOf(), sgn= fn===psi1?1:-1, x0c=crest0(fn); c.fillStyle=col;
+    for(let mm=-8;mm<=8;mm++){ const xc=x0c+sgn*P.v*t+mm*lam; if(xc<xa||xc>xb) continue; c.globalAlpha=(xc<0||xc>P.L)?0.45:1; c.beginPath(); c.arc(X(xc),cy-Ay*Math.abs(amp())/2,3.5,0,7); c.fill();
+      c.beginPath(); c.moveTo(X(xc)+sgn*6,cy-Ay*Math.abs(amp())/2-8); c.lineTo(X(xc)+sgn*14,cy-Ay*Math.abs(amp())/2-8); c.lineTo(X(xc)+sgn*10,cy-Ay*Math.abs(amp())/2-12); c.strokeStyle=col; c.lineWidth=1.2; c.stroke(); c.globalAlpha=1; } };
+  draw1(psi1,C.w1,S.s1); draw1(psi2,C.w2,S.s2);
+  // envolvente
+  const e1=[],e2=[]; for(let i=0;i<=300;i++){ const x=P.L*i/300, s=Am*Math.abs(Math.sin(kOf()*x)); e1.push([X(x),cy-Ay*s]); e2.push([X(x),cy+Ay*s]); } line(c,e1,C.faint,1,[2,4]); line(c,e2,C.faint,1,[2,4]);
+  const hh=Math.min(90,h*0.36);
+  endFixed(c,X(0),cy,-1,hh); if(ff()) endFixed(c,X(P.L),cy,1,hh); else endFree(c,X(P.L),cy-Ay*psi(P.L,t),cy,hh);
+  const pts=[]; for(let i=0;i<=400;i++){ const x=P.L*i/400; pts.push([X(x),cy-Ay*psi(x,t)]); } line(c,pts,C.sum,2.8);
+  nodes().forEach(x=>{ c.fillStyle=C.node; c.beginPath(); c.arc(X(x),cy,4,0,7); c.fill(); });
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; [[0,'0'],[P.L,'L']].forEach(([x,l])=>c.fillText(l,X(x),cy+hh+6));
+  if(ff()){ c.strokeStyle=C.faint; c.setLineDash([2,3]); c.beginPath(); c.moveTo(X(P.L/2),cy-hh); c.lineTo(X(P.L/2),cy+hh); c.stroke(); c.setLineDash([]); c.fillText('L/2',X(P.L/2),cy+hh+6); }
+  $('clock').textContent=`t = ${fc(S.tau,3)} T = ${fc(t*1000,2)} ms · cámara lenta ×${Math.round(2.5/Tper())}`;
+  const pv= ff()? psi(P.L/2,t) : psi(P.L,t); $('ro-p').textContent=`${pv>=0?'+':''}${fc(pv,2)} mm`;
+}
+function drawProf(){
+  const {ctx:c,w,h}=fit($('ppr')); c.clearRect(0,0,w,h);
+  const L0=56,R=14,T=26,B=26,pw=w-L0-R,ph=h-T-B, Am=Math.abs(amp()), M=Am*1.15, t=tPhys();
+  const X=x=>L0+x/P.L*pw, Y=v=>T+(M-v)/(2*M)*ph;
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  [-Am,-Am/2,0,Am/2,Am].forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(fc(v,1),L0-6,Y(v)); });
+  c.save(); c.translate(12,T+ph/2); c.rotate(-PI/2); c.textAlign='center'; c.fillText('Ψ (mm)',0,0); c.restore();
+  c.textAlign='center'; c.textBaseline='top'; for(let i=0;i<=4;i++){ const x=P.L*i/4; c.fillText(fc(x,2),X(x),T+ph+4); } c.textAlign='right'; c.fillText('x (m)',L0+pw,T+ph+14);
+  const mk=fn=>{ const a=[]; for(let i=0;i<=400;i++){ const x=P.L*i/400; a.push([X(x),Y(fn(x,t))]); } return a; };
+  if(S.s1) line(c,mk(psi1),C.w1,1.8,[6,3]); if(S.s2) line(c,mk(psi2),C.w2,1.8,[6,3]); line(c,mk(psi),C.sum,2.4);
+  c.textAlign='right'; c.textBaseline='bottom'; let lx=L0+pw; [['Ψ = Ψ₁ + Ψ₂',C.sum],['Ψ₂',C.w2],['Ψ₁',C.w1]].forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,lx,T-6); lx-=c.measureText(s).width+14; });
+}
+function drawMap(){
+  const {ctx:c,w,h}=fit($('pmp')); c.clearRect(0,0,w,h);
+  const L0=56,R=14,T=40,B=28,pw=w-L0-R,ph=h-T-B, NX=160, NT=120, Tp=Tper(), Am=Math.abs(amp());
+  const hex=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16)), cp=hex(C.w1), cn=hex(C.w2), bg=hex(C.panel);
+  const cw=pw/NX, chh=ph/NT;
+  for(let j=0;j<NT;j++){ const t=2*Tp*(j+0.5)/NT; for(let i=0;i<NX;i++){ const x=P.L*(i+0.5)/NX, v=psi(x,t)/Am, col=v>0?[227,233,239]:[54,212,255], s=Math.min(1,Math.abs(v))*0.55; c.fillStyle=`rgb(${bg.map((b,k)=>Math.round(b+(col[k]-b)*s)).join(',')})`; c.fillRect(L0+i*cw,T+ph-(j+1)*chh,cw+0.6,chh+0.6); } }
+  const X=x=>L0+x/P.L*pw, Yt=t=>T+ph-t/(2*Tp)*ph, lam=2*PI/kOf();
+  c.save(); c.beginPath(); c.rect(L0,T,pw,ph); c.clip();
+  [[psi1,1,C.w1,S.s1],[psi2,-1,C.w2,S.s2]].forEach(([fn,sg,col,on])=>{ if(!on) return; const xc=crest0(fn); c.strokeStyle=col; c.lineWidth=1.4; c.globalAlpha=0.9;
+    for(let mm=-20;mm<=20;mm++){ const xs=xc+mm*lam; c.beginPath(); c.moveTo(X(xs),Yt(0)); c.lineTo(X(xs+sg*P.v*2*Tp),Yt(2*Tp)); c.stroke(); } c.globalAlpha=1; });
+  c.restore();
+  const yy=Yt(S.tau*Tp); c.strokeStyle=C.fg; c.setLineDash([4,3]); c.lineWidth=1; c.beginPath(); c.moveTo(L0,yy); c.lineTo(L0+pw,yy); c.stroke(); c.setLineDash([]);
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle'; ['0','T/2','T','3T/2','2T'].forEach((l,i)=>c.fillText(l,L0-6,T+ph-ph*i/4));
+  c.textAlign='center'; c.textBaseline='top'; [[0,'0'],[P.L,'L']].forEach(([x,l])=>c.fillText(l,X(x),T+ph+4));
+  c.textAlign='right'; c.textBaseline='bottom'; c.fillStyle=C.muted; c.fillText('blanco Ψ > 0 · celeste Ψ < 0',L0+pw,T-6);
+}
+function draw(){ drawScene(); if(S.view==='prof') drawProf(); else drawMap(); }
+
+// ================= Bucle =================
+let lastT=performance.now(), lastC=0;
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running){ S.tau=(S.tau+dt*S.speed/2.5)%1; }
+  $('scrub').value=S.tau; $('scrub-v').textContent=fc(S.tau,3);
+  if(now-lastC>250){ updateChal(); lastC=now; }
+  draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); buildN(); refresh();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Cuerda amortiguada G2-P12</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --str:#36d4ff; --ghost:#8693a1; --under:#36d4ff; --over:#ff7ad9; --crit:#ffcf3a; --m1:#36d4ff; --m2:#34e08a; --m3:#ffcf3a; --m4:#ff7ad9; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:270px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.sw input{accent-color:var(--sys);width:16px;height:16px}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Oscilaciones en sistemas continuos</span>
+  <h1>Cuerda amortiguada <i>· cada modo es un oscilador con rozamiento</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-modos-cuerda.html"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a href="p2-cuerdas-notas.html"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a href="p4-tubos-sonoros.html"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a href="p7-fourier-cuerdas.html"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a href="p11-dos-tramos.html"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a href="p13-tubo-tabique.html"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a href="p15-estacionarias-viajeras.html"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Cuerda con extremos fijos que oscila y se apaga por rozamiento"></canvas>
+      <div class="clock num" id="clock">t = 0</div>
+      <div class="readout num">
+        <span><span class="k">Γ = b/μ</span> <span id="ro-g" style="color:var(--sys)">—</span></span>
+        <span><span class="k">b</span> <span id="ro-b">—</span></span>
+        <span><span class="k">Q₁ = ω₁/Γ</span> <span id="ro-q">—</span></span>
+        <span><span class="k">τ = 2/Γ</span> <span id="ro-tau">—</span></span>
+        <span><span class="k">sobreamortiguados</span> <span id="ro-over" style="color:var(--over)">—</span></span>
+      </div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Soltar de nuevo</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Forma inicial (se suelta desde el reposo)</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-ic="m1" aria-pressed="true">modo 1</button>
+          <button class="chip" data-ic="m13">modos 1 + 3</button>
+          <button class="chip" data-ic="pluck">pulsada en L/5</button>
+          <button class="chip" data-ic="gauss">pulso angosto</button>
+        </div>
+      </div>
+      <div class="row" style="gap:14px">
+        <label class="sw"><input type="checkbox" id="ghost" checked> mostrar la misma cuerda sin rozamiento</label>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="roots" aria-pressed="true">Raíces</button>
+          <button data-view="energy" aria-pressed="false">Energía por modo</button>
+        </div>
+      </div>
+      <div data-vpanel="roots">
+        <div class="plot"><canvas id="prt" style="height:300px"></canvas><div class="tag">Raíces s = −Γ/2 ± √(Γ²/4 − ωₙ²) en unidades de ω₁</div></div>
+        <div class="pcap">Sin rozamiento las raíces están sobre el eje imaginario (±i nω₁). Al subir Γ todas se corren a la misma recta Re s = −Γ/2 moviéndose sobre su circunferencia |s| = ωₙ: decaen igual de rápido. Cuando Γ/2 alcanza a ωₙ, el par choca con el eje real y ese modo deja de oscilar.</div>
+      </div>
+      <div data-vpanel="energy" hidden>
+        <div class="plot"><canvas id="pen" style="height:280px"></canvas><div class="tag">Eₙ(t)/Eₙ(0) de los modos 1 a 4, escala logarítmica</div></div>
+        <div class="pcap">Cada modo arranca con la misma energía relativa. Los subamortiguados bajan con la misma pendiente media (e^−Γt), con escalones porque el rozamiento trabaja más cuando la cuerda se mueve rápido. Un modo sobreamortiguado se arrastra: baja más lento que los que oscilan.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P12</summary>
+      <p>Cuerda de longitud L y densidad uniforme μ, con tensión T₀ y fija en ambos extremos. Sobre cada punto actúa una fuerza de amortiguamiento proporcional a la velocidad de la cuerda. Hallar la forma más general de Φ(x,t).</p>
+      <p class="src">Física 2 (Físicos), Guía 2.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Pulsás la cuerda con un rozamiento chico (Γ = 0,15 ω₁), proporcional a la velocidad e igual en cada punto. ¿Qué armónicos se apagan primero?</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="agudos">los agudos: oscilan más rápido y rozan más</button>
+          <button class="opt" data-ans="fund">el fundamental</button>
+          <button class="opt" data-ans="igual">ninguno: todos decaen al mismo ritmo</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: pulsar y mirar la energía</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3>Separación de variables</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Solución general</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> Conseguí que el fundamental deje de oscilar (que vuelva al equilibrio sin cruzarlo), pero que el modo 2 siga oscilando.<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> Elegí Γ para que haya exactamente tres modos sobreamortiguados.<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Sin rozamiento la forma pulsada se repite cada T₁. Con Γ = ω₁, ¿sigue repitiéndose, aunque más chica? Mirá Ω₂/Ω₁.<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta: la forma inicial se descompone en 40 modos sen(nπx/L) y cada uno evoluciona como un oscilador amortiguado con la misma Γ y su propia ωₙ = nπv/L. La animación va en cámara lenta (el período del fundamental sin rozamiento se ve en unos 2 s); los tiempos se miden en T₁ = 2π/ω₁. Colores: celeste modos que oscilan, rosa sobreamortiguados, amarillo crítico; gris la cuerda sin rozamiento.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--str','--ghost','--under','--over','--crit','--m1','--m2','--m3','--m4','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI, NM=40, L=1;
+
+// ================= Parámetros =================
+const P={g:0.15,T:100,mu:10}; // g = Γ/ω₁
+const DEF=[
+  {id:'g',lab:'Γ/ω₁',unit:'',min:0,max:10,step:0.01},
+  {id:'T',lab:'T₀',unit:'N',min:1,max:500,step:1},
+  {id:'mu',lab:'μ',unit:'g/m',min:0.5,max:50,step:0.1},
+];
+const S={ic:'m1',t:0,running:true,speed:1,view:'roots',ghost:true,A:new Float64Array(NM+1)};
+const v=()=>Math.sqrt(P.T/(P.mu/1000)), w1=()=>PI*v()/L, wn=n=>n*w1(), G=()=>P.g*w1();
+// T_n(t) y su derivada, con T(0)=1, T'(0)=0
+function Tn(n,t,Gm=G()){
+  const w=wn(n), g=Gm/2, e=Math.exp(-g*t);
+  if(w>g*(1+1e-9)){ const O=Math.sqrt(w*w-g*g), c=Math.cos(O*t), s=Math.sin(O*t); return [e*(c+g/O*s), -e*w*w/O*s]; }
+  if(g>w*(1+1e-9)){ const b=Math.sqrt(g*g-w*w), ep=Math.exp((b-g)*t), em=Math.exp(-(b+g)*t); return [0.5*(1+g/b)*ep+0.5*(1-g/b)*em, -w*w/(2*b)*(ep-em)]; }
+  return [e*(1+g*t), -g*g*t*e];
+}
+const kind=n=>{ const w=wn(n), g=G()/2; return Math.abs(w-g)<1e-3*w?'crit':(w>g?'under':'over'); };
+const nOver=()=>Math.floor(P.g/2+1e-9);
+const Om=n=>{ const w=wn(n), g=G()/2; return w>g? Math.sqrt(w*w-g*g):0; };
+function rate(n){ const w=wn(n), g=G()/2; return w>=g? g : g-Math.sqrt(g*g-w*w); } // tasa de decaimiento de la amplitud
+// condición inicial
+function ic(x){
+  if(S.ic==='m1') return Math.sin(PI*x/L);
+  if(S.ic==='m13') return Math.sin(PI*x/L)+0.5*Math.sin(3*PI*x/L);
+  if(S.ic==='pluck'){ const a=0.2*L; return x<a? x/a : (L-x)/(L-a); }
+  const c=0.35*L, s=0.04*L; const gs=z=>Math.exp(-0.5*(z/s)*(z/s)); return gs(x-c)-gs(c)*(1-x/L)-gs(L-c)*(x/L);
+}
+function project(){ const M=2000, h=L/M; let mx=0; for(let i=0;i<=M;i++) mx=Math.max(mx,Math.abs(ic(i*h)));
+  for(let n=1;n<=NM;n++){ let s=0; for(let i=0;i<=M;i++){ const x=i*h, wgt=(i===0||i===M)?1:(i%2?4:2); s+=wgt*ic(x)*Math.sin(n*PI*x/L); } S.A[n]=2/L*s*h/3/mx; } }
+function phi(x,t,Gm=G()){ let s=0; for(let n=1;n<=NM;n++){ const a=S.A[n]; if(Math.abs(a)<1e-7) continue; s+=a*Math.sin(n*PI*x/L)*Tn(n,t,Gm)[0]; } return s; }
+const T1=()=>2*PI/w1();
+function slow(){ return T1()/2; } // un período del fundamental se ve en 2 s
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param';
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); }
+function setIC(k){ S.ic=k; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ic===k)); project(); S.t=0; refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setIC(b.dataset.ic));
+$('ghost').addEventListener('change',e=>{ S.ghost=e.target.checked; });
+$('reset').onclick=()=>{ S.t=0; togglePlay(true); };
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+function refresh(){
+  const g=G();
+  $('ro-g').textContent=`${g.toFixed(1)} s⁻¹`;
+  $('ro-b').textContent=`${(g*P.mu/1000).toFixed(3)} N·s/m²`;
+  $('ro-q').textContent= g>0? (1/P.g).toFixed(2) : '∞';
+  $('ro-tau').textContent= g>0? `${(2/g*1000).toFixed(1)} ms = ${(2/g/T1()).toFixed(2)} T₁` : '∞';
+  const no=nOver(), cr=Math.abs(P.g/2-Math.round(P.g/2))<1e-6&&P.g>0;
+  $('ro-over').textContent= no===0? (cr?'crítico':'ninguno') : (no===1?'n = 1':`n = 1 … ${no}`)+(cr?' (n = '+Math.round(P.g/2)+' crítico)':'');
+  $('formula').innerHTML=`<span class="k">Φ(x,t) = Σ </span>sen(nπx/L) e<sup>−Γt/2</sup> [Aₙ cos Ωₙt + Bₙ sen Ωₙt]<span class="k">  ·  Ωₙ = √(ωₙ² − Γ²/4)  ·  Ω₁ = ${f(Om(1),1)}, Ω₂ = ${f(Om(2),1)} rad/s</span>`;
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  P.g=0.15; sync(); setIC('pluck'); setView('energy'); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=igual]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='igual'?'<b>Bien.</b> ':'<b>Mirá las cuatro curvas.</b> ')+`Bajan juntas: cada modo cumple T̈ + Γ Ṫ + ωₙ² T = 0, con la <i>misma</i> Γ = b/μ, así que la envolvente es e<sup>−Γt/2</sup> para todos. Los agudos oscilan más rápido, sí, pero cada oscilación dura menos: el factor de calidad Qₙ = ωₙ/Γ crece con n y la cantidad de energía perdida <i>por unidad de tiempo</i> es la misma fracción. En una cuerda real los agudos se apagan antes porque el rozamiento con el aire y el interno sí dependen de la frecuencia; este modelo no lo tiene.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=P.g>=2&&P.g<4;
+  $('c1').textContent= ok1? `Logrado: Γ/2 = ${(P.g/2).toFixed(2)} ω₁ ≥ ω₁, el modo 1 es ${P.g===2?'crítico':'sobreamortiguado'}, y el 2 todavía oscila (ω₂ = 2ω₁ > Γ/2). Condición: 2ω₁ ≤ Γ < 4ω₁.` : (P.g<2?`Γ/ω₁ = ${P.g.toFixed(2)}: el modo 1 todavía oscila`:`Te pasaste: el modo 2 también dejó de oscilar`);
+  $('c1').classList.toggle('done',ok1);
+  const ok2=nOver()===3;
+  $('c2').textContent= ok2? `Logrado: Γ/2 ≥ 3ω₁ pero < 4ω₁, es decir 6 ≤ Γ/ω₁ < 8. Los modos n ≤ Γ L/(2πv) no oscilan.` : `Ahora: ${nOver()} sobreamortiguado${nOver()===1?'':'s'}`;
+  $('c2').classList.toggle('done',ok2);
+  const r=Om(1)>0? Om(2)/Om(1) : NaN, ok3=Math.abs(P.g-1)<0.05;
+  $('c3').textContent= isNaN(r)? 'El fundamental no oscila: no hay Ω₁.' : `Ω₂/Ω₁ = ${r.toFixed(4)}${ok3?'. Logrado: no es 2, así que los modos se desfasan entre sí y la forma no se repite: no es solo una copia achicada. Las frecuencias amortiguadas no son armónicas.':' (con Γ = ω₁ mirá cuánto se aparta de 2)'}`;
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const g=G(), no=nOver();
+    const steps=[
+      ['Newton sobre un elemento dx: la tensión da la fuerza de siempre y el rozamiento suma −b dx ∂Φ/∂t', `\\[\\mu\\,\\frac{\\partial^2\\Phi}{\\partial t^2}=T_0\\,\\frac{\\partial^2\\Phi}{\\partial x^2}-b\\,\\frac{\\partial\\Phi}{\\partial t}\\ \\Rightarrow\\ \\ddot\\Phi+\\Gamma\\dot\\Phi=v^2\\,\\Phi'',\\quad \\Gamma=\\frac b\\mu=${f(g,1)}\\ \\text{s}^{-1}\\]`],
+      ['Separación Φ = X(x) T(t): la parte espacial es la de la cuerda libre de rozamiento, con los mismos extremos fijos', `\\[X''=-k^2X,\\quad X(0)=X(L)=0\\ \\Rightarrow\\ X_n=\\sin\\frac{n\\pi x}{L},\\quad \\omega_n=v\\,k_n=n\\,${f(w1(),1)}\\ \\text{rad/s}\\]`],
+      ['La parte temporal es un oscilador amortiguado (G1-P2) para cada modo', `\\[\\ddot T_n+\\Gamma\\dot T_n+\\omega_n^2T_n=0\\ \\Rightarrow\\ s=-\\frac\\Gamma2\\pm\\sqrt{\\frac{\\Gamma^2}4-\\omega_n^2}\\]`],
+      ['Tres casos según n: oscila si ωₙ > Γ/2; crítico si ωₙ = Γ/2; sobreamortiguado si ωₙ < Γ/2', `\\[T_n=\\begin{cases}e^{-\\Gamma t/2}\\,(A_n\\cos\\Omega_nt+B_n\\sin\\Omega_nt), & \\Omega_n=\\sqrt{\\omega_n^2-\\Gamma^2/4}\\\\[2pt] e^{-\\Gamma t/2}\\,(A_n+B_nt), & \\omega_n=\\Gamma/2\\\\[2pt] e^{-\\Gamma t/2}\\,(A_ne^{\\beta_nt}+B_ne^{-\\beta_nt}), & \\beta_n=\\sqrt{\\Gamma^2/4-\\omega_n^2}\\end{cases}\\]`],
+      [`Con los números actuales: Γ/2 = ${f(P.g/2,2)} ω₁, así que ${no===0?'todos los modos oscilan':(no===1?'solo el modo 1 está sobreamortiguado':'los modos 1 a '+no+' están sobreamortiguados')}`, `\\[\\Omega_1=${f(Om(1),1)},\\quad \\Omega_2=${f(Om(2),1)},\\quad \\Omega_3=${f(Om(3),1)}\\ \\text{rad/s}\\]`],
+      ['Las constantes salen de las condiciones iniciales, proyectando sobre cada seno (caso oscilante)', `\\[A_n=\\frac2L\\int_0^L\\Phi(x,0)\\sin\\frac{n\\pi x}L\\,dx,\\qquad B_n=\\frac1{\\Omega_n}\\Big[\\frac\\Gamma2A_n+\\frac2L\\int_0^L\\dot\\Phi(x,0)\\sin\\frac{n\\pi x}L\\,dx\\Big]\\]`],
+    ];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join('');
+    $('final').innerHTML=`\\[\\Phi(x,t)=e^{-\\Gamma t/2}\\sum_{n=1}^{\\infty}\\sin\\frac{n\\pi x}{L}\\,\\big[A_n\\cos\\Omega_nt+B_n\\sin\\Omega_nt\\big]\\]<div class="t" style="font-size:12.5px;color:var(--muted)">con Ωₙ imaginario (cos → cosh, sen → senh) para los modos con ωₙ &lt; Γ/2.</div>`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineCap='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+const scene=$('scene');
+function endFixed(ctx,x,cy,side){ ctx.fillStyle=C['line-2']; ctx.fillRect(side<0?x-10:x,cy-60,10,120); ctx.strokeStyle=C.faint; ctx.lineWidth=1; for(let y=cy-60;y<cy+60;y+=8){ ctx.beginPath(); ctx.moveTo(x+side*10,y); ctx.lineTo(x+side*16,y+6); ctx.stroke(); } }
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h);
+  const m=46, x0=m, x1=w-m, cy=h/2+4, A=Math.min(80,h*0.3), X=x=>x0+(x/L)*(x1-x0);
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0,cy); ctx.lineTo(x1,cy); ctx.stroke();
+  endFixed(ctx,x0,cy,-1); endFixed(ctx,x1,cy,1);
+  // rozamiento: pequeñas "gotas" de fluido de fondo según Γ
+  const dens=Math.min(1,P.g/3); if(dens>0){ ctx.fillStyle=C.sys; ctx.globalAlpha=0.05+0.12*dens; for(let i=0;i<Math.round(40*dens)+4;i++){ const xx=x0+((i*97)%101)/101*(x1-x0), yy=cy-A*1.1+((i*53)%61)/61*2.2*A; ctx.beginPath(); ctx.arc(xx,yy,1.6,0,7); ctx.fill(); } ctx.globalAlpha=1; }
+  // envolvente e^{-Γt/2}
+  const env=Math.exp(-G()*S.t/2);
+  if(G()>0){ ctx.setLineDash([3,4]); ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(x0,cy-A*env); ctx.lineTo(x1,cy-A*env); ctx.moveTo(x0,cy+A*env); ctx.lineTo(x1,cy+A*env); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=C.faint; ctx.font=`11px ${css('--font-num')}`; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillText('e^(−Γt/2)',x1-4,cy-A*env-3); }
+  const M=360;
+  if(S.ghost&&G()>0){ const g=[]; for(let i=0;i<=M;i++){ const x=L*i/M; g.push([X(x),cy-A*phi(x,S.t,0)]); } line(ctx,g,C.ghost,1.4,[5,4],0.8); }
+  const pts=[]; for(let i=0;i<=M;i++){ const x=L*i/M; pts.push([X(x),cy-A*phi(x,S.t)]); } line(ctx,pts,C.str,2.6);
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='center'; ctx.textBaseline='top'; [[0,'0'],[L,'L']].forEach(([x,l])=>ctx.fillText(l,X(x),h-20));
+  $('clock').textContent=`t = ${(S.t/T1()).toFixed(2)} T₁ · cámara lenta ×${(1/slow()).toFixed(0)}`;
+}
+function drawRoots(){
+  const cv=$('prt'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const T=28,B=24,Lm=40,R=14,pw=w-Lm-R,ph=h-T-B;
+  const xmin=-Math.max(P.g,2.2)*1.08, xmax=0.6, ymax=6.6;
+  const sc=Math.min(pw/(xmax-xmin), ph/(2*ymax)), ox=Lm+pw-(xmax)*sc-((pw-(xmax-xmin)*sc)/2), oy=T+ph/2;
+  const X=a=>ox+a*sc, Y=b=>oy-b*sc;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(Lm,oy); ctx.lineTo(Lm+pw,oy); ctx.moveTo(X(0),T); ctx.lineTo(X(0),T+ph); ctx.stroke();
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='top'; ctx.fillText('Im s',X(0)-6,T); ctx.textAlign='right'; ctx.fillText('Re s',Lm+pw,oy+4);
+  // circunferencias |s| = n
+  for(let n=1;n<=6;n++){ ctx.strokeStyle=C.line; ctx.beginPath(); ctx.arc(X(0),Y(0),n*sc,PI/2,3*PI/2); ctx.stroke(); ctx.fillStyle=C.faint; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(`${n}i`,X(0)+5,Y(n)); }
+  // eje Re: marcas
+  ctx.textAlign='center'; ctx.textBaseline='top'; for(let k=-Math.floor(-xmin);k<=0;k++){ if(k===0) continue; if(Math.abs(xmin)>6&&k%2) continue; ctx.fillText(k,X(k),oy+9); }
+  // recta −Γ/2
+  const g=P.g/2; if(g>0){ ctx.setLineDash([4,4]); ctx.strokeStyle=C.sys; ctx.beginPath(); ctx.moveTo(X(-g),T); ctx.lineTo(X(-g),T+ph); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=C.sys; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('−Γ/2',X(-g),T+12); }
+  for(let n=1;n<=6;n++){ const k=kind(n), col=C[k]; ctx.fillStyle=col;
+    let pts; if(k==='under'){ const O=Math.sqrt(n*n-g*g); pts=[[-g,O],[-g,-O]]; } else if(k==='crit') pts=[[-g,0]]; else { const b=Math.sqrt(g*g-n*n); pts=[[-g+b,0],[-g-b,0]]; }
+    pts.forEach(([a,b],j)=>{ ctx.beginPath(); ctx.arc(X(a),Y(b),5,0,7); ctx.fill(); if(k!=='under'||b>0){ ctx.fillStyle=C.fg; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(`${n}`,X(a)+6,Y(b)-(k==='under'?2:4+8*j)); ctx.fillStyle=col; } });
+  }
+}
+function drawEnergy(){
+  const cv=$('pen'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const Lm=46,R=14,T=48,B=30,pw=w-Lm-R,ph=h-T-B;
+  const g=G(), tmax= g>0? Math.min(30*T1(),Math.max(3*T1(),9.2/g)) : 5*T1();
+  const X=t=>Lm+t/tmax*pw, Y=lg=>T+(-lg)/4.2*ph; // lg = log10 E/E0 en [−4.2, 0]
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let k=0;k>=-4;k--){ ctx.beginPath(); ctx.moveTo(Lm,Y(k)); ctx.lineTo(Lm+pw,Y(k)); ctx.stroke(); ctx.fillText(k===0?'1':'1e'+k,Lm-6,Y(k)); }
+  ctx.textAlign='center'; ctx.textBaseline='top'; const step=tmax/T1()>12?5:(tmax/T1()>5?2:1); for(let k=0;k*T1()<=tmax+1e-9;k+=step){ ctx.fillText(`${k}`,X(k*T1()),T+ph+4); } ctx.textAlign='right'; ctx.fillText('t / T₁',Lm+pw,T+ph+16);
+  if(g>0){ const ref=[]; for(let i=0;i<=200;i++){ const t=tmax*i/200; const lg=-g*t/Math.LN10; if(lg<-4.2) break; ref.push([X(t),Y(lg)]); } line(ctx,ref,C.faint,1,[4,4]); }
+  const cols=[C.m1,C.m2,C.m3,C.m4];
+  for(let n=1;n<=4;n++){ const pts=[], w2=wn(n)**2; for(let i=0;i<=600;i++){ const t=tmax*i/600, [y,yd]=Tn(n,t), E=(yd*yd+w2*y*y)/w2; const lg=Math.log10(Math.max(E,1e-6)); if(lg<-4.2){ pts.push([X(t),Y(-4.2)]); break; } pts.push([X(t),Y(lg)]); } line(ctx,pts,cols[n-1],1.8); }
+  // cursor de tiempo
+  ctx.strokeStyle=C.muted; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(X(Math.min(S.t,tmax)),T); ctx.lineTo(X(Math.min(S.t,tmax)),T+ph); ctx.stroke(); ctx.setLineDash([]);
+  // leyenda
+  ctx.font=`600 11px ${css('--font-ui')}`; ctx.textAlign='left'; ctx.textBaseline='middle'; const labs=[1,2,3,4].map(n=>`n=${n}${kind(n)==='over'?' (sobre)':''}`), tw=labs.reduce((a,l)=>a+ctx.measureText(l).width+30,0); let lx=Lm+pw-tw; labs.forEach((l,i)=>{ ctx.fillStyle=cols[i]; ctx.fillRect(lx,T-18,14,3); ctx.fillText(l,lx+18,T-16); lx+=ctx.measureText(l).width+30; });
+  if(g>0){ ctx.fillStyle=C.faint; ctx.font=`11px ${css('--font-num')}`; ctx.fillText('e^(−Γt)',Lm+6,T+ph-10); }
+}
+function draw(){ drawScene(); if(S.view==='roots') drawRoots(); else drawEnergy(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed*slow(); draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); project(); refresh();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

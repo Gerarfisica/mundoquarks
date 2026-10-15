@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Dos tramos G2-P11</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --s1:#36d4ff; --s2:#ffb347; --node:#ff5c3a; --harm:#8693a1; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:280px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.nrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbtn{min-width:34px;border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:5px 0;font-family:var(--font-num);font-size:13px;cursor:pointer;color:var(--muted)}
+.nbtn[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.1)}
+.c1{color:var(--s1)} .c2{color:var(--s2)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 2 · Oscilaciones en sistemas continuos</span>
+  <h1>Cuerda de dos tramos <i>· condiciones de empalme</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-modos-cuerda.html"><b class="code">P1</b>Modos de una cuerda</a></li>
+      <li><a href="p2-cuerdas-notas.html"><b class="code">P2–3</b>Cuerdas y notas</a></li>
+      <li><a href="p4-tubos-sonoros.html"><b class="code">P4–6</b>Tubos sonoros</a></li>
+      <li><a href="p7-fourier-cuerdas.html"><b class="code">P7–10</b>Fourier en cuerdas</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P11</b>Dos tramos</a></li>
+      <li><a href="p12-cuerda-amortiguada.html"><b class="code">P12</b>Cuerda amortiguada</a></li>
+      <li><a href="p13-tubo-tabique.html"><b class="code">P13–14</b>Tubo con tabique</a></li>
+      <li><a href="p15-estacionarias-viajeras.html"><b class="code">P15–16</b>Estacionarias y viajeras</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Cuerda de dos tramos de distinta densidad vibrando en un modo normal"></canvas>
+      <div class="clock num" id="clock">cámara lenta</div>
+      <div class="readout num">
+        <span><span class="k">v₁</span> <span id="ro-v1" class="c1">—</span></span>
+        <span><span class="k">v₂</span> <span id="ro-v2" class="c2">—</span></span>
+        <span><span class="k">ν</span> <span id="ro-nu" style="color:var(--sys)">—</span></span>
+        <span><span class="k">ν/ν₁</span> <span id="ro-r">—</span></span>
+        <span><span class="k">B/A</span> <span id="ro-ba">—</span></span>
+      </div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">Cuerda</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="b">b · L₁ = 3L₂, μ₂ = 9μ₁</button>
+          <button class="chip" data-pre="u">uniforme · μ₂ = μ₁</button>
+          <button class="chip" data-pre="g">genérica · L₁ = L₂, μ₂ = 4μ₁</button>
+        </div>
+      </div>
+      <div><div class="lbl" style="margin-bottom:6px">Modo n</div><div class="nrow" id="nrow"></div></div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="cond" aria-pressed="true">Condición</button>
+          <button data-view="spec" aria-pressed="false">Frecuencias</button>
+        </div>
+      </div>
+      <div data-vpanel="cond">
+        <div class="plot"><canvas id="pcd" style="height:250px"></canvas><div class="tag">F(ν) = k₁ cos k₁L₁ sen k₂L₂ + k₂ sen k₁L₁ cos k₂L₂ &nbsp;(normalizada)</div></div>
+        <div class="pcap">Cada cero de F es un modo normal: ahí el sistema de empalme tiene solución con A y B no nulos. Las rayitas grises marcan los múltiplos de ν₁: si los ceros caen sobre ellas, el espectro es armónico.</div>
+      </div>
+      <div data-vpanel="spec" hidden>
+        <div class="plot"><canvas id="psp" style="height:290px"></canvas><div class="tag">Frecuencias permitidas</div></div>
+        <div class="pcap">Al medio, la cuerda de dos tramos; a los costados, la misma longitud toda de μ₁ o toda de μ₂. Los modos compuestos quedan entre los dos extremos, y en general no son múltiplos enteros del fundamental (las rayitas grises).</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P11</summary>
+      <p>Cuerda de longitud L sujeta en ambos extremos, con tensión T₀, formada por dos tramos: uno de longitud L₁ y densidad μ₁, y otro de longitud L₂ y densidad μ₂. <b>a)</b> Halle la expresión más general para un modo normal. Plantee las condiciones de contorno y las condiciones que deben cumplir los parámetros. <b>b)</b> Considere L₁ = 3L₂ y μ₂ = 9μ₁. Halle los modos normales.</p>
+      <p class="src">Física 2 (Físicos), Guía 2.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Una cuerda con un tramo nueve veces más pesado ya no es uniforme. Con los datos del inciso b (L₁ = 3L₂, μ₂ = 9μ₁), las frecuencias de los modos…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="si">siguen siendo múltiplos enteros del fundamental</button>
+          <button class="opt" data-ans="no">dejan de ser múltiplos: el espectro se desordena</button>
+          <button class="opt" data-ans="imp">solo quedan los múltiplos impares</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: cargar el inciso b</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3>Del empalme a los modos</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Modo actual</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> En el inciso b, ¿qué pasa en la unión en los modos pares? ¿Y cuánto vale B/A?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> Poné μ₂ = μ₁ y mové L₁. ¿La condición de empalme depende de dónde esté la unión?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Encontrá otra cuerda de dos tramos distintos (μ₂ ≠ μ₁, sin repetir el inciso b) cuyo espectro sea armónico. ¿Qué tienen en común con el inciso b?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta: en cada tramo la onda es un seno que respeta su extremo fijo, y las frecuencias salen de buscar numéricamente (bisección) los ceros de la condición de empalme. La animación va en cámara lenta; las frecuencias mostradas son las reales. Colores: celeste el tramo 1 (μ₁), naranja el tramo 2 (μ₂), rojo los nodos; el grosor de la cuerda crece con √μ.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--panel-2','--line','--line-2','--fg','--muted','--faint','--sys','--s1','--s2','--node','--harm','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI, NM=8;
+
+// ================= Parámetros =================
+const P={f1:0.75,r:9,T:100,mu1:10}; // f1 = L1/L, r = μ2/μ1; L = 1 m
+const L=1;
+const DEF=[
+  {id:'f1',lab:'L₁/L',unit:'',min:0.05,max:0.95,step:0.01},
+  {id:'r',lab:'μ₂/μ₁',unit:'',min:0.1,max:25,step:0.1},
+  {id:'T',lab:'T₀',unit:'N',min:1,max:500,step:1},
+  {id:'mu1',lab:'μ₁',unit:'g/m',min:0.5,max:50,step:0.1},
+];
+const S={n:1,t:0,running:true,speed:1,view:'cond',roots:[]};
+const L1=()=>P.f1*L, L2=()=>(1-P.f1)*L;
+const v1=()=>Math.sqrt(P.T/(P.mu1/1000)), v2=()=>v1()/Math.sqrt(P.r);
+// F/k1 normalizada en función de ω
+function Fn(w){ const a=w*L1()/v1(), b=w*L2()/v2(), q=Math.sqrt(P.r); return (Math.cos(a)*Math.sin(b)+q*Math.sin(a)*Math.cos(b))/(1+q); }
+function findRoots(){
+  const tau=L1()/v1()+L2()/v2(); // tiempo de tránsito total: los ceros caen cada ~π en ω·τ
+  const wmax=(NM+3)*PI/tau, N=6000, out=[]; let w0=1e-6*wmax, F0=Fn(w0);
+  for(let i=1;i<=N&&out.length<NM;i++){ const w=wmax*i/N, F=Fn(w);
+    if(F===0){ out.push(w); F0=F; w0=w; continue; }
+    if(F0!==0&&F0*F<0){ let a=w0,b=w,fa=F0; for(let j=0;j<60;j++){ const m=(a+b)/2, fm=Fn(m); if(fa*fm<=0) b=m; else {a=m; fa=fm;} } out.push((a+b)/2); }
+    w0=w; F0=F; }
+  return out;
+}
+const om=(n=S.n)=>S.roots[n-1]||0, nu=(n=S.n)=>om(n)/(2*PI);
+function amps(w=om()){ // A = 1, B por empalme; normalizado a máximo 1
+  const k1=w/v1(), k2=w/v2(), s1=Math.sin(k1*L1()), c1=Math.cos(k1*L1()), s2=Math.sin(k2*L2()), c2=Math.cos(k2*L2());
+  let B = Math.abs(s2)>0.3? s1/s2 : -k1*c1/(k2*c2);
+  const m=Math.max(1,Math.abs(B)); return {A:1/m,B:B/m,ba:B,k1,k2};
+}
+function shape(x,a=S.amp){ return x<=L1()? a.A*Math.sin(a.k1*x) : a.B*Math.sin(a.k2*(L-x)); }
+function nodes(){ const out=[], a=S.amp; for(let m=1;m<200;m++){ const x=m*PI/a.k1; if(x<L1()-1e-9) out.push(x); else break; }
+  for(let m=1;m<200;m++){ const x=L-m*PI/a.k2; if(x>L1()-1e-9) out.push(x); else break; }
+  if(Math.abs(Math.sin(a.k1*L1()))<1e-6 && !out.some(x=>Math.abs(x-L1())<1e-6)) out.push(L1()); return out; }
+const isB=()=>Math.abs(P.f1-0.75)<1e-6&&Math.abs(P.r-9)<1e-6;
+const ratios=()=>S.roots.map(w=>w/S.roots[0]);
+const harmonic=()=>ratios().slice(0,6).every((q,i)=>Math.abs(q-(i+1))<0.005*(i+1));
+function slow(){ return 0.45/nu(1); }
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param';
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function buildN(){ const el=$('nrow'); el.innerHTML=''; for(let n=1;n<=NM;n++){ const b=document.createElement('button'); b.className='nbtn'; b.textContent=n; b.setAttribute('aria-pressed',n===S.n); b.onclick=()=>{ S.n=n; buildN(); refresh(); }; el.appendChild(b); } }
+const PRE={b:{f1:0.75,r:9},u:{f1:0.75,r:1},g:{f1:0.5,r:4}};
+function load(k){ Object.assign(P,PRE[k]); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>load(b.dataset.pre));
+function syncChips(){ document.querySelectorAll('#pre .chip').forEach(b=>{ const p=PRE[b.dataset.pre]; b.setAttribute('aria-pressed',Math.abs(P.f1-p.f1)<1e-6&&Math.abs(P.r-p.r)<1e-6); }); }
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); syncChips(); }
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==S.view); draw(); });
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+function fmtHz(x){ return x>=1000?(x/1000).toFixed(3)+' kHz':x.toFixed(2)+' Hz'; }
+function refresh(){
+  S.roots=findRoots(); S.amp=amps();
+  $('ro-v1').textContent=`${v1().toFixed(1)} m/s`;
+  $('ro-v2').textContent=`${v2().toFixed(1)} m/s`;
+  $('ro-nu').textContent=fmtHz(nu());
+  $('ro-r').textContent=(om()/om(1)).toFixed(3);
+  $('ro-ba').textContent=f(S.amp.ba,3);
+  const a=S.amp;
+  $('formula').innerHTML=`<span class="k">Ψ${S.n} = </span><span class="c1">A sen(${a.k1.toFixed(2)} x)</span><span class="k"> si x &lt; L₁ ;  </span><span class="c2">B sen(${a.k2.toFixed(2)} (L − x))</span><span class="k"> si x &gt; L₁ ;  × cos(ω${S.n}t + θ), ω${S.n} = ${om().toFixed(1)} rad/s</span>`;
+  $('clock').textContent=`cámara lenta ×${(1/slow()).toFixed(0)}`;
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  load('b'); S.n=2; buildN(); refresh(); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=si]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='si'?'<b>Bien, y no era obvio.</b> ':'<b>Mirá los cocientes.</b> ')+`ν/ν₁ = ${ratios().slice(0,6).map(q=>q.toFixed(2)).join(', ')}. El tramo pesado tiene v₂ = v₁/3 pero mide L₁/3: la onda tarda <i>lo mismo</i> en cruzar cada tramo (L₁/v₁ = L₂/v₂). Por eso k₁L₁ = k₂L₂ y la condición se reduce a sen 2θ = 0. Con otros números (probá la cuerda genérica) el espectro deja de ser armónico. Ahora estás viendo n = 2: la unión quedó en un nodo.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const b=isB(), even=S.n%2===0;
+  const ok1=b&&even;
+  $('c1').textContent= ok1? `Logrado: con n = ${S.n} la unión es un nodo (sen θ = 0) y B/A = ${f(S.amp.ba,3)}: A = −3B. El tramo liviano oscila con el triple de amplitud. En los impares, en cambio, cos θ = 0 y A = B: la unión es un vientre.` : (b?'Elegí un modo par (n = 2, 4, …)':'Cargá el inciso b');
+  $('c1').classList.toggle('done',ok1);
+  const u=Math.abs(P.r-1)<1e-6, q1=nu(1)/(v1()/(2*L));
+  const ok2=u&&Math.abs(P.f1-0.75)>0.02;
+  $('c2').textContent= u? (ok2?`Logrado: con L₁/L = ${P.f1.toFixed(2)} sigue ν₁ = ${fmtHz(nu(1))} = v/2L. Si k₁ = k₂ = k, la condición queda k sen(kL₁ + kL₂) = k sen kL = 0: la unión es invisible.`:'Ahora mové L₁/L y mirá si cambia algo') : 'Poné μ₂/μ₁ = 1';
+  $('c2').classList.toggle('done',ok2);
+  const h=harmonic(), ok3=h&&Math.abs(P.r-1)>0.05&&!b;
+  const tt=(L1()/v1())/(L2()/v2());
+  $('c3').textContent= ok3? `Logrado: ν/ν₁ = ${ratios().slice(0,5).map(q=>q.toFixed(2)).join(', ')}. Tiempos de cruce: L₁/v₁ ÷ L₂/v₂ = ${tt.toFixed(3)}. Igual que en el b, la onda tarda lo mismo en cada tramo: L₁/L₂ = √(μ₂/μ₁).` : `Ahora: ν/ν₁ = ${ratios().slice(0,5).map(q=>q.toFixed(2)).join(', ')}${h&&b?' (es el inciso b: buscá otro)':''}`;
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const a=S.amp, w=om(), t1=a.k1*L1(), t2=a.k2*L2();
+    const steps=[
+      ['La frecuencia es la misma en toda la cuerda (es un modo normal); lo que cambia de tramo a tramo es k', `\\[k_1=\\frac{\\omega}{v_1},\\quad k_2=\\frac{\\omega}{v_2},\\qquad v_i=\\sqrt{\\frac{T_0}{\\mu_i}}:\\ v_1=${f(v1(),1)},\\ v_2=${f(v2(),1)}\\ \\text{m/s}\\]`],
+      ['Cada tramo respeta su extremo fijo (x = 0 y x = L)', `\\[\\Psi_1=A\\sin(k_1x)\\cos(\\omega t+\\theta),\\qquad \\Psi_2=B\\sin\\!\\big(k_2(L-x)\\big)\\cos(\\omega t+\\theta)\\]`],
+      ['En la unión la cuerda no se corta (Ψ continua) y el nudo, sin masa, no soporta fuerza neta: T₀ igual de los dos lados ⇒ pendiente continua', `\\[A\\sin k_1L_1=B\\sin k_2L_2,\\qquad A\\,k_1\\cos k_1L_1=-B\\,k_2\\cos k_2L_2\\]`],
+      ['Sistema homogéneo en A y B: solución no trivial solo si el determinante se anula', `\\[k_1\\cos(k_1L_1)\\sin(k_2L_2)+k_2\\sin(k_1L_1)\\cos(k_2L_2)=0\\]`],
+      [`Modo ${S.n} con los parámetros actuales (cero de F encontrado numéricamente)`, `\\[\\omega_{${S.n}}=${f(w,1)}\\ \\text{rad/s},\\quad k_1L_1=${f(t1,3)},\\quad k_2L_2=${f(t2,3)},\\quad \\frac BA=${f(a.ba,3)}\\]`],
+      ['b) L₁ = 3L₂ y μ₂ = 9μ₁ ⇒ v₂ = v₁/3, k₂ = 3k₁ y entonces k₂L₂ = k₁L₁ ≡ θ', `\\[4k_1\\sin\\theta\\cos\\theta=0\\ \\Rightarrow\\ \\theta=\\frac{m\\pi}2\\ \\Rightarrow\\ \\omega_m=\\frac{m\\pi v_1}{2L_1}=\\frac{2m\\pi v_1}{3L}\\]`],
+      ['b) Amplitudes: m impar (cos θ = 0) ⇒ A = B, vientre en la unión; m par (sen θ = 0) ⇒ A = −3B, nodo en la unión', `\\[\\Psi_m\\propto\\begin{cases}\\sin\\frac{m\\pi x}{2L_1} & x<L_1\\\\ \\beta_m\\sin\\frac{3m\\pi(L-x)}{2L_1} & x>L_1\\end{cases},\\quad \\beta_m=\\begin{cases}1 & m\\ \\text{impar}\\\\ -\\tfrac13 & m\\ \\text{par}\\end{cases}\\]`],
+    ];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join('');
+    $('final').innerHTML=`\\[\\Psi_{${S.n}}=\\cos(${f(w,1)}\\,t+\\theta)\\times\\begin{cases}A\\sin(${f(a.k1,2)}\\,x) & x<${f(L1(),2)}\\\\ ${f(a.ba,3)}\\,A\\sin\\!\\big(${f(a.k2,2)}\\,(1-x)\\big) & x>${f(L1(),2)}\\end{cases}\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineCap='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+const scene=$('scene');
+function endFixed(ctx,x,cy,side){ ctx.fillStyle=C['line-2']; ctx.fillRect(side<0?x-10:x,cy-60,10,120); ctx.strokeStyle=C.faint; ctx.lineWidth=1; for(let y=cy-60;y<cy+60;y+=8){ ctx.beginPath(); ctx.moveTo(x+side*10,y); ctx.lineTo(x+side*16,y+6); ctx.stroke(); } }
+const thick=mu=>Math.max(1.2,Math.min(7,2.2*Math.sqrt(mu)));
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h);
+  const m=46, x0=m, x1=w-m, cy=h/2+4, A=Math.min(66,h*0.25), X=x=>x0+(x/L)*(x1-x0);
+  const c=Math.cos(2*PI*nu()*S.t*slow());
+  const xj=X(L1());
+  // envolvente
+  const e1=[],e2=[]; for(let i=0;i<=400;i++){ const x=L*i/400, s=shape(x); e1.push([X(x),cy-A*s]); e2.push([X(x),cy+A*s]); } line(ctx,e1,C.faint,1,[3,4]); line(ctx,e2,C.faint,1,[3,4]);
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0,cy); ctx.lineTo(x1,cy); ctx.stroke();
+  ctx.setLineDash([2,4]); ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(xj,30); ctx.lineTo(xj,h-28); ctx.stroke(); ctx.setLineDash([]);
+  endFixed(ctx,x0,cy,-1); endFixed(ctx,x1,cy,1);
+  // tramos
+  const p1=[],p2=[]; for(let i=0;i<=400;i++){ const x=L*i/400; const pt=[X(x),cy-A*c*shape(x)]; if(x<=L1()) p1.push(pt); else { if(!p2.length) p2.push([xj,cy-A*c*shape(L1())]); p2.push(pt); } }
+  line(ctx,p2,C.s2,thick(P.r)); line(ctx,p1,C.s1,thick(1));
+  // unión
+  ctx.fillStyle=C.fg; ctx.beginPath(); ctx.arc(xj,cy-A*c*shape(L1()),3.5,0,7); ctx.fill();
+  nodes().forEach(x=>{ ctx.fillStyle=C.node; ctx.beginPath(); ctx.arc(X(x),cy,4.5,0,7); ctx.fill(); });
+  // rótulos
+  ctx.font=`600 12px ${css('--font-ui')}`; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillStyle=C.s1; ctx.fillText(`μ₁ · L₁ = ${fc(L1())} m`,(x0+xj)/2,12);
+  ctx.fillStyle=C.s2; ctx.fillText(`μ₂ = ${fc(P.r,P.r%1?1:0)} μ₁ · L₂ = ${fc(L2())} m`,(xj+x1)/2,30);
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textBaseline='top';
+  [[0,'0'],[L1(),'L₁'],[L,'L']].forEach(([x,l])=>ctx.fillText(l,X(x),h-22));
+  // λ de cada tramo
+  ctx.textAlign='left'; ctx.fillStyle=C.muted; ctx.fillText(`λ₁ = ${fc(2*PI/S.amp.k1)} m   λ₂ = ${fc(2*PI/S.amp.k2)} m`,x0,h-40);
+}
+function axes(ctx,L0,T,pw,ph){ ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.strokeRect(L0,T,pw,ph); }
+function drawCond(){
+  const cv=$('pcd'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L0=44,R=14,T=30,B=30,pw=w-L0-R,ph=h-T-B; const wmax=om(NM)*1.06;
+  const X=ww=>L0+ww/wmax*pw, Y=v=>T+(1.1-v)/2.2*ph;
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; [-1,0,1].forEach(v=>{ ctx.beginPath(); ctx.moveTo(L0,Y(v)); ctx.lineTo(L0+pw,Y(v)); ctx.stroke(); ctx.fillText(v,L0-6,Y(v)); });
+  // armónicos de ν1
+  for(let n=1;n<=NM+1;n++){ const xx=X(n*om(1)); if(xx>L0+pw) break; ctx.strokeStyle=C.harm; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xx,Y(0)-10); ctx.lineTo(xx,Y(0)+10); ctx.stroke(); }
+  const pts=[]; for(let i=0;i<=900;i++){ const ww=wmax*i/900; pts.push([X(ww),Y(Fn(ww))]); } line(ctx,pts,C.fg,1.6,null,0.85);
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  S.roots.forEach((ww,i)=>{ const on=i+1===S.n; ctx.fillStyle=on?C.sys:C.node; ctx.beginPath(); ctx.arc(X(ww),Y(0),on?6:4,0,7); ctx.fill(); ctx.fillStyle=on?C.fg:C.faint; ctx.fillText(`${i+1}`,X(ww),Y(0)+10); });
+  ctx.fillStyle=C.faint; ctx.textBaseline='top';
+  [0.25,0.5,0.75,1].forEach(q=>{ const ww=wmax*q; ctx.fillText(fmtHz(ww/(2*PI)).replace(' Hz',''),X(ww),T+ph+6); });
+  ctx.textAlign='right'; ctx.fillText('ν (Hz)',L0+pw,T+ph+18);
+}
+function drawSpec(){
+  const cv=$('psp'); const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const top=nu(NM)*1.08, L0=58,R=14,T=56,B=16,pw=w-L0-R,ph=h-T-B, Y=f_=>T+ph-f_/top*ph;
+  ctx.font=`11px ${css('--font-num')}`; ctx.fillStyle=C.faint; ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let i=0;i<=4;i++){ const f_=top*i/4; ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(L0,Y(f_)); ctx.lineTo(L0+pw,Y(f_)); ctx.stroke(); ctx.fillText(f_>=1000?(f_/1000).toFixed(1)+'k':f_.toFixed(0),L0-6,Y(f_)); }
+  ctx.save(); ctx.translate(12,T+ph/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.fillText('ν (Hz)',0,0); ctx.restore();
+  const cols=[['toda μ₁',C.s1,L0+pw*0.17,n=>n*v1()/(2*L)],['dos tramos',C.sys,L0+pw*0.5,n=>nu(n)],['toda μ₂',C.s2,L0+pw*0.83,n=>n*v2()/(2*L)]];
+  const half=Math.min(40,pw*0.1);
+  cols.forEach(([lab,col,cx,fn],ci)=>{ ctx.fillStyle=col; ctx.font=`600 12px ${css('--font-ui')}`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(lab,cx,T-10);
+    if(ci===1){ for(let n=1;n<=NM;n++){ const yy=Y(n*nu(1)); if(yy<T) break; ctx.strokeStyle=C.harm; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(cx-half-14,yy); ctx.lineTo(cx-half-2,yy); ctx.stroke(); ctx.setLineDash([]); } }
+    for(let n=1;n<=40;n++){ const f_=fn(n); if(f_>top) break; const on=ci===1&&n===S.n; ctx.strokeStyle=col; ctx.lineWidth=on?3.5:1.6; ctx.globalAlpha=on||ci===1?1:.7; ctx.beginPath(); ctx.moveTo(cx-half,Y(f_)); ctx.lineTo(cx+half,Y(f_)); ctx.stroke(); ctx.globalAlpha=1;
+      if(ci===1){ ctx.fillStyle=on?C.fg:C.faint; ctx.font=`11px ${css('--font-num')}`; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(`${n} · ${(f_/nu(1)).toFixed(2)}`,cx+half+6,Y(f_)); } } });
+}
+function draw(){ drawScene(); if(S.view==='cond') drawCond(); else drawSpec(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); buildN(); refresh();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

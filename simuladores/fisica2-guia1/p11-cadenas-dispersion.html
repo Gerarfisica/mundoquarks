@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Cadenas y dispersión G1-P11</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --p11:#36d4ff; --p12:#ffcf3a; --env:#8693a1; --node:#ff5c3a; --spring:#55616e; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:280px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.nrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbtn{min-width:34px;border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:5px 0;font-family:var(--font-num);font-size:13px;cursor:pointer;color:var(--muted)}
+.nbtn[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.1)}
+.grp{display:flex;gap:18px;flex-wrap:wrap}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 1 · Modos normales en sistemas periódicos</span>
+  <h1>Cadenas de N masas <i>· relación de dispersión</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 1">
+    <h2><a href="index.html" style="color:inherit;text-decoration:none">Guía 1</a></h2>
+    <ol>
+      <li><a href="p1-oscilador.html"><b class="code">P1</b>Péndulo y resortes</a></li>
+      <li><a href="p2-amortiguado.html"><b class="code">P2–3</b>Amortiguado y crítico</a></li>
+      <li><a href="p4-forzado.html"><b class="code">P4</b>Oscilador forzado</a></li>
+      <li><a href="p5-resonancia.html"><b class="code">P5</b>Resonancia</a></li>
+      <li><a href="p6-modos-normales.html"><b class="code">P6</b>Modos normales</a></li>
+      <li><a href="p7-acoplamiento-debil.html"><b class="code">P7</b>Acoplamiento débil</a></li>
+      <li><a href="p8-batidos-longitudinal.html"><b class="code">P8</b>Batidos longitudinal</a></li>
+      <li><a href="p8-batidos-transversal.html"><b class="code">P8</b>Batidos transversal</a></li>
+      <li><a href="p9-molecula-triatomica.html"><b class="code">P9</b>Combinación de modos</a></li>
+      <li><a href="p10-modos-2d.html"><b class="code">P10</b>Modos 2D</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P11–12</b>Cadenas y dispersión</a></li>
+      <li><a href="p13-pendulos-forzados.html"><b class="code">P13–14</b>Péndulos forzados</a></li>
+      <li><a href="p15-banda-evanescentes.html"><b class="code">P15–17</b>Banda y evanescentes</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Cadena de N masas oscilando en un modo normal"></canvas>
+      <div class="clock num" id="clock">cámara lenta</div>
+      <div class="readout num">
+        <span><span class="k">ωₚ</span> <span id="ro-w" style="color:var(--sys)">—</span></span>
+        <span><span class="k">kₚa</span> <span id="ro-k">—</span></span>
+        <span><span class="k">λ</span> <span id="ro-l">—</span></span>
+        <span><span class="k">banda</span> <span id="ro-b">—</span></span>
+      </div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="grp">
+        <div><div class="lbl" style="margin-bottom:6px">Sistema</div>
+          <div class="chips" id="sys">
+            <button class="chip" data-sys="p11" aria-pressed="true">P11 · masas y resortes (transversal)</button>
+            <button class="chip" data-sys="p12">P12 · péndulos acoplados</button>
+          </div></div>
+        <div><div class="lbl" style="margin-bottom:6px">Extremos (izquierdo – derecho)</div>
+          <div class="chips" id="bc">
+            <button class="chip" data-bc="ff" aria-pressed="true">fijo – fijo</button>
+            <button class="chip" data-bc="ll">libre – libre</button>
+            <button class="chip" data-bc="lf">libre – fijo</button>
+          </div></div>
+      </div>
+      <div><div class="lbl" style="margin-bottom:6px">Modo p</div><div class="nrow" id="nrow"></div></div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="chips" id="ic">
+          <button class="chip" data-ic="mode" aria-pressed="true">soltar en el modo p</button>
+          <button class="chip" data-ic="one">soltar solo la masa 1</button>
+        </div>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="disp" aria-pressed="true">Dispersión</button>
+          <button data-view="modes" aria-pressed="false">Todos los modos</button>
+        </div>
+      </div>
+      <div data-vpanel="disp">
+        <div class="plot"><canvas id="pdp" style="height:290px"></canvas><div class="tag">ω(k) = √(ω₀² + 4ω₁² sen²(ka/2))</div></div>
+        <div class="pcap" id="cap-disp">La curva es la misma para cualquier condición de contorno: la ecuación de movimiento de una masa interior no sabe qué hay en los extremos. Los extremos solo eligen qué k están permitidos (los puntos). Más allá de k = π/a la curva se repite: k y 2π/a − k dan los mismos desplazamientos en las masas.</div>
+      </div>
+      <div data-vpanel="modes" hidden>
+        <div class="plot"><canvas id="pmd" style="height:320px"></canvas><div class="tag">Forma de cada modo: desplazamiento de cada masa</div></div>
+        <div class="pcap">De arriba hacia abajo, de menor a mayor frecuencia. El modo más bajo mueve todas las masas en el mismo sentido; el más alto alterna de una masa a la siguiente. La línea punteada es la sinusoide continua que pasa por las masas.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G1-P11 y P12</summary>
+      <p><b>11.</b> N masas m unidas por resortes k, con los extremos fijos a paredes. <b>a)</b> Con pequeños ángulos, escriba la ecuación de movimiento transversal de la masa n. <b>b)</b> Proponga Ψₙ⁽ᵖ⁾(t) = A⁽ᵖ⁾ cos(nk⁽ᵖ⁾a + α⁽ᵖ⁾) cos(ω⁽ᵖ⁾t + φ⁽ᵖ⁾). Halle la relación de dispersión y grafíquela. ¿Depende de las condiciones de contorno? ¿Cuánto vale la frecuencia más baja y qué representa ese modo? <b>c)</b> Frecuencias de los modos con ambos extremos libres (¿cómo sería un extremo libre aquí?) y solución general. <b>d)</b> Ídem con el izquierdo libre y el derecho fijo. <b>e)</b> Particularice para N = 3.</p>
+      <p><b>12.</b> Péndulos de largo l acoplados por resortes k. <b>a)</b> Ecuación de movimiento, solución semejante y relación de dispersión; compare con la del 11. ¿Frecuencia más baja y qué representa? <b>b)</b> Modos con los resortes de los extremos fijos, y condiciones iniciales para excitar el primer armónico. <b>c)</b> Ídem con uno de los resortes de los extremos libre.</p>
+      <p class="src">Física 2 (Físicos), Guía 1.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Tenés la curva ω(k) de la cadena con los dos extremos fijos. Si soltás los dos extremos, la relación de dispersión…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="igual">es la misma: solo cambian los k permitidos</button>
+          <button class="opt" data-ans="baja">baja: la cadena queda más blanda</button>
+          <button class="opt" data-ans="forma">cambia de forma cerca de los extremos de la banda</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: pasar a libre – libre</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Modo actual</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P11 e): con N = 3, mirá las frecuencias libre – libre y libre – fijo. ¿Qué modo aparece en un caso y no en el otro?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P12: encontrá el modo de frecuencia más baja posible. ¿Cuánto vale y qué hacen los resortes?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P12 b): con los extremos fijos, soltá solo la masa 1. ¿Se excita únicamente el primer armónico? ¿Qué condición inicial lo excitaría solo?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Modos calculados diagonalizando la matriz de la cadena (N ecuaciones acopladas) y comparados con la solución analítica Ψₙ ∝ cos(nka + α). La animación superpone modos con su frecuencia real, en cámara lenta. Colores: celeste P11 (masas y resortes), amarillo P12 (péndulos), rojo los nodos.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--p11','--p12','--env','--node','--spring','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+
+// ================= Parámetros =================
+const P={N:6,w1:10,w0:6};
+const DEF=[
+  {id:'N',lab:'N',unit:'masas',min:1,max:24,step:1},
+  {id:'w1',lab:'ω₁ = √(k/m)',unit:'rad/s',min:1,max:30,step:0.1},
+  {id:'w0',lab:'ω₀ = √(g/l)',unit:'rad/s',min:0.5,max:30,step:0.1,p12:true},
+];
+const S={sys:'p11',bc:'ff',p:1,ic:'mode',t:0,running:true,speed:1,view:'disp',seen:new Set(),modes:null,coef:null};
+const w0=()=>S.sys==='p12'?P.w0:0;
+// matriz de la cadena y diagonalización (Jacobi)
+function jacobi(A){ const n=A.length, V=A.map((r,i)=>r.map((_,j)=>i===j?1:0)), a=A.map(r=>r.slice());
+  for(let sweep=0;sweep<100;sweep++){ let off=0; for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) off+=a[i][j]*a[i][j]; if(off<1e-22) break;
+    for(let p=0;p<n;p++) for(let q=p+1;q<n;q++){ if(Math.abs(a[p][q])<1e-300) continue; const th=(a[q][q]-a[p][p])/(2*a[p][q]), t=Math.sign(th||1)/(Math.abs(th)+Math.sqrt(th*th+1)), c=1/Math.sqrt(t*t+1), s=t*c;
+      for(let k=0;k<n;k++){ const akp=a[k][p], akq=a[k][q]; a[k][p]=c*akp-s*akq; a[k][q]=s*akp+c*akq; }
+      for(let k=0;k<n;k++){ const apk=a[p][k], aqk=a[q][k]; a[p][k]=c*apk-s*aqk; a[q][k]=s*apk+c*aqk; }
+      for(let k=0;k<n;k++){ const vkp=V[k][p], vkq=V[k][q]; V[k][p]=c*vkp-s*vkq; V[k][q]=s*vkp+c*vkq; } } }
+  return {vals:a.map((r,i)=>r[i]), vecs:V}; }
+function buildModes(){ const N=P.N, w1s=P.w1*P.w1, A=[...Array(N)].map(()=>Array(N).fill(0));
+  for(let i=0;i<N;i++){ A[i][i]=w0()*w0(); if(i>0){ A[i][i]+=w1s; A[i][i-1]=-w1s; } if(i<N-1){ A[i][i]+=w1s; A[i][i+1]=-w1s; } }
+  const leftWall=S.bc==='ff', rightWall=S.bc!=='ll'; if(leftWall) A[0][0]+=w1s; if(rightWall) A[N-1][N-1]+=w1s;
+  const {vals,vecs}=jacobi(A); const idx=vals.map((v,i)=>i).sort((i,j)=>vals[i]-vals[j]);
+  S.modes=idx.map(i=>{ let v=vecs.map(r=>r[i]); const m=Math.max(...v.map(Math.abs)); let s=v.find(x=>Math.abs(x)>1e-6*m)>0?1:-1; v=v.map(x=>x*s/m); return {w:Math.sqrt(Math.max(0,vals[i])),v}; });
+}
+// k permitidos (analítico) y forma analítica
+const pStart=()=>S.bc==='ll'?0:1;
+function kOf(p){ const N=P.N; if(S.bc==='ff') return p*PI/(N+1); if(S.bc==='ll') return p*PI/N; return (2*p-1)*PI/(2*N+1); } // devuelve k·a
+function shapeA(n,p){ const ka=kOf(p); return S.bc==='ff'? Math.sin(n*ka) : Math.cos((n-0.5)*ka); } // n = 1..N, continuo en n
+const wDisp=ka=>Math.sqrt(w0()*w0()+4*P.w1*P.w1*Math.sin(ka/2)**2);
+const modeIdx=()=>S.p-pStart();
+// condición inicial: proyección sobre los modos (velocidad nula)
+function project(){ const N=P.N; const x=S.ic==='mode'? S.modes[modeIdx()].v.slice() : [...Array(N)].map((_,i)=>i===0?1:0);
+  S.coef=S.modes.map(m=>{ let a=0,b=0; for(let i=0;i<N;i++){ a+=x[i]*m.v[i]; b+=m.v[i]*m.v[i]; } return a/b; }); }
+function disp(i,t){ let s=0; S.modes.forEach((m,j)=>{ const c=S.coef[j]; if(Math.abs(c)<1e-12) return; s+=c*m.v[i]*Math.cos(m.w*t); }); return s; }
+function slow(){ const wl=S.modes.find(m=>m.w>1e-6); return wl? (2*PI/wl.w)/3.2 : 1; } // el modo no nulo más bajo se ve con período 3,2 s
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=d.id==='N'?Math.round(val):val; sync(); rebuild(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelector('.param[data-id=w0]').hidden=S.sys!=='p12'; }
+function buildN(){ const el=$('nrow'); el.innerHTML=''; const a=pStart(), b=a+P.N-1; if(S.p<a) S.p=a; if(S.p>b) S.p=b;
+  for(let p=a;p<=b;p++){ const bt=document.createElement('button'); bt.className='nbtn'; bt.textContent=p; bt.setAttribute('aria-pressed',p===S.p); bt.onclick=()=>{ S.p=p; setIC('mode'); }; el.appendChild(bt); } }
+function press(sel,attr,val){ document.querySelectorAll(sel).forEach(b=>b.setAttribute('aria-pressed',b.dataset[attr]===val)); }
+function rebuild(){ buildModes(); buildN(); project(); S.t=0; S.seen.add(`${S.sys}|${S.bc}|${P.N}`); refresh(); }
+function setIC(k){ S.ic=k; press('#ic .chip','ic',k); buildN(); project(); S.t=0; refresh(); }
+document.querySelectorAll('#sys .chip').forEach(b=>b.onclick=()=>{ S.sys=b.dataset.sys; press('#sys .chip','sys',S.sys); sync(); rebuild(); });
+document.querySelectorAll('#bc .chip').forEach(b=>b.onclick=()=>{ S.bc=b.dataset.bc; press('#bc .chip','bc',S.bc); rebuild(); });
+document.querySelectorAll('#ic .chip').forEach(b=>b.onclick=()=>setIC(b.dataset.ic));
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; press('[data-view]','view',S.view); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==S.view); draw(); });
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+const BCN={ff:'fijo – fijo',ll:'libre – libre',lf:'libre – fijo'};
+function kTxt(p){ const N=P.N, q=x=>x===1?'':x; if(S.bc==='ff') return `${q(p)}π/${N+1}`; if(S.bc==='ll') return p===0?'0':`${q(p)}π/${N}`; return `${q(2*p-1)}π/${2*N+1}`; }
+function refresh(){
+  const ka=kOf(S.p), m=S.modes[modeIdx()];
+  $('ro-w').textContent=`${fc(m.w,3)} rad/s`;
+  $('ro-k').textContent=`${kTxt(S.p)} = ${fc(ka,3)}`;
+  $('ro-l').textContent= ka<1e-9? '∞ (traslación)' : `${fc(2*PI/ka,2)} a`;
+  $('ro-b').textContent=`${fc(w0(),2)} … ${fc(wDisp(PI),2)} rad/s`;
+  const shape=S.bc==='ff'?`sen(n·${kTxt(S.p)})`:`cos((n − ½)·${kTxt(S.p)})`;
+  $('formula').innerHTML=`<span class="k">Ψₙ⁽${S.p}⁾(t) = A </span>${shape}<span class="k"> cos(ω${S.p}t + φ),   n = 1 … ${P.N}  ·  ${BCN[S.bc]}  ·  ${S.sys==='p11'?'masas y resortes':'péndulos acoplados'}</span>`;
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  S.bc='ll'; press('#bc .chip','bc','ll'); S.view='disp'; press('[data-view]','view','disp'); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!=='disp'); rebuild();
+  document.querySelector('#pred-opts [data-ans=igual]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='igual'?'<b>Bien.</b> ':'<b>Mirá la curva.</b> ')+'La dispersión sale de la ecuación de una masa <i>interior</i>, que solo ve a sus dos vecinas: ω² = ω₀² + 4ω₁² sen²(ka/2). Los extremos agregan dos condiciones que fijan α y los k permitidos: con fijo – fijo, kₚa = pπ/(N+1); con libre – libre, kₚa = pπ/N, y aparece p = 0 (ω = ω₀). Los puntos se corren sobre la misma curva.';
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=S.seen.has('p11|ll|3')&&S.seen.has('p11|lf|3');
+  const fr=bc=>{ const sv=S.bc; S.bc=bc; const out=[]; for(let p=(bc==='ll'?0:1);p<(bc==='ll'?3:4);p++) out.push(fc(wDisp(kOf(p))/P.w1,3)); S.bc=sv; return out.join(', '); };
+  $('c1').textContent= ok1? `Logrado (en unidades de ω₁): libre – libre ω = ${fr('ll')}; libre – fijo ω = ${fr('lf')}. Con los dos extremos libres aparece ω = 0, la traslación rígida (en P11 la cadena se desliza entera sobre las varillas); con un extremo fijo ese modo no existe.` : `Pasá por P11 con N = 3 en libre – libre y en libre – fijo (${S.seen.has('p11|ll|3')?'✓':'·'} ll, ${S.seen.has('p11|lf|3')?'✓':'·'} lf)`;
+  $('c1').classList.toggle('done',ok1);
+  const ok2=S.sys==='p12'&&S.bc==='ll'&&S.p===0;
+  $('c2').textContent= ok2? `Logrado: p = 0, k = 0 y ω = ω₀ = ${fc(P.w0,2)} rad/s. Todos los péndulos oscilan juntos, con la misma amplitud: los resortes nunca se estiran y cada péndulo oscila como si estuviera solo. Es la frecuencia más baja de la banda.` : (S.sys!=='p12'?'Pasá al P12':(S.bc!=='ll'?'Pensá qué extremos permiten k = 0':'Elegí el modo de menor frecuencia'));
+  $('c2').classList.toggle('done',ok2);
+  const ok3=S.sys==='p12'&&S.bc==='ff'&&S.ic==='one';
+  if(ok3){ const tot=S.coef.reduce((a,c,j)=>a+c*c,0), share=S.coef.map(c=>c*c/tot); const top=share.map((s,j)=>[s,j+1]).sort((a,b)=>b[0]-a[0]).slice(0,3);
+    $('c3').textContent=`Logrado: no. Con la masa 1 sola se excitan todos los modos (peso relativo: ${top.map(([s,p])=>`p = ${p}: ${(100*s).toFixed(0)} %`).join(', ')}, …). Para excitar solo el primero hay que soltar con Ψₙ(0) ∝ sen(nπ/(N + 1)) y velocidades nulas: el botón «soltar en el modo p» con p = 1.`; }
+  else $('c3').textContent= S.sys!=='p12'?'Pasá al P12':(S.bc!=='ff'?'Elegí fijo – fijo':'Usá «soltar solo la masa 1»');
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const p12=S.sys==='p12', ka=kOf(S.p), N=P.N;
+    $('cu-title').textContent= p12? 'P12 paso a paso' : 'P11 paso a paso';
+    const eq= p12? `\\[m\\ddot\\Psi_n=-\\frac{mg}{l}\\Psi_n+k(\\Psi_{n+1}-2\\Psi_n+\\Psi_{n-1})\\]` : `\\[m\\ddot\\Psi_n=\\frac{T_0}{a}(\\Psi_{n+1}-2\\Psi_n+\\Psi_{n-1}),\\qquad \\omega_1^2=\\frac{T_0}{ma}\\ (\\text{o }k/m)\\]`;
+    const bcs={ff:['Extremos fijos: Ψ₀ = Ψ_{N+1} = 0', `\\[\\alpha=-\\tfrac\\pi2\\ (\\text{queda }\\sin nka),\\quad \\sin\\big((N+1)ka\\big)=0\\ \\Rightarrow\\ k_pa=\\frac{p\\pi}{N+1},\\ p=1\\dots N\\]`],
+      ll:['Extremos libres: la masa del borde no tiene resorte hacia afuera (en P11, un anillo sin masa en una varilla). Equivale a Ψ₀ = Ψ₁ y Ψ_{N+1} = Ψ_N', `\\[\\Psi_n\\propto\\cos\\big((n-\\tfrac12)ka\\big),\\quad \\sin(Nka)=0\\ \\Rightarrow\\ k_pa=\\frac{p\\pi}{N},\\ p=0\\dots N-1\\]`],
+      lf:['Izquierdo libre (Ψ₀ = Ψ₁) y derecho fijo (Ψ_{N+1} = 0)', `\\[\\Psi_n\\propto\\cos\\big((n-\\tfrac12)ka\\big),\\quad \\cos\\big((N+\\tfrac12)ka\\big)=0\\ \\Rightarrow\\ k_pa=\\frac{(2p-1)\\pi}{2N+1}\\]`]};
+    const steps=[
+      ['a) Ecuación de la masa n (pequeños desplazamientos): solo ve a sus dos vecinas', eq],
+      ['b) Proponiendo Ψₙ = A cos(nka + α) cos(ωt + φ) y usando cos(x + ka) + cos(x − ka) = 2 cos x cos ka', `\\[\\omega^2=${p12?'\\omega_0^2+':''}2\\omega_1^2(1-\\cos ka)=${p12?'\\omega_0^2+':''}4\\omega_1^2\\sin^2\\frac{ka}2\\]`],
+      ['No depende de los extremos. Banda de frecuencias permitidas (k entre 0 y π/a)', `\\[${f(w0(),2)}\\le\\omega\\le\\sqrt{${p12?'\\omega_0^2+':''}4\\omega_1^2}=${f(wDisp(PI),2)}\\ \\text{rad/s}\\]`],
+      bcs[S.bc],
+      [`Modo actual (N = ${N}, p = ${S.p})`, `\\[k_pa=${f(ka,4)},\\qquad \\omega_p=${f(wDisp(ka),4)}\\ \\text{rad/s}\\quad(\\text{diagonalizando: }${f(S.modes[modeIdx()].w,4)})\\]`],
+    ];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join('');
+    $('final').innerHTML= S.bc==='ff'? `\\[\\Psi_n^{(${S.p})}=A\\sin\\Big(\\frac{${S.p}\\,n\\pi}{${N+1}}\\Big)\\cos(\\omega_{${S.p}}t+\\varphi)\\]` : `\\[\\Psi_n^{(${S.p})}=A\\cos\\Big(\\big(n-\\tfrac12\\big)${S.bc==='ll'?`\\frac{${S.p}\\pi}{${N}}`:`\\frac{${2*S.p-1}\\pi}{${2*N+1}}`}\\Big)\\cos(\\omega_{${S.p}}t+\\varphi)\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function spring(c,x1,y1,x2,y2,col){ const n=8, dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, px=-uy, py=ux, amp=Math.min(5,L/6); c.strokeStyle=col; c.lineWidth=1.2; c.beginPath(); c.moveTo(x1,y1); const a=L*0.12;
+  c.lineTo(x1+ux*a,y1+uy*a); for(let i=1;i<=n;i++){ const s=a+(L-2*a)*(i-0.5)/n, sg=i%2?1:-1; c.lineTo(x1+ux*s+px*amp*sg,y1+uy*s+py*amp*sg); } c.lineTo(x2-ux*a,y2-uy*a); c.lineTo(x2,y2); c.stroke(); }
+function drawScene(){
+  const {ctx:c,w,h}=fit($('scene')); c.clearRect(0,0,w,h);
+  const N=P.N, p12=S.sys==='p12', m=40, x0=m, x1=w-m, sp=(x1-x0)/(N+1), X=i=>x0+sp*(i+1), cy=p12? h*0.66 : h/2+4, t=S.t*slow();
+  const amp=p12? Math.min(sp*0.45,40) : Math.min(70,h*0.26), col=p12?C.p12:C.p11, top=38;
+  const dsp=[...Array(N)].map((_,i)=>disp(i,t)), mx=Math.max(1e-9,...S.modes.map((_,j)=>Math.abs(S.coef[j])))*1.0;
+  const pos=dsp.map((d,i)=> p12? [X(i)+amp*d,cy] : [X(i),cy-amp*d]);
+  const leftWall=S.bc==='ff', rightWall=S.bc!=='ll';
+  // techo de los péndulos
+  if(p12){ c.fillStyle=C['line-2']; c.fillRect(x0-10,top-6,x1-x0+20,6); pos.forEach(([x,y],i)=>{ c.strokeStyle=C.faint; c.lineWidth=1.2; c.beginPath(); c.moveTo(X(i),top); c.lineTo(x,y); c.stroke(); }); }
+  // paredes y extremos libres
+  const wallL=x0-6, wallR=x1+6;
+  const end=(side,wall)=>{ const x=side<0?wallL:wallR; if(wall){ c.fillStyle=C['line-2']; c.fillRect(side<0?x-8:x,cy-50,8,100); }
+    else if(!p12){ c.strokeStyle=C.muted; c.lineWidth=2.5; c.beginPath(); c.moveTo(x,cy-amp-14); c.lineTo(x,cy+amp+14); c.stroke(); } };
+  end(-1,leftWall); end(1,rightWall);
+  // resortes
+  const pts=[[wallL,cy],...pos,[wallR,cy]];
+  if(!p12&&!leftWall) pts[0]=[wallL,pos[0][1]]; if(!p12&&!rightWall) pts[N+1]=[wallR,pos[N-1][1]];
+  for(let i=0;i<=N;i++){ if(i===0&&(leftWall||!p12)===false) continue; if(i===N&&(rightWall||!p12)===false) continue;
+    const a=pts[i], b=pts[i+1]; spring(c,a[0],a[1],b[0],b[1],C.spring); }
+  if(!p12){ if(!leftWall){ c.fillStyle=C.panel; c.strokeStyle=C.fg; c.lineWidth=1.6; c.beginPath(); c.ellipse(wallL,pts[0][1],6,4,0,0,7); c.fill(); c.stroke(); }
+    if(!rightWall){ c.fillStyle=C.panel; c.strokeStyle=C.fg; c.lineWidth=1.6; c.beginPath(); c.ellipse(wallR,pts[N+1][1],6,4,0,0,7); c.fill(); c.stroke(); } }
+  // sinusoide continua del modo (solo modo puro, P11)
+  if(S.ic==='mode'&&!p12&&S.modes[modeIdx()].w>1e-9){ const cs=Math.cos(S.modes[modeIdx()].w*t), e=[]; const nrm=1/Math.max(...[...Array(N)].map((_,i)=>Math.abs(shapeA(i+1,S.p))));
+    for(let j=0;j<=300;j++){ const n=(N+1)*j/300; e.push([x0+sp*n, cy-amp*cs*nrm*shapeA(n,S.p)*(S.modes[modeIdx()].v[0]*shapeA(1,S.p)>=0?1:-1)]); } line(c,e,C.env,1,[3,4]); }
+  // masas
+  pos.forEach(([x,y])=>{ c.fillStyle=col; c.beginPath(); c.arc(x,y,7,0,7); c.fill(); });
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top';
+  [0,N-1].forEach(i=>{ if(i>=0) c.fillText(i+1,X(i),cy+(p12?14:amp+12)); });
+  if(S.modes[modeIdx()].w<1e-9&&S.ic==='mode'){ c.fillStyle=C.p11; c.textAlign='center'; c.font=`600 12px ${css('--font-ui')}`; c.fillText('p = 0: traslación rígida, ω = 0',w/2,10); }
+  $('clock').textContent=`cámara lenta ×${Math.round(1/slow())>1?Math.round(1/slow()):fc(1/slow(),2)}`;
+}
+function drawDisp(){
+  const {ctx:c,w,h}=fit($('pdp')); c.clearRect(0,0,w,h);
+  const L0=62,R=16,T=30,B=30,pw=w-L0-R,ph=h-T-B;
+  const wmax=Math.sqrt(P.w0*P.w0+4*P.w1*P.w1)*1.1, X=k=>L0+k/PI*pw, Y=v=>T+ph-v/wmax*ph;
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  for(let i=0;i<=4;i++){ const v=wmax*i/4; c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(fc(v,1),L0-6,Y(v)); }
+  c.textAlign='center'; c.textBaseline='top'; [[0,'0'],[PI/2,'π/2a'],[PI,'π/a']].forEach(([k,l])=>c.fillText(l,X(k),T+ph+4)); c.textAlign='right'; c.fillText('k',L0+pw,T+ph+16);
+  c.save(); c.translate(12,T+ph/2); c.rotate(-PI/2); c.textAlign='center'; c.fillText('ω (rad/s)',0,0); c.restore();
+  const curve=(o0,col,wd,al)=>{ const pts=[]; for(let i=0;i<=200;i++){ const k=PI*i/200; pts.push([X(k),Y(Math.sqrt(o0*o0+4*P.w1*P.w1*Math.sin(k/2)**2))]); } line(c,pts,col,wd,null,al); };
+  curve(0,C.p11,S.sys==='p11'?2.4:1.2,S.sys==='p11'?1:0.45); curve(P.w0,C.p12,S.sys==='p12'?2.4:1.2,S.sys==='p12'?1:0.45);
+  // límite continuo
+  const lin=[]; for(let i=0;i<=60;i++){ const k=PI*0.6*i/60; lin.push([X(k),Y(P.w1*k)]); } if(S.sys==='p11') line(c,lin,C.faint,1,[4,4]);
+  // modos permitidos
+  for(let p=pStart();p<pStart()+P.N;p++){ const k=kOf(p), on=p===S.p; c.fillStyle=on?C.fg:(S.sys==='p11'?C.p11:C.p12); c.beginPath(); c.arc(X(k),Y(wDisp(k)),on?6:3.6,0,7); c.fill(); if(on){ c.strokeStyle=C.faint; c.setLineDash([2,3]); c.beginPath(); c.moveTo(X(k),Y(wDisp(k))); c.lineTo(X(k),T+ph); c.stroke(); c.setLineDash([]); } }
+  c.textAlign='left'; c.textBaseline='bottom'; c.font=`600 11px ${css('--font-ui')}`; const kl=PI*0.72; c.fillStyle=C.p12; c.fillText('P12 · péndulos',X(kl),Y(Math.sqrt(P.w0*P.w0+4*P.w1*P.w1*Math.sin(kl/2)**2))-6); c.fillStyle=C.p11; c.textBaseline='top'; c.fillText('P11 · masas y resortes',X(kl)+6,Y(2*P.w1*Math.sin(kl/2))+6); c.textBaseline='bottom';
+  if(S.sys==='p11'){ c.fillStyle=C.faint; c.font=`11px ${css('--font-num')}`; c.textAlign='left'; c.textBaseline='middle'; c.fillText('ω ≈ ω₁ka (límite continuo)',X(PI*0.6)+6,Y(P.w1*PI*0.6)); }
+}
+function drawModes(){
+  const {ctx:c,w,h}=fit($('pmd')); c.clearRect(0,0,w,h);
+  const N=P.N, M=Math.min(N,10), L0=92,R=16,T=30,B=10, rh=(h-T-B)/M, sp=(w-L0-R)/(N+1), col=S.sys==='p11'?C.p11:C.p12;
+  c.font=`11px ${css('--font-num')}`;
+  for(let j=0;j<M;j++){ const m=S.modes[j], p=j+pStart(), cy=T+rh*(j+0.5), A=rh*0.38, on=p===S.p;
+    c.fillStyle=on?C.fg:C.faint; c.textAlign='left'; c.textBaseline='middle'; c.fillText(`p=${p}  ${fc(m.w,2)}`,6,cy);
+    c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(L0,cy); c.lineTo(L0+sp*(N+1),cy); c.stroke();
+    if(m.w>1e-9||true){ const e=[]; const sg=m.v[0]*shapeA(1,p)>=0?1:-1, nr=1/Math.max(...[...Array(N)].map((_,i)=>Math.abs(shapeA(i+1,p))));
+      for(let q=0;q<=200;q++){ const n=(N+1)*q/200; e.push([L0+sp*n,cy-A*sg*nr*shapeA(n,p)]); } line(c,e,C.env,1,[3,3],0.8); }
+    m.v.forEach((v,i)=>{ c.strokeStyle=col; c.lineWidth=2; c.globalAlpha=on?1:0.7; c.beginPath(); c.moveTo(L0+sp*(i+1),cy); c.lineTo(L0+sp*(i+1),cy-A*v); c.stroke(); c.fillStyle=col; c.beginPath(); c.arc(L0+sp*(i+1),cy-A*v,3.5,0,7); c.fill(); c.globalAlpha=1; });
+  }
+  if(N>M){ c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='top'; c.fillText(`primeros ${M} de ${N}`,w-R,6); }
+}
+function draw(){ drawScene(); if(S.view==='disp') drawDisp(); else drawModes(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); rebuild();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

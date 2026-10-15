@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Cadena forzada G1-P15</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --m1:#36d4ff; --m2:#ffcf3a; --drv:#ff5c3a; --ev:#ff7ad9; --spring:#55616e; --band:#34e08a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:300px}
+#pband{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.regime{display:inline-block;padding:1px 8px;border-radius:5px;border:1px solid currentColor;font-size:12px}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 1 · Oscilaciones forzadas de sistemas periódicos</span>
+  <h1>Cadena forzada <i>· banda de paso y ondas evanescentes</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 1">
+    <h2><a href="index.html" style="color:inherit;text-decoration:none">Guía 1</a></h2>
+    <ol>
+      <li><a href="p1-oscilador.html"><b class="code">P1</b>Péndulo y resortes</a></li>
+      <li><a href="p2-amortiguado.html"><b class="code">P2–3</b>Amortiguado y crítico</a></li>
+      <li><a href="p4-forzado.html"><b class="code">P4</b>Oscilador forzado</a></li>
+      <li><a href="p5-resonancia.html"><b class="code">P5</b>Resonancia</a></li>
+      <li><a href="p6-modos-normales.html"><b class="code">P6</b>Modos normales</a></li>
+      <li><a href="p7-acoplamiento-debil.html"><b class="code">P7</b>Acoplamiento débil</a></li>
+      <li><a href="p8-batidos-longitudinal.html"><b class="code">P8</b>Batidos longitudinal</a></li>
+      <li><a href="p8-batidos-transversal.html"><b class="code">P8</b>Batidos transversal</a></li>
+      <li><a href="p9-molecula-triatomica.html"><b class="code">P9</b>Combinación de modos</a></li>
+      <li><a href="p10-modos-2d.html"><b class="code">P10</b>Modos 2D</a></li>
+      <li><a href="p11-cadenas-dispersion.html"><b class="code">P11–12</b>Cadenas y dispersión</a></li>
+      <li><a href="p13-pendulos-forzados.html"><b class="code">P13–14</b>Péndulos forzados</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P15–17</b>Banda y evanescentes</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Cadena de péndulos acoplados excitada en un extremo"></canvas>
+      <div class="clock num" id="clock">—</div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p15l" aria-pressed="true">P15 · extremo derecho libre</button>
+          <button class="chip" data-pre="p15f">P15 · extremo derecho a la pared</button>
+          <button class="chip" data-pre="p16">P16 · cambio brusco de ω₀²</button>
+          <button class="chip" data-pre="p17">P17 · resortes verticales, Ω &lt; ω<sub>min</sub></button>
+        </div></div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="-1"><span class="num" id="speed-v">0.50×</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="band" aria-pressed="true">Banda</button>
+          <button data-view="amp" aria-pressed="false">Amplitudes</button>
+        </div>
+      </div>
+      <div data-vpanel="band">
+        <div class="plot"><canvas id="pband" style="height:300px"></canvas><div class="tag">Relación de dispersión: k real (derecha) e imaginario κ (izquierda) · tocá para elegir Ω</div></div>
+        <div class="pcap">Dentro de la banda [ω<sub>min</sub>, ω<sub>max</sub>] hay un k real y la perturbación se propaga. Fuera de ella no hay k real: la solución es e<sup>−κz</sup> (todas las masas en fase por debajo de la banda, alternando signo por encima). Eso es una onda evanescente.</div>
+      </div>
+      <div data-vpanel="amp" hidden>
+        <div class="plot"><canvas id="pamp" style="height:260px"></canvas><div class="tag">Amplitud Aₙ de cada masa (relativa a A₀)</div></div>
+        <div class="pcap">Barras: amplitud de cada masa en el estado estacionario. Con extremo libre o pared se forma una onda estacionaria (o un decaimiento); en el P16 la parte de la derecha es una onda que se va o una cola evanescente.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G1-P15 a P17</summary>
+      <p><b>15.</b> Arreglo lineal de péndulos acoplados entre z = 0 y z = L. Se impone a la primera masa Ψ(0,t) = A₀ cos(Ωt). Halle el movimiento estacionario y discuta las hipótesis. Compare con el caso con el extremo derecho fijo a una pared (agregando un resorte a la derecha de la última masa).</p>
+      <p><b>16.</b> Péndulos acoplados con un cambio brusco en ω₀² en z = L (los péndulos pasan de largo l₁ a l₂ y la cadena continúa). Halle el movimiento estacionario y discuta las hipótesis.</p>
+      <p><b>17.</b> Cadena de masas con resortes verticales k′ y horizontales k, fija a la pared a la derecha y excitada con A₀ sen(Ωt) a la izquierda. Calcule Ψₙ(t) si Ω &lt; ω<sub>min</sub>.</p>
+      <p class="src">Física 2 (Físicos), Guía 1.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Excitás la cadena en un extremo con una frecuencia Ω menor que ω<sub>min</sub> (la de un péndulo solo). En el estado estacionario, las masas lejanas…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="onda">oscilan como una onda, con la misma amplitud</button>
+          <button class="opt" data-ans="decae">oscilan en fase, con amplitud que decae exponencialmente</button>
+          <button class="opt" data-ans="nada">no se mueven en absoluto; solo la primera</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: el P17</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Estado estacionario</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P15 con extremo libre: encontrá una Ω que haga resonar la cadena. ¿Qué tiene de especial?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P16: encontrá una Ω que pase al segundo tramo como onda y otra que quede totalmente reflejada.<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Probá una Ω por encima de ω<sub>max</sub>. ¿Cómo son los signos de masas vecinas?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Estado estacionario exacto: se resuelve el sistema tridiagonal de las N masas con A₀ impuesta en z = 0 y la condición del extremo derecho (libre, pared, o un medio semiinfinito con Aₙ₊₁ = λAₙ, onda saliente o cola evanescente). Se compara con la fórmula cerrada de cada caso. Sin rozamiento, por eso las resonancias son infinitas. Colores: celeste medio 1, amarillo medio 2, rosa los casos evanescentes, rojo el excitador.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--m1','--m2','--drv','--ev','--spring','--band','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI, M2=10;
+
+// ================= Parámetros =================
+const P={N:12,w0:4,wk:3,w02:7,W:5.2};
+const DEF=[
+  {id:'N',lab:'N',unit:'masas',min:2,max:30,step:1},
+  {id:'w0',lab:'ω₀ (g/l o k′/m)',unit:'rad/s',min:0.5,max:10,step:0.05},
+  {id:'wk',lab:'ωₖ = √(k/m)',unit:'rad/s',min:0.3,max:8,step:0.05},
+  {id:'w02',lab:'ω₀ del medio 2',unit:'rad/s',min:0.5,max:12,step:0.05,p16:true},
+  {id:'W',lab:'Ω',unit:'rad/s',min:0.05,max:20,step:0.01},
+];
+const PRE={p15l:{right:'free',look:'pend',W:5.2},p15f:{right:'wall',look:'pend',W:5.2},p16:{right:'inf',look:'pend',W:5.2},p17:{right:'wall',look:'spr',W:2.5}};
+const S={pre:'p15l',t:0,running:true,speed:0.5,view:'band',A:null,lam:null,seen:new Set()};
+const right=()=>PRE[S.pre].right;
+const wmin=(o=P.w0)=>o, wmax=(o=P.w0)=>Math.sqrt(o*o+4*P.wk*P.wk);
+// régimen y número de onda en un medio de frecuencia propia o
+function regime(o=P.w0,W=P.W){ const c=1-(W*W-o*o)/(2*P.wk*P.wk); // cos(ka)
+  if(c>1) return {r:'below',ka:Math.acosh(c)}; if(c<-1) return {r:'above',ka:Math.acosh(-c)}; return {r:'band',ka:Math.acos(c)}; }
+// complejos
+const cm=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], cs=(a,b)=>[a[0]-b[0],a[1]-b[1]], cd=(a,b)=>{ const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; };
+function lam2(){ const D=(P.w02**2+2*P.wk**2-P.W**2)/P.wk**2; if(Math.abs(D)<=2){ const ka=Math.acos(D/2); return [Math.cos(ka),-Math.sin(ka)]; } return [(D-Math.sign(D)*Math.sqrt(D*D-4))/2,0]; }
+function solve(W=P.W){ const N=P.N, k2=P.wk**2, d=P.w0**2+2*k2-W*W;
+  const a=Array(N).fill([-k2,0]), b=Array(N).fill(null).map(()=>[d,0]), c=Array(N).fill([-k2,0]), r=Array(N).fill(null).map(()=>[0,0]); r[0]=[k2,0];
+  let lam=null; if(right()==='free') b[N-1]=[P.w0**2+k2-W*W,0]; else if(right()==='inf'){ const sv=P.W; P.W=W; lam=lam2(); P.W=sv; b[N-1]=cs(b[N-1],cm([k2,0],lam)); }
+  // Thomas
+  const cp=Array(N), dp=Array(N); cp[0]=cd(c[0],b[0]); dp[0]=cd(r[0],b[0]);
+  for(let i=1;i<N;i++){ const den=cs(b[i],cm(a[i],cp[i-1])); const den2=Math.hypot(...den)<1e-14?[1e-14,0]:den; cp[i]=cd(c[i],den2); dp[i]=cd(cs(r[i],cm(a[i],dp[i-1])),den2); }
+  const x=Array(N); x[N-1]=dp[N-1]; for(let i=N-2;i>=0;i--) x[i]=cs(dp[i],cm(cp[i],x[i+1]));
+  const out=[[1,0],...x]; if(right()==='inf'){ let z=x[N-1]; for(let j=0;j<M2;j++){ z=cm(z,lam); out.push(z); } } return {A:out,lam}; }
+// fórmula cerrada (medio 1, extremos libre o pared)
+function closed(n){ const N=P.N, g=regime(); const s=g.r==='above'?(n%2?-1:1)*((N%2)?1:1):1;
+  if(right()==='wall'){ if(g.r==='band') return Math.sin(g.ka*(N+1-n))/Math.sin(g.ka*(N+1)); const sh=Math.sinh(g.ka*(N+1-n))/Math.sinh(g.ka*(N+1)); return g.r==='below'? sh : (n%2?-1:1)*sh; }
+  if(right()==='free'){ if(g.r==='band') return Math.cos(g.ka*(N+0.5-n))/Math.cos(g.ka*(N+0.5)); const ch=Math.cosh(g.ka*(N+0.5-n))/Math.cosh(g.ka*(N+0.5)); return g.r==='below'? ch : (n%2?-1:1)*ch; }
+  return null; }
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=d.id==='N'?Math.round(val):val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelector('.param[data-id=w02]').hidden=S.pre!=='p16'; }
+function press(sel,attr,val){ document.querySelectorAll(sel).forEach(b=>b.setAttribute('aria-pressed',b.dataset[attr]===val)); }
+function setPre(k){ S.pre=k; P.W=PRE[k].W; press('#pre .chip','pre',k); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+function setW(W){ P.W=Math.min(20,Math.max(0.05,W)); sync(); refresh(); }
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; press('[data-view]','view',S.view); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==S.view); draw(); });
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+let BG=null; $('pband').addEventListener('pointerdown',e=>{ if(!BG) return; const r=e.currentTarget.getBoundingClientRect(); setW(BG.Wm*(1-(e.clientY-r.top-BG.T)/BG.ph)); });
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+const RN={below:['debajo de la banda: evanescente','var(--ev)'],band:['en la banda: se propaga','var(--band)'],above:['encima de la banda: evanescente alternada','var(--ev)']};
+function refresh(){
+  const sol=solve(); S.A=sol.A; S.lam=sol.lam; const g=regime(), N=P.N, mx=Math.max(...S.A.slice(0,N+1).map(z=>Math.hypot(...z)));
+  let html=`<span><span class="k">Ω</span> <span style="color:var(--sys)">${fc(P.W,2)} rad/s</span></span><span><span class="k">banda</span> ${fc(wmin(),2)} … ${fc(wmax(),2)}</span><span class="regime" style="color:${RN[g.r][1]}">${RN[g.r][0]}</span><span><span class="k">${g.r==='band'?'ka':'κa'}</span> ${fc(g.ka,3)}</span><span><span class="k">máx |Aₙ|/A₀</span> ${mx>999?mx.toExponential(1):fc(mx,2)}</span>`;
+  if(S.pre==='p16'){ const g2=regime(P.w02); html+=`<span><span class="k">medio 2</span> <span style="color:${RN[g2.r][1]}">${g2.r==='band'?'transmite':'evanescente'}</span></span>`; }
+  $('readout').innerHTML=html;
+  const fm={wall:g.r==='band'?'Aₙ = A₀ sen(k(N+1−n)a)/sen(k(N+1)a)':`Aₙ = A₀ ${g.r==='above'?'(−1)ⁿ ':''}senh(κ(N+1−n)a)/senh(κ(N+1)a)`, free:g.r==='band'?'Aₙ = A₀ cos(k(N+½−n)a)/cos(k(N+½)a)':`Aₙ = A₀ ${g.r==='above'?'(−1)ⁿ ':''}cosh(κ(N+½−n)a)/cosh(κ(N+½)a)`, inf:'medio 1: suma de ida y vuelta · medio 2: Aₙ₊₁ = λAₙ (onda que se va o cola evanescente)'};
+  $('formula').innerHTML=`<span class="k">Ψₙ(t) = Aₙ cos(Ωt),  Ω² = ω₀² + 4ωₖ² sen²(ka/2)  ·  </span>${fm[right()]}`;
+  if(S.pre==='p16'){ const g1=regime(), g2=regime(P.w02); if(g1.r==='band'&&g2.r==='band') S.seen.add('tr'); if(g1.r==='band'&&g2.r!=='band') S.seen.add('ref'); }
+  if(S.pre==='p15l'&&mx>20) S.seen.add('res'); if(g.r==='above') S.seen.add('above');
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setPre('p17'); S.view='amp'; press('[data-view]','view','amp'); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!=='amp'); togglePlay(true); draw();
+  document.querySelector('#pred-opts [data-ans=decae]').classList.add('right');
+  const g=regime(); const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='decae'?'<b>Bien.</b> ':'<b>Mirá las amplitudes.</b> ')+`Con Ω &lt; ω<sub>min</sub> no existe un k real: Ω² = ω₀² + 4ωₖ² sen²(ka/2) pediría sen² &lt; 0. Se reemplaza k por iκ y queda Ω² = ω₀² − 4ωₖ² senh²(κa/2). Ahora κa = ${fc(g.ka,3)}: cada masa tiene e<sup>−κa</sup> ≈ ${fc(Math.exp(-g.ka),3)} veces la amplitud de la anterior y todas oscilan en fase. No viaja nada: es una onda evanescente, y no transporta energía en promedio.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=S.seen.has('res');
+  $('c1').textContent= ok1? 'Logrado: la amplitud diverge cuando cos(k(N + ½)a) = 0. Son las frecuencias propias de la cadena con el extremo izquierdo fijo (el excitador impone el desplazamiento, actúa como una pared que se mueve) y el derecho libre: kₚa = (2p − 1)π/(2N + 1), como en el P11.' : (S.pre==='p15l'?'Mové Ω dentro de la banda hasta que la amplitud se dispare':'Elegí P15 con extremo libre');
+  $('c1').classList.toggle('done',ok1);
+  const ok2=S.seen.has('tr')&&S.seen.has('ref');
+  $('c2').textContent= ok2? `Logrado: la onda pasa al medio 2 si Ω está en la banda de los dos medios (entre ${fc(P.w02,2)} y ${fc(wmax(),2)} rad/s con estos valores). Si Ω está en la banda del medio 1 pero por debajo de ω₀ del medio 2, al otro lado solo hay una cola evanescente: toda la energía vuelve y en el medio 1 queda una onda estacionaria.` : (S.pre==='p16'?`Probado: ${S.seen.has('tr')?'✓':'·'} transmisión, ${S.seen.has('ref')?'✓':'·'} reflexión total`:'Elegí P16');
+  $('c2').classList.toggle('done',ok2);
+  const ok3=S.seen.has('above');
+  $('c3').textContent= ok3? 'Logrado: por encima de ω_max los vecinos se mueven en contrafase y la amplitud decae: ka = π + iκ. La cadena no puede seguir una oscilación más rápida que su modo más "zigzag".' : 'Subí Ω por encima de ω_max';
+  $('c3').classList.toggle('done',ok3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const g=regime(), N=P.N, p17=S.pre==='p17';
+    const steps=[
+      [`Ecuación de la masa n (${p17?'ω₀² = k′/m, resortes verticales':'ω₀² = g/l, péndulos'}; ωₖ² = k/m)`, `\\[\\ddot\\Psi_n=-\\omega_0^2\\Psi_n+\\omega_k^2(\\Psi_{n+1}-2\\Psi_n+\\Psi_{n-1})\\]`],
+      ['Estado estacionario Ψₙ = Aₙ cos Ωt con Aₙ ∝ e^{±inka}: la dispersión de la cadena', `\\[\\Omega^2=\\omega_0^2+4\\omega_k^2\\sin^2\\frac{ka}2,\\qquad ${f(wmin(),2)}\\le\\Omega\\le${f(wmax(),2)}\\ \\text{rad/s}\\]`],
+      g.r==='band'? ['Ω está en la banda: k real', `\\[\\cos ka=1-\\frac{\\Omega^2-\\omega_0^2}{2\\omega_k^2}\\Rightarrow ka=${f(g.ka,4)}\\]`]
+       : ['Ω está fuera de la banda: k complejo', g.r==='below'? `\\[k=i\\kappa:\\ \\Omega^2=\\omega_0^2-4\\omega_k^2\\sinh^2\\frac{\\kappa a}2\\Rightarrow \\kappa a=${f(g.ka,4)},\\quad A_n\\sim e^{-n\\kappa a}\\]` : `\\[ka=\\pi+i\\kappa a:\\ \\Omega^2=\\omega_0^2+4\\omega_k^2\\cosh^2\\frac{\\kappa a}2\\Rightarrow\\kappa a=${f(g.ka,4)},\\quad A_n\\sim(-1)^ne^{-n\\kappa a}\\]`],
+    ];
+    if(right()==='wall') steps.push(['Condiciones: A₀ impuesta y A_{N+1} = 0 (pared)', g.r==='band'? `\\[A_n=A_0\\frac{\\sin\\big(k(N+1-n)a\\big)}{\\sin\\big(k(N+1)a\\big)}\\]` : `\\[A_n=A_0\\,${g.r==='above'?'(-1)^n':''}\\frac{\\sinh\\big(\\kappa(N+1-n)a\\big)}{\\sinh\\big(\\kappa(N+1)a\\big)}\\]`]);
+    if(right()==='free') steps.push(['Condiciones: A₀ impuesta y extremo libre, A_{N+1} = A_N (la última masa no tiene resorte a la derecha)', g.r==='band'? `\\[A_n=A_0\\frac{\\cos\\big(k(N+\\frac12-n)a\\big)}{\\cos\\big(k(N+\\frac12)a\\big)}\\]` : `\\[A_n=A_0\\,${g.r==='above'?'(-1)^n':''}\\frac{\\cosh\\big(\\kappa(N+\\frac12-n)a\\big)}{\\cosh\\big(\\kappa(N+\\frac12)a\\big)}\\]`]);
+    if(right()==='inf'){ const g2=regime(P.w02); steps.push(['Medio 2 (otro ω₀², semiinfinito): solo puede haber una onda que se aleja o una cola que decae. Eso fija A_{N+1} = λA_N', g2.r==='band'? `\\[\\lambda=e^{-ik_2a},\\ k_2a=${f(g2.ka,4)}:\\ \\text{se transmite}\\]` : `\\[\\lambda=${g2.r==='above'?'-':''}e^{-\\kappa_2a},\\ \\kappa_2a=${f(g2.ka,4)}:\\ \\text{evanescente, reflexión total}\\]`]); }
+    steps.push(['Hipótesis', `\\[\\text{pequeñas oscilaciones, sin rozamiento, régimen estacionario (el transitorio se disipó), excitador que impone }A_0\\]`]);
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('cu-title').textContent= {p15l:'P15, extremo libre',p15f:'P15, extremo a la pared',p16:'P16, cambio de ω₀²',p17:'P17, resortes verticales'}[S.pre];
+    $('steps').innerHTML=steps.map(li).join('');
+    const A=S.A; $('final').innerHTML=`\\[A_1=${f(A[1][0],3)},\\ A_2=${f(A[2][0],3)},\\ \\dots,\\ A_N=${f(A[N][0],3)}${right()==='inf'?`\\ (\\text{módulo }${f(Math.hypot(...A[N]),3)})`:''}\\quad[A_0=1]\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function spring(c,x1,y1,x2,y2,col,n=6){ const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, px=-uy, py=ux, am=Math.min(4,L/5); c.strokeStyle=col; c.lineWidth=1.2; c.beginPath(); c.moveTo(x1,y1); const a=L*0.12;
+  c.lineTo(x1+ux*a,y1+uy*a); for(let i=1;i<=n;i++){ const s=a+(L-2*a)*(i-0.5)/n, sg=i%2?1:-1; c.lineTo(x1+ux*s+px*am*sg,y1+uy*s+py*am*sg); } c.lineTo(x2-ux*a,y2-uy*a); c.lineTo(x2,y2); c.stroke(); }
+const re=(z,t)=>z[0]*Math.cos(P.W*t)-z[1]*Math.sin(P.W*t);
+function drawScene(){
+  const {ctx:c,w,h}=fit($('scene')); c.clearRect(0,0,w,h);
+  const N=P.N, inf=right()==='inf', tot=N+(inf?M2:0), x0=46, x1=w-(right()==='wall'?40:24), sp=(x1-x0)/(tot+(right()==='wall'?1:0.6)), X=n=>x0+sp*n;
+  const top=40, cy=h-70, spr=PRE[S.pre].look==='spr', t=S.t;
+  const mx=Math.max(1,...S.A.map(z=>Math.hypot(...z))), sc=Math.min(sp*0.42,28)/mx;
+  c.fillStyle=C['line-2']; c.fillRect(x0-sp*0.5,top-6,x1-x0+sp*0.5,6);
+  const ys=n=> (inf&&n>N)? cy-36 : cy; // medio 2 con péndulos más cortos (dibujo)
+  const pos=S.A.map((z,n)=>[X(n)+sc*re(z,t), ys(n)]);
+  // cuerdas o resortes verticales
+  for(let n=1;n<pos.length;n++){ const [x,y]=pos[n]; if(spr) spring(c,X(n),top,x,y-8,C.spring,5); else { c.strokeStyle=C.faint; c.lineWidth=1.1; c.beginPath(); c.moveTo(X(n),top); c.lineTo(x,y); c.stroke(); } }
+  // resortes horizontales
+  for(let n=0;n<pos.length-1;n++){ const a=pos[n], b=pos[n+1]; if(inf&&n===N){ spring(c,a[0]+6,a[1],b[0]-6,b[1],C.spring); } else spring(c,a[0]+6,a[1],b[0]-6,b[1],C.spring); }
+  if(right()==='wall'){ const wx=X(N+1); c.fillStyle=C['line-2']; c.fillRect(wx,top,8,cy-top+30); spring(c,pos[N][0]+6,cy,wx,cy,C.spring); }
+  // masas
+  pos.forEach(([x,y],n)=>{ if(n===0) return; const z=S.A[n], col=(inf&&n>N)?C.m2:C.m1; c.fillStyle=col; c.globalAlpha=(inf&&n>N)?Math.max(0.35,1-(n-N)/(M2+2)):1; c.beginPath(); c.arc(x,y,6.5,0,7); c.fill(); c.globalAlpha=1; });
+  // excitador
+  const [dx,dy]=pos[0]; c.fillStyle=C.drv; c.fillRect(dx-5,dy-14,10,28); c.strokeStyle=C.drv; c.lineWidth=2; c.beginPath(); c.moveTo(dx-26,dy); c.lineTo(dx-5,dy); c.stroke();
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.drv; c.textAlign='center'; c.textBaseline='top'; c.fillText('A₀ cos Ωt',X(0)+4,dy+18);
+  c.fillStyle=C.faint; c.fillText('z = 0',X(0),cy+36); c.fillText('z = L',X(N),cy+36);
+  if(inf){ c.textAlign='left'; c.fillStyle=C.m2; c.fillText('medio 2 · continúa →',X(N+1),cy+4); }
+  // envolvente |Aₙ|
+  const env=[]; for(let n=0;n<pos.length;n++) env.push([X(n), ys(n)+22+ -Math.hypot(...S.A[n])*0]);
+  $('clock').textContent=`t = ${fc(t,1)} s · desplazamientos reescalados (máx |Aₙ| = ${mx>999?mx.toExponential(1):fc(mx,2)} A₀)`;
+}
+function drawBand(){
+  const {ctx:c,w,h}=fit($('pband')); c.clearRect(0,0,w,h);
+  const L0=56,R=14,T=48,B=30,pw=w-L0-R,ph=h-T-B, Wm=Math.max(wmax(),S.pre==='p16'?wmax(P.w02):0)*1.35, xm=L0+pw*0.4, kx=PI, kap=3;
+  BG={Wm,T,ph};
+  const Y=W=>T+ph-W/Wm*ph, XR=ka=>xm+ka/kx*(L0+pw-xm), XL=ka=>xm-ka/kap*(xm-L0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  for(let i=0;i<=4;i++){ const W=Wm*i/4; c.beginPath(); c.moveTo(L0,Y(W)); c.lineTo(L0+pw,Y(W)); c.stroke(); c.fillText(fc(W,1),L0-6,Y(W)); }
+  c.strokeStyle=C.muted; c.beginPath(); c.moveTo(xm,T); c.lineTo(xm,T+ph); c.stroke();
+  c.textAlign='center'; c.textBaseline='top'; c.fillText('k real →',(xm+L0+pw)/2,T+ph+4); c.fillText('← κ (evanescente)',(L0+xm)/2,T+ph+4); c.fillText('π/a',XR(PI),T+ph+16); c.fillText('0',xm,T+ph+16);
+  const media=[[P.w0,C.m1,'medio 1']]; if(S.pre==='p16') media.push([P.w02,C.m2,'medio 2']);
+  c.save(); c.beginPath(); c.rect(L0,T,pw,ph); c.clip();
+  media.forEach(([o,col,lab])=>{ // banda sombreada
+    c.fillStyle=col; c.globalAlpha=0.07; c.fillRect(L0,Y(wmax(o)),pw,Y(wmin(o))-Y(wmax(o))); c.globalAlpha=1;
+    const pr=[]; for(let i=0;i<=200;i++){ const ka=PI*i/200; pr.push([XR(ka),Y(Math.sqrt(o*o+4*P.wk**2*Math.sin(ka/2)**2))]); } line(c,pr,col,2.2);
+    const pb=[],pa=[]; for(let i=0;i<=200;i++){ const ka=kap*i/200; const Wb=o*o-4*P.wk**2*Math.sinh(ka/2)**2; if(Wb>=0) pb.push([XL(ka),Y(Math.sqrt(Wb))]); pa.push([XL(ka),Y(Math.sqrt(o*o+4*P.wk**2*Math.cosh(ka/2)**2))]); }
+    line(c,pb,col,1.6,[5,4]); line(c,pa,col,1.6,[2,3]);
+    c.fillStyle=col; c.textAlign='left'; c.textBaseline='bottom'; c.fillText(lab,XR(PI*0.55),Y(Math.sqrt(o*o+4*P.wk**2*Math.sin(PI*0.275)**2))-6);
+  });
+  c.restore();
+  c.strokeStyle=C.sys; c.lineWidth=1.5; c.beginPath(); c.moveTo(L0,Y(P.W)); c.lineTo(L0+pw,Y(P.W)); c.stroke();
+  const g=regime(); c.fillStyle=C.fg; c.beginPath(); c.arc(g.r==='band'?XR(g.ka):XL(Math.min(kap,g.ka)),Y(P.W),5,0,7); c.fill();
+  c.fillStyle=C.sys; c.textAlign='left'; c.textBaseline='bottom'; c.fillText('Ω',L0+4,Y(P.W)-3);
+  c.fillStyle=C.faint; c.textAlign='left'; c.fillText('rayado: κ por debajo de la banda (en fase) · punteado: κ por encima (alternado)',L0,T-6);
+}
+function drawAmp(){
+  const {ctx:c,w,h}=fit($('pamp')); c.clearRect(0,0,w,h);
+  const N=P.N, inf=right()==='inf', tot=S.A.length, L0=50,R=14,T=30,B=26,pw=w-L0-R,ph=h-T-B;
+  const mx=Math.max(...S.A.map(z=>Math.hypot(...z)))*1.1, bw=pw/tot, Y=v=>T+ph/2-v/mx*ph/2;
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  [-1,0,1].forEach(s=>{ c.beginPath(); c.moveTo(L0,Y(s*mx/1.1)); c.lineTo(L0+pw,Y(s*mx/1.1)); c.stroke(); c.fillText(s===0?'0':(s>0?'':'−')+(mx/1.1>999?(mx/1.1).toExponential(0):fc(mx/1.1,1)),L0-6,Y(s*mx/1.1)); });
+  S.A.forEach((z,n)=>{ const x=L0+bw*(n+0.5), v=inf? z[0] : z[0], col=n===0?C.drv:(inf&&n>N?C.m2:(regime().r==='band'?C.m1:C.ev));
+    c.fillStyle=col; c.fillRect(x-bw*0.3,Math.min(Y(0),Y(v)),bw*0.6,Math.max(1,Math.abs(Y(v)-Y(0))));
+    if(inf){ c.strokeStyle=col; c.globalAlpha=0.5; c.beginPath(); c.moveTo(x-bw*0.35,Y(Math.hypot(...z))); c.lineTo(x+bw*0.35,Y(Math.hypot(...z))); c.moveTo(x-bw*0.35,Y(-Math.hypot(...z))); c.lineTo(x+bw*0.35,Y(-Math.hypot(...z))); c.stroke(); c.globalAlpha=1; } });
+  c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; c.fillText('0',L0+bw*0.5,T+ph+4); c.fillText('N',L0+bw*(N+0.5),T+ph+4);
+  if(inf){ c.textAlign='left'; c.fillText('rayitas: módulo |Aₙ|; barras: parte en fase con el excitador',L0,T-18); }
+}
+function draw(){ drawScene(); if(S.view==='band') drawBand(); else drawAmp(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+sync(); refresh();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Onda armónica G3-P6</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --str:#e3e9ef; --vel:#ffcf3a; --acc:#ff5c3a; --ek:#ff7ad9; --ep:#34e08a; --front:#36d4ff; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:260px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 3 · Ecuación de onda</span>
+  <h1>Onda armónica <i>· fase, velocidad y energía que viaja</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 3">
+    <h2>Guía 3</h2>
+    <ol>
+      <li><a href="p1-ecuacion-ondas.html"><b class="code">P1</b>Ecuación de ondas</a></li>
+      <li><a href="p2-medio-infinito.html"><b class="code">P2–3, P5</b>Medio infinito</a></li>
+      <li><a href="p4-cuerda-finita.html"><b class="code">P4</b>Cuerda finita</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6–8</b>Onda armónica y energía</a></li>
+      <li><a href="p9-dos-cuerdas.html"><b class="code">P9, P20</b>Dos cuerdas</a></li>
+      <li><a href="p10-impedancia-acustica.html"><b class="code">P10–12</b>Caños e impedancia</a></li>
+      <li><a href="p13-incidencia-oblicua.html"><b class="code">P13</b>Incidencia oblicua</a></li>
+      <li><a href="p14-fase-grupo.html"><b class="code">P14–15, P19</b>Fase y grupo</a></li>
+      <li><a href="p16-fourier-pulsos.html"><b class="code">P16–18</b>Fourier y pulsos</a></li>
+      <li><a href="p21-doppler-mach.html"><b class="code">P21–22</b>Doppler y Mach</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Onda armónica que viaja en una cuerda, con un trozo marcado"></canvas>
+      <div class="clock num" id="clock">t = 0</div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p6" aria-pressed="true">P6 · y = 0,1 sen[π(x − 4t)]</button>
+          <button class="chip" data-pre="p7">P7 · fase de una onda plana</button>
+          <button class="chip" data-pre="p8">P8 · cuerda movida en un extremo</button>
+        </div></div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-3" max="2" step="1" value="-1"><span class="num" id="speed-v">0.50×</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="pt" aria-pressed="true">Un trozo en el tiempo</button>
+          <button data-view="en" aria-pressed="false">Energía a lo largo de x</button>
+        </div>
+      </div>
+      <div data-vpanel="pt">
+        <div class="plot"><canvas id="ppt" style="height:300px"></canvas><div class="tag">El trozo de cuerda en x₀: desplazamiento, velocidad y aceleración</div></div>
+        <div class="pcap">Cada trozo hace un movimiento armónico simple con la frecuencia de la onda: velocidad adelantada un cuarto de período y aceleración en contrafase con el desplazamiento (a = −ω²y). La línea vertical marca t₀.</div>
+      </div>
+      <div data-vpanel="en" hidden>
+        <div class="plot"><canvas id="pen" style="height:280px"></canvas><div class="tag">Densidades de energía cinética y potencial en el instante actual</div></div>
+        <div class="pcap">En una onda que viaja, la energía cinética y la potencial por unidad de longitud son iguales en cada punto y en cada instante: las dos son máximas donde la cuerda cruza el cero (se mueve rápido y está más inclinada) y nulas en las crestas. La energía viaja con la onda.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G3-P6 a P8</summary>
+      <p><b>6.</b> y(x,t) = 0,1 m sen[π(x m⁻¹ − 4 s⁻¹ t)]. Determine <b>a)</b> la amplitud, <b>b)</b> la frecuencia, <b>c)</b> la velocidad de propagación, <b>d)</b> en t = 1 s, el desplazamiento, la velocidad y la aceleración del trozo de cuerda en x = 2 m.</p>
+      <p><b>7.</b> Onda transversal plana y armónica con ω = 10 s⁻¹ y k = 100 m⁻¹. En x₁ = 1 km y t₁ = 1 s la fase vale 3π/2. <b>a)</b> ¿Cuánto vale la fase en x₁ para t = 0? <b>b)</b> Con ν(x,t) = kx − ωt + ν₀, ¿cuánto vale ν₀? <b>c)</b> ¿A qué velocidad se propaga? <b>d)</b> ¿Cuánto tarda el frente que estaba en x₁ en llegar a 2x₁?</p>
+      <p><b>8.</b> Cuerda larga con μ = 0,005 kg/m y tensión 0,25 N. El extremo izquierdo hace un MAS de período 0,5 s y amplitud 0,2 m. Halle <b>a)</b> la velocidad, la frecuencia y la longitud de onda; <b>b)</b> y(x,t); <b>c)</b> la energía cinética media por unidad de longitud; <b>d)</b> la energía potencial media por unidad de longitud.</p>
+      <p class="src">Física 2 (Físicos), Guía 3.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>En un resorte, la energía potencial es máxima cuando la masa está en el extremo de su recorrido. En una onda que viaja por una cuerda, ¿dónde es máxima la energía potencial de la cuerda?</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="crestas">en las crestas y los valles, donde el desplazamiento es máximo</button>
+          <button class="opt" data-ans="cero">donde la cuerda cruza el cero</button>
+          <button class="opt" data-ans="unif">en todos lados por igual</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: ver la energía en el P8</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P6 d): con x₀ = 2 m y t₀ = 1 s, ¿por qué el desplazamiento es cero pero la velocidad no?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P7 a): llevá t₀ a 0. ¿La fase en x₁ es mayor o menor que a t = 1 s?<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P8: ¿cuánta potencia entrega la mano que mueve la cuerda?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta: y(x,t) = A sen(kx − ωt + φ₀) con ω = 2πf y k = ω/v; velocidad y aceleración del trozo son las derivadas temporales. Densidades de energía: u_c = ½μ(∂y/∂t)², u_p = ½T(∂y/∂x)², con T = μv². La animación va en cámara lenta. Colores: blanco la cuerda, amarillo velocidad, rojo aceleración, rosa energía cinética, verde potencial, celeste un frente de fase.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--str','--vel','--acc','--ek','--ep','--front','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+
+// ================= Parámetros =================
+const P={A:0.1,f:2,v:4,mu:0.01,x0:2,t0:1};
+const DEF=[
+  {id:'A',lab:'A',unit:'m',min:0.01,max:0.5,step:0.005},
+  {id:'f',lab:'f',unit:'Hz',min:0.1,max:10,step:0.001},
+  {id:'v',lab:'v',unit:'m/s',min:0.05,max:20,step:0.001},
+  {id:'mu',lab:'μ',unit:'kg/m',min:0.001,max:0.05,step:0.0005},
+  {id:'x0',lab:'x₀',unit:'m',min:0,max:2000,step:0.01},
+  {id:'t0',lab:'t₀',unit:'s',min:0,max:5,step:0.01},
+];
+const PRE={
+  p6:{A:0.1,f:2,v:4,mu:0.01,x0:2,t0:1,ph:0},
+  p7:{A:0.01,f:10/(2*PI),v:0.1,mu:0.01,x0:1000,t0:1,ph:3*PI/2+10-100*1000},
+  p8:{A:0.2,f:2,v:Math.sqrt(50),mu:0.005,x0:1,t0:0.25,ph:PI},
+};
+const S={pre:'p6',t:0,running:true,speed:0.5,view:'pt',ph:0};
+const w=()=>2*PI*P.f, k=()=>w()/P.v, lam=()=>P.v/P.f, Tn=()=>P.mu*P.v*P.v;
+const y=(x,t)=>P.A*Math.sin(k()*x-w()*t+S.ph);
+const yt=(x,t)=>-P.A*w()*Math.cos(k()*x-w()*t+S.ph);
+const ytt=(x,t)=>-w()*w()*y(x,t);
+const yx=(x,t)=>P.A*k()*Math.cos(k()*x-w()*t+S.ph);
+const uk=(x,t)=>0.5*P.mu*yt(x,t)**2, up=(x,t)=>0.5*Tn()*yx(x,t)**2;
+const umean=()=>0.25*P.mu*w()*w()*P.A*P.A; // media de cada una
+// ventana que se ve: 2,5 longitudes de onda alrededor de x₀ (o desde 0 en P8)
+function win(){ const L=2.5*lam(); if(S.pre==='p8') return [0,L]; if(S.pre==='p6') return [0,4]; return [P.x0-L/2,P.x0+L/2]; }
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const el=document.createElement('div'); el.className='param';
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el);
+  const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(4); }); }
+function setPre(kk){ S.pre=kk; const p=PRE[kk]; Object.assign(P,p); S.ph=p.ph; delete P.ph; S.t=0; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===kk)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); updateChal(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+const phase=(x,t)=>k()*x-w()*t+S.ph;
+function refresh(){
+  const x0=P.x0, t0=P.t0;
+  let ro=`<span><span class="k">v</span> <span style="color:var(--sys)">${fc(P.v,3)} m/s</span></span><span><span class="k">f</span> ${fc(P.f,3)} Hz</span><span><span class="k">λ</span> ${fc(lam(),4)} m</span><span><span class="k">ω</span> ${fc(w(),3)} s⁻¹</span><span><span class="k">k</span> ${fc(k(),3)} m⁻¹</span>`;
+  if(S.pre==='p7') ro+=`<span><span class="k">fase en (x₀, t₀)</span> ${fc(phase(x0,t0)/PI,4)}π</span>`;
+  else ro+=`<span><span class="k">en (x₀, t₀)</span> y = ${fc(y(x0,t0),4)} m, ẏ = ${fc(yt(x0,t0),4)} m/s, ÿ = ${fc(ytt(x0,t0),3)} m/s²</span>`;
+  $('readout').innerHTML=ro;
+  const sgn=S.pre==='p8'?' + π':'';
+  $('formula').innerHTML= S.pre==='p7'? `<span class="k">ν(x,t) = kx − ωt + ν₀,  ν₀ = </span>3π/2 + 10 − 10⁵<span class="k"> ≈ ${fc((3*PI/2+10-1e5),2)}</span>`
+    : `<span class="k">y(x,t) = </span>${fc(P.A,3)} sen(${fc(k(),3)} x − ${fc(w(),3)} t${sgn})<span class="k"> m  ·  T = μv² = ${fc(Tn(),4)} N</span>`;
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setPre('p8'); setView('en'); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=cero]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='cero'?'<b>Bien.</b> ':'<b>Mirá las dos curvas.</b> ')+'La energía potencial de una cuerda no depende de cuánto se corrió cada trozo sino de cuánto se estiró: u_p = ½T(∂y/∂x)², máxima donde la cuerda está más inclinada, que es donde cruza el cero. Ahí también se mueve más rápido, así que la cinética es máxima en el mismo lugar. En una cresta los dos valen cero. Por eso la energía viaja con la onda en paquetes, a velocidad v.';
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=S.pre==='p6'&&Math.abs(P.x0-2)<1e-6&&Math.abs(P.t0-1)<1e-6&&S.view==='pt'; if(ok1) S.d1=true;
+  $('c1').textContent= S.d1? `Logrado: la fase vale π(2 − 4) = −2π, así que y = 0: el trozo está pasando por el equilibrio, justo donde su velocidad es máxima en módulo, ẏ = −0,1·4π = −1,26 m/s (va hacia abajo). La aceleración, −ω²y, es cero.` : (S.pre!=='p6'?'Elegí el P6':'Con x₀ = 2 m y t₀ = 1 s, mirá la vista "Un trozo en el tiempo"');
+  $('c1').classList.toggle('done',!!S.d1);
+  const ok2=S.pre==='p7'&&P.t0<1e-6; if(ok2) S.d2=true;
+  $('c2').textContent= S.d2? `Logrado: ν(x₁, 0) = 3π/2 + ω·1 s = 3π/2 + 10 ≈ ${fc(3*PI/2+10,3)}. Es mayor: la fase en un punto fijo disminuye con el tiempo (−ωt), porque el frente que tenía fase 3π/2 llega desde la izquierda.` : (S.pre!=='p7'?'Elegí el P7':'Llevá t₀ a 0');
+  $('c2').classList.toggle('done',!!S.d2);
+  const ok3=S.pre==='p8'&&S.view==='en'; if(ok3) S.d3=true;
+  const Pw=2*umean()*P.v;
+  $('c3').textContent= S.d3? `Logrado: la energía media por unidad de longitud es ū = ūc + ūp = ½μω²A² = ${fc(2*umean()*1e3,2)} mJ/m y viaja a v, así que la mano entrega P = ū·v = ${fc(Pw*1e3,1)} mW.` : (S.pre!=='p8'?'Elegí el P8':'Mirá la vista de energía');
+  $('c3').classList.toggle('done',!!S.d3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps, fin;
+    if(S.pre==='p6'){ $('cu-title').textContent='P6 paso a paso';
+      steps=[['Se compara con y = A sen(kx − ωt)', `\\[y=0{,}1\\sin(\\pi x-4\\pi t):\\quad A=0{,}1\\ \\text{m},\\ k=\\pi\\ \\text{m}^{-1},\\ \\omega=4\\pi\\ \\text{s}^{-1}\\]`],
+        ['b) y c) Frecuencia y velocidad', `\\[f=\\frac{\\omega}{2\\pi}=2\\ \\text{Hz},\\qquad v=\\frac\\omega k=4\\ \\text{m/s}\\]`],
+        ['d) En x = 2 m, t = 1 s la fase vale π(2 − 4) = −2π', `\\[y=0{,}1\\sin(-2\\pi)=0,\\quad \\dot y=-0{,}1\\cdot4\\pi\\cos(-2\\pi)=-1{,}26\\ \\text{m/s},\\quad \\ddot y=-\\omega^2y=0\\]`]];
+      fin=`\\[\\text{en }(x_0,t_0)=(${f(P.x0,2)},${f(P.t0,2)}):\\ y=${f(y(P.x0,P.t0),4)},\\ \\dot y=${f(yt(P.x0,P.t0),4)},\\ \\ddot y=${f(ytt(P.x0,P.t0),3)}\\]`;
+    } else if(S.pre==='p7'){ $('cu-title').textContent='P7 paso a paso';
+      steps=[['a) En un punto fijo la fase cambia a razón −ω', `\\[\\nu(x_1,0)=\\nu(x_1,1\\,\\text{s})+\\omega\\cdot1\\,\\text{s}=\\frac{3\\pi}2+10\\approx14{,}71\\]`],
+        ['b) Con ν = kx − ωt + ν₀ en (x₁, t₁)', `\\[\\nu_0=\\frac{3\\pi}2-k x_1+\\omega t_1=\\frac{3\\pi}2-10^5+10\\approx-99\\,985{,}3\\]`],
+        ['c) Velocidad de fase', `\\[v=\\frac\\omega k=\\frac{10}{100}=0{,}1\\ \\text{m/s}\\]`],
+        ['d) Un frente de fase constante viaja a v', `\\[\\Delta t=\\frac{2x_1-x_1}{v}=\\frac{1000\\ \\text{m}}{0{,}1\\ \\text{m/s}}=10^4\\ \\text{s}\\approx2{,}8\\ \\text{h}\\]`]];
+      fin=`\\[\\nu(x_0,t_0)=${f(phase(P.x0,P.t0),4)}=${f(phase(P.x0,P.t0)/PI,4)}\\,\\pi\\]`;
+    } else { $('cu-title').textContent='P8 paso a paso';
+      steps=[['a) Velocidad, frecuencia y longitud de onda', `\\[v=\\sqrt{\\frac T\\mu}=\\sqrt{\\frac{0{,}25}{0{,}005}}=${f(Math.sqrt(50),3)}\\ \\text{m/s},\\quad f=\\frac1{0{,}5\\,\\text{s}}=2\\ \\text{Hz},\\quad \\lambda=\\frac vf=${f(Math.sqrt(50)/2,3)}\\ \\text{m}\\]`],
+        ['b) El extremo hace y(0,t) = A sen(ωt); la onda viaja hacia +x', `\\[y(x,t)=A\\sin(\\omega t-kx)=0{,}2\\sin(4\\pi t-${f(4*PI/Math.sqrt(50),3)}\\,x)\\ \\text{m}\\]`],
+        ['c) Energía cinética por unidad de longitud y su media (⟨cos²⟩ = ½)', `\\[u_c=\\tfrac12\\mu\\dot y^2,\\qquad \\bar u_c=\\tfrac14\\mu\\omega^2A^2=${f(0.25*0.005*(4*PI)**2*0.04*1e3,2)}\\ \\text{mJ/m}\\]`],
+        ['d) Energía potencial: T por el estiramiento, con T = μv²', `\\[u_p=\\tfrac12T\\Big(\\frac{\\partial y}{\\partial x}\\Big)^2,\\qquad \\bar u_p=\\tfrac14Tk^2A^2=\\tfrac14\\mu\\omega^2A^2=\\bar u_c\\]`]];
+      fin=`\\[\\bar u=\\bar u_c+\\bar u_p=\\tfrac12\\mu\\omega^2A^2=${f(2*umean()*1e3,2)}\\ \\text{mJ/m},\\qquad \\bar P=\\bar u\\,v=${f(2*umean()*P.v*1e3,1)}\\ \\text{mW}\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(c,x,y,dy,col){ if(Math.abs(dy)<3) return; c.strokeStyle=col; c.fillStyle=col; c.lineWidth=2; c.beginPath(); c.moveTo(x,y); c.lineTo(x,y+dy); c.stroke(); const s=Math.sign(dy); c.beginPath(); c.moveTo(x,y+dy); c.lineTo(x-4,y+dy-s*7); c.lineTo(x+4,y+dy-s*7); c.closePath(); c.fill(); }
+function drawScene(){
+  const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H);
+  const [a,b]=win(), L0=40,R=18, X=x=>L0+(x-a)/(b-a)*(W-L0-R), cy=H/2+4, Ay=Math.min(80,H*0.3)/P.A, t=S.t;
+  c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(L0,cy); c.lineTo(W-R,cy); c.stroke();
+  const pts=[]; for(let i=0;i<=600;i++){ const x=a+(b-a)*i/600; pts.push([X(x),cy-Ay*y(x,t)]); } line(c,pts,C.str,2.4);
+  // frente de fase que pasaba por x₀ en t₀ (viaja a v)
+  const xf=P.x0+P.v*(t-P.t0); if(xf>a&&xf<b){ c.strokeStyle=C.front; c.setLineDash([3,4]); c.beginPath(); c.moveTo(X(xf),cy-Ay*P.A-14); c.lineTo(X(xf),cy+Ay*P.A+14); c.stroke(); c.setLineDash([]); }
+  // trozo marcado en x₀
+  if(P.x0>=a&&P.x0<=b){ const yy=cy-Ay*y(P.x0,t); c.fillStyle=C.sys; c.beginPath(); c.arc(X(P.x0),yy,6,0,7); c.fill(); arrow(c,X(P.x0)+12,yy,-Ay*yt(P.x0,t)/w()*0.9,C.vel); arrow(c,X(P.x0)-12,yy,-Ay*ytt(P.x0,t)/w()/w()*0.9,C.acc); }
+  if(S.pre==='p8'){ const yy=cy-Ay*y(0,t); c.fillStyle=C.muted; c.fillRect(X(0)-22,yy-6,20,12); c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='left'; c.textBaseline='top'; c.fillText('mano',X(0)-24,yy+10); }
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top';
+  for(let q=0;q<=4;q++){ const x=a+(b-a)*q/4; c.fillText(fc(x,S.pre==='p7'?3:2),X(x),cy+Ay*P.A+16); } c.textAlign='right'; c.fillText('x (m)',W-R,cy+Ay*P.A+30);
+  c.textAlign='left'; c.textBaseline='bottom'; c.fillText('punto: trozo en x₀ · amarillo velocidad · rojo aceleración · celeste: un frente de fase',L0,H-4);
+  $('clock').textContent=`t = ${fc(t,3)} s · cámara lenta`;
+}
+function drawPt(){
+  const {ctx:c,w:W,h:H}=fit($('ppt')); c.clearRect(0,0,W,H);
+  const Tp=1/P.f, ta=Math.max(0,P.t0-1.5*Tp), tb=ta+3*Tp, L0=52,R=14,T=36,B=28,pw=W-L0-R,ph=H-T-B, X=t=>L0+(t-ta)/(tb-ta)*pw, Y=v=>T+ph/2-v/1.15*ph/2;
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  [-1,0,1].forEach(s=>{ c.beginPath(); c.moveTo(L0,Y(s)); c.lineTo(L0+pw,Y(s)); c.stroke(); c.fillText(s===0?'0':(s>0?'máx':'−máx'),L0-6,Y(s)); });
+  c.textAlign='center'; c.textBaseline='top'; for(let q=0;q<=6;q++){ const t=ta+(tb-ta)*q/6; c.fillText(fc(t,2),X(t),T+ph+4); } c.textAlign='right'; c.fillText('t (s)',L0+pw,T+ph+16);
+  const ser=[[t=>y(P.x0,t)/P.A,C.str,'y / A'],[t=>yt(P.x0,t)/(P.A*w()),C.vel,'ẏ / Aω'],[t=>ytt(P.x0,t)/(P.A*w()*w()),C.acc,'ÿ / Aω²']];
+  ser.forEach(([fn,col])=>{ const pts=[]; for(let i=0;i<=400;i++){ const t=ta+(tb-ta)*i/400; pts.push([X(t),Y(fn(t))]); } line(c,pts,col,2); });
+  c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.moveTo(X(P.t0),T); c.lineTo(X(P.t0),T+ph); c.stroke();
+  ser.forEach(([fn,col])=>{ c.fillStyle=col; c.beginPath(); c.arc(X(P.t0),Y(fn(P.t0)),4,0,7); c.fill(); });
+  let lx=L0+pw; c.textAlign='right'; c.textBaseline='bottom'; [...ser].reverse().forEach(([,col,lab])=>{ c.fillStyle=col; c.fillText(lab,lx,T-8); lx-=c.measureText(lab).width+14; });
+}
+function drawEn(){
+  const {ctx:c,w:W,h:H}=fit($('pen')); c.clearRect(0,0,W,H);
+  const [a,b]=win(), L0=56,R=14,T=36,B=28,pw=W-L0-R,ph=H-T-B, X=x=>L0+(x-a)/(b-a)*pw, um=4*umean()*1.1, Y=u=>T+ph-u/um*ph, t=S.t;
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  for(let q=0;q<=4;q++){ const u=um*q/4; c.beginPath(); c.moveTo(L0,Y(u)); c.lineTo(L0+pw,Y(u)); c.stroke(); c.fillText(fc(u*1e3,1),L0-6,Y(u)); }
+  c.save(); c.translate(12,T+ph/2); c.rotate(-PI/2); c.textAlign='center'; c.fillText('mJ/m',0,0); c.restore();
+  const p1=[],p2=[],p3=[]; for(let i=0;i<=500;i++){ const x=a+(b-a)*i/500; p1.push([X(x),Y(uk(x,t))]); p2.push([X(x),Y(up(x,t))]); p3.push([X(x),Y(uk(x,t)+up(x,t))]); }
+  line(c,p3,C.faint,1.2); line(c,p2,C.ep,3,null,0.8); line(c,p1,C.ek,1.8,[6,4]);
+  // la cuerda, chica, como referencia
+  const yy=[]; for(let i=0;i<=500;i++){ const x=a+(b-a)*i/500; yy.push([X(x),T+ph*0.5-ph*0.12*y(x,t)/P.A]); } line(c,yy,C.str,1,[2,3],0.6);
+  c.strokeStyle=C.sys; c.setLineDash([4,4]); c.beginPath(); c.moveTo(L0,Y(umean())); c.lineTo(L0+pw,Y(umean())); c.stroke(); c.setLineDash([]);
+  c.textAlign='center'; c.textBaseline='top'; for(let q=0;q<=4;q++){ const x=a+(b-a)*q/4; c.fillText(fc(x,2),X(x),T+ph+4); }
+  c.textAlign='right'; c.textBaseline='bottom'; let lx=L0+pw; [['total',C.faint],['media de cada una',C.sys],['potencial',C.ep],['cinética',C.ek]].forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,lx,T-8); lx-=c.measureText(s).width+14; });
+}
+function draw(){ drawScene(); if(S.view==='pt') drawPt(); else drawEn(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed*Math.min(1,0.5/P.f); draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+setPre('p6');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

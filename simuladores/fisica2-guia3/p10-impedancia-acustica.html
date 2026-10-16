@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Impedancia acústica G3-P10</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --comp:#ff5c3a; --rare:#36d4ff; --pres:#e3e9ef; --ref:#ff7ad9; --tra:#34e08a; --env:#8693a1; --wall:#55616e; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:260px}
+#pcoef{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 3 · Reflexión y transmisión de ondas</span>
+  <h1>Impedancia acústica <i>· caños, tramo intermedio y aire–agua</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 3">
+    <h2>Guía 3</h2>
+    <ol>
+      <li><a href="p1-ecuacion-ondas.html"><b class="code">P1</b>Ecuación de ondas</a></li>
+      <li><a href="p2-medio-infinito.html"><b class="code">P2–3, P5</b>Medio infinito</a></li>
+      <li><a href="p4-cuerda-finita.html"><b class="code">P4</b>Cuerda finita</a></li>
+      <li><a href="p6-onda-armonica.html"><b class="code">P6–8</b>Onda armónica y energía</a></li>
+      <li><a href="p9-dos-cuerdas.html"><b class="code">P9, P20</b>Dos cuerdas</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P10–12</b>Caños e impedancia</a></li>
+      <li><a href="p13-incidencia-oblicua.html"><b class="code">P13</b>Incidencia oblicua</a></li>
+      <li><a href="p14-fase-grupo.html"><b class="code">P14–15, P19</b>Fase y grupo</a></li>
+      <li><a href="p16-fourier-pulsos.html"><b class="code">P16–18</b>Fourier y pulsos</a></li>
+      <li><a href="p21-doppler-mach.html"><b class="code">P21–22</b>Doppler y Mach</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Onda de presión que pasa por un cambio de sección o de medio"></canvas>
+      <div class="clock num" id="clock">t = 0</div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p10" aria-pressed="true">P10 · dos caños, A₁ → A₂</button>
+          <button class="chip" data-pre="p11">P11 · tramo intermedio A₁ → A₂ → A₁</button>
+          <button class="chip" data-pre="p12">P12 · aire → agua</button>
+        </div></div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="coef" aria-pressed="true">Coeficientes</button>
+          <button data-view="env" aria-pressed="false">Amplitud de presión en x</button>
+        </div>
+      </div>
+      <div data-vpanel="coef">
+        <div class="plot"><canvas id="pcoef" style="height:280px"></canvas><div class="tag" id="tag-coef"></div></div>
+        <div class="pcap" id="cap-coef"></div>
+      </div>
+      <div data-vpanel="env" hidden>
+        <div class="plot"><canvas id="penv" style="height:260px"></canvas><div class="tag">|δp| máximo en cada punto (envolvente) y δp ahora</div></div>
+        <div class="pcap">Donde hay onda reflejada, la incidente y la reflejada forman una estacionaria parcial: la envolvente ondula cada λ/2. Del lado de la transmitida, la amplitud es constante.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G3-P10 a P12</summary>
+      <p><b>10.</b> Dos caños semiinfinitos de secciones A₁ y A₂, unidos. Desde el primero incide δpᵢ = Aᵢ cos(k₁x − ωt). Halle las amplitudes de presión y de elongación de las ondas reflejada y transmitida. Datos: A₁, A₂, P₀, ρ₀, v<sub>s</sub>, ω, Aᵢ; sin viscosidad.</p>
+      <p><b>11.</b> Configuración A₁ → A₂ → A₁: un tramo de sección A₂ entre dos caños de sección A₁, con la misma onda incidente. Halle δp(x,t) y Ψ(x,t) en cada tramo.</p>
+      <p><b>12.</b> Interfaz plana e infinita entre aire y agua. Desde el aire incide en forma normal δpᵢ = Aᵢ cos(k₁y − ωt). Halle las ondas reflejada y transmitida.</p>
+      <p class="src">Física 2 (Físicos), Guía 3.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Un sonido pasa del aire al agua (P12). La amplitud de presión de la onda transmitida, comparada con la incidente, es…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="cero">casi cero: el agua refleja casi todo</button>
+          <button class="opt" data-ans="doble">casi el doble</button>
+          <button class="opt" data-ans="igual">igual</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: el P12</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P10: hacé que el segundo caño sea mucho más ancho que el primero (A₂/A₁ ≥ 20). ¿A qué condición de borde se parece la unión?<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P11: con A₂ ≠ A₁, elegí el largo del tramo para que no haya ninguna onda reflejada.<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P12: ¿cuántos decibeles se pierden al pasar del aire al agua?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta en notación compleja: en cada tramo, una onda que va y otra que vuelve; en cada unión, continuidad de la presión y del caudal A·u (u = ±δp/ρ₀v<sub>s</sub> para cada viajera). Equivale a usar la impedancia Z = ρv<sub>s</sub>/A (caños) o Z = ρv (medios). R = |r|², T = (Z₁/Z₂)|t|². Colores: rojo compresión, celeste rarefacción, blanco δp, rosa reflejada, verde transmitida.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--comp','--rare','--pres','--ref','--tra','--env','--wall','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+// ================= Parámetros =================
+const P={m:3,lr:0.5,f:500};
+const DEF=[
+  {id:'m',lab:'A₂/A₁',unit:'',min:0.05,max:30,step:0.01,pre:['p10','p11']},
+  {id:'lr',lab:'largo ℓ / λ',unit:'',min:0.01,max:1.5,step:0.001,pre:['p11']},
+  {id:'f',lab:'f',unit:'Hz',min:50,max:2000,step:1,pre:['p10','p11','p12']},
+];
+const MED={aire:{rho:1.2,c:343,lab:'aire'},agua:{rho:1000,c:1480,lab:'agua'}};
+const S={pre:'p10',t:0,running:true,speed:1,view:'coef',dir:'aw'};
+// ---- complejos ----
+const cx=(a,b=0)=>[a,b], add=(a,b)=>[a[0]+b[0],a[1]+b[1]], sub=(a,b)=>[a[0]-b[0],a[1]-b[1]], mul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], dv=(a,b)=>{ const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; }, ex=t=>[Math.cos(t),Math.sin(t)], ab=a=>Math.hypot(a[0],a[1]);
+// tramos: [{Z, c, x0, x1}] ; incidente de amplitud 1 desde la izquierda; convención e^{i(kx−ωt)}
+function layers(){
+  if(S.pre==='p12'){ const a=S.dir==='aw'?MED.aire:MED.agua, b=S.dir==='aw'?MED.agua:MED.aire; return [{Z:a.rho*a.c,c:a.c},{Z:b.rho*b.c,c:b.c}]; }
+  const c=343, Z=1.2*c; if(S.pre==='p10') return [{Z:Z,c},{Z:Z/P.m,c}];
+  return [{Z:Z,c},{Z:Z/P.m,c,len:P.lr*c/P.f},{Z:Z,c}];
+}
+function solve(){ const Ls=layers(), w=2*PI*P.f;
+  if(Ls.length===2){ const [a,b]=Ls, r=(b.Z-a.Z)/(b.Z+a.Z), t=2*b.Z/(b.Z+a.Z); return {Ls, amp:[[cx(1),cx(r)],[cx(t),cx(0)]], r:cx(r), t:cx(t), ell:0}; }
+  const [a,b,d]=Ls, k2=w/b.c, l=b.len;
+  // incógnitas R, B, D, T ; x=0: 1+R=B+D ; (1−R)/Za=(B−D)/Zb ; x=l: B e+ + D e− = T ; (B e+ − D e−)/Zb = T/Zd
+  const ep=ex(k2*l), em=ex(-k2*l);
+  const M=[[cx(1),cx(-1),cx(-1),cx(0)],[cx(-1/a.Z),cx(-1/b.Z),cx(1/b.Z),cx(0)],[cx(0),ep,em,cx(-1)],[cx(0),mul(ep,cx(1/b.Z)),mul(em,cx(-1/b.Z)),cx(-1/d.Z)]];
+  const rhs=[cx(-1),cx(-1/a.Z),cx(0),cx(0)];
+  // eliminación gaussiana
+  for(let i=0;i<4;i++){ let p=i; for(let r=i+1;r<4;r++) if(ab(M[r][i])>ab(M[p][i])) p=r; [M[i],M[p]]=[M[p],M[i]]; [rhs[i],rhs[p]]=[rhs[p],rhs[i]];
+    for(let r=i+1;r<4;r++){ const fct=dv(M[r][i],M[i][i]); for(let k=i;k<4;k++) M[r][k]=sub(M[r][k],mul(fct,M[i][k])); rhs[r]=sub(rhs[r],mul(fct,rhs[i])); } }
+  const X=Array(4); for(let i=3;i>=0;i--){ let s=rhs[i]; for(let k=i+1;k<4;k++) s=sub(s,mul(M[i][k],X[k])); X[i]=dv(s,M[i][i]); }
+  const [R,B,D,T]=X; return {Ls, amp:[[cx(1),R],[B,D],[T,cx(0)]], r:R, t:T, ell:l}; }
+// δp(x,t) en cada punto (parte real); x en metros, tramo 2 empieza en 0
+function dp(x,t,sol){ const w=2*PI*P.f, Ls=sol.Ls; let i=x<0?0:(Ls.length===3&&x>sol.ell?2:1), xo=i===2?sol.ell:0;
+  const k=w/Ls[i].c, [F,G]=sol.amp[i]; const z=add(mul(F,ex(k*(x-xo)-w*t)),mul(G,ex(-k*(x-xo)-w*t))); return z[0]; }
+function envAt(x,sol){ const w=2*PI*P.f, Ls=sol.Ls; let i=x<0?0:(Ls.length===3&&x>sol.ell?2:1), xo=i===2?sol.ell:0; const k=w/Ls[i].c, [F,G]=sol.amp[i]; return ab(add(mul(F,ex(k*(x-xo))),mul(G,ex(-k*(x-xo))))); }
+const Rf=sol=>ab(sol.r)**2, Tf=sol=>{ const Ls=sol.Ls; return Ls[0].Z/Ls[Ls.length-1].Z*ab(sol.t)**2; };
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const el=document.createElement('div'); el.className='param'; el.dataset.pre=d.pre.join(' ');
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el);
+  const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelectorAll('.param').forEach(p=>p.hidden=!p.dataset.pre.split(' ').includes(S.pre)); }
+function setPre(k){ S.pre=k; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); updateChal(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+let CG=null; $('pcoef').addEventListener('pointerdown',e=>{ if(!CG||S.pre==='p12') return; const r=e.currentTarget.getBoundingClientRect(), u=(e.clientX-r.left-CG.L0)/CG.pw; if(S.pre==='p10') P.m=+Math.min(30,Math.max(0.05,10**(CG.a+u*(CG.b-CG.a)))).toFixed(3); else P.lr=+Math.min(1.5,Math.max(0.01,u*1.5)).toFixed(3); sync(); refresh(); });
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+const cs=z=>Math.abs(z[1])<1e-9*Math.max(1,ab(z))? fc(z[0],4) : `${fc(ab(z),4)}∠${fc(Math.atan2(z[1],z[0])*180/PI,1)}°`;
+let SOL=null;
+function refresh(){
+  SOL=solve(); const sol=SOL, R=Rf(sol), T=Tf(sol);
+  $('readout').innerHTML=`<span><span class="k">r (presión)</span> <span style="color:var(--ref)">${cs(sol.r)}</span></span><span><span class="k">t (presión)</span> <span style="color:var(--tra)">${cs(sol.t)}</span></span><span><span class="k">R</span> ${fc(R,4)}</span><span><span class="k">T</span> ${fc(T,4)}</span><span><span class="k">T en dB</span> ${fc(10*Math.log10(Math.max(T,1e-12)),1)} dB</span>`;
+  const Ls=sol.Ls;
+  $('formula').innerHTML= S.pre==='p12'? `<span class="k">Z_aire = ρc = </span>${fc(MED.aire.rho*MED.aire.c,0)}<span class="k"> Pa·s/m  ·  Z_agua = </span>1,48·10⁶<span class="k"> Pa·s/m  ·  λ_aire = ${fc(MED.aire.c/P.f,3)} m, λ_agua = ${fc(MED.agua.c/P.f,3)} m</span>`
+    : `<span class="k">Z = ρ₀v<sub>s</sub>/A  ·  Z₂/Z₁ = A₁/A₂ = </span>${fc(1/P.m,3)}<span class="k">  ·  λ = ${fc(343/P.f,3)} m${S.pre==='p11'?`  ·  ℓ = ${fc(sol.ell,3)} m, kℓ = ${fc(2*PI*P.lr,3)}`:''}</span>`;
+  $('tag-coef').textContent={p10:'Coeficientes en función de A₂/A₁ (escala log) · tocá para elegir',p11:'Transmisión de energía en función del largo del tramo · tocá para elegir',p12:'Reparto de la energía en la interfaz'}[S.pre];
+  $('cap-coef').textContent={p10:'Un caño que se ensancha (A₂ > A₁) refleja la presión invertida, como un extremo abierto; uno que se angosta la refleja derecha, como una pared. La presión transmitida va de 0 a 2 veces la incidente.',
+    p11:'El tramo intermedio es transparente cuando su largo es un múltiplo de λ/2: las reflexiones en sus dos bordes se cancelan. El mínimo de transmisión está en ℓ = λ/4.',
+    p12:'La impedancia del agua es unas 3600 veces la del aire. Casi toda la energía vuelve: por eso, debajo del agua, casi no se oye lo que pasa afuera.'}[S.pre];
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setPre('p12'); setView('coef'); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=doble]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='doble'?'<b>Bien, aunque suene raro.</b> ':'<b>Mirá los números.</b> ')+`t = 2Z₂/(Z₁ + Z₂) = ${fc(SOL.t[0],4)}: la presión en el agua es casi el doble de la incidente. Lo que es casi cero es la energía: el agua es tan "dura" que esa presión mueve el agua muy poco, y la intensidad va como δp²/Z. T = (Z₁/Z₂)t² = ${fc(Tf(SOL)*100,3)} %. En la interfaz, la reflejada (r ≈ +1) se suma a la incidente y por eso la presión se duplica: el agua actúa casi como una pared.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=S.pre==='p10'&&P.m>=20; if(ok1) S.d1=true;
+  $('c1').textContent= S.d1? `Logrado: r = ${fc((1-P.m)/(1+P.m),3)} → −1. La presión casi no puede cambiar en la unión (el caño ancho la "fija" en P₀): es la condición de extremo abierto, δp = 0, con un nodo de presión y un vientre de desplazamiento.` : (S.pre==='p10'?`Ahora A₂/A₁ = ${fc(P.m,2)}`:'Elegí el P10');
+  $('c1').classList.toggle('done',!!S.d1);
+  const ok2=S.pre==='p11'&&Math.abs(P.m-1)>0.2&&Rf(SOL)<0.002; if(ok2) S.d2=true;
+  $('c2').textContent= S.d2? `Logrado: ℓ/λ = ${fc(P.lr,3)} ≈ n/2. Con kℓ = nπ, la onda que se refleja en la entrada del tramo y la que vuelve después de ir y venir (camino extra 2ℓ = nλ, más un cambio de signo en cada borde) se cancelan.` : (S.pre==='p11'?`Ahora R = ${fc(Rf(SOL),4)}${Math.abs(P.m-1)<=0.2?' (y probá con A₂ bien distinto de A₁)':''}`:'Elegí el P11');
+  $('c2').classList.toggle('done',!!S.d2);
+  const ok3=S.pre==='p12'; if(ok3) S.d3=true;
+  $('c3').textContent= S.d3? 'Logrado: T = 4Z₁Z₂/(Z₁ + Z₂)² ≈ 1,1·10⁻³, es decir unos −29,5 dB. Pasa una milésima de la energía.' : 'Elegí el P12';
+  $('c3').classList.toggle('done',!!S.d3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps, fin; const sol=SOL;
+    const rel=['Para una onda que viaja, presión y velocidad están ligadas (ecuación de Euler)', `\\[\\rho_0\\frac{\\partial u}{\\partial t}=-\\frac{\\partial\\,\\delta p}{\\partial x}\\ \\Rightarrow\\ u=\\pm\\frac{\\delta p}{\\rho_0v_s},\\qquad \\Psi=\\frac{\\delta p}{\\rho_0v_s\\,\\omega}\\ \\text{(en amplitud)}\\]`];
+    if(S.pre==='p10'){ $('cu-title').textContent='P10 paso a paso';
+      steps=[rel,
+        ['En la unión: la presión es la misma de los dos lados y el caudal (volumen por segundo) se conserva', `\\[\\delta p_i+\\delta p_r=\\delta p_t,\\qquad A_1(u_i+u_r)=A_2u_t\\]`],
+        ['Con u = ±δp/ρ₀v_s queda un sistema para las amplitudes de presión', `\\[A_i+A_r=A_t,\\quad A_1(A_i-A_r)=A_2A_t\\ \\Rightarrow\\ \\frac{A_r}{A_i}=\\frac{A_1-A_2}{A_1+A_2}=${f(sol.r[0],4)},\\ \\frac{A_t}{A_i}=\\frac{2A_1}{A_1+A_2}=${f(sol.t[0],4)}\\]`],
+        ['Elongación: Ψ = δp/(ρ₀v_sω) para la que va, y con el signo cambiado para la que vuelve', `\\[\\frac{\\Psi_r}{\\Psi_i}=-\\frac{A_r}{A_i}=${f(-sol.r[0],4)},\\qquad \\frac{\\Psi_t}{\\Psi_i}=\\frac{A_t}{A_i}=${f(sol.t[0],4)}\\]`]];
+      fin=`\\[R=${f(Rf(sol),4)},\\quad T=\\frac{A_2}{A_1}\\Big(\\frac{A_t}{A_i}\\Big)^2=${f(Tf(sol),4)},\\quad R+T=1\\]`;
+    } else if(S.pre==='p11'){ $('cu-title').textContent='P11 paso a paso';
+      steps=[rel,
+        ['Tres tramos: en el primero va y vuelve, en el intermedio va y vuelve, en el último solo va', `\\[\\delta p_1=A_i e^{i(kx-\\omega t)}+A_re^{-i(kx+\\omega t)},\\ \\ \\delta p_2=Be^{i(kx-\\omega t)}+De^{-i(kx+\\omega t)},\\ \\ \\delta p_3=A_te^{i(k(x-\\ell)-\\omega t)}\\]`],
+        ['Dos condiciones (presión y caudal) en x = 0 y otras dos en x = ℓ: cuatro ecuaciones, cuatro incógnitas', `\\[A_i+A_r=B+D,\\ \\ A_1(A_i-A_r)=A_2(B-D),\\ \\ Be^{ik\\ell}+De^{-ik\\ell}=A_t,\\ \\ A_2(Be^{ik\\ell}-De^{-ik\\ell})=A_1A_t\\]`],
+        ['Resultado para la transmisión de energía, con m = A₂/A₁', `\\[T=\\frac1{\\cos^2k\\ell+\\frac14\\big(m+\\frac1m\\big)^2\\sin^2k\\ell}=${f(1/(Math.cos(2*PI*P.lr)**2+0.25*(P.m+1/P.m)**2*Math.sin(2*PI*P.lr)**2),4)}\\]`]];
+      fin=`\\[k\\ell=${f(2*PI*P.lr,3)},\\quad \\frac{A_r}{A_i}=${cs(sol.r).replace('∠','\\angle ')},\\quad \\frac{A_t}{A_i}=${cs(sol.t).replace('∠','\\angle ')},\\quad T=${f(Tf(sol),4)}\\]`;
+    } else { $('cu-title').textContent='P12 paso a paso';
+      const Z1=MED.aire.rho*MED.aire.c, Z2=MED.agua.rho*MED.agua.c;
+      steps=[['En una interfaz plana cambian ρ y la velocidad: la impedancia es Z = ρv', `\\[Z_{\\text{aire}}=1{,}2\\cdot343=${f(Z1,0)}\\ \\tfrac{\\text{Pa s}}{\\text{m}},\\qquad Z_{\\text{agua}}=1000\\cdot1480=${(Z2).toExponential(2).replace('e+6','\\cdot10^6')}\\ \\tfrac{\\text{Pa s}}{\\text{m}}\\]`],
+        ['Continuidad de la presión y de la velocidad normal en y = 0', `\\[A_i+A_r=A_t,\\qquad \\frac{A_i-A_r}{Z_1}=\\frac{A_t}{Z_2}\\]`],
+        ['Amplitudes de presión', `\\[\\frac{A_r}{A_i}=\\frac{Z_2-Z_1}{Z_2+Z_1}=${f((Z2-Z1)/(Z2+Z1),5)},\\qquad \\frac{A_t}{A_i}=\\frac{2Z_2}{Z_1+Z_2}=${f(2*Z2/(Z1+Z2),5)}\\]`],
+        ['Energía: la intensidad de cada onda es δp²/2Z', `\\[T=\\frac{Z_1}{Z_2}\\Big(\\frac{A_t}{A_i}\\Big)^2=\\frac{4Z_1Z_2}{(Z_1+Z_2)^2}=${(4*Z1*Z2/(Z1+Z2)**2).toExponential(2).replace('e-3','\\cdot10^{-3}')}\\]`]];
+      fin=`\\[\\delta p_r=${f((Z2-Z1)/(Z2+Z1),4)}\\,A_i\\cos(k_1y+\\omega t),\\qquad \\delta p_t=${f(2*Z2/(Z1+Z2),4)}\\,A_i\\cos(k_2y-\\omega t)\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function xr(){ const lam=343/P.f; if(S.pre==='p12') return [-2*lam, 2*MED.agua.c/P.f]; const l=SOL?SOL.ell:0; return [-2*lam, Math.max(2*lam, l+1.5*lam)]; }
+function drawScene(){
+  const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H);
+  const [a,b]=xr(), m=24, X=x=>m+(x-a)/(b-a)*(W-2*m), cy=H/2+4, t=S.t, sol=SOL, maxE=Math.max(...[...Array(200)].map((_,i)=>envAt(a+(b-a)*i/199,sol)));
+  // geometría: alto de cada tramo (caños) o dos medios
+  const hgt=x=>{ if(S.pre==='p12') return H*0.7; const base=Math.min(64,H*0.22); if(S.pre==='p10') return x<0?base:base*Math.min(2.6,Math.sqrt(P.m)); return (x<0||x>sol.ell)?base:base*Math.min(2.6,Math.sqrt(P.m)); };
+  const N=Math.round((W-2*m)/4);
+  for(let i=0;i<N;i++){ const x=a+(b-a)*(i+0.5)/N, d=dp(x,t,sol)/maxE, hh=hgt(x); c.fillStyle=d>0?C.comp:C.rare; c.globalAlpha=Math.min(0.6,Math.abs(d)*0.6); c.fillRect(X(a+(b-a)*i/N),cy-hh/2,(W-2*m)/N+0.5,hh); }
+  c.globalAlpha=1;
+  // paredes de los caños / interfaz
+  if(S.pre!=='p12'){ c.strokeStyle=C.wall; c.lineWidth=2.5; c.beginPath(); let prev=null; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N, hh=hgt(x); if(prev!==null&&Math.abs(hh-prev)>1){ c.moveTo(X(x),cy-prev/2); c.lineTo(X(x),cy-hh/2); } i?c.lineTo(X(x),cy-hh/2):c.moveTo(X(x),cy-hh/2); prev=hh; } c.stroke();
+    c.beginPath(); prev=null; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N, hh=hgt(x); if(prev!==null&&Math.abs(hh-prev)>1){ c.moveTo(X(x),cy+prev/2); c.lineTo(X(x),cy+hh/2); } i?c.lineTo(X(x),cy+hh/2):c.moveTo(X(x),cy+hh/2); prev=hh; } c.stroke(); }
+  else { c.strokeStyle=C.fg; c.lineWidth=1.5; c.setLineDash([4,3]); c.beginPath(); c.moveTo(X(0),12); c.lineTo(X(0),H-28); c.stroke(); c.setLineDash([]); c.font=`600 12px ${css('--font-ui')}`; c.fillStyle=C.muted; c.textAlign='center'; c.textBaseline='top'; c.fillText(S.dir==='aw'?'aire':'agua',X(a/2),14); c.fillText(S.dir==='aw'?'agua':'aire',X(b/2),14); }
+  // curva de presión
+  const A=Math.min(50,H*0.18), pts=[]; for(let i=0;i<=700;i++){ const x=a+(b-a)*i/700; pts.push([X(x),cy-A*dp(x,t,sol)/maxE]); } line(c,pts,C.pres,1.8);
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; [a,0,b].forEach(x=>c.fillText(fc(x,2)+' m',X(x),H-22));
+  if(S.pre==='p11'){ c.fillText('ℓ',X(sol.ell/2),cy+hgt(sol.ell/2)/2+6); }
+  $('clock').textContent=`f = ${fc(P.f,0)} Hz · cámara lenta`;
+}
+function drawCoef(){
+  const {ctx:c,w:W,h:H}=fit($('pcoef')); c.clearRect(0,0,W,H);
+  const L0=50,R=16,T=42,B=30,pw=W-L0-R,ph=H-T-B; c.font=`11px ${css('--font-num')}`;
+  if(S.pre==='p12'){ const Rv=Rf(SOL), Tv=Tf(SOL), bw=pw*0.6, x0=L0+pw*0.2;
+    [['reflejada',Rv,C.ref],['transmitida',Tv,C.tra]].forEach(([lab,v,col],i)=>{ const y=T+ph*(0.25+0.4*i); c.fillStyle=C.line; c.fillRect(x0,y,bw,22); c.fillStyle=col; c.fillRect(x0,y,Math.max(2,bw*v),22); c.fillStyle=C.fg; c.textAlign='right'; c.textBaseline='middle'; c.fillText(lab,x0-8,y+11); c.textAlign='left'; c.fillText(`${fc(v*100,v<0.01?3:2)} %`,x0+bw+8,y+11); });
+    c.fillStyle=C.muted; c.textAlign='center'; c.textBaseline='top'; c.fillText('la barra verde es tan corta que casi no se ve: 0,11 % de la energía',L0+pw/2,T+ph*0.9); return; }
+  const Y=v=>T+ph*(2.1-v)/3.2;
+  c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle'; [-1,-0.5,0,0.5,1,1.5,2].forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(fc(v,1),L0-6,Y(v)); });
+  if(S.pre==='p10'){ const a=Math.log10(0.05), b=Math.log10(30), X=q=>L0+(Math.log10(q)-a)/(b-a)*pw; CG={L0,pw,a,b};
+    c.textAlign='center'; c.textBaseline='top'; [0.05,0.1,1,10,30].forEach(q=>c.fillText(q,X(q),T+ph+4)); c.textAlign='right'; c.fillText('A₂/A₁',L0+pw,T+ph+16);
+    const ser=[[q=>(1-q)/(1+q),C.ref,2.2,null],[q=>2/(1+q),C.tra,2.2,null],[q=>((1-q)/(1+q))**2,C.ref,1.3,[5,4]],[q=>q*(2/(1+q))**2,C.tra,1.3,[5,4]]];
+    ser.forEach(([fn,col,wd,dash])=>{ const pts=[]; for(let i=0;i<=300;i++){ const q=10**(a+(b-a)*i/300); pts.push([X(q),Y(fn(q))]); } line(c,pts,col,wd,dash); });
+    c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.moveTo(X(P.m),T); c.lineTo(X(P.m),T+ph); c.stroke();
+    let lx=L0+pw; c.textAlign='right'; c.textBaseline='bottom'; [['T',C.tra],['R',C.ref],['t presión',C.tra],['r presión',C.ref]].forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,lx,T-8); lx-=c.measureText(s).width+14; });
+  } else { const X=lr=>L0+lr/1.5*pw; CG={L0,pw};
+    c.textAlign='center'; c.textBaseline='top'; [0,0.25,0.5,0.75,1,1.25,1.5].forEach(q=>c.fillText(fc(q,2),X(q),T+ph+4)); c.textAlign='right'; c.fillText('ℓ / λ',L0+pw,T+ph+16);
+    const Tl=lr=>1/(Math.cos(2*PI*lr)**2+0.25*(P.m+1/P.m)**2*Math.sin(2*PI*lr)**2);
+    const pt=[],pr=[]; for(let i=0;i<=400;i++){ const lr=1.5*i/400; pt.push([X(lr),Y(Tl(lr))]); pr.push([X(lr),Y(1-Tl(lr))]); } line(c,pt,C.tra,2.2); line(c,pr,C.ref,1.4,[5,4]);
+    c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.moveTo(X(P.lr),T); c.lineTo(X(P.lr),T+ph); c.stroke();
+    c.fillStyle=C.tra; c.beginPath(); c.arc(X(P.lr),Y(Tf(SOL)),4.5,0,7); c.fill();
+    let lx=L0+pw; c.textAlign='right'; c.textBaseline='bottom'; [['R = 1 − T',C.ref],['T (energía transmitida)',C.tra]].forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,lx,T-8); lx-=c.measureText(s).width+14; }); }
+}
+function drawEnv(){
+  const {ctx:c,w:W,h:H}=fit($('penv')); c.clearRect(0,0,W,H);
+  const [a,b]=xr(), L0=44,R=16,T=30,B=28,pw=W-L0-R,ph=H-T-B, X=x=>L0+(x-a)/(b-a)*pw, sol=SOL, mx=Math.max(2,...[...Array(300)].map((_,i)=>envAt(a+(b-a)*i/299,sol)))*1.05, Y=v=>T+ph/2-v/mx*ph/2;
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle'; [-2,-1,0,1,2].forEach(v=>{ if(Math.abs(v)>mx) return; c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(v,L0-6,Y(v)); });
+  const up=[],dn=[],nw=[]; for(let i=0;i<=700;i++){ const x=a+(b-a)*i/700, e=envAt(x,sol); up.push([X(x),Y(e)]); dn.push([X(x),Y(-e)]); nw.push([X(x),Y(dp(x,S.t,sol))]); }
+  line(c,up,C.env,1.6); line(c,dn,C.env,1.6); line(c,nw,C.sys,1.4,null,0.8);
+  c.strokeStyle=C.faint; c.setLineDash([2,4]); [0].concat(S.pre==='p11'?[sol.ell]:[]).forEach(x=>{ c.beginPath(); c.moveTo(X(x),T); c.lineTo(X(x),T+ph); c.stroke(); }); c.setLineDash([]);
+  c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; [a,0,b].forEach(x=>c.fillText(fc(x,2),X(x),T+ph+4));
+}
+function draw(){ if(!SOL) return; drawScene(); if(S.view==='coef') drawCoef(); else drawEnv(); }
+
+// ================= Bucle =================
+let lastT=performance.now();
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed*0.6/P.f; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+setPre('p10');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

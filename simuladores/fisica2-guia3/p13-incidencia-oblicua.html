@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Incidencia oblicua G3-P13</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --comp:#ff5c3a; --rare:#36d4ff; --ref:#ff7ad9; --tra:#34e08a; --inc:#ffcf3a; --env:#8693a1; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:340px}
+#pcoef,#pfase{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 3 · Reflexión y transmisión de ondas</span>
+  <h1>Incidencia oblicua <i>· ondas planas, Snell y reflexión total</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 3">
+    <h2>Guía 3</h2>
+    <ol>
+      <li><a href="p1-ecuacion-ondas.html"><b class="code">P1</b>Ecuación de ondas</a></li>
+      <li><a href="p2-medio-infinito.html"><b class="code">P2–3, P5</b>Medio infinito</a></li>
+      <li><a href="p4-cuerda-finita.html"><b class="code">P4</b>Cuerda finita</a></li>
+      <li><a href="p6-onda-armonica.html"><b class="code">P6–8</b>Onda armónica y energía</a></li>
+      <li><a href="p9-dos-cuerdas.html"><b class="code">P9, P20</b>Dos cuerdas</a></li>
+      <li><a href="p10-impedancia-acustica.html"><b class="code">P10–12</b>Caños e impedancia</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P13</b>Incidencia oblicua</a></li>
+      <li><a href="p14-fase-grupo.html"><b class="code">P14–15, P19</b>Fase y grupo</a></li>
+      <li><a href="p16-fourier-pulsos.html"><b class="code">P16–18</b>Fourier y pulsos</a></li>
+      <li><a href="p21-doppler-mach.html"><b class="code">P21–22</b>Doppler y Mach</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Mapa de presión de una onda plana que incide sobre una interfaz"></canvas>
+      <div class="clock num" id="clock">t = 0</div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="ab" aria-pressed="true">P13 a–b · onda plana en 2D</button>
+          <button class="chip" data-pre="aw">P13 c · aire → agua</button>
+          <button class="chip" data-pre="wa">Al revés · agua → aire</button>
+        </div></div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="sgn" title="Cambia el signo de ωt en la fase">fase k·r − ωt</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="coef" aria-pressed="true">Coeficientes</button>
+          <button data-view="fase" aria-pressed="false">Fase y penetración</button>
+        </div>
+      </div>
+      <div data-vpanel="coef">
+        <div class="plot"><canvas id="pcoef" style="height:280px"></canvas><div class="tag" id="tag-coef"></div></div>
+        <div class="pcap" id="cap-coef"></div>
+      </div>
+      <div data-vpanel="fase" hidden>
+        <div class="plot"><canvas id="pfase" style="height:280px"></canvas><div class="tag" id="tag-fase"></div></div>
+        <div class="pcap" id="cap-fase"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G3-P13</summary>
+      <p><b>a)</b> Demuestre que Ψ(r,t) = A e<sup>i(k·r ± ωt)</sup>, con k = k<sub>x</sub>x̂ + k<sub>y</sub>ŷ + k<sub>z</sub>ẑ constante, es solución de la ecuación de ondas tridimensional.</p>
+      <p><b>b)</b> Analice el significado físico de Ψ(r,t). ¿Cómo son los frentes de onda? ¿Qué relación hay entre k y los frentes? ¿Hacia dónde se desplazan al transcurrir t? ¿A qué velocidad?</p>
+      <p><b>c)</b> Rehaga el problema anterior (aire → agua) suponiendo que la onda incidente forma un ángulo θ con la normal a la interfaz: δpᵢ = Aᵢ e<sup>i(kᵢ·r − ωt)</sup>, kᵢ = (ω/v<sub>s</sub>)(sen θ x̂ + cos θ ŷ). Halle δp<sub>r</sub> = A<sub>r</sub> e<sup>i(k<sub>r</sub>·r − ωt)</sup> y δp<sub>t</sub> = A<sub>t</sub> e<sup>i(k<sub>t</sub>·r − ωt)</sup>.</p>
+      <p class="src">Física 2 (Físicos), Guía 3.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Un sonido llega desde el aire a la superficie de una pileta con un ángulo de 30° respecto de la normal. En el agua, la onda transmitida…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="cerca">se acerca a la normal, como la luz al entrar al agua</button>
+          <button class="opt" data-ans="lejos">se aleja de la normal</button>
+          <button class="opt" data-ans="nada">no entra: viaja pegada a la superficie y se apaga hacia abajo</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo con θ = 30°</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> Onda plana: elegí la dirección de k para que los frentes barran el eje x al doble de la velocidad del sonido.<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> Aire → agua: encontrá el ángulo a partir del cual el agua refleja todo (|r| = 1), con medio grado de precisión.<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Agua → aire: buscá reflexión total subiendo el ángulo hasta más de 80°. ¿La encontrás?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta en notación compleja. La componente de k paralela a la interfaz es la misma en las tres ondas (eso es Snell); la normal sale de |k| = ω/v en cada medio y, si no alcanza, es imaginaria: onda evanescente. En y = 0 se igualan la presión y la velocidad normal, (1/ρ)∂δp/∂y. Z = ρv: aire 1,2 kg/m³ y 343 m/s; agua 1000 kg/m³ y 1480 m/s. Colores: rojo compresión, celeste rarefacción; flechas amarilla (incidente), rosa (reflejada) y verde (transmitida).</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--comp','--rare','--ref','--tra','--inc','--env','--ok','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const hex=h=>{ h=h.replace('#',''); return [0,2,4].map(i=>parseInt(h.substr(i,2),16)); };
+const PI=Math.PI, D2R=PI/180;
+// ================= Parámetros =================
+const P={th:30,f:1000};
+const DEF=[
+  {id:'th',lab:'θ',unit:'°',min:0,max:89.5,step:0.1,pre:['aw','wa']},
+  {id:'phi',lab:'dirección de k (desde ŷ)',unit:'°',min:-180,max:180,step:0.5,pre:['ab']},
+  {id:'f',lab:'f',unit:'Hz',min:100,max:4000,step:1,pre:['ab','aw','wa']},
+];
+P.phi=30;
+const MED={aire:{rho:1.2,c:343},agua:{rho:1000,c:1480}};
+const S={pre:'ab',t:0,running:true,speed:1,view:'coef',sg:-1,seen80:false};
+// ---- complejos ----
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1]], mul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], sc=(a,s)=>[a[0]*s,a[1]*s], dv=(a,b)=>{ const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; }, ex=t=>[Math.cos(t),Math.sin(t)], ab=a=>Math.hypot(a[0],a[1]), arg=a=>Math.atan2(a[1],a[0]);
+const media=()=>S.pre==='wa'?[MED.agua,MED.aire]:[MED.aire,MED.agua];
+// solución de la interfaz para un ángulo θ (grados)
+function solve(thDeg){ const [m1,m2]=media(), w=2*PI*P.f, th=thDeg*D2R, k1=w/m1.c, k2=w/m2.c, kx=k1*Math.sin(th);
+  const Z1=m1.rho*m1.c, Z2=m2.rho*m2.c, ci=Math.cos(th), q=k2*k2-kx*kx;
+  const ky2= q>=0? [Math.sqrt(q),0] : [0,Math.sqrt(-q)];          // e^{i ky2 y}: evanescente si es imaginario (decae para y>0)
+  const ct=sc(ky2,1/k2);                                            // cos θt (complejo)
+  const num=add([Z2*ci,0],sc(ct,-Z1)), den=add([Z2*ci,0],sc(ct,Z1));
+  const r=dv(num,den), t=dv([2*Z2*ci,0],den);
+  const R=ab(r)**2, T= q>=0? (Z1/Z2)*ab(t)**2*ct[0]/ci : 0;
+  const tht= q>=0? Math.asin(Math.min(1,kx/k2))/D2R : NaN;
+  return {r,t,R,T,kx,k1,k2,ky1:k1*ci,ky2,Z1,Z2,ev:q<0,kap:q<0?Math.sqrt(-q):0,tht,m1,m2};
+}
+const thc=()=>{ const [m1,m2]=media(); return m2.c>m1.c? Math.asin(m1.c/m2.c)/D2R : NaN; };
+// campo complejo (sin e^{-iωt}) en (x,y): y<0 medio 1, y>0 medio 2
+function field(x,y,s){ if(y<0) return add(ex(s.kx*x+s.ky1*y), mul(s.r,ex(s.kx*x-s.ky1*y)));
+  const ph=ex(s.kx*x+s.ky2[0]*y); return sc(mul(s.t,ph),Math.exp(-s.ky2[1]*y)); }
+// onda plana libre
+function plane(x,y,t){ const k=2*PI*P.f/343, a=P.phi*D2R; return Math.cos(k*(Math.sin(a)*x+Math.cos(a)*y)+S.sg*2*PI*P.f*t); }
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const el=document.createElement('div'); el.className='param'; el.dataset.pre=d.pre.join(' ');
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el);
+  const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(2); }); document.querySelectorAll('.param').forEach(p=>p.hidden=!p.dataset.pre.split(' ').includes(S.pre)); $('sgn').hidden=S.pre!=='ab'; }
+function setPre(k){ S.pre=k; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+$('sgn').onclick=()=>{ S.sg=-S.sg; $('sgn').textContent=S.sg<0?'fase k·r − ωt':'fase k·r + ωt'; refresh(); };
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+let CG=null; ['pcoef','pfase'].forEach(id=>$(id).addEventListener('pointerdown',e=>{ if(!CG) return; const r=e.currentTarget.getBoundingClientRect(), u=Math.min(1,Math.max(0,(e.clientX-r.left-CG.L0)/CG.pw));
+  if(S.pre==='ab') P.phi=+(u*90).toFixed(1); else P.th=+Math.min(89.5,u*90).toFixed(1); sync(); refresh(); }));
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+const cs=z=>Math.abs(z[1])<1e-9*Math.max(1,ab(z))? fc(z[0],4) : `${fc(ab(z),4)}∠${fc(arg(z)/D2R,1)}°`;
+let SOL=null;
+function refresh(){
+  if(S.pre==='ab'){ SOL=null; const lam=343/P.f, a=P.phi*D2R, sx=Math.abs(Math.sin(a)), sy=Math.abs(Math.cos(a));
+    $('readout').innerHTML=`<span><span class="k">|k| = ω/v</span> ${fc(2*PI/lam,2)} m⁻¹</span><span><span class="k">kₓ</span> ${fc(2*PI/lam*Math.sin(a),2)}</span><span><span class="k">k_y</span> ${fc(2*PI/lam*Math.cos(a),2)}</span><span><span class="k">frentes avanzan a</span> v = 343 m/s ${S.sg<0?'a lo largo de +k':'a lo largo de −k'}</span><span><span class="k">barren el eje x a</span> ${sx<1e-3?'∞':fc(343/sx,0)+' m/s'}</span>`;
+    $('formula').innerHTML=`<span class="k">Ψ = A cos(k·r ${S.sg<0?'−':'+'} ωt) · λ = ${fc(lam,3)} m · sobre y los frentes pasan a v/|cos φ| = </span>${sy<1e-3?'∞':fc(343/sy,0)+' m/s'}`;
+  } else { SOL=solve(P.th); const s=SOL, tc=thc();
+    $('readout').innerHTML=`<span><span class="k">θ<sub>t</sub></span> ${s.ev?'— (evanescente)':fc(s.tht,2)+'°'}</span><span><span class="k">r</span> <span style="color:var(--ref)">${cs(s.r)}</span></span><span><span class="k">t</span> <span style="color:var(--tra)">${cs(s.t)}</span></span><span><span class="k">R</span> ${fc(s.R,4)}</span><span><span class="k">T</span> ${s.T<1e-3&&s.T>0?s.T.toExponential(2).replace('.',','):fc(s.T,4)}</span>`;
+    $('formula').innerHTML=`<span class="k">Snell: sen θ<sub>t</sub> = (v₂/v₁) sen θ = </span>${fc(s.m2.c/s.m1.c*Math.sin(P.th*D2R),4)}<span class="k">${isNaN(tc)?' · v₂ < v₁: no hay ángulo crítico':` · θ<sub>c</sub> = arcsen(v₁/v₂) = ${fc(tc,2)}°`}${s.ev?` · penetración 1/κ = ${fc(1/s.kap,3)} m = ${fc(s.k1/s.kap/(2*PI),3)} λ₁`:''}</span>`;
+    if(S.pre==='wa'&&P.th>80) S.seen80=true;
+  }
+  $('tag-coef').textContent= S.pre==='ab'? 'Velocidad con que los frentes barren cada eje · tocá para elegir φ' : 'Coeficientes de presión y de energía en función de θ · tocá para elegir';
+  $('cap-coef').textContent= S.pre==='ab'? 'Los frentes siempre avanzan a v en la dirección de k, pero un observador que mira sobre un eje los ve pasar más rápido: v/|sen φ|. Esa velocidad aparente puede superar a v (y a la luz, en óptica) sin que nada viaje más rápido.'
+    : S.pre==='aw'? 'Del aire al agua el sonido se aleja de la normal (el agua es más rápida). Pasado el ángulo crítico, |r| = 1: se refleja todo y en el agua queda solo una onda evanescente que no lleva energía hacia abajo.'
+    : 'Del agua al aire el sonido se acerca a la normal y siempre hay onda transmitida, pero lleva muy poca energía: el aire es mucho más "blando" y r ≈ −1.';
+  $('tag-fase').textContent= S.pre==='ab'? 'Ψ sobre el eje x (y = 0) y sobre el eje y (x = 0), ahora' : 'Fase de r y profundidad de penetración en el medio 2';
+  $('cap-fase').textContent= S.pre==='ab'? 'El período espacial sobre cada eje es λ/|sen φ| y λ/|cos φ|: los cortes de una onda plana son ondas de mayor longitud de onda que λ.'
+    : 'Antes de θc la reflejada está en fase (r real). Después, r = e^{iδ} gira de 0° a −180°, y la onda en el medio 2 decae en una distancia 1/κ que es enorme justo pasando θc y baja hasta unas 0,16 λ₁ a incidencia rasante. Aire → agua: como Z₂ ≫ Z₁, la fase de r casi no se mueve hasta θ cerca de 90°.';
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  P.th=30; setPre('aw'); setView('coef'); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=nada]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='nada'?'<b>Exacto.</b> ':'<b>Mirá el agua.</b> ')+`Con la luz pasa lo contrario porque la luz va más lenta en el agua; el sonido va 4,3 veces más rápido. Snell pide sen θₜ = 4,31 · sen 30° = 2,16, y no hay ángulo con ese seno. El ángulo crítico es θc = arcsen(343/1480) = ${fc(thc(),1)}°: a 30° ya estamos más allá. En el agua queda una onda que corre paralela a la superficie y se apaga en ${fc(1/SOL.kap,3)} m. Si bajás θ por debajo de ${fc(thc(),1)}°, sí entra, y se aleja de la normal.`;
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  if(S.pre==='ab'&&Math.abs(Math.abs(Math.sin(P.phi*D2R))-0.5)<0.01) S.d1=true;
+  $('c1').textContent= S.d1? 'Logrado: |sen φ| = 1/2, φ = ±30° (o ±150°). Sobre el eje x los frentes pasan a 686 m/s, pero cada frente avanza a 343 m/s en su propia dirección.' : (S.pre==='ab'?`Ahora barren x a ${Math.abs(Math.sin(P.phi*D2R))<1e-3?'∞':fc(343/Math.abs(Math.sin(P.phi*D2R)),0)+' m/s'}`:'Elegí la onda plana');
+  $('c1').classList.toggle('done',!!S.d1);
+  if(S.pre==='aw'&&P.th>=thc()&&P.th<thc()+0.5) S.d2=true;
+  $('c2').textContent= S.d2? `Logrado: θc = arcsen(v_aire/v_agua) = ${fc(thc(),2)}°. Solo los sonidos que llegan casi perpendiculares (dentro de un cono de ~13° alrededor de la vertical) pueden entrar al agua.` : (S.pre==='aw'?`Ahora θ = ${fc(P.th,1)}°, |r| = ${fc(ab(SOL.r),4)}`:'Elegí aire → agua');
+  $('c2').classList.toggle('done',!!S.d2);
+  if(S.seen80) S.d3=true;
+  $('c3').textContent= S.d3? 'Logrado (la respuesta es no): del agua al aire el sonido va a un medio más lento, sen θₜ = 0,23 sen θ < 1 siempre. La reflexión total solo existe yendo hacia el medio más rápido.' : (S.pre==='wa'?`Ahora θ = ${fc(P.th,1)}°`:'Elegí agua → aire');
+  $('c3').classList.toggle('done',!!S.d3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps, fin;
+    if(S.pre==='ab'){ $('cu-title').textContent='P13 a–b paso a paso';
+      steps=[['Laplaciano en cartesianas: cada derivada segunda baja un factor −k² de la componente', `\\[\\nabla^2\\Psi=\\Big(\\tfrac{\\partial^2}{\\partial x^2}+\\tfrac{\\partial^2}{\\partial y^2}+\\tfrac{\\partial^2}{\\partial z^2}\\Big)\\Psi=-(k_x^2+k_y^2+k_z^2)\\Psi=-|\\mathbf k|^2\\Psi\\]`],
+        ['En el tiempo, la derivada segunda baja −ω²', `\\[\\frac{\\partial^2\\Psi}{\\partial t^2}=-\\omega^2\\Psi\\ \\Rightarrow\\ \\nabla^2\\Psi=\\frac1{v^2}\\frac{\\partial^2\\Psi}{\\partial t^2}\\iff |\\mathbf k|=\\frac{\\omega}{v}\\]`],
+        ['Frentes de onda: puntos de igual fase, k·r ± ωt = cte. Para t fijo son planos perpendiculares a k', `\\[\\mathbf k\\cdot\\mathbf r=\\text{cte}\\mp\\omega t\\ \\Rightarrow\\ \\text{el plano se corre }\\ \\Delta(\\hat k\\cdot\\mathbf r)=\\mp\\frac{\\omega}{|\\mathbf k|}\\,\\Delta t\\]`],
+        ['Con −ωt avanzan hacia +k; con +ωt, hacia −k. La rapidez normal al frente es v', `\\[v=\\frac{\\omega}{|\\mathbf k|}=343\\ \\tfrac{\\text m}{\\text s},\\qquad v_x^{\\text{aparente}}=\\frac{\\omega}{|k_x|}=\\frac{v}{|\\operatorname{sen}\\varphi|}\\]`]];
+      fin=`\\[\\varphi=${f(P.phi,1)}^\\circ:\\ \\ k_x=${f(2*PI*P.f/343*Math.sin(P.phi*D2R),2)}\\ \\text{m}^{-1},\\ \\ k_y=${f(2*PI*P.f/343*Math.cos(P.phi*D2R),2)}\\ \\text{m}^{-1}\\]`;
+    } else { const s=SOL; $('cu-title').textContent=(S.pre==='aw'?'P13 c':'Agua → aire')+' paso a paso';
+      steps=[['Tres ondas planas con la misma ω. En y = 0 deben coincidir para todo x: la componente x de k es la misma', `\\[k_{ix}=k_{rx}=k_{tx}\\ \\Rightarrow\\ \\frac{\\operatorname{sen}\\theta}{v_1}=\\frac{\\operatorname{sen}\\theta_t}{v_2},\\qquad \\theta_r=\\theta\\]`],
+        ['Componentes normales: la reflejada invierte k_y; la transmitida sale de |k_t| = ω/v₂', `\\[k_{ty}=\\sqrt{k_2^2-k_x^2}\\quad\\text{y si }k_x>k_2:\\ k_{ty}=i\\kappa,\\ \\ \\kappa=\\sqrt{k_x^2-k_2^2}\\]`],
+        ['Condiciones en y = 0: presión continua y velocidad normal continua, u_y = (1/iωρ) ∂δp/∂y', `\\[A_i+A_r=A_t,\\qquad \\frac{k_{1y}}{\\rho_1}(A_i-A_r)=\\frac{k_{ty}}{\\rho_2}A_t\\]`],
+        ['Con k_y/ρ = ω cosθ/Z queda un problema como el de incidencia normal, con Z/cos θ en lugar de Z', `\\[\\frac{A_r}{A_i}=\\frac{Z_2\\cos\\theta-Z_1\\cos\\theta_t}{Z_2\\cos\\theta+Z_1\\cos\\theta_t},\\qquad \\frac{A_t}{A_i}=\\frac{2Z_2\\cos\\theta}{Z_2\\cos\\theta+Z_1\\cos\\theta_t}\\]`]];
+      fin= s.ev? `\\[\\theta=${f(P.th,1)}^\\circ>\\theta_c:\\ \\ \\frac{A_r}{A_i}=e^{i(${f(arg(s.r)/D2R,1)}^\\circ)},\\ \\ \\delta p_t=A_t\\,e^{-\\kappa y}e^{i(k_xx-\\omega t)},\\ \\ \\tfrac1\\kappa=${f(1/s.kap,3)}\\ \\text{m}\\]`
+        : `\\[\\theta=${f(P.th,1)}^\\circ,\\ \\theta_t=${f(s.tht,2)}^\\circ:\\ \\ \\frac{A_r}{A_i}=${f(s.r[0],4)},\\ \\ \\frac{A_t}{A_i}=${f(s.t[0],4)},\\ \\ R=${f(s.R,4)},\\ T=${s.T.toExponential(3).replace(/e([-+]\d+)/,'\\cdot10^{$1}')}\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(c,x0,y0,dx,dy,col,lab){ const x1=x0+dx,y1=y0+dy,a=Math.atan2(dy,dx); c.strokeStyle=col; c.fillStyle=col; c.lineWidth=2.4; c.beginPath(); c.moveTo(x0,y0); c.lineTo(x1,y1); c.stroke(); c.beginPath(); c.moveTo(x1,y1); c.lineTo(x1-10*Math.cos(a-0.4),y1-10*Math.sin(a-0.4)); c.lineTo(x1-10*Math.cos(a+0.4),y1-10*Math.sin(a+0.4)); c.closePath(); c.fill(); if(lab){ c.font=`600 12px ${css('--font-num')}`; c.textAlign='center'; c.textBaseline='middle'; c.fillText(lab,x1+14*Math.cos(a),y1+14*Math.sin(a)); } }
+const off=document.createElement('canvas');
+function drawScene(){
+  const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H);
+  const lam1= S.pre==='wa'? MED.agua.c/P.f : 343/P.f, span=S.pre==='ab'?5*lam1:4*lam1, pxm=W/span, BL=3, nw=Math.ceil(W/BL), nh=Math.ceil(H/BL);
+  off.width=nw; off.height=nh; const oc=off.getContext('2d'), img=oc.createImageData(nw,nh), d=img.data, bg=hex(C.bg), cr=hex(C.comp), cb=hex(C.rare);
+  const w=2*PI*P.f, ph=ex(-w*S.t), s=SOL, mx= S.pre==='ab'?1:Math.max(1+ab(s.r),ab(s.t));
+  for(let j=0;j<nh;j++){ const y=((j+0.5)*BL-H/2)/pxm; for(let i=0;i<nw;i++){ const x=((i+0.5)*BL-W/2)/pxm;
+    let v= S.pre==='ab'? plane(x,y,S.t) : mul(field(x,y,s),ph)[0]/mx; const a=Math.min(1,Math.abs(v)), col=v>0?cr:cb, k=(j*nw+i)*4;
+    d[k]=bg[0]+(col[0]-bg[0])*a*0.8; d[k+1]=bg[1]+(col[1]-bg[1])*a*0.8; d[k+2]=bg[2]+(col[2]-bg[2])*a*0.8; d[k+3]=255; } }
+  oc.putImageData(img,0,0); c.imageSmoothingEnabled=true; c.drawImage(off,0,0,nw*BL,nh*BL);
+  const cx=W/2, cy=H/2, L=Math.min(90,H*0.3);
+  if(S.pre==='ab'){ const a=P.phi*D2R; arrow(c,cx,cy,L*Math.sin(a),L*Math.cos(a),C.inc,'k');
+    // un frente marcado: recta perpendicular a k por el punto que avanza
+    const k=2*PI/lam1, s0=(-S.sg*w*S.t/k)%lam1, px=cx+s0*pxm*Math.sin(a), py=cy+s0*pxm*Math.cos(a);
+    c.strokeStyle=C.fg; c.lineWidth=1.5; c.setLineDash([6,4]); c.beginPath(); c.moveTo(px-1e3*Math.cos(a),py+1e3*Math.sin(a)); c.lineTo(px+1e3*Math.cos(a),py-1e3*Math.sin(a)); c.stroke(); c.setLineDash([]);
+    c.fillStyle=C.fg; c.beginPath(); c.arc(px,py,4,0,7); c.fill();
+    c.font=`11px ${css('--font-num')}`; c.fillStyle=C.fg; c.textAlign='left'; c.textBaseline='top'; c.fillText('x →',12,H-20); c.fillText('y ↓',12,32);
+  } else {
+    c.fillStyle='rgba(6,8,11,0.25)'; c.fillRect(0,cy,W,1); c.strokeStyle=C.fg; c.lineWidth=1.6; c.beginPath(); c.moveTo(0,cy); c.lineTo(W,cy); c.stroke();
+    c.strokeStyle=C.faint; c.setLineDash([3,4]); c.beginPath(); c.moveTo(cx,12); c.lineTo(cx,H-12); c.stroke(); c.setLineDash([]);
+    const th=P.th*D2R; arrow(c,cx-L*Math.sin(th),cy-L*Math.cos(th),L*Math.sin(th)*0.95,L*Math.cos(th)*0.95,C.inc,''); c.fillStyle=C.inc; c.font=`600 12px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; c.fillText('kᵢ',cx-L*Math.sin(th)-4,cy-L*Math.cos(th));
+    arrow(c,cx,cy,L*Math.sin(th)*Math.min(1,ab(s.r)+0.15),-L*Math.cos(th)*Math.min(1,ab(s.r)+0.15),C.ref,'kᵣ');
+    if(!s.ev){ const tt=s.tht*D2R; arrow(c,cx,cy,L*Math.sin(tt),L*Math.cos(tt),C.tra,'kₜ'); }
+    else { arrow(c,cx,cy+10,L,0,C.tra,'kₜ ∥'); }
+    c.strokeStyle=C.inc; c.lineWidth=1.2; c.beginPath(); c.arc(cx,cy,26,-PI/2-th,-PI/2,false); c.stroke(); c.fillStyle=C.inc; c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; c.fillText('θ',cx-4,cy-28);
+    c.font=`600 12px ${css('--font-ui')}`; c.fillStyle=C.fg; c.textAlign='left'; c.textBaseline='top'; c.fillText(s.m1===MED.aire?'aire':'agua',12,32); c.textBaseline='bottom'; c.fillText(s.m2===MED.aire?'aire':'agua',12,H-10);
+  }
+  $('clock').textContent=`${S.pre==='ab'?'vista de '+fc(span,2)+' m':'ancho '+fc(span,2)+' m'} · cámara lenta`;
+}
+function axes(c,L0,T,pw,ph,ys,fmt){ c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle'; ys.forEach(([v,y])=>{ c.beginPath(); c.moveTo(L0,y); c.lineTo(L0+pw,y); c.stroke(); c.fillText(fmt(v),L0-6,y); }); }
+function legend(c,items,x,y){ c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; items.forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,x,y); x-=c.measureText(s).width+14; }); }
+function xaxis(c,X,T,ph,ticks,lab,L0,pw){ c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; ticks.forEach(q=>c.fillText(q+'°',X(q),T+ph+4)); c.textAlign='right'; c.fillText(lab,L0+pw,T+ph+16); }
+function drawCoef(){
+  const {ctx:c,w:W,h:H}=fit($('pcoef')); c.clearRect(0,0,W,H);
+  const L0=50,R=16,T=40,B=32,pw=W-L0-R,ph=H-T-B, X=q=>L0+q/90*pw; CG={L0,pw};
+  if(S.pre==='ab'){ const top=6, Y=v=>T+ph*(1-(v/343-0)/top);
+    axes(c,L0,T,pw,ph,[0,1,2,3,4,5,6].map(v=>[v,Y(v*343)]),v=>v+'v'); xaxis(c,X,T,ph,[0,15,30,45,60,75,90],'φ',L0,pw);
+    const px=[],py=[]; for(let i=1;i<300;i++){ const q=90*i/300; px.push([X(q),Y(Math.min(343*top,343/Math.sin(q*D2R)))]); py.push([X(q),Y(Math.min(343*top,343/Math.cos(q*D2R)))]); }
+    line(c,px,C.sys,2.2); line(c,py,C.inc,1.6,[5,4]); c.strokeStyle=C.faint; c.setLineDash([2,4]); c.beginPath(); c.moveTo(L0,Y(343)); c.lineTo(L0+pw,Y(343)); c.stroke(); c.setLineDash([]);
+    const pp=((Math.abs(P.phi)%180)+180)%180, q=pp>90?180-pp:pp; c.strokeStyle=C.fg; c.lineWidth=1.2; c.beginPath(); c.moveTo(X(q),T); c.lineTo(X(q),T+ph); c.stroke();
+    legend(c,[['sobre y: v/|cos φ|',C.inc],['sobre x: v/|sen φ|',C.sys]],L0+pw,T-8); return; }
+  const Y=v=>T+ph*(2.2-v)/2.2;
+  axes(c,L0,T,pw,ph,[0,0.5,1,1.5,2].map(v=>[v,Y(v)]),v=>fc(v,1)); xaxis(c,X,T,ph,[0,15,30,45,60,75,90],'θ',L0,pw);
+  const a=[],b=[],rr=[],tt=[]; for(let i=0;i<=450;i++){ const q=Math.min(89.9,90*i/450), s=solve(q); a.push([X(q),Y(ab(s.r))]); b.push([X(q),Y(ab(s.t))]); rr.push([X(q),Y(s.R)]); tt.push([X(q),Y(Math.min(2.2,s.T*(S.pre==='wa'||S.pre==='aw'?1:1)))]); }
+  line(c,a,C.ref,2.2); line(c,b,C.tra,2.2); line(c,rr,C.ref,1.3,[5,4]); line(c,tt,C.tra,1.3,[5,4]);
+  const tc=thc(); if(!isNaN(tc)){ c.strokeStyle=C.crit; c.setLineDash([3,3]); c.beginPath(); c.moveTo(X(tc),T); c.lineTo(X(tc),T+ph); c.stroke(); c.setLineDash([]); c.fillStyle=C.crit; c.textAlign='left'; c.textBaseline='top'; c.fillText('θc = '+fc(tc,1)+'°',X(tc)+5,T+4); }
+  c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.moveTo(X(P.th),T); c.lineTo(X(P.th),T+ph); c.stroke();
+  legend(c,[['T',C.tra],['R',C.ref],['|t|',C.tra],['|r|',C.ref]],L0+pw,T-8);
+  if(S.pre!=='ab'){ c.fillStyle=C.muted; c.textAlign='right'; c.textBaseline='bottom'; c.fillText(`T ≤ ${(Math.max(...[0,10,20,40,60,80].map(q=>solve(q).T))).toExponential(1).replace('.',',')}: casi invisible`,L0+pw,T+ph-4); }
+}
+function drawFase(){
+  const {ctx:c,w:W,h:H}=fit($('pfase')); c.clearRect(0,0,W,H);
+  const L0=50,R=50,T=40,B=32,pw=W-L0-R,ph=H-T-B; CG={L0,pw};
+  if(S.pre==='ab'){ const lam=343/P.f, span=4*lam, X=x=>L0+(x/span)*pw, Y=v=>T+ph/2-v*ph*0.42;
+    axes(c,L0,T,pw,ph,[-1,0,1].map(v=>[v,Y(v)]),v=>v); c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; [0,1,2,3,4].forEach(q=>c.fillText(q+'λ',X(q*lam),T+ph+4));
+    const px=[],py=[]; for(let i=0;i<=500;i++){ const s=span*i/500; px.push([X(s),Y(plane(s,0,S.t))]); py.push([X(s),Y(plane(0,s,S.t))]); }
+    line(c,px,C.sys,2); line(c,py,C.inc,1.6,[5,4]); legend(c,[['Ψ(0, y)',C.inc],['Ψ(x, 0)',C.sys]],L0+pw,T-8); return; }
+  const X=q=>L0+q/90*pw, Yp=v=>T+ph*(-v)/180, tc=thc(), s2=solve(P.th), lam1=s2.m1.c/P.f, dmax=2, Yd=v=>T+ph*(1-Math.min(dmax,v)/dmax);
+  axes(c,L0,T,pw,ph,[0,-45,-90,-135,-180].map(v=>[v,Yp(v)]),v=>v+'°'); xaxis(c,X,T,ph,[0,15,30,45,60,75,90],'θ',L0,pw);
+  c.fillStyle=C.tra; c.textAlign='left'; c.textBaseline='middle'; [0,0.5,1,1.5,2].forEach(v=>c.fillText(fc(v,1)+'λ₁',L0+pw+6,Yd(v)));
+  const pa=[],pd=[]; for(let i=0;i<=450;i++){ const q=Math.min(89.9,90*i/450), s=solve(q); let a=arg(s.r)/D2R; if(a>1e-6) a-=360; pa.push([X(q),Yp(Math.max(-180,Math.min(0,a)))]); if(s.ev) pd.push([X(q),Yd(1/s.kap/lam1)]); }
+  line(c,pa,C.ref,2.2); if(pd.length) line(c,pd,C.tra,2);
+  if(!isNaN(tc)){ c.strokeStyle=C.crit; c.setLineDash([3,3]); c.beginPath(); c.moveTo(X(tc),T); c.lineTo(X(tc),T+ph); c.stroke(); c.setLineDash([]); }
+  c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.moveTo(X(P.th),T); c.lineTo(X(P.th),T+ph); c.stroke();
+  legend(c,[['penetración 1/κ (eje derecho)',C.tra],['fase de r',C.ref]],L0+pw,T-8);
+}
+function draw(){ drawScene(); if(S.view==='coef') drawCoef(); else drawFase(); }
+
+// ================= Bucle =================
+let lastT=performance.now(), acc=0;
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed*0.5/P.f; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+setPre('ab');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

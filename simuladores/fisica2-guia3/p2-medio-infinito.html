@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Medio infinito G3-P2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --str:#e3e9ef; --w1:#ff7ad9; --w2:#34e08a; --comp:#ff5c3a; --rare:#36d4ff; --ghost:#55616e; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:250px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.sw input{accent-color:var(--sys);width:16px;height:16px}
+.scrub{display:flex;align-items:center;gap:8px;flex:1;min-width:220px}
+.scrub input{flex:1;accent-color:var(--sys)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 3 · Propagación en medios no dispersivos</span>
+  <h1>D'Alembert en un medio infinito <i>· Ψ = Ψ₁(x − vt) + Ψ₂(x + vt)</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 3">
+    <h2>Guía 3</h2>
+    <ol>
+      <li><a href="p1-ecuacion-ondas.html"><b class="code">P1</b>Ecuación de ondas</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P2–3, P5</b>Medio infinito</a></li>
+      <li><a href="p4-cuerda-finita.html"><b class="code">P4</b>Cuerda finita</a></li>
+      <li><a href="p6-onda-armonica.html"><b class="code">P6–8</b>Onda armónica y energía</a></li>
+      <li><a href="p9-dos-cuerdas.html"><b class="code">P9, P20</b>Dos cuerdas</a></li>
+      <li><a href="p10-impedancia-acustica.html"><b class="code">P10–12</b>Caños e impedancia</a></li>
+      <li><a href="p13-incidencia-oblicua.html"><b class="code">P13</b>Incidencia oblicua</a></li>
+      <li><a href="p14-fase-grupo.html"><b class="code">P14–15, P19</b>Fase y grupo</a></li>
+      <li><a href="p16-fourier-pulsos.html"><b class="code">P16–18</b>Fourier y pulsos</a></li>
+      <li><a href="p21-doppler-mach.html"><b class="code">P21–22</b>Doppler y Mach</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Perturbación que se propaga en una cuerda o en un gas"></canvas>
+      <div class="clock num" id="clock">t = 0</div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p2" aria-pressed="true">P2 · el pulso viaja</button>
+          <button class="chip" data-pre="p3">P3 · se suelta desde el reposo</button>
+          <button class="chip" data-pre="p5">P5 · escalón de densidad en un gas</button>
+        </div></div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="scrub"><label class="lbl" for="scrub">t</label><input id="scrub" type="range" min="0" max="1" step="0.0005" value="0"><span class="num" id="scrub-v">0</span></div>
+        <label class="sw"><input type="checkbox" id="parts" checked> mostrar Ψ₁ y Ψ₂</label>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="snap" aria-pressed="true">Fotografías</button>
+          <button data-view="map" aria-pressed="false">Mapa x – t</button>
+        </div>
+      </div>
+      <div data-vpanel="snap">
+        <div class="plot"><canvas id="psnap" style="height:300px"></canvas><div class="tag" id="tag-snap">Fotografías en varios instantes</div></div>
+        <div class="pcap" id="cap-snap"></div>
+      </div>
+      <div data-vpanel="map" hidden>
+        <div class="plot"><canvas id="pmap" style="height:300px"></canvas><div class="tag">Perturbación en el plano x–t</div></div>
+        <div class="pcap">Cada parte de la perturbación se mueve sobre una recta x ∓ vt = constante. Si sale del reposo, de cada punto salen dos rectas, una hacia cada lado: la información viaja solo a velocidad v.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G3-P2, P3 y P5</summary>
+      <p><b>2.</b> Una perturbación se propaga en una cuerda infinita con velocidad v. Dos "fotografías": a t = 0 el pulso es una rampa de 0 a 1 entre x = 1 m y x = 3 m; a t = 4 s, la misma rampa entre x = 3 m y x = 5 m. <b>a)</b> Halle v. <b>b)</b> Halle Ψ(x,t).</p>
+      <p><b>3.</b> Cuerda infinita con v = 100 m/s. A t = 0 se la deforma como en la figura del P2 y se la suelta desde el reposo. <b>a)</b> Halle Ψ(x,t) = Ψ₁(x − vt) + Ψ₂(x + vt), dando la expresión en cada intervalo. <b>b)</b> Compare con el problema anterior.</p>
+      <p><b>5.</b> En un gas, a t = 0, la densidad vale ρ₁ para x &lt; 0 y ρ₀ para x &gt; 0, con (ρ₁ − ρ₀)/ρ₀ ≪ 1 y v(x,0) = 0. Calcule ρ(x,t). Datos: ρ₁, ρ₀, v<sub>s</sub>.</p>
+      <p class="src">Física 2 (Físicos), Guía 3.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>En el P2 la rampa viaja entera hacia la derecha. En el P3 la cuerda tiene exactamente la misma forma a t = 0, pero se la suelta desde el reposo. ¿Qué hace?</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="viaja">viaja entera hacia la derecha, como en el P2</button>
+          <button class="opt" data-ans="parte">se parte en dos rampas de la mitad de altura que se alejan</button>
+          <button class="opt" data-ans="oscila">oscila en el lugar, subiendo y bajando</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo: pasar al P3</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P2: ¿en qué instante el borde vertical de la rampa llega a x = 7 m? Pausá ahí con la barra de tiempo.<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P3: encontrá el instante a partir del cual las dos mitades dejan de superponerse.<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P5: entre los dos frentes, ¿cuánto vale la densidad? ¿Está quieto el gas ahí?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta de d'Alembert. P2: Ψ = f(x − vt). P3 y P5: con velocidad inicial nula, Ψ = ½f(x − vt) + ½f(x + vt). En el gas se grafica δρ y las partículas se dibujan corridas por el desplazamiento Ψ respecto del gas uniforme final, multiplicado por 4. Colores: blanco la perturbación total, rosa Ψ₁ (hacia la derecha), verde Ψ₂ (hacia la izquierda), rojo compresión y celeste rarefacción.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--str','--w1','--w2','--comp','--rare','--ghost','--ok'].forEach(k=>C[k.slice(2)]=css(k));
+
+// ================= Parámetros =================
+const P={v2:0.5,v3:100,vs:340,eps:0.05};
+const DEF=[
+  {id:'v2',lab:'v',unit:'m/s',min:0.1,max:2,step:0.01,pre:'p2'},
+  {id:'v3',lab:'v',unit:'m/s',min:20,max:300,step:1,pre:'p3'},
+  {id:'vs',lab:'v_s',unit:'m/s',min:100,max:1500,step:1,pre:'p5'},
+  {id:'eps',lab:'(ρ₁ − ρ₀)/ρ₀',unit:'',min:-0.1,max:0.1,step:0.001,pre:'p5'},
+];
+// ventana y escala de tiempo de cada caso
+const CASE={
+  p2:{x0:-3,x1:9,tmax:16,tu:1,tl:'s',vis:1},
+  p3:{x0:-4,x1:8,tmax:0.06,tu:1e3,tl:'ms',vis:0.006},
+  p5:{x0:-10,x1:10,tmax:0.025,tu:1e3,tl:'ms',vis:0.004},
+};
+const S={pre:'p2',t:0,running:true,view:'snap',parts:true};
+const v=()=>S.pre==='p2'?P.v2:S.pre==='p3'?P.v3:P.vs;
+const f0=u=>(u>1&&u<3)?(u-1)/2:0;              // rampa de la figura
+const step0=x=>x<0?1:0;                          // escalón: δρ/(ρ₁ − ρ₀)
+function parts(x,t){ const c=v()*t;
+  if(S.pre==='p2') return [f0(x-c),0];
+  if(S.pre==='p3') return [0.5*f0(x-c),0.5*f0(x+c)];
+  return [0.5*step0(x-c),0.5*step0(x+c)]; }
+const psi=(x,t)=>{ const p=parts(x,t); return p[0]+p[1]; };
+// desplazamiento del gas (desde t = 0), en unidades de ε·1 m: Ψ − Ψ₀ con Ψ₀ = −x·ε para x < 0
+function dispGas(x,t){ const c=v()*t, G=u=>u<0?-u:0; return 0.5*(G(x-c)+G(x+c)); } // Ψ/ε respecto del equilibrio final (uniforme)
+
+// ================= Controles =================
+const pEl=$('params');
+DEF.forEach(d=>{
+  const w=document.createElement('div'); w.className='param'; w.dataset.pre=d.pre;
+  w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(w);
+  const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelectorAll('.param').forEach(p=>p.hidden=p.dataset.pre!==S.pre); }
+function setPre(k){ S.pre=k; S.t=0; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+$('parts').addEventListener('change',e=>{ S.parts=e.target.checked; });
+$('scrub').addEventListener('input',e=>{ togglePlay(false); S.t=(+e.target.value)*CASE[S.pre].tmax; updateChal(); renderCuentas(false); });
+const playBtn=$('play');
+function togglePlay(f){ S.running= f===undefined? !S.running : f; playBtn.textContent=S.running?'Pausar':'Reproducir'; }
+playBtn.onclick=()=>togglePlay();
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+
+// ================= Lecturas =================
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+const tTxt=t=>`${fc(t*CASE[S.pre].tu,CASE[S.pre].tu>1?2:2)} ${CASE[S.pre].tl}`;
+function refresh(){
+  const V=v();
+  let ro=`<span><span class="k">v</span> <span style="color:var(--sys)">${fc(V,V<10?2:0)} m/s</span></span>`;
+  if(S.pre==='p2') ro+=`<span><span class="k">de las fotografías</span> (5 − 3) m / 4 s = 0,50 m/s</span>`;
+  if(S.pre==='p3') ro+=`<span><span class="k">se separan en</span> t = 1 m / v = ${fc(1/V*1e3,2)} ms</span>`;
+  if(S.pre==='p5') ro+=`<span><span class="k">entre los frentes</span> δρ/ρ₀ = ${fc(P.eps/2,4)}</span><span><span class="k">velocidad del gas</span> ${fc(V*P.eps/2,2)} m/s</span>`;
+  $('readout').innerHTML=ro;
+  $('formula').innerHTML= S.pre==='p2'? `<span class="k">Ψ(x,t) = f(x − vt),  f(u) = </span>(u − 1)/2<span class="k"> para 1 &lt; u &lt; 3 m, y 0 fuera</span>`
+    : S.pre==='p3'? `<span class="k">Ψ(x,t) = </span>½ f(x − vt) + ½ f(x + vt)<span class="k">,  f(u) = (u − 1)/2 en 1 &lt; u &lt; 3 m</span>`
+    : `<span class="k">ρ(x,t) = ρ₀ + </span>½(ρ₁ − ρ₀)[H(v<sub>s</sub>t − x) + H(−v<sub>s</sub>t − x)]<span class="k">,  H = escalón de Heaviside</span>`;
+  $('tag-snap').textContent= S.pre==='p5'? 'δρ(x)/(ρ₁ − ρ₀) en varios instantes' : 'Ψ(x) en varios instantes';
+  $('cap-snap').textContent= S.pre==='p2'? 'Las fotografías de la guía son las de t = 0 y t = 4 s. La forma no cambia: el borde vertical pasa de x = 3 a x = 5 m, así que v = 2 m / 4 s.'
+    : S.pre==='p3'? 'La rampa original se parte en dos copias de la mitad de altura. Mientras se superponen la forma total cambia; desde t = 10 ms son dos rampas separadas que se alejan a 100 m/s.'
+    : 'El escalón se parte en dos escalones de la mitad que viajan a ±v_s. Entre ellos la densidad es el promedio de las dos iniciales y el gas se mueve, en bloque, desde la zona densa hacia la liviana.';
+  renderCuentas(false); updateChal();
+}
+
+// ================= Predicción =================
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  setPre('p3'); setView('snap'); togglePlay(true);
+  document.querySelector('#pred-opts [data-ans=parte]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='parte'?'<b>Bien.</b> ':'<b>Mirá las fotografías.</b> ')+'Con la misma forma inicial pero velocidad inicial nula, d\'Alembert da Ψ₁ = Ψ₂ = ½f: dos copias de la mitad de altura, una hacia cada lado. En el P2 la cuerda también tenía la forma f a t = 0, pero cada punto ya se movía con velocidad −v f′(x): esa condición inicial distinta es la que hace que viaje entera hacia un solo lado. La forma sola no alcanza; hay que dar posición y velocidad.';
+  $('pred-go').hidden=true;
+};
+
+// ================= Desafíos =================
+function updateChal(){
+  const ok1=S.pre==='p2'&&!S.running&&Math.abs(S.t*P.v2-4)<0.03&&Math.abs(P.v2-0.5)<1e-6; if(ok1) S.d1=true;
+  $('c1').textContent= S.d1? 'Logrado: t = 8 s. El borde estaba en x = 3 m a t = 0 y viaja a 0,5 m/s: x = 3 + 0,5t = 7 m.' : (S.pre==='p2'?`Ahora el borde está en x = ${fc(3+P.v2*S.t,2)} m`:'Elegí el P2');
+  $('c1').classList.toggle('done',!!S.d1);
+  const ts=1/P.v3, ok2=S.pre==='p3'&&!S.running&&Math.abs(S.t-ts)<0.03*ts; if(ok2) S.d2=true;
+  $('c2').textContent= S.d2? `Logrado: t = 1 m / v = ${fc(ts*1e3,2)} ms. La copia que va a la derecha ocupa [1 + vt, 3 + vt] y la de la izquierda [1 − vt, 3 − vt]; dejan de tocarse cuando 1 + vt = 3 − vt.` : (S.pre==='p3'?`Ahora t = ${tTxt(S.t)}; pausá justo cuando dejan de tocarse`:'Elegí el P3');
+  $('c2').classList.toggle('done',!!S.d2);
+  const ok3=S.pre==='p5'&&S.t>0.002; if(ok3) S.d3=true;
+  $('c3').textContent= S.d3? `Logrado: δρ = (ρ₁ − ρ₀)/2, el promedio. El gas no está quieto: δρ/ρ₀ = −∂Ψ/∂x y la velocidad es u = v_s δρ/ρ₀ = ${fc(P.vs*P.eps/2,2)} m/s, hacia la zona menos densa. Es exactamente el tubo con tabique de la Guía 2, sin paredes.` : (S.pre==='p5'?'Dejá correr el tiempo unos milisegundos':'Elegí el P5');
+  $('c3').classList.toggle('done',!!S.d3);
+}
+
+// ================= Cuentas =================
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps, fin; const V=v();
+    if(S.pre==='p2'){ $('cu-title').textContent='P2 paso a paso';
+      steps=[['a) La forma no cambia y se corre 2 m en 4 s', `\\[v=\\frac{\\Delta x}{\\Delta t}=\\frac{5\\ \\text{m}-3\\ \\text{m}}{4\\ \\text{s}}=0{,}5\\ \\text{m/s}\\]`],
+        ['b) Una perturbación que viaja sin deformarse hacia +x es una función de x − vt', `\\[\\Psi(x,t)=f(x-vt),\\qquad f(u)=\\Psi(u,0)\\]`],
+        ['La función de la fotografía a t = 0', `\\[f(u)=\\begin{cases}\\dfrac{u-1}{2}, & 1<u<3\\\\[4pt] 0, & \\text{en otro caso}\\end{cases}\\]`]];
+      fin=`\\[\\Psi(x,t)=\\begin{cases}\\dfrac{x-0{,}5\\,t-1}{2}, & 1+0{,}5\\,t<x<3+0{,}5\\,t\\\\[4pt] 0, & \\text{en otro caso}\\end{cases}\\quad[x\\ \\text{en m},\\ t\\ \\text{en s}]\\]`;
+    } else if(S.pre==='p3'){ $('cu-title').textContent='P3 paso a paso';
+      const c=V*S.t;
+      steps=[['Solución general de d\'Alembert', `\\[\\Psi(x,t)=\\Psi_1(x-vt)+\\Psi_2(x+vt)\\]`],
+        ['Condiciones iniciales: forma f(x) y velocidad nula', `\\[\\Psi_1(x)+\\Psi_2(x)=f(x),\\qquad -v\\Psi_1'(x)+v\\Psi_2'(x)=0\\ \\Rightarrow\\ \\Psi_1=\\Psi_2=\\tfrac12f\\]`],
+        ['a) Las dos mitades, con f(u) = (u − 1)/2 en 1 < u < 3', `\\[\\Psi=\\tfrac12f(x-vt)+\\tfrac12f(x+vt),\\qquad v=${f(V,0)}\\ \\text{m/s}\\]`],
+        [`Por intervalos, ahora (vt = ${fc(c,3)} m${c<1?', todavía se superponen':''})`, c<1?`\\[\\Psi=\\begin{cases}\\frac{x+vt-1}4 & 1-vt<x<1+vt\\\\ \\frac{2x-2}{4}=\\frac{x-1}{2} & 1+vt<x<3-vt\\\\ \\frac{x-vt-1}4 & 3-vt<x<3+vt\\end{cases}\\ (\\text{fuera, }0)\\]`:`\\[\\Psi=\\begin{cases}\\frac{x+vt-1}4 & 1-vt<x<3-vt\\\\ \\frac{x-vt-1}4 & 1+vt<x<3+vt\\\\ 0 & \\text{en otro caso}\\end{cases}\\]`],
+        ['b) Comparación con el P2: misma forma inicial, distinta velocidad inicial', `\\[\\text{P2: }\\dot\\Psi(x,0)=-vf'(x)\\ \\Rightarrow\\ \\Psi_2=0;\\qquad \\text{P3: }\\dot\\Psi(x,0)=0\\ \\Rightarrow\\ \\Psi_1=\\Psi_2\\]`]];
+      fin=`\\[\\text{se separan en }t=\\frac{1\\ \\text{m}}{v}=${f(1/V*1e3,2)}\\ \\text{ms}\\]`;
+    } else { $('cu-title').textContent='P5 paso a paso';
+      steps=[['Para perturbaciones chicas, δρ cumple la ecuación de ondas con la velocidad del sonido', `\\[\\frac{\\partial^2\\delta\\rho}{\\partial t^2}=v_s^2\\frac{\\partial^2\\delta\\rho}{\\partial x^2},\\qquad \\delta\\rho=\\rho-\\rho_0\\]`],
+        ['Condición inicial: escalón, y gas en reposo (v = 0 implica ∂δρ/∂t = 0 por continuidad)', `\\[\\delta\\rho(x,0)=(\\rho_1-\\rho_0)H(-x),\\qquad \\frac{\\partial\\delta\\rho}{\\partial t}(x,0)=-\\rho_0\\frac{\\partial v}{\\partial x}=0\\]`],
+        ['D\'Alembert con velocidad inicial nula: dos mitades', `\\[\\delta\\rho=\\tfrac12(\\rho_1-\\rho_0)\\big[H(v_st-x)+H(-v_st-x)\\big]\\]`],
+        ['Velocidad del gas entre los frentes', `\\[u=v_s\\frac{\\delta\\rho}{\\rho_0}=${f(P.vs,0)}\\cdot${f(P.eps/2,4)}=${f(P.vs*P.eps/2,2)}\\ \\text{m/s}\\]`]];
+      fin=`\\[\\rho(x,t)=\\begin{cases}\\rho_1 & x<-v_st\\\\ \\tfrac12(\\rho_0+\\rho_1) & |x|<v_st\\\\ \\rho_0 & x>v_st\\end{cases}\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Dibujo =================
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function curve(fn,X,Y,x0,x1,n=600){ const a=[]; for(let i=0;i<=n;i++){ const x=x0+(x1-x0)*i/n; a.push([X(x),Y(fn(x))]); } return a; }
+function xAxis(c,X,y,x0,x1,step){ c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='center'; c.textBaseline='top'; for(let x=Math.ceil(x0/step)*step;x<=x1;x+=step) c.fillText(x,X(x),y); }
+function drawScene(){
+  const {ctx:c,w,h}=fit($('scene')); c.clearRect(0,0,w,h);
+  const K=CASE[S.pre], L0=30,R=16, X=x=>L0+(x-K.x0)/(K.x1-K.x0)*(w-L0-R), t=S.t;
+  if(S.pre!=='p5'){
+    const cy=h*0.7, A=Math.min(110,h*0.5), Y=v=>cy-A*v;
+    c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(L0,cy); c.lineTo(w-R,cy); c.stroke();
+    line(c,curve(x=>f0(x),X,Y,K.x0,K.x1),C.ghost,1.2,[4,4]);
+    if(S.parts&&S.pre==='p3'){ line(c,curve(x=>parts(x,t)[0],X,Y,K.x0,K.x1),C.w1,1.6,[6,3]); line(c,curve(x=>parts(x,t)[1],X,Y,K.x0,K.x1),C.w2,1.6,[6,3]); }
+    line(c,curve(x=>psi(x,t),X,Y,K.x0,K.x1,1200),C.str,2.6);
+    // cuentas de la cuerda (puntos que solo se mueven en vertical)
+    for(let x=Math.ceil(K.x0*2)/2;x<=K.x1;x+=0.5){ c.fillStyle=C.sys; c.beginPath(); c.arc(X(x),Y(psi(x,t)),2.4,0,7); c.fill(); }
+    xAxis(c,X,cy+8,K.x0,K.x1,1); c.textAlign='right'; c.fillText('x (m)',w-R,cy+22);
+    c.textAlign='left'; c.textBaseline='top'; c.fillStyle=C.faint; c.fillText('punteado: t = 0 · puntos celestes: trozos de cuerda (solo suben y bajan)',L0,12);
+  } else {
+    const cy=h/2-6, th=Math.min(110,h*0.48), N=Math.round((w-L0-R)/6);
+    for(let i=0;i<N;i++){ const x=K.x0+(K.x1-K.x0)*(i+0.5)/N, d=psi(x,t)*Math.sign(P.eps||1); if(Math.abs(d)<1e-9) continue; c.fillStyle=d>0?C.comp:C.rare; c.globalAlpha=0.12+0.4*Math.abs(psi(x,t)); c.fillRect(X(K.x0+(K.x1-K.x0)*i/N),cy-th/2,(w-L0-R)/N+0.5,th); }
+    c.globalAlpha=1; const Kd=Math.min(14,(w-L0-R)/N*1.4)/Math.max(1e-3,Math.abs(P.eps))*Math.abs(P.eps)*1.0/ (1*1);
+    const disp=x=>dispGas(x,t)*P.eps*4; // desplazamiento ×4
+    for(let i=-40;i<=N;i++){ const xe=K.x0+(K.x1-K.x0)*i/N, xp=xe+disp(xe); if(xp<K.x0||xp>K.x1) continue; for(let j=0;j<7;j++){ const y=cy-th/2+th*(j+0.5)/7+(((i+400)*7+j*3)%5-2)*1.2; c.fillStyle=C.fg; c.globalAlpha=0.75; c.beginPath(); c.arc(X(xp),y,1.5,0,7); c.fill(); } }
+    c.globalAlpha=1; c.strokeStyle=C.muted; c.lineWidth=2; c.beginPath(); c.moveTo(L0,cy-th/2-2); c.lineTo(w-R,cy-th/2-2); c.moveTo(L0,cy+th/2+2); c.lineTo(w-R,cy+th/2+2); c.stroke();
+    xAxis(c,X,cy+th/2+8,K.x0,K.x1,5); c.textAlign='right'; c.fillText('x (m)',w-R,cy+th/2+22);
+    c.textAlign='left'; c.textBaseline='top'; c.font=`600 12px ${css('--font-ui')}`; c.fillStyle=P.eps>0?C.comp:C.rare; c.fillText('ρ₁',X(K.x0)+6,cy-th/2-20); c.fillStyle=C.muted; c.fillText('ρ₀',X(K.x1)-24,cy-th/2-20);
+  }
+  $('clock').textContent=`t = ${tTxt(t)}${S.pre!=='p2'?' · cámara lenta':''}`;
+  $('scrub').value=Math.min(1,S.t/K.tmax); $('scrub-v').textContent=tTxt(S.t);
+}
+function drawSnap(){
+  const {ctx:c,w,h}=fit($('psnap')); c.clearRect(0,0,w,h);
+  const K=CASE[S.pre], L0=40,R=14,T=34,B=28,pw=w-L0-R,ph=h-T-B, X=x=>L0+(x-K.x0)/(K.x1-K.x0)*pw;
+  const times= S.pre==='p2'? [0,4,8,12] : S.pre==='p3'? [0,0.005,0.01,0.02,0.035].map(t=>t*100/P.v3) : [0,0.005,0.01,0.02];
+  const n=times.length, rh=ph/n;
+  c.font=`11px ${css('--font-num')}`;
+  times.forEach((t,i)=>{ const base=T+rh*(i+0.85), A=rh*0.7, Y=v=>base-A*v;
+    c.strokeStyle=C.line; c.lineWidth=1; c.beginPath(); c.moveTo(L0,base); c.lineTo(L0+pw,base); c.stroke();
+    if(S.parts&&S.pre!=='p2'){ line(c,curve(x=>parts(x,t)[0],X,Y,K.x0,K.x1),C.w1,1.3,[5,3],0.9); line(c,curve(x=>parts(x,t)[1],X,Y,K.x0,K.x1),C.w2,1.3,[5,3],0.9); }
+    line(c,curve(x=>psi(x,t),X,Y,K.x0,K.x1,1200),C.str,2);
+    c.fillStyle=C.muted; c.textAlign='left'; c.textBaseline='bottom'; c.fillText(`t = ${tTxt(t)}`,L0+4,base-A-2);
+  });
+  xAxis(c,X,T+ph+4,K.x0,K.x1,S.pre==='p5'?5:1);
+}
+function drawMap(){
+  const {ctx:c,w,h}=fit($('pmap')); c.clearRect(0,0,w,h);
+  const K=CASE[S.pre], L0=56,R=14,T=40,B=28,pw=w-L0-R,ph=h-T-B, NX=180, NT=120;
+  const hex=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16)), cp=hex(S.pre==='p5'?(P.eps>0?C.comp:C.rare):C.sys), bg=hex(C.panel);
+  const cw=pw/NX, chh=ph/NT;
+  for(let j=0;j<NT;j++){ const t=K.tmax*(j+0.5)/NT; for(let i=0;i<NX;i++){ const x=K.x0+(K.x1-K.x0)*(i+0.5)/NX, s=Math.min(1,Math.abs(psi(x,t))); if(s<0.01) continue; c.fillStyle=`rgb(${bg.map((b,k)=>Math.round(b+(cp[k]-b)*s*0.9)).join(',')})`; c.fillRect(L0+i*cw,T+ph-(j+1)*chh,cw+0.6,chh+0.6); } }
+  c.strokeStyle=C.line; c.strokeRect(L0,T,pw,ph);
+  c.font=`11px ${css('--font-num')}`; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle'; for(let q=0;q<=4;q++) c.fillText(tTxt(K.tmax*q/4),L0-6,T+ph-ph*q/4);
+  xAxis(c,x=>L0+(x-K.x0)/(K.x1-K.x0)*pw,T+ph+4,K.x0,K.x1,S.pre==='p5'?5:1);
+  const yy=T+ph-ph*Math.min(1,S.t/K.tmax); c.strokeStyle=C.fg; c.setLineDash([4,3]); c.beginPath(); c.moveTo(L0,yy); c.lineTo(L0+pw,yy); c.stroke(); c.setLineDash([]);
+}
+function draw(){ drawScene(); if(S.view==='snap') drawSnap(); else drawMap(); }
+
+// ================= Bucle =================
+let lastT=performance.now(), lc=0;
+function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; const K=CASE[S.pre];
+  if(S.running){ S.t+=dt*K.vis; if(S.t>K.tmax) S.t=0; }
+  if(now-lc>300){ lc=now; updateChal(); }
+  draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+setPre('p2');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

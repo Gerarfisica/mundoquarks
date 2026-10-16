@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Analizador G5-P21</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --in:#ffcf3a; --out:#34e08a; --plate:#36d4ff; --pol:#8fa3b8; --axis:#ff7ad9; --nop:#8693a1; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:290px}
+#pa,#pb{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.tog{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.mini button{border:1px solid var(--line-2);background:transparent;border-radius:6px;padding:3px 9px;font-size:12px;cursor:pointer;color:var(--muted)}
+.mini button[aria-pressed="true"]{border-color:var(--sys);color:var(--fg)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 5 · Analizador: láminas + polarizador</span>
+  <h1>Analizar la luz <i>· una λ/4, un polarizador y paciencia</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 5">
+    <h2>Guía 5</h2>
+    <ol>
+      <li><a href="p1-estados.html"><b class="code">P1–3</b>Estados de polarización</a></li>
+      <li><a href="p4-polarizadores.html"><b class="code">P4–10</b>Polarizadores y Malus</a></li>
+      <li><a href="p11-brewster.html"><b class="code">P11–14</b>Ángulo de Brewster</a></li>
+      <li><a href="p15-laminas.html"><b class="code">P15–20</b>Láminas retardadoras</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P21–23</b>Analizador</a></li>
+      <li><a href="p24-disenos.html"><b class="code">P24–28</b>Diseños con láminas</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Fuente, lámina de cuarto de onda opcional, polarizador y detector"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Fuente</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="ell" aria-pressed="true">P21 · elíptica</button>
+          <button class="chip" data-pre="part">P22 · parcialmente polarizada</button>
+          <button class="chip" data-pre="nat">P23 i · natural</button>
+          <button class="chip" data-pre="natc">P23 ii · natural + circular</button>
+          <button class="chip" data-pre="mys">Fuente misteriosa</button>
+        </div></div>
+      <div class="row tog"><label><input type="checkbox" id="plon"> lámina λ/4 antes del polarizador</label><button class="btn" id="sweep">Barrer el polarizador</button></div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="a" aria-pressed="true">I según el polarizador</button>
+          <button data-view="b" aria-pressed="false">Contraste según la lámina</button>
+        </div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:260px"></canvas><div class="tag">Intensidad en el detector al girar el polarizador · tocá para elegir</div></div>
+        <div class="pcap">Gris: sin lámina. Verde: con la λ/4 en su ángulo actual. Si con la lámina bien orientada la intensidad llega a cero, la luz estaba totalmente polarizada.</div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:260px"></canvas><div class="tag">Contraste (I_max − I_min)/(I_max + I_min) al barrer el polarizador, según el ángulo de la λ/4 · tocá para elegir</div></div>
+        <div class="pcap">Para luz totalmente polarizada, existe un ángulo de la lámina con contraste 1 (extinción). Para luz parcial, el máximo es el grado de polarización.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G5-P21 a P23</summary>
+      <p><b>21.</b> ¿Cómo puede analizarse luz elípticamente polarizada? ¿Por qué?</p>
+      <p><b>22.</b> ¿Qué diferencia hay entre luz parcialmente polarizada y luz elípticamente polarizada? ¿Cómo distinguirlas?</p>
+      <p><b>23.</b> Dos fuentes: i) luz natural; ii) superposición de luz natural con una onda monocromática de λ conocida, circularmente polarizada. ¿Cómo saber cuál es cuál con polaroids, láminas de media onda y de cuarto de onda?</p>
+      <p class="src">Física 2 (Físicos), Guía 5.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>P22: luz elíptica y luz parcialmente polarizada pueden dar la misma curva al girar un polarizador solo. ¿Qué las distingue?</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="lam">con una λ/4 bien orientada, la elíptica se apaga del todo y la parcial no</button>
+          <button class="opt" data-ans="pol">con dos polarizadores</button>
+          <button class="opt" data-ans="no">no se pueden distinguir</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3>Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P21: orientá la λ/4 y el polarizador para que la elíptica se apague (I &lt; 0,5 % de I₀).<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P23: con la fuente ii, conseguí un contraste de al menos 0,3 al barrer el polarizador (con la fuente i es imposible).<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Fuente misteriosa: analizala y decí qué es.
+            <div class="mini" id="guess"><button data-g="nat">natural</button><button data-g="lin">lineal</button><button data-g="circ">circular</button><button data-g="ell">elíptica</button><button data-g="part">parcial lineal</button><button data-g="natc">natural + circular</button></div>
+            <div class="state" id="c3">—</div><button class="btn" id="newm" style="margin-top:6px">Otra fuente</button></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Fuentes (I₀ = 1): elíptica antihoraria 2:1 con eje mayor a 25°; parcial = 60 % natural + 40 % lineal a 25°; natural + circular = 50 % y 50 %. Cálculo de Jones con suma incoherente para la parte no polarizada. La λ/4 tiene su eje rápido a φ y el polarizador su eje a θ, medidos desde x, antihorario mirando hacia la fuente.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ===== motor de Jones (común a la Guía 5) =====
+// Convención: E(t) = Re[J e^{−iωt}], J = (Aₓ, A_y e^{iδ}) → Eₓ = Aₓ cos ωt, E_y = A_y cos(ωt − δ).
+// Mirando hacia la fuente (la onda viene hacia el observador, eje x a la derecha, y arriba): δ ∈ (0, π) gira antihorario.
+const Z={ c:(a,b=0)=>[a,b], add:(a,b)=>[a[0]+b[0],a[1]+b[1]], sub:(a,b)=>[a[0]-b[0],a[1]-b[1]], mul:(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], sc:(a,s)=>[a[0]*s,a[1]*s], cj:a=>[a[0],-a[1]], ab2:a=>a[0]*a[0]+a[1]*a[1], ex:t=>[Math.cos(t),Math.sin(t)] };
+const jv=(ax,ay,d=0)=>[Z.c(ax),Z.sc(Z.ex(d),ay)];
+function jPol(J,th){ const c=Math.cos(th), s=Math.sin(th), a=Z.add(Z.sc(J[0],c),Z.sc(J[1],s)); return [Z.sc(a,c),Z.sc(a,s)]; }
+function jPlate(J,th,G){ const c=Math.cos(th), s=Math.sin(th); let u=Z.add(Z.sc(J[0],c),Z.sc(J[1],s)), v=Z.add(Z.sc(J[0],-s),Z.sc(J[1],c)); v=Z.mul(v,Z.ex(G)); return [Z.sub(Z.sc(u,c),Z.sc(v,s)),Z.add(Z.sc(u,s),Z.sc(v,c))]; }
+// haz: lista de componentes incoherentes
+const natural=I=>[jv(Math.sqrt(I/2),0),jv(0,Math.sqrt(I/2))];
+const bPol=(B,th)=>B.map(J=>jPol(J,th)), bPlate=(B,th,G)=>B.map(J=>jPlate(J,th,G));
+function stokes(B){ let S=[0,0,0,0]; B.forEach(([x,y])=>{ const xy=Z.mul(Z.cj(x),y); S[0]+=Z.ab2(x)+Z.ab2(y); S[1]+=Z.ab2(x)-Z.ab2(y); S[2]+=2*xy[0]; S[3]+=2*xy[1]; }); return S; }
+function describe(S){ const I=S[0], Sp=Math.hypot(S[1],S[2],S[3]); if(I<1e-12) return {I:0,txt:'sin luz',dop:0,kind:'nada'};
+  const dop=Sp/I, psi=0.5*Math.atan2(S[2],S[1]), chi=0.5*Math.asin(Math.max(-1,Math.min(1,Sp>1e-14?S[3]/Sp:0)));
+  let kind, sense= S[3]>1e-9*I?'antihorario':(S[3]<-1e-9*I?'horario':'');
+  if(dop<1e-6) kind='natural'; else if(Math.abs(S[3])<1e-6*I) kind='lineal'; else if(Math.hypot(S[1],S[2])<1e-6*I) kind='circular'; else kind='elíptica';
+  const ratio=Math.abs(Math.tan(chi));
+  let txt= kind==='natural'?'natural (no polarizada)': kind==='lineal'?`lineal a ${(((psi*180/Math.PI)%180+180)%180).toFixed(1).replace('.',',')}°`: kind==='circular'?`circular ${sense}`:`elíptica ${sense}, ejes ${ratio>1e-9?(1/ratio).toFixed(2).replace('.',','):'∞'} : 1, eje mayor a ${(((psi*180/Math.PI)%180+180)%180).toFixed(1).replace('.',',')}°`;
+  if(dop>1e-6&&dop<1-1e-6) txt='parcialmente polarizada ('+Math.round(dop*100)+' %): '+txt.replace('natural (no polarizada)','');
+  return {I,dop,psi,chi,kind,sense,txt,ratio}; }
+// traza del extremo del campo de la parte polarizada (para dibujar)
+function traceJ(J,n=120){ const pts=[]; for(let i=0;i<=n;i++){ const t=2*Math.PI*i/n, e=Z.ex(-t); pts.push([Z.mul(J[0],e)[0],Z.mul(J[1],e)[0]]); } return pts; }
+function polPart(S){ // Jones equivalente de la parte polarizada
+  const Sp=Math.hypot(S[1],S[2],S[3]); if(Sp<1e-14) return null; const ax=Math.sqrt(Math.max(0,(Sp+S[1])/2)), ay=Math.sqrt(Math.max(0,(Sp-S[1])/2)); const d=Math.atan2(S[3],S[2]); return jv(ax,ay,d); }
+const DEG=Math.PI/180;
+const f3=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d), fcj=(x,d=2)=>f3(x,d).replace('.',',');
+// dibujo de un estado en un círculo (centro, radio para amplitud 1)
+function drawState(c,cx,cy,R,B,col,opt={}){ const S=stokes(B), D=describe(S), Sp=Math.hypot(S[1],S[2],S[3]), amp=Math.sqrt(D.I||0);
+  c.strokeStyle=opt.grid||'rgba(128,140,150,.25)'; c.lineWidth=1; c.beginPath(); c.moveTo(cx-R*1.1,cy); c.lineTo(cx+R*1.1,cy); c.moveTo(cx,cy-R*1.1); c.lineTo(cx,cy+R*1.1); c.stroke();
+  if(D.I<1e-9) return D;
+  const unp=Math.sqrt(Math.max(0,D.I-Sp)); if(unp>1e-6){ c.fillStyle=col; c.globalAlpha=0.12; c.beginPath(); c.arc(cx,cy,R*unp/Math.sqrt(opt.Iref||1),0,2*Math.PI); c.fill(); c.globalAlpha=1; }
+  const J=polPart(S); if(J){ const k=R/Math.sqrt(opt.Iref||1), pts=traceJ(J); c.strokeStyle=col; c.lineWidth=2.2; c.beginPath(); pts.forEach((p,i)=>{ const X=cx+p[0]*k, Y=cy-p[1]*k; i?c.lineTo(X,Y):c.moveTo(X,Y); }); c.stroke();
+    if(opt.t!==undefined){ const e=Z.ex(-opt.t), x=Z.mul(J[0],e)[0], y=Z.mul(J[1],e)[0]; c.strokeStyle=col; c.lineWidth=2; c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+x*k,cy-y*k); c.stroke(); c.fillStyle=col; c.beginPath(); c.arc(cx+x*k,cy-y*k,3.5,0,7); c.fill(); }
+    if(D.kind!=='lineal'&&D.sense){ const p=pts[10], q=pts[13]; const ax=cx+q[0]*k, ay=cy-q[1]*k, bx=cx+p[0]*k, by=cy-p[1]*k, u=Math.atan2(ay-by,ax-bx); c.fillStyle=col; c.beginPath(); c.moveTo(ax,ay); c.lineTo(ax-8*Math.cos(u-0.5),ay-8*Math.sin(u-0.5)); c.lineTo(ax-8*Math.cos(u+0.5),ay-8*Math.sin(u+0.5)); c.closePath(); c.fill(); } }
+  return D; }
+
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--in','--out','--plate','--pol','--axis','--nop','--ok','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+const P={phi:0, th:0};
+const DEF=[{id:'phi',lab:'eje rápido de la λ/4',unit:'°',min:0,max:180,step:0.25,need:'pl'},{id:'th',lab:'eje del polarizador',unit:'°',min:0,max:180,step:0.25}];
+const S={pre:'ell',pl:false,sweep:false,view:'a',myst:null};
+const rotJ=(J,t)=>{ const c=Math.cos(t), s=Math.sin(t); return [Z.sub(Z.sc(J[0],c),Z.sc(J[1],s)),Z.add(Z.sc(J[0],s),Z.sc(J[1],c))]; };
+const ellJ=I=>{ const a=2/Math.sqrt(5), b=1/Math.sqrt(5); return rotJ(jv(a*Math.sqrt(I),b*Math.sqrt(I),PI/2),25*DEG); };
+const SRC={ nat:()=>natural(1), lin:()=>[rotJ(jv(1,0,0),25*DEG)], circ:()=>{ const k=1/Math.SQRT2; return [jv(k,k,-PI/2)]; }, ell:()=>[ellJ(1)], part:()=>[...natural(0.6),rotJ(jv(Math.sqrt(0.4),0,0),25*DEG)], natc:()=>{ const k=Math.sqrt(0.25); return [...natural(0.5),jv(k,k,PI/2)]; } };
+const kind=()=>S.pre==='mys'?S.myst:S.pre;
+const src=()=>SRC[kind()]();
+function after(B,pl=S.pl,phi=P.phi,th=P.th){ let b=B; if(pl) b=bPlate(b,phi*DEG,PI/2); return bPol(b,th*DEG); }
+const Idet=(pl=S.pl,phi=P.phi,th=P.th)=>stokes(after(src(),pl,phi,th))[0];
+function sweep(pl,phi){ let mx=-1,mn=9; for(let i=0;i<180;i++){ const I=Idet(pl,phi,i); mx=Math.max(mx,I); mn=Math.min(mn,I); } return {mx,mn,v:(mx-mn)/Math.max(1e-12,mx+mn)}; }
+const pEl=$('params');
+DEF.forEach(d=>{ const el=document.createElement('div'); el.className='param'; el.dataset.need=d.need||'';
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el); const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value)); });
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(2); }); document.querySelectorAll('.param').forEach(p=>p.hidden=p.dataset.need==='pl'&&!S.pl); $('plon').checked=S.pl; }
+function newMyst(){ const ks=Object.keys(SRC); S.myst=ks[Math.floor(Math.random()*ks.length)]; S.guess=null; document.querySelectorAll('#guess button').forEach(b=>b.setAttribute('aria-pressed','false')); }
+function setPre(k){ S.pre=k; if(k==='mys'&&!S.myst) newMyst(); document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+$('plon').onchange=e=>{ S.pl=e.target.checked; sync(); refresh(); };
+$('sweep').onclick=()=>{ S.sweep=!S.sweep; $('sweep').textContent=S.sweep?'Detener':'Barrer el polarizador'; };
+$('newm').onclick=()=>{ newMyst(); setPre('mys'); };
+document.querySelectorAll('#guess button').forEach(b=>b.onclick=()=>{ S.guess=b.dataset.g; document.querySelectorAll('#guess button').forEach(x=>x.setAttribute('aria-pressed',x===b)); if(S.pre!=='mys') setPre('mys'); updateChal(); });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b)); document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab); if(b.dataset.tab==='cuentas') renderCuentas(true); });
+let CGa=null, CGb=null; $('pa').addEventListener('pointerdown',e=>{ if(!CGa) return; const r=e.currentTarget.getBoundingClientRect(); P.th=+(Math.min(1,Math.max(0,(e.clientX-r.left-CGa.L0)/CGa.pw))*180).toFixed(2); sync(); refresh(); });
+$('pb').addEventListener('pointerdown',e=>{ if(!CGb) return; const r=e.currentTarget.getBoundingClientRect(); S.pl=true; P.phi=+(Math.min(1,Math.max(0,(e.clientX-r.left-CGb.L0)/CGb.pw))*180).toFixed(2); sync(); refresh(); });
+function refresh(){ const I=Idet(), sw=sweep(S.pl,P.phi), sw0=sweep(false,0);
+  $('readout').innerHTML=`<span><span class="k">fuente</span> ${S.pre==='mys'?'misteriosa':describe(stokes(src())).txt}</span><span><span class="k">en el detector</span> I = ${fcj(I,4)} I₀</span><span><span class="k">contraste al barrer</span> ${fcj(sw.v,3)} <span class="k">(sin lámina ${fcj(sw0.v,3)})</span></span>`;
+  $('formula').innerHTML=`<span class="k">receta: 1) girar el polarizador solo; 2) poner la λ/4 con su eje rápido sobre el máximo de I y volver a girar: extinción ⇒ elíptica; mínimo ≠ 0 ⇒ parcial; curva plana sin y con lámina ⇒ natural</span>`;
+  draw(); renderCuentas(false); updateChal(); }
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{ setPre('part'); S.pl=true; P.phi=25; sync(); refresh(); setView('b'); document.querySelector('#pred-opts [data-ans=lam]').classList.add('right'); const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='lam'?'<b>Así es.</b> ':'<b>Mirá el contraste.</b> ')+'Con la λ/4 alineada con los ejes de la elipse, la elíptica se vuelve lineal y el polarizador la puede apagar (contraste 1). La parcial tiene una parte natural que ninguna lámina ordena: su contraste nunca supera el grado de polarización (0,4 acá).'; $('pred-go').hidden=true; };
+const NAMES={nat:'natural',lin:'lineal',circ:'circular',ell:'elíptica',part:'parcial lineal',natc:'natural + circular'};
+function updateChal(){ if(S.pre==='ell'&&S.pl&&Idet()<0.005) S.d1=true;
+  $('c1').textContent=S.d1?'Logrado: con el eje rápido sobre un eje de la elipse (25° o 115°), la λ/4 la vuelve lineal; el polarizador perpendicular la apaga. La orientación de la lámina da los ejes de la elipse, y la del polarizador, el cociente entre ellos.':(S.pre==='ell'?`Ahora I = ${fcj(Idet(),4)} I₀`:'Elegí la elíptica (P21)'); $('c1').classList.toggle('done',!!S.d1);
+  if(S.pre==='natc'&&S.pl&&sweep(true,P.phi).v>=0.3) S.d2=true;
+  $('c2').textContent=S.d2?`Logrado: con la λ/4 la parte circular se vuelve lineal y aparece una modulación (contraste ${fcj(sweep(true,P.phi).v,2)}, el grado de polarización). La fuente i da curva plana con lámina o sin ella.`:(S.pre==='natc'?`Contraste ahora: ${fcj(sweep(S.pl,P.phi).v,3)}`:'Elegí la fuente ii (P23)'); $('c2').classList.toggle('done',!!S.d2);
+  if(S.guess&&S.myst){ const ok=S.guess===S.myst; if(ok) S.d3=true; $('c3').textContent=ok?`¡Bien! Era ${NAMES[S.myst]}.`:`No: no es ${NAMES[S.guess]}. Seguí analizando.`; } else $('c3').textContent='Elegí "Fuente misteriosa", analizala y elegí tu respuesta';
+  $('c3').classList.toggle('done',!!S.d3); }
+let ct=null;
+function renderCuentas(now){ if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const steps=[['P21: elíptica con ejes a lo largo de u, v: (a, ±ib). Una λ/4 con el eje rápido sobre u suma ±90° al desfasaje',`\\[(a,\\ ib)\\to(a,\\ i\\cdot i\\,b)=(a,-b)\\ \\Rightarrow\\ \\text{lineal}\\]`],
+      ['Un polarizador perpendicular a esa lineal la apaga. El ángulo de la lineal da el cociente de ejes',`\\[\\tan\\beta=\\frac ba\\]`],
+      ['P22: parcial = parte natural + parte polarizada (incoherentes). La parte natural pasa siempre la mitad: no hay extinción con ninguna orientación',`\\[I_{\\min}=\\tfrac12 I_{\\text{nat}}>0,\\qquad \\text{contraste máx.}=\\text{grado de polarización}\\]`],
+      ['P23: natural y natural + circular dan curvas planas con un polarizador solo. Con una λ/4 delante, la circular se vuelve lineal y aparece una modulación',`\\[I(\\theta)=\\tfrac12 I_{\\text{nat}}+I_{\\text{circ}}\\cos^2(\\theta-45^\\circ\\mp\\varphi)\\]`]];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`; $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=`\\[I_{\\text{detector}}=${f3(Idet(),4)}\\,I_0\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{}); }, now?0:250); }
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function txt(c,s,x,y,col,al='left',bl='bottom'){ c.font=`600 12px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+let T=0;
+function element(c,x,y,R,ang,kind){ c.fillStyle=kind==='pol'?C.pol:C.plate; c.globalAlpha=0.15; c.beginPath(); c.arc(x,y,R,0,2*PI); c.fill(); c.globalAlpha=1; c.strokeStyle=kind==='pol'?C.pol:C.plate; c.lineWidth=1.5; c.beginPath(); c.arc(x,y,R,0,2*PI); c.stroke(); c.strokeStyle=C.axis; c.lineWidth=2.4; c.beginPath(); c.moveTo(x-R*0.9*Math.cos(ang),y+R*0.9*Math.sin(ang)); c.lineTo(x+R*0.9*Math.cos(ang),y-R*0.9*Math.sin(ang)); c.stroke(); }
+function drawScene(){ const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H); const B0=src(); const stg=[{lab:'fuente',B:B0}]; let b=B0; if(S.pl){ b=bPlate(b,P.phi*DEG,PI/2); stg.push({lab:'λ/4',B:b,el:['plate',P.phi]}); } b=bPol(b,P.th*DEG); stg.push({lab:'polarizador',B:b,el:['pol',P.th]});
+  const n=stg.length, slots=2*n, slot=W/slots, R=Math.min(H*0.24,slot*0.42), cy=H/2-6; line(c,[[10,cy],[W-10,cy]],C.in,6,null,0.1);
+  stg.forEach((s,i)=>{ const x=slot*(2*i+0.5); if(i>0){ const xp=slot*(2*i-0.5); element(c,xp,cy,R*0.85,s.el[1]*DEG,s.el[0]); txt(c,`${s.el[0]==='pol'?'polarizador':'λ/4'} ${fcj(s.el[1],1)}°`,xp,cy-R*0.95,C.axis,'center'); }
+    if(i===0&&S.pre==='mys'){ c.fillStyle=C.line; c.beginPath(); c.arc(x,cy,R,0,2*PI); c.fill(); txt(c,'?',x,cy,C.fg,'center','middle'); txt(c,'fuente misteriosa',x,cy+R*1.2+4,C.muted,'center','top'); return; }
+    drawState(c,x,cy,R,s.B,i?C.out:C.in,{t:T,grid:C.line}); txt(c,i===0?'fuente':'tras '+s.lab,x,cy+R*1.2+4,C.muted,'center','top'); });
+  const I=Idet(), xd=W-slot*0.6; c.fillStyle=C.line; c.fillRect(xd-10,cy-R,20,2*R); c.fillStyle=C.out; c.fillRect(xd-10,cy+R-2*R*I,20,2*R*I); txt(c,`detector ${fcj(I,3)}`,xd,cy+R+6,C.fg,'center','top');
+  $('clock').textContent=''; }
+function axes(c,W,H,o){ const L0=50,R=16,T_=28,B=30,pw=W-L0-R,ph=H-T_-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T_+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); }); c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T_+ph+4)); return {X,Y,L0,T:T_,pw,ph}; }
+function drawA(){ const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const g=axes(c,W,H,{x0:0,x1:180,y0:0,y1:1.05,yt:[0,0.25,0.5,0.75,1],yf:v=>fcj(v,2),xt:[0,30,60,90,120,150,180],xf:v=>v+'°'}); CGa={L0:g.L0,pw:g.pw};
+  const a=[],b=[]; for(let i=0;i<=360;i++){ const t=i/2; a.push([g.X(t),g.Y(Idet(false,0,t))]); b.push([g.X(t),g.Y(Idet(true,P.phi,t))]); } line(c,a,C.nop,1.6,[5,4]); if(S.pl) line(c,b,C.out,2.2);
+  c.fillStyle=C.sys; c.beginPath(); c.arc(g.X(P.th),g.Y(Idet()),5,0,7); c.fill(); }
+function drawB(){ const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H); const g=axes(c,W,H,{x0:0,x1:180,y0:0,y1:1.05,yt:[0,0.25,0.5,0.75,1],yf:v=>fcj(v,2),xt:[0,30,60,90,120,150,180],xf:v=>v+'°'}); CGb={L0:g.L0,pw:g.pw};
+  const pts=[]; for(let i=0;i<=90;i++){ const ph=2*i; pts.push([g.X(ph),g.Y(sweep(true,ph).v)]); } line(c,pts,C.out,2.2); const v0=sweep(false,0).v; line(c,[[g.L0,g.Y(v0)],[g.L0+g.pw,g.Y(v0)]],C.nop,1.4,[5,4]);
+  if(S.pl){ c.fillStyle=C.sys; c.beginPath(); c.arc(g.X(P.phi),g.Y(sweep(true,P.phi).v),5,0,7); c.fill(); } c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; c.fillStyle=C.nop; c.fillText('- - sin lámina',g.L0+g.pw,g.T-6); }
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+let lastT=performance.now(), slow=0; function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; T+=dt*2.2; if(S.sweep){ P.th=(P.th+dt*30)%180; slow+=dt; if(slow>0.1){ slow=0; sync(); refresh(); } else draw(); } else draw(); requestAnimationFrame(loop); }
+setPre('ell'); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

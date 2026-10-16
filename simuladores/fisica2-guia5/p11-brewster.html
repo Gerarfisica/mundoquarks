@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Ángulo de Brewster G5-P11</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --inc:#ffcf3a; --ref:#ff7ad9; --tra:#34e08a; --glass:#36d4ff; --s:#ff5c3a; --p:#36d4ff; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:340px}
+#pa,#pb{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 5 · Ángulo de Brewster</span>
+  <h1>Ángulo de Brewster <i>· polarización por reflexión</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 5">
+    <h2>Guía 5</h2>
+    <ol>
+      <li><a href="p1-estados.html"><b class="code">P1–3</b>Estados de polarización</a></li>
+      <li><a href="p4-polarizadores.html"><b class="code">P4–10</b>Polarizadores y Malus</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P11–14</b>Ángulo de Brewster</a></li>
+      <li><a href="p15-laminas.html"><b class="code">P15–20</b>Láminas retardadoras</a></li>
+      <li><a href="p21-analizador.html"><b class="code">P21–23</b>Analizador</a></li>
+      <li><a href="p24-disenos.html"><b class="code">P24–28</b>Diseños con láminas</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Rayo incidente, reflejado y transmitido con su estado de polarización"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p11" aria-pressed="true">P11 · lineal: transmisión total</button>
+          <button class="chip" data-pre="p12">P12 · circular a Brewster</button>
+          <button class="chip" data-pre="p13">P13 · de n₁ mayor a n₂ menor</button>
+          <button class="chip" data-pre="p14a">P14 a · lámina en aire</button>
+          <button class="chip" data-pre="p14b">P14 b · agua debajo</button>
+          <button class="chip" data-pre="p14c">P14 c · todo en agua</button>
+        </div></div>
+      <div class="row"><button class="btn primary" id="go">Ir al ángulo de Brewster</button></div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="a" aria-pressed="true">Reflectancias</button>
+          <button data-view="b" aria-pressed="false">Reflejado: p sobre s</button>
+        </div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:260px"></canvas><div class="tag">R_s y R_p en función del ángulo de incidencia · tocá para elegir</div></div>
+        <div class="pcap" id="cap-a"></div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:260px"></canvas><div class="tag">|r_p / r_s|: cuánto de la componente p queda en el reflejado · tocá para elegir</div></div>
+        <div class="pcap">En el ángulo de Brewster la curva toca cero: lo reflejado es puramente s (perpendicular al plano de incidencia), sea cual sea la luz que llega.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G5-P11 a P14</summary>
+      <p><b>11.</b> Luz linealmente polarizada incide sobre la superficie entre dos medios transparentes. ¿Qué condiciones deben cumplirse para que se transmita totalmente?</p>
+      <p><b>12.</b> Luz circular horaria incide con el ángulo de polarización. ¿Estado del haz reflejado? ¿Y del transmitido?</p>
+      <p><b>13.</b> Superficie entre n₁ &gt; n₂, el rayo viene del medio n₁. a) Ángulo crítico. b) Ángulo de polarización. c) ¿Puede el ángulo de polarización ser mayor que el crítico?</p>
+      <p><b>14.</b> Luz elíptica incide con el ángulo de polarización sobre una lámina de vidrio de caras paralelas, en aire. a) ¿Estado del reflejado? b) Sin cambiar la dirección del haz, se sumerge la lámina parcialmente en agua (aire arriba). ¿Estado del reflejado? c) Toda la lámina en agua, misma dirección del haz. ¿Estado del reflejado? ¿Cómo lograr que fuera lineal?</p>
+      <p class="src">Física 2 (Físicos), Guía 5.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>P12: luz circular llega al vidrio con el ángulo de Brewster. Lo que se refleja es…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="lin">lineal, perpendicular al plano de incidencia</button>
+          <button class="opt" data-ans="circ">circular, con el sentido invertido</button>
+          <button class="opt" data-ans="nada">nada: a Brewster no hay reflexión</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P11: con luz p, encontrá el ángulo en que no hay onda reflejada (±0,2°).<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P13: de vidrio a aire, encontrá el ángulo crítico (±0,2°) y comprobá que Brewster queda antes.<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P14 c: con la lámina en agua, encontrá el ángulo que vuelve a dar un reflejado lineal (±0,2°).<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Coeficientes de Fresnel para el campo: r_s = (n₁cos θᵢ − n₂cos θₜ)/(n₁cos θᵢ + n₂cos θₜ), r_p = (n₂cos θᵢ − n₁cos θₜ)/(n₂cos θᵢ + n₁cos θₜ), con cos θₜ complejo en reflexión total. Los estados se dibujan en cada rayo con p en horizontal y s en vertical (s perpendicular al plano de incidencia). En la lámina se muestran por separado el reflejo de la cara superior (R₁) y el que vuelve de la inferior (R₂).</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ===== motor de Jones (común a la Guía 5) =====
+// Convención: E(t) = Re[J e^{−iωt}], J = (Aₓ, A_y e^{iδ}) → Eₓ = Aₓ cos ωt, E_y = A_y cos(ωt − δ).
+// Mirando hacia la fuente (la onda viene hacia el observador, eje x a la derecha, y arriba): δ ∈ (0, π) gira antihorario.
+const Z={ c:(a,b=0)=>[a,b], add:(a,b)=>[a[0]+b[0],a[1]+b[1]], sub:(a,b)=>[a[0]-b[0],a[1]-b[1]], mul:(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], sc:(a,s)=>[a[0]*s,a[1]*s], cj:a=>[a[0],-a[1]], ab2:a=>a[0]*a[0]+a[1]*a[1], ex:t=>[Math.cos(t),Math.sin(t)] };
+const jv=(ax,ay,d=0)=>[Z.c(ax),Z.sc(Z.ex(d),ay)];
+function jPol(J,th){ const c=Math.cos(th), s=Math.sin(th), a=Z.add(Z.sc(J[0],c),Z.sc(J[1],s)); return [Z.sc(a,c),Z.sc(a,s)]; }
+function jPlate(J,th,G){ const c=Math.cos(th), s=Math.sin(th); let u=Z.add(Z.sc(J[0],c),Z.sc(J[1],s)), v=Z.add(Z.sc(J[0],-s),Z.sc(J[1],c)); v=Z.mul(v,Z.ex(G)); return [Z.sub(Z.sc(u,c),Z.sc(v,s)),Z.add(Z.sc(u,s),Z.sc(v,c))]; }
+// haz: lista de componentes incoherentes
+const natural=I=>[jv(Math.sqrt(I/2),0),jv(0,Math.sqrt(I/2))];
+const bPol=(B,th)=>B.map(J=>jPol(J,th)), bPlate=(B,th,G)=>B.map(J=>jPlate(J,th,G));
+function stokes(B){ let S=[0,0,0,0]; B.forEach(([x,y])=>{ const xy=Z.mul(Z.cj(x),y); S[0]+=Z.ab2(x)+Z.ab2(y); S[1]+=Z.ab2(x)-Z.ab2(y); S[2]+=2*xy[0]; S[3]+=2*xy[1]; }); return S; }
+function describe(S){ const I=S[0], Sp=Math.hypot(S[1],S[2],S[3]); if(I<1e-12) return {I:0,txt:'sin luz',dop:0,kind:'nada'};
+  const dop=Sp/I, psi=0.5*Math.atan2(S[2],S[1]), chi=0.5*Math.asin(Math.max(-1,Math.min(1,Sp>1e-14?S[3]/Sp:0)));
+  let kind, sense= S[3]>1e-9*I?'antihorario':(S[3]<-1e-9*I?'horario':'');
+  if(dop<1e-6) kind='natural'; else if(Math.abs(S[3])<1e-6*I) kind='lineal'; else if(Math.hypot(S[1],S[2])<1e-6*I) kind='circular'; else kind='elíptica';
+  const ratio=Math.abs(Math.tan(chi));
+  let txt= kind==='natural'?'natural (no polarizada)': kind==='lineal'?`lineal a ${(((psi*180/Math.PI)%180+180)%180).toFixed(1).replace('.',',')}°`: kind==='circular'?`circular ${sense}`:`elíptica ${sense}, ejes ${ratio>1e-9?(1/ratio).toFixed(2).replace('.',','):'∞'} : 1, eje mayor a ${(((psi*180/Math.PI)%180+180)%180).toFixed(1).replace('.',',')}°`;
+  if(dop>1e-6&&dop<1-1e-6) txt='parcialmente polarizada ('+Math.round(dop*100)+' %): '+txt.replace('natural (no polarizada)','');
+  return {I,dop,psi,chi,kind,sense,txt,ratio}; }
+// traza del extremo del campo de la parte polarizada (para dibujar)
+function traceJ(J,n=120){ const pts=[]; for(let i=0;i<=n;i++){ const t=2*Math.PI*i/n, e=Z.ex(-t); pts.push([Z.mul(J[0],e)[0],Z.mul(J[1],e)[0]]); } return pts; }
+function polPart(S){ // Jones equivalente de la parte polarizada
+  const Sp=Math.hypot(S[1],S[2],S[3]); if(Sp<1e-14) return null; const ax=Math.sqrt(Math.max(0,(Sp+S[1])/2)), ay=Math.sqrt(Math.max(0,(Sp-S[1])/2)); const d=Math.atan2(S[3],S[2]); return jv(ax,ay,d); }
+const DEG=Math.PI/180;
+const f3=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d), fcj=(x,d=2)=>f3(x,d).replace('.',',');
+// dibujo de un estado en un círculo (centro, radio para amplitud 1)
+function drawState(c,cx,cy,R,B,col,opt={}){ const S=stokes(B), D=describe(S), Sp=Math.hypot(S[1],S[2],S[3]), amp=Math.sqrt(D.I||0);
+  c.strokeStyle=opt.grid||'rgba(128,140,150,.25)'; c.lineWidth=1; c.beginPath(); c.moveTo(cx-R*1.1,cy); c.lineTo(cx+R*1.1,cy); c.moveTo(cx,cy-R*1.1); c.lineTo(cx,cy+R*1.1); c.stroke();
+  if(D.I<1e-9) return D;
+  const unp=Math.sqrt(Math.max(0,D.I-Sp)); if(unp>1e-6){ c.fillStyle=col; c.globalAlpha=0.12; c.beginPath(); c.arc(cx,cy,R*unp/Math.sqrt(opt.Iref||1),0,2*Math.PI); c.fill(); c.globalAlpha=1; }
+  const J=polPart(S); if(J){ const k=R/Math.sqrt(opt.Iref||1), pts=traceJ(J); c.strokeStyle=col; c.lineWidth=2.2; c.beginPath(); pts.forEach((p,i)=>{ const X=cx+p[0]*k, Y=cy-p[1]*k; i?c.lineTo(X,Y):c.moveTo(X,Y); }); c.stroke();
+    if(opt.t!==undefined){ const e=Z.ex(-opt.t), x=Z.mul(J[0],e)[0], y=Z.mul(J[1],e)[0]; c.strokeStyle=col; c.lineWidth=2; c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+x*k,cy-y*k); c.stroke(); c.fillStyle=col; c.beginPath(); c.arc(cx+x*k,cy-y*k,3.5,0,7); c.fill(); }
+    if(D.kind!=='lineal'&&D.sense){ const p=pts[10], q=pts[13]; const ax=cx+q[0]*k, ay=cy-q[1]*k, bx=cx+p[0]*k, by=cy-p[1]*k, u=Math.atan2(ay-by,ax-bx); c.fillStyle=col; c.beginPath(); c.moveTo(ax,ay); c.lineTo(ax-8*Math.cos(u-0.5),ay-8*Math.sin(u-0.5)); c.lineTo(ax-8*Math.cos(u+0.5),ay-8*Math.sin(u+0.5)); c.closePath(); c.fill(); } }
+  return D; }
+
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--inc','--ref','--tra','--glass','--s','--p','--ok','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+const P={th:40, n1:1, n2:1.5, ps:0};
+const DEF=[{id:'th',lab:'θ de incidencia',unit:'°',min:0,max:89.5,step:0.05},{id:'n1',lab:'n₁ (de donde viene)',unit:'',min:1,max:2,step:0.001},{id:'n2',lab:'n₂',unit:'',min:1,max:2,step:0.001},{id:'ps',lab:'plano de la luz lineal (0° = p)',unit:'°',min:0,max:180,step:0.5,only:['p11']}];
+const S={pre:'p11',view:'a'};
+// estado incidente en la base (p, s)
+function incJ(){ if(S.pre==='p11') return jv(Math.cos(P.ps*DEG),Math.sin(P.ps*DEG),0); if(S.pre==='p12'){ const k=1/Math.SQRT2; return jv(k,k,-PI/2); } if(S.pre==='p13') return jv(1/Math.SQRT2,1/Math.SQRT2,0); return jv(0.8,0.6,PI/2); }
+const cdiv=(a,b)=>{ const d=Z.ab2(b); return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; };
+const csqrt=a=>{ const r=Math.hypot(a[0],a[1]); return [Math.sqrt((r+a[0])/2),Math.sign(a[1]||1)*Math.sqrt(Math.max(0,(r-a[0])/2))]; };
+function fresnel(n1,n2,th){ const ci=Math.cos(th), st=n1*Math.sin(th)/n2, ct=csqrt([1-st*st,0]); // cos θt (complejo si hay reflexión total)
+  const a=[n1*ci,0], b=Z.sc(ct,n2), c=[n2*ci,0], d=Z.sc(ct,n1);
+  const rs=cdiv(Z.sub(a,b),Z.add(a,b)), rp=cdiv(Z.sub(c,d),Z.add(c,d)), ts=cdiv([2*n1*ci,0],Z.add(a,b)), tp=cdiv([2*n1*ci,0],Z.add(c,d));
+  return {rs,rp,ts,tp,ct,tir:st>1}; }
+const apply=(J,cp,cs)=>[Z.mul(J[0],cp),Z.mul(J[1],cs)];
+const thB=(n1,n2)=>Math.atan(n2/n1)/DEG, thC=(n1,n2)=>n2<n1?Math.asin(n2/n1)/DEG:NaN;
+// medios de la lámina en P14
+function slab(){ const nG=1.5; if(S.pre==='p14a') return {top:1,g:nG,bot:1}; if(S.pre==='p14b') return {top:1,g:nG,bot:1.33}; return {top:1.33,g:nG,bot:1.33}; }
+const isSlab=()=>S.pre.startsWith('p14');
+function beams(){ const J=incJ(), th=P.th*DEG; if(!isSlab()){ const F=fresnel(P.n1,P.n2,th); const R=apply(J,F.rp,F.rs), T=apply(J,F.tp,F.ts); // intensidad transmitida: factor n2 cosθt/(n1 cosθi)
+    const kT=F.tir?0:(P.n2*F.ct[0])/(P.n1*Math.cos(th)); return {J,R,T,kT,F}; }
+  const m=slab(), F1=fresnel(m.top,m.g,th), thg=Math.asin(m.top*Math.sin(th)/m.g), F2=fresnel(m.g,m.bot,thg), Fb=fresnel(m.g,m.top,thg);
+  const R1=apply(J,F1.rp,F1.rs), R2=apply(apply(apply(J,F1.tp,F1.ts),F2.rp,F2.rs),Fb.tp,Fb.ts); return {J,R1,R2,F1,F2,thg,m}; }
+const pEl=$('params');
+DEF.forEach(d=>{ const el=document.createElement('div'); el.className='param'; el.dataset.id=d.id;
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el); const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value)); });
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); });
+  document.querySelectorAll('.param').forEach(p=>{ const id=p.dataset.id; p.hidden= id==='ps'? S.pre!=='p11' : (id==='n1'||id==='n2')? isSlab() : false; }); }
+function n12(){ if(!isSlab()) return [P.n1,P.n2]; const m=slab(); return [m.top,m.g]; }
+function setPre(k){ S.pre=k; if(k==='p11'){ P.n1=1; P.n2=1.5; P.ps=0; } if(k==='p12'){ P.n1=1; P.n2=1.5; P.th=thB(1,1.5); } if(k==='p13'){ P.n1=1.5; P.n2=1; P.th=30; } if(k.startsWith('p14')) P.th=thB(1,1.5);
+  document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+$('go').onclick=()=>{ const [a,b]=n12(); P.th=thB(a,b); sync(); refresh(); };
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b)); document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab); if(b.dataset.tab==='cuentas') renderCuentas(true); });
+let CG=null; ['pa','pb'].forEach(id=>$(id).addEventListener('pointerdown',e=>{ if(!CG) return; const r=e.currentTarget.getBoundingClientRect(); P.th=+(Math.min(1,Math.max(0,(e.clientX-r.left-CG.L0)/CG.pw))*89.5).toFixed(2); sync(); refresh(); }));
+const st=J=>describe(stokes([J]));
+const nameRef=D=>D.I<1e-10?'nada':(D.kind==='elíptica'&&D.ratio<0.005?(Math.abs(Math.sin(D.psi))>0.999?'≈ lineal s (⊥ al plano)':'≈ lineal'):D.kind==='elíptica'?`elíptica (ejes ${fcj(1/D.ratio,2)} : 1)`:D.kind==='lineal'?(Math.abs(Math.sin(D.psi))>0.9999?'lineal s (⊥ al plano)':Math.abs(Math.cos(D.psi))>0.9999?'lineal p (en el plano)':`lineal a ${fcj(((D.psi/DEG)%180+180)%180,1)}° de p`):D.txt);
+function refresh(){ const b=beams(), [a1,a2]=n12(), tb=thB(a1,a2), tc=thC(a1,a2);
+  if(!isSlab()){ const DR=st(b.R), DT=st(b.T), I0=stokes([b.J])[0];
+    $('readout').innerHTML=`<span><span class="k">reflejado</span> <b>${nameRef(DR)}</b>, R = ${fcj(DR.I/I0,4)}</span><span><span class="k">transmitido</span> <b>${b.F.tir?'nada (reflexión total)':nameRef(DT)}</b>, T = ${fcj(DT.I*b.kT/I0,4)}</span><span><span class="k">θ_B</span> ${fcj(tb,2)}°</span>${isFinite(tc)?`<span><span class="k">θ_c</span> ${fcj(tc,2)}°</span>`:''}`;
+  } else { const D1=st(b.R1), D2=st(b.R2), I0=stokes([b.J])[0];
+    $('readout').innerHTML=`<span><span class="k">R₁ (cara de arriba)</span> <b>${nameRef(D1)}</b>, ${fcj(D1.I/I0,4)}</span><span><span class="k">R₂ (vuelve de la de abajo)</span> <b>${nameRef(D2)}</b>, ${fcj(D2.I/I0,4)}</span><span><span class="k">dentro del vidrio</span> ${fcj(b.thg/DEG,2)}° <span class="k">(Brewster vidrio→${b.m.bot===1?'aire':'agua'}: ${fcj(thB(b.m.g,b.m.bot),2)}°)</span></span>`; }
+  $('formula').innerHTML=`<span class="k">tan θ_B = n₂/n₁ · en θ_B el reflejado y el transmitido son perpendiculares (θᵢ + θₜ = 90°) y r_p = 0${isFinite(tc)?' · tan θ_B = n₂/n₁ = sen θ_c, y como tan > sen, θ_B < θ_c':''}</span>`;
+  $('cap-a').textContent=isFinite(tc)?'Desde el medio de mayor índice: R_p se anula en θ_B y después las dos curvas suben hasta 1 en θ_c (reflexión total). Siempre θ_B < θ_c.':'R_p se anula en el ángulo de Brewster; R_s crece siempre. Por eso la luz reflejada por un vidrio o el agua está parcialmente polarizada s (lo que bloquean los anteojos polarizados).';
+  draw(); renderCuentas(false); updateChal(); }
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{ setPre('p12'); document.querySelector('#pred-opts [data-ans=lin]').classList.add('right'); const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='lin'?'<b>Así es.</b> ':'<b>Mirá el reflejado.</b> ')+`A Brewster r_p = 0, pero r_s ≠ 0 (r_s = ${fcj(beams().F.rs[0],3)}): de la circular se refleja solo la componente s, y queda lineal s con ${fcj(100*Z.ab2(beams().F.rs)/2,1)} % de la intensidad. El transmitido lleva todo el p y casi todo el s: es elíptico.`; $('pred-go').hidden=true; };
+function updateChal(){ const [a1,a2]=n12();
+  if(S.pre==='p11'&&Math.abs(P.ps)<0.5&&Math.abs(P.th-thB(a1,a2))<0.2) S.d1=true;
+  $('c1').textContent=S.d1?`Logrado: θ_B = arctan(n₂/n₁) = ${fcj(thB(a1,a2),2)}°. Condiciones del P11: luz polarizada en el plano de incidencia (p) y ángulo de Brewster.`:(S.pre==='p11'?`Ahora R = ${fcj(st(beams().R).I,5)}`:'Elegí el P11'); $('c1').classList.toggle('done',!!S.d1);
+  if(!isSlab()&&P.n1>P.n2&&Math.abs(P.th-thC(P.n1,P.n2))<0.2) S.d2=true;
+  $('c2').textContent=S.d2?`Logrado: θ_c = ${fcj(thC(P.n1,P.n2),2)}° y θ_B = ${fcj(thB(P.n1,P.n2),2)}°. Como tan θ_B = sen θ_c y tan x > sen x, θ_B < θ_c siempre.`:(S.pre==='p13'?`Ahora θ = ${fcj(P.th,2)}°`:'Elegí el P13'); $('c2').classList.toggle('done',!!S.d2);
+  if(S.pre==='p14c'&&Math.abs(P.th-thB(1.33,1.5))<0.2) S.d3=true;
+  $('c3').textContent=S.d3?`Logrado: tan θ = 1,5/1,33 ⇒ θ = ${fcj(thB(1.33,1.5),2)}°. Brewster depende del cociente de índices: en agua hay que inclinar más el haz.`:(S.pre==='p14c'?`Ahora R₁ es ${nameRef(st(beams().R1))}`:'Elegí el P14 c'); $('c3').classList.toggle('done',!!S.d3); }
+let ct=null;
+function renderCuentas(now){ if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{ const [a1,a2]=n12();
+    const steps=[['P11: no hay reflejada si r_p = 0 y la luz es p. r_p se anula cuando n₂cos θᵢ = n₁cos θₜ, que junto con Snell da',`\\[\\tan\\theta_B=\\frac{n_2}{n_1},\\qquad \\theta_B+\\theta_t=90^\\circ\\]`],
+      ['P12: a Brewster la componente p no se refleja. Circular = p + s iguales desfasadas π/2: el reflejado es lineal s; el transmitido tiene t_p ≠ t_s y queda elíptico',`\\[\\vec E_r=r_s E_s\\,\\hat s,\\qquad \\vec E_t=t_pE_p\\,\\hat p+t_sE_s\\,\\hat s\\]`],
+      ['P13: con n₁ > n₂',`\\[\\operatorname{sen}\\theta_c=\\frac{n_2}{n_1},\\qquad \\tan\\theta_B=\\frac{n_2}{n_1}\\ \\Rightarrow\\ \\tan\\theta_B=\\operatorname{sen}\\theta_c<\\tan\\theta_c\\Rightarrow \\theta_B<\\theta_c\\]`],
+      ['P14: en la lámina en aire, el ángulo interno θₜ = 90° − θ_B es justo el Brewster vidrio→aire: tampoco se refleja p abajo',`\\[\\tan(90^\\circ-\\theta_B)=\\frac{n_1}{n_2}\\ \\Rightarrow\\ \\text{R}_1\\text{ y R}_2\\text{ lineales s}\\]`],
+      ['Con agua debajo, abajo ya no es Brewster: R₂ trae algo de p y deja de ser lineal. Todo en agua: hay que volver a Brewster para agua→vidrio',`\\[\\tan\\theta=\\frac{1{,}5}{1{,}33}\\Rightarrow\\theta=48{,}4^\\circ\\]`]];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`; $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=`\\[n_1=${f3(a1,3)},\\ n_2=${f3(a2,3)}:\\ \\theta_B=${f3(thB(a1,a2),2)}^\\circ${isFinite(thC(a1,a2))?`,\\ \\theta_c=${f3(thC(a1,a2),2)}^\\circ`:''}\\]`;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{}); }, now?0:250); }
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function txt(c,s,x,y,col,al='left',bl='bottom'){ c.font=`600 12px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+let T=0;
+function inset(c,x,y,r,J,col,lab){ c.fillStyle=css('--panel'); c.globalAlpha=0.9; c.beginPath(); c.arc(x,y,r*1.35,0,2*PI); c.fill(); c.globalAlpha=1; drawState(c,x,y,r,[J],col,{t:T,grid:C.line,Iref:Math.max(1e-12,stokes([J])[0])}); txt(c,'p',x+r*1.2,y+4,C.p,'left','middle'); txt(c,'s',x+2,y-r*1.15,C.s,'left','bottom'); if(lab) txt(c,lab,x,y+r*1.4+4,col,'center','top'); }
+function drawScene(){ const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H); const b=beams(), th=P.th*DEG, cx=W/2, cy=isSlab()?H*0.4:H/2, L=Math.min(W*0.32,H*0.42), r=Math.min(26,H*0.08);
+  if(!isSlab()){ c.fillStyle=C.glass; c.globalAlpha=0.06+0.12*(P.n2-1); c.fillRect(0,cy,W,H-cy); c.globalAlpha=0.06*(P.n1-1); c.fillRect(0,0,W,cy); c.globalAlpha=1; line(c,[[0,cy],[W,cy]],C.glass,1.4);
+    const I0=stokes([b.J])[0], IR=stokes([b.R])[0]/I0, IT=stokes([b.T])[0]*b.kT/I0, A=[cx-L*Math.sin(th),cy-L*Math.cos(th)], Rp=[cx+L*Math.sin(th),cy-L*Math.cos(th)];
+    line(c,[A,[cx,cy]],C.inc,2.6); if(IR>1e-6) line(c,[[cx,cy],Rp],C.ref,1+5*Math.sqrt(IR)); if(!b.F.tir){ const tt=Math.asin(P.n1*Math.sin(th)/P.n2); line(c,[[cx,cy],[cx+L*Math.sin(tt),cy+L*Math.cos(tt)]],C.tra,1+3*Math.sqrt(IT)); inset(c,cx+L*0.6*Math.sin(tt)+r*2.2,cy+L*0.6*Math.cos(tt),r,b.T,C.tra,'transmitido'); }
+    inset(c,cx-L*0.55*Math.sin(th)-r*2.2,cy-L*0.55*Math.cos(th),r,b.J,C.inc,'incidente'); inset(c,cx+L*0.55*Math.sin(th)+r*2.2,cy-L*0.55*Math.cos(th),r,IR>1e-8?b.R:[[0,0],[0,0]],C.ref,'reflejado');
+    c.strokeStyle=C.faint; c.setLineDash([3,3]); c.beginPath(); c.moveTo(cx,cy-L*0.9); c.lineTo(cx,cy+L*0.9); c.stroke(); c.setLineDash([]);
+    txt(c,`n₁ = ${fcj(P.n1,3)}`,12,cy-8,C.muted); txt(c,`n₂ = ${fcj(P.n2,3)}`,12,cy+20,C.glass);
+  } else { const m=b.m, d=H*0.22, yb=cy+d; c.fillStyle=C.glass; c.globalAlpha=0.12; c.fillRect(0,cy,W,d); c.globalAlpha=1; if(m.bot>1.01){ c.fillStyle=C.p; c.globalAlpha=0.08; c.fillRect(0,yb,W,H-yb); c.globalAlpha=1; } if(m.top>1.01){ c.fillStyle=C.p; c.globalAlpha=0.08; c.fillRect(0,0,W,cy); c.globalAlpha=1; }
+    line(c,[[0,cy],[W,cy]],C.glass,1.4); line(c,[[0,yb],[W,yb]],C.glass,1.4);
+    const A=[cx-L*Math.sin(th),cy-L*Math.cos(th)], x2=cx+d*Math.tan(b.thg), x3=x2+d*Math.tan(b.thg);
+    line(c,[A,[cx,cy]],C.inc,2.6); line(c,[[cx,cy],[cx+L*Math.sin(th),cy-L*Math.cos(th)]],C.ref,1+5*Math.sqrt(stokes([b.R1])[0])); line(c,[[cx,cy],[x2,yb],[x3,cy]],C.tra,1.4,null,0.7);
+    line(c,[[x3,cy],[x3+L*Math.sin(th),cy-L*Math.cos(th)]],C.ref,1+5*Math.sqrt(stokes([b.R2])[0]),[5,3]);
+    inset(c,cx-L*0.55*Math.sin(th)-r*2.2,cy-L*0.55*Math.cos(th),r,b.J,C.inc,'incidente'); inset(c,cx+L*0.25*Math.sin(th)+r*1.2,cy-L*0.8*Math.cos(th)-r,r,b.R1,C.ref,'R₁'); inset(c,x3+L*0.7*Math.sin(th)+r*2,cy-L*0.55*Math.cos(th),r,b.R2,C.ref,'R₂');
+    txt(c,m.top>1.01?'agua':'aire',12,cy-8,C.muted); txt(c,'vidrio 1,5',12,cy+18,C.glass); txt(c,m.bot>1.01?'agua':'aire',12,yb+18,m.bot>1.01?C.p:C.muted); }
+  $('clock').textContent=''; }
+function axes(c,W,H,o){ const L0=50,R=16,T_=28,B=30,pw=W-L0-R,ph=H-T_-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T_+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); }); c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T_+ph+4)); return {X,Y,L0,T:T_,pw,ph}; }
+function drawA(){ const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const [a1,a2]=n12(); const g=axes(c,W,H,{x0:0,x1:89.5,y0:0,y1:1.05,yt:[0,0.25,0.5,0.75,1],yf:v=>fcj(v,2),xt:[0,15,30,45,60,75,90],xf:v=>v+'°'}); CG={L0:g.L0,pw:g.pw};
+  const ps=[],pp=[]; for(let i=0;i<=400;i++){ const t=89.5*i/400, F=fresnel(a1,a2,t*DEG); ps.push([g.X(t),g.Y(Z.ab2(F.rs))]); pp.push([g.X(t),g.Y(Z.ab2(F.rp))]); } line(c,ps,C.s,2.2); line(c,pp,C.p,2.2);
+  [[thB(a1,a2),'θ_B',C.ok],[thC(a1,a2),'θ_c',C.crit]].forEach(([x,l,col])=>{ if(!isFinite(x)) return; line(c,[[g.X(x),g.T],[g.X(x),g.T+g.ph]],col,1,[3,3]); txt(c,l,g.X(x)+4,g.T+14,col); });
+  line(c,[[g.X(P.th),g.T],[g.X(P.th),g.T+g.ph]],C.sys,1.4); c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; c.fillStyle=C.p; c.fillText('R_p',g.L0+g.pw,g.T-6); c.fillStyle=C.s; c.fillText('R_s     ',g.L0+g.pw-30,g.T-6); }
+function drawB(){ const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H); const [a1,a2]=n12(); const g=axes(c,W,H,{x0:0,x1:89.5,y0:0,y1:1.05,yt:[0,0.25,0.5,0.75,1],yf:v=>fcj(v,2),xt:[0,15,30,45,60,75,90],xf:v=>v+'°'}); CG={L0:g.L0,pw:g.pw};
+  const pts=[]; for(let i=0;i<=400;i++){ const t=89.5*i/400, F=fresnel(a1,a2,t*DEG); pts.push([g.X(t),g.Y(Math.min(1.05,Math.sqrt(Z.ab2(F.rp)/Math.max(1e-12,Z.ab2(F.rs)))))]); } line(c,pts,C.ref,2.2);
+  line(c,[[g.X(thB(a1,a2)),g.T],[g.X(thB(a1,a2)),g.T+g.ph]],C.ok,1,[3,3]); line(c,[[g.X(P.th),g.T],[g.X(P.th),g.T+g.ph]],C.sys,1.4); }
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+let lastT=performance.now(); function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; T+=dt*2.2; draw(); requestAnimationFrame(loop); }
+setPre('p11'); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

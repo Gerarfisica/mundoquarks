@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Estados de polarización G5-P1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --ex:#ff5c3a; --ey:#36d4ff; --tot:#ffcf3a; --ca:#34e08a; --ch:#ff7ad9; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:330px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 5 · Descripción geométrica</span>
+  <h1>Estados de polarización <i>· dos componentes y un desfasaje</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 5">
+    <h2>Guía 5</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P1–3</b>Estados de polarización</a></li>
+      <li><a href="p4-polarizadores.html"><b class="code">P4–10</b>Polarizadores y Malus</a></li>
+      <li><a href="p11-brewster.html"><b class="code">P11–14</b>Ángulo de Brewster</a></li>
+      <li><a href="p15-laminas.html"><b class="code">P15–20</b>Láminas retardadoras</a></li>
+      <li><a href="p21-analizador.html"><b class="code">P21–23</b>Analizador</a></li>
+      <li><a href="p24-disenos.html"><b class="code">P24–28</b>Diseños con láminas</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Extremo del campo eléctrico en el plano transversal y la onda a lo largo de la propagación"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Ejemplos de la guía</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="lin" aria-pressed="true">P1 · lineal</button>
+          <button class="chip" data-pre="ca">P1 · circular antihoraria</button>
+          <button class="chip" data-pre="ch">P1 · circular horaria</button>
+          <button class="chip" data-pre="ea">P1 · elíptica antihoraria</button>
+          <button class="chip" data-pre="p2a">P2 a · lineal a 30°</button>
+          <button class="chip" data-pre="p2b">P2 b · circular horaria (por x)</button>
+          <button class="chip" data-pre="p2c">P2 c · elíptica horaria 2:1 (por x)</button>
+        </div></div>
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="a" aria-pressed="true">Componentes en el tiempo</button>
+          <button data-view="b" aria-pressed="false">P3 · suma de dos circulares</button>
+        </div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:240px"></canvas><div class="tag">Las dos componentes en un punto fijo: misma frecuencia, desfasadas δ</div></div>
+        <div class="pcap">Si δ = 0 o 180° las componentes suben y bajan juntas: lineal. Si δ = ±90° y las amplitudes son iguales, una es máxima cuando la otra es cero: circular.</div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:260px"></canvas><div class="tag">La onda como suma de una circular antihoraria y una horaria</div></div>
+        <div class="pcap">Cualquier estado se escribe así. Si las dos circulares tienen la misma amplitud, la suma es lineal; si una es nula, circular; en otro caso, elíptica, con el sentido de la mayor.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G5-P1 a P3</summary>
+      <p><b>1.</b> ¿Cuándo dos ondas transversales, perpendiculares entre sí, dan una onda linealmente polarizada; circularmente polarizada en sentido antihorario; circularmente polarizada en sentido horario; elípticamente polarizada en sentido antihorario?</p>
+      <p><b>2.</b> Escriba la expresión de: a) una onda lineal cuyo plano de polarización forma 30° con el eje x (se propaga según z); b) una onda que se propaga según x, circular horaria; c) una onda elíptica horaria que se propaga según x, con el eje mayor, igual al doble del menor, sobre el eje y; d) una onda elíptica antihoraria que se propaga según +x (terna directa).</p>
+      <p><b>3.</b> Demuestre que cualquier onda, sea cual sea su polarización, puede escribirse como suma de dos ondas circularmente polarizadas en sentidos horario y antihorario.</p>
+      <p class="src">Física 2 (Físicos), Guía 5.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Sumás una onda circular horaria y una antihoraria de la misma amplitud. Lo que queda es…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="lin">una onda lineal</button>
+          <button class="opt" data-ans="cero">nada: se cancelan</button>
+          <button class="opt" data-ans="circ">una circular del doble de amplitud</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3>Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> Sin usar los ejemplos, armá con A₁, A₂ y δ una onda lineal a 120° del primer eje (±0,5°).<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> Armá una elíptica antihoraria con el eje mayor sobre el primer eje y el triple del menor (±2 %).<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P3: igualá las amplitudes de las dos componentes circulares sin que sea lineal… ¿se puede?<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Convención: E(t) = (A₁ cos ωt, A₂ cos(ωt − δ)) en un punto fijo, y el plano transversal se mira desde adelante, con la onda viniendo hacia el observador (primer eje a la derecha, segundo hacia arriba, terna directa con la propagación). Con esa convención 0 &lt; δ &lt; 180° es antihorario. Para la propagación según x (P2 b–d) los ejes transversales son y (primero) y z (segundo). La guía no fija el sentido de observación: con la convención opuesta, horario y antihorario se intercambian.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ===== motor de Jones (común a la Guía 5) =====
+// Convención: E(t) = Re[J e^{−iωt}], J = (Aₓ, A_y e^{iδ}) → Eₓ = Aₓ cos ωt, E_y = A_y cos(ωt − δ).
+// Mirando hacia la fuente (la onda viene hacia el observador, eje x a la derecha, y arriba): δ ∈ (0, π) gira antihorario.
+const Z={ c:(a,b=0)=>[a,b], add:(a,b)=>[a[0]+b[0],a[1]+b[1]], sub:(a,b)=>[a[0]-b[0],a[1]-b[1]], mul:(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], sc:(a,s)=>[a[0]*s,a[1]*s], cj:a=>[a[0],-a[1]], ab2:a=>a[0]*a[0]+a[1]*a[1], ex:t=>[Math.cos(t),Math.sin(t)] };
+const jv=(ax,ay,d=0)=>[Z.c(ax),Z.sc(Z.ex(d),ay)];
+function jPol(J,th){ const c=Math.cos(th), s=Math.sin(th), a=Z.add(Z.sc(J[0],c),Z.sc(J[1],s)); return [Z.sc(a,c),Z.sc(a,s)]; }
+function jPlate(J,th,G){ const c=Math.cos(th), s=Math.sin(th); let u=Z.add(Z.sc(J[0],c),Z.sc(J[1],s)), v=Z.add(Z.sc(J[0],-s),Z.sc(J[1],c)); v=Z.mul(v,Z.ex(G)); return [Z.sub(Z.sc(u,c),Z.sc(v,s)),Z.add(Z.sc(u,s),Z.sc(v,c))]; }
+// haz: lista de componentes incoherentes
+const natural=I=>[jv(Math.sqrt(I/2),0),jv(0,Math.sqrt(I/2))];
+const bPol=(B,th)=>B.map(J=>jPol(J,th)), bPlate=(B,th,G)=>B.map(J=>jPlate(J,th,G));
+function stokes(B){ let S=[0,0,0,0]; B.forEach(([x,y])=>{ const xy=Z.mul(Z.cj(x),y); S[0]+=Z.ab2(x)+Z.ab2(y); S[1]+=Z.ab2(x)-Z.ab2(y); S[2]+=2*xy[0]; S[3]+=2*xy[1]; }); return S; }
+function describe(S){ const I=S[0], Sp=Math.hypot(S[1],S[2],S[3]); if(I<1e-12) return {I:0,txt:'sin luz',dop:0,kind:'nada'};
+  const dop=Sp/I, psi=0.5*Math.atan2(S[2],S[1]), chi=0.5*Math.asin(Math.max(-1,Math.min(1,Sp>1e-14?S[3]/Sp:0)));
+  let kind, sense= S[3]>1e-9*I?'antihorario':(S[3]<-1e-9*I?'horario':'');
+  if(dop<1e-6) kind='natural'; else if(Math.abs(S[3])<1e-6*I) kind='lineal'; else if(Math.hypot(S[1],S[2])<1e-6*I) kind='circular'; else kind='elíptica';
+  const ratio=Math.abs(Math.tan(chi));
+  let txt= kind==='natural'?'natural (no polarizada)': kind==='lineal'?`lineal a ${(((psi*180/Math.PI)%180+180)%180).toFixed(1).replace('.',',')}°`: kind==='circular'?`circular ${sense}`:`elíptica ${sense}, ejes ${ratio>1e-9?(1/ratio).toFixed(2).replace('.',','):'∞'} : 1, eje mayor a ${(((psi*180/Math.PI)%180+180)%180).toFixed(1).replace('.',',')}°`;
+  if(dop>1e-6&&dop<1-1e-6) txt='parcialmente polarizada ('+Math.round(dop*100)+' %): '+txt.replace('natural (no polarizada)','');
+  return {I,dop,psi,chi,kind,sense,txt,ratio}; }
+// traza del extremo del campo de la parte polarizada (para dibujar)
+function traceJ(J,n=120){ const pts=[]; for(let i=0;i<=n;i++){ const t=2*Math.PI*i/n, e=Z.ex(-t); pts.push([Z.mul(J[0],e)[0],Z.mul(J[1],e)[0]]); } return pts; }
+function polPart(S){ // Jones equivalente de la parte polarizada
+  const Sp=Math.hypot(S[1],S[2],S[3]); if(Sp<1e-14) return null; const ax=Math.sqrt(Math.max(0,(Sp+S[1])/2)), ay=Math.sqrt(Math.max(0,(Sp-S[1])/2)); const d=Math.atan2(S[3],S[2]); return jv(ax,ay,d); }
+const DEG=Math.PI/180;
+const f3=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d), fcj=(x,d=2)=>f3(x,d).replace('.',',');
+// dibujo de un estado en un círculo (centro, radio para amplitud 1)
+function drawState(c,cx,cy,R,B,col,opt={}){ const S=stokes(B), D=describe(S), Sp=Math.hypot(S[1],S[2],S[3]), amp=Math.sqrt(D.I||0);
+  c.strokeStyle=opt.grid||'rgba(128,140,150,.25)'; c.lineWidth=1; c.beginPath(); c.moveTo(cx-R*1.1,cy); c.lineTo(cx+R*1.1,cy); c.moveTo(cx,cy-R*1.1); c.lineTo(cx,cy+R*1.1); c.stroke();
+  if(D.I<1e-9) return D;
+  const unp=Math.sqrt(Math.max(0,D.I-Sp)); if(unp>1e-6){ c.fillStyle=col; c.globalAlpha=0.12; c.beginPath(); c.arc(cx,cy,R*unp/Math.sqrt(opt.Iref||1),0,2*Math.PI); c.fill(); c.globalAlpha=1; }
+  const J=polPart(S); if(J){ const k=R/Math.sqrt(opt.Iref||1), pts=traceJ(J); c.strokeStyle=col; c.lineWidth=2.2; c.beginPath(); pts.forEach((p,i)=>{ const X=cx+p[0]*k, Y=cy-p[1]*k; i?c.lineTo(X,Y):c.moveTo(X,Y); }); c.stroke();
+    if(opt.t!==undefined){ const e=Z.ex(-opt.t), x=Z.mul(J[0],e)[0], y=Z.mul(J[1],e)[0]; c.strokeStyle=col; c.lineWidth=2; c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+x*k,cy-y*k); c.stroke(); c.fillStyle=col; c.beginPath(); c.arc(cx+x*k,cy-y*k,3.5,0,7); c.fill(); }
+    if(D.kind!=='lineal'&&D.sense){ const p=pts[10], q=pts[13]; const ax=cx+q[0]*k, ay=cy-q[1]*k, bx=cx+p[0]*k, by=cy-p[1]*k, u=Math.atan2(ay-by,ax-bx); c.fillStyle=col; c.beginPath(); c.moveTo(ax,ay); c.lineTo(ax-8*Math.cos(u-0.5),ay-8*Math.sin(u-0.5)); c.lineTo(ax-8*Math.cos(u+0.5),ay-8*Math.sin(u+0.5)); c.closePath(); c.fill(); } }
+  return D; }
+
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--ex','--ey','--tot','--ca','--ch','--ok','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+const P={a1:1, a2:0, d:0};
+const DEF=[{id:'a1',lab:'A₁ (primer eje)',unit:'',min:0,max:1,step:0.001},{id:'a2',lab:'A₂ (segundo eje)',unit:'',min:0,max:1,step:0.001},{id:'d',lab:'desfasaje δ',unit:'°',min:-180,max:180,step:0.5}];
+const PRE={lin:[0.8,0.6,0,'z'],ca:[0.8,0.8,90,'z'],ch:[0.8,0.8,-90,'z'],ea:[1,0.5,90,'z'],p2a:[Math.cos(30*DEG),Math.sin(30*DEG),0,'z'],p2b:[0.8,0.8,-90,'x'],p2c:[0.5,1,-90,'x']};
+const S={pre:'lin',t:0,running:true,speed:1,view:'a',ax:'z'};
+const J=()=>jv(P.a1,P.a2,P.d*DEG);
+const circ=()=>{ const j=J(), s=1/Math.SQRT2; const cA=Z.sc(Z.sub(j[0],Z.mul([0,1],j[1])),s), cH=Z.sc(Z.add(j[0],Z.mul([0,1],j[1])),s); return {cA,cH}; }; // e_A=(1,i)/√2, e_H=(1,−i)/√2
+const pEl=$('params');
+DEF.forEach(d=>{ const el=document.createElement('div'); el.className='param';
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el); const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value)); });
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); }
+function setPre(k){ S.pre=k; const p=PRE[k]; P.a1=+p[0].toFixed(6); P.a2=+p[1].toFixed(6); P.d=p[2]; S.ax=p[3]; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+const playBtn=$('play'); function togglePlay(f){ S.running=f===undefined?!S.running:f; playBtn.textContent=S.running?'Pausar':'Reproducir'; } playBtn.onclick=()=>togglePlay();
+$('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?S.speed.toFixed(2):S.speed)+'×'; });
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b)); document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab); if(b.dataset.tab==='cuentas') renderCuentas(true); });
+const axN=()=>S.ax==='x'?['y','z','x']:['x','y','z'];
+function refresh(){ const D=describe(stokes([J()])), {cA,cH}=circ(), [a,b,c]=axN();
+  $('readout').innerHTML=`<span><span class="k">estado</span> <b>${D.txt}</b></span><span><span class="k">|E| circular antihoraria</span> ${fcj(Math.sqrt(Z.ab2(cA)),3)}</span><span><span class="k">horaria</span> ${fcj(Math.sqrt(Z.ab2(cH)),3)}</span>`;
+  $('formula').innerHTML=`<span class="k">E = </span>${fcj(P.a1,3)} cos(k${c} − ωt) ${a}̂ + ${fcj(P.a2,3)} cos(k${c} − ωt ${P.d>=0?'+':'−'} ${fcj(Math.abs(P.d),1)}°) ${b}̂<span class="k"> · propaga según +${c}</span>`;
+  draw(); renderCuentas(false); updateChal(); }
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{ setPre('lin'); P.a1=1; P.a2=0; P.d=0; sync(); refresh(); setView('b');
+  document.querySelector('#pred-opts [data-ans=lin]').classList.add('right'); const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='lin'?'<b>Así es.</b> ':'<b>Mirá los dos círculos.</b> ')+'Dos vectores de igual largo que giran en sentidos opuestos: sus componentes a lo largo de la bisectriz se suman y las perpendiculares se cancelan siempre. La suma oscila sobre una recta. Es la lineal horizontal que tenés ahora: (1, 0) = ½(1, i) + ½(1, −i).'; $('pred-go').hidden=true; };
+function updateChal(){ const D=describe(stokes([J()]));
+  const ang=((D.psi/DEG)%180+180)%180; if(D.kind==='lineal'&&Math.abs(ang-120)<0.5&&S.pre!=='p2a') S.d1=true;
+  $('c1').textContent=S.d1?'Logrado: por ejemplo A₁ = cos 60°, A₂ = sen 60° y δ = 180°: las componentes en contrafase dan una recta en el segundo cuadrante.':`Ahora: ${D.txt}`; $('c1').classList.toggle('done',!!S.d1);
+  if(D.kind==='elíptica'&&D.sense==='antihorario'&&Math.abs(1/D.ratio-3)<0.06&&Math.abs(((ang+90)%180)-90)<1) S.d2=true;
+  $('c2').textContent=S.d2?'Logrado: A₁ = 3A₂ con δ = +90°. Con δ = ±90° los ejes de la elipse coinciden con los ejes coordenados.':`Ahora: ${D.txt}`; $('c2').classList.toggle('done',!!S.d2);
+  const {cA,cH}=circ(); if(Math.abs(Math.sqrt(Z.ab2(cA))-Math.sqrt(Z.ab2(cH)))<0.005&&D.I>0.05) S.d3=true;
+  $('c3').textContent=S.d3?'Probado: con amplitudes circulares iguales la suma es siempre lineal. El ángulo de la recta depende de la fase relativa entre las dos circulares.':'Igualá las dos amplitudes circulares (las ves en la lectura)'; $('c3').classList.toggle('done',!!S.d3); }
+let ct=null;
+function renderCuentas(now){ if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{ const {cA,cH}=circ();
+    const steps=[['P1: dos componentes perpendiculares de la misma frecuencia, con desfasaje δ',`\\[E_1=A_1\\cos(kz-\\omega t),\\qquad E_2=A_2\\cos(kz-\\omega t+\\delta)\\]`],
+      ['Lineal: δ = 0 o π (cualquier A₁, A₂). Circular: A₁ = A₂ y δ = ±π/2. Elíptica: el resto',`\\[\\delta=+\\tfrac\\pi2:\\ \\text{antihoraria},\\qquad \\delta=-\\tfrac\\pi2:\\ \\text{horaria}\\ \\ (\\text{mirando hacia la fuente})\\]`],
+      ['P2 a: lineal a 30° de x, propagando según z',`\\[\\vec E=E_0\\cos(kz-\\omega t)\\,(\\cos30^\\circ\\,\\hat x+\\operatorname{sen}30^\\circ\\,\\hat y)\\]`],
+      ['P2 b–c: propagando según x, los ejes transversales son y, z (terna directa). Horaria con eje mayor 2:1 sobre y',`\\[\\vec E=E_0\\big[\\cos(kx-\\omega t)\\,\\hat y+\\tfrac12\\cos(kx-\\omega t-\\tfrac\\pi2)\\,\\hat z\\big]\\]`],
+      ['P3: en notación compleja, (1, 0) y (0, 1) se escriben con los vectores circulares',`\\[\\hat e_{A}=\\tfrac1{\\sqrt2}(1,\\ i),\\quad \\hat e_{H}=\\tfrac1{\\sqrt2}(1,-i)\\ \\Rightarrow\\ \\vec J=\\frac{J_1-iJ_2}{\\sqrt2}\\,\\hat e_A+\\frac{J_1+iJ_2}{\\sqrt2}\\,\\hat e_H\\]`]];
+    const fin=`\\[|c_A|=${f3(Math.sqrt(Z.ab2(cA)),3)},\\qquad |c_H|=${f3(Math.sqrt(Z.ab2(cH)),3)}\\]`;
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`; $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{}); }, now?0:250); }
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function txt(c,s,x,y,col,al='left',bl='bottom'){ c.font=`600 12px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+function drawScene(){ const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H); const narrow=W<640;
+  const R=Math.min(H*0.36,(narrow?W*0.4:W*0.22)), cx=narrow?W/2:R+40, cy=narrow?R+30:H/2+6, j=J(), [a,b,zc]=axN();
+  drawState(c,cx,cy,R,[j],C.tot,{t:S.t,grid:C.line}); txt(c,a,cx+R*1.12,cy-4,C.ex); txt(c,b,cx+4,cy-R*1.12,C.ey);
+  // proyecciones de las componentes
+  const e=Z.ex(-S.t), x=Z.mul(j[0],e)[0], y=Z.mul(j[1],e)[0]; c.fillStyle=C.ex; c.beginPath(); c.arc(cx+x*R,cy,3.5,0,7); c.fill(); c.fillStyle=C.ey; c.beginPath(); c.arc(cx,cy-y*R,3.5,0,7); c.fill();
+  txt(c,`mirando hacia la fuente (la onda sale de la pantalla, +${zc})`,12,H-10,C.muted,'left','bottom');
+  if(!narrow){ // onda a lo largo de la propagación, en perspectiva oblicua
+    const x0=cx+R*1.6, x1=W-20, L=x1-x0, oy=H/2+6, kk=4*PI/1, s=R*0.6; const pt=(z,ex,ey)=>[x0+z*L*0.85+ex*s*0.55, oy-ey*s+ex*s*0.25];
+    line(c,[pt(0,0,0),pt(1.05,0,0)],C.faint,1); txt(c,zc,pt(1.05,0,0)[0]+4,pt(1.05,0,0)[1],C.muted,'left','middle');
+    const tip=[]; for(let i=0;i<=240;i++){ const z=i/240, ph=Z.ex(kk*z-S.t), ex=Z.mul(j[0],ph)[0], ey=Z.mul(j[1],ph)[0]; tip.push(pt(z,ex,ey)); if(i%8===0) line(c,[pt(z,0,0),pt(z,ex,ey)],C.tot,1,null,0.35); }
+    line(c,tip,C.tot,2); const proj1=[], proj2=[]; for(let i=0;i<=240;i++){ const z=i/240, ph=Z.ex(kk*z-S.t); proj1.push(pt(z,Z.mul(j[0],ph)[0],0)); proj2.push(pt(z,0,Z.mul(j[1],ph)[0])); } line(c,proj1,C.ex,1.2,null,0.6); line(c,proj2,C.ey,1.2,null,0.6);
+    txt(c,'la onda en un instante, a lo largo de '+zc,x0,24,C.muted,'left','top'); }
+  $('clock').textContent=''; }
+function axes(c,W,H,o){ const L0=46,R=16,T=28,B=28,pw=W-L0-R,ph=H-T-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); }); c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T+ph+4)); return {X,Y,L0,T,pw,ph}; }
+function drawA(){ const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const j=J(), [a,b]=axN();
+  const g=axes(c,W,H,{x0:0,x1:2,y0:-1.1,y1:1.1,yt:[-1,0,1],yf:v=>v,xt:[0,0.5,1,1.5,2],xf:v=>v?fcj(v,1)+' T':'0'});
+  const e1=[],e2=[]; for(let i=0;i<=300;i++){ const t=2*i/300*2*PI, e=Z.ex(-t); e1.push([g.X(2*i/300),g.Y(Z.mul(j[0],e)[0])]); e2.push([g.X(2*i/300),g.Y(Z.mul(j[1],e)[0])]); }
+  line(c,e1,C.ex,2.2); line(c,e2,C.ey,2.2); const tt=(S.t/(2*PI))%2; line(c,[[g.X(tt),g.T],[g.X(tt),g.T+g.ph]],C.fg,1,null,0.5);
+  c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; c.fillStyle=C.ey; c.fillText('E'+b,g.L0+g.pw,g.T-6); c.fillStyle=C.ex; c.fillText('E'+a+'   ',g.L0+g.pw-30,g.T-6); }
+function drawB(){ const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H); const {cA,cH}=circ(), j=J(); const R=Math.min(H*0.32,W*0.12), y0=H/2+6;
+  const xs=[W*0.17,W*0.5,W*0.83]; const s=1/Math.SQRT2;
+  const JA=[Z.sc(cA,s),Z.sc(Z.mul(cA,[0,1]),s)], JH=[Z.sc(cH,s),Z.sc(Z.mul(cH,[0,-1]),s)];
+  drawState(c,xs[0],y0,R,[JA],C.ca,{t:S.t,grid:C.line}); drawState(c,xs[1],y0,R,[JH],C.ch,{t:S.t,grid:C.line}); drawState(c,xs[2],y0,R,[j],C.tot,{t:S.t,grid:C.line});
+  txt(c,'+',(xs[0]+xs[1])/2,y0,C.fg,'center','middle'); txt(c,'=',(xs[1]+xs[2])/2,y0,C.fg,'center','middle');
+  txt(c,`antihoraria |c| = ${fcj(Math.sqrt(Z.ab2(cA)),2)}`,xs[0],y0+R*1.2+6,C.ca,'center','top'); txt(c,`horaria |c| = ${fcj(Math.sqrt(Z.ab2(cH)),2)}`,xs[1],y0+R*1.2+6,C.ch,'center','top'); txt(c,'suma',xs[2],y0+R*1.2+6,C.tot,'center','top'); }
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+let lastT=performance.now(); function loop(now){ const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; if(S.running) S.t+=dt*S.speed*2.2; draw(); requestAnimationFrame(loop); }
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+setPre('lin'); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

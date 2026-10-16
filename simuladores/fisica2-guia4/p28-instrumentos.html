@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Dos lentes e instrumentos G4-P28</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --ray:#ffcf3a; --ray2:#36d4ff; --ray3:#b48cff; --glass:#36d4ff; --src:#ff5c3a; --img:#34e08a; --vir:#ff7ad9; --stop:#8fa3b8; --pup:#ffcf3a; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:340px}
+#pa{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 4 · Dos lentes y dispositivos ópticos</span>
+  <h1>Dos lentes e instrumentos <i>· pupilas, viñeteo, microscopio, anteojo y cámara</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 4">
+    <h2>Guía 4</h2>
+    <ol>
+      <li><a href="p1-fermat.html"><b class="code">P1–3</b>Principio de Fermat</a></li>
+      <li><a href="p4-lamina.html"><b class="code">P4, P14</b>Lámina de caras paralelas</a></li>
+      <li><a href="p5-cubo-fibra.html"><b class="code">P5</b>Cubo y fibra óptica</a></li>
+      <li><a href="p6-prisma.html"><b class="code">P6–9</b>Prisma y dispersión</a></li>
+      <li><a href="p10-espejos-planos.html"><b class="code">P10–12</b>Espejos planos</a></li>
+      <li><a href="p13-dioptra-plana.html"><b class="code">P13</b>Dioptra plana</a></li>
+      <li><a href="p15-dioptra-esferica.html"><b class="code">P15, P18</b>Dioptra y espejo esférico</a></li>
+      <li><a href="p16-sistemas-gruesos.html"><b class="code">P16, P17, P19</b>Sistemas gruesos</a></li>
+      <li><a href="p20-lente-delgada.html"><b class="code">P20–27</b>Lente delgada</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P28–33</b>Dos lentes e instrumentos</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Sistema de lentes y diafragmas con rayos paraxiales"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p28" aria-pressed="true">P28 · dos lentes</button>
+          <button class="chip" data-pre="p29">P29 · diafragma y pupilas</button>
+          <button class="chip" data-pre="p30">P30 · microscopio</button>
+          <button class="chip" data-pre="p31">P31 · anteojo astronómico</button>
+          <button class="chip" data-pre="p32">P32 · telescopio y objeto cercano</button>
+          <button class="chip" data-pre="p33">P33 · cámara fotográfica</button>
+        </div></div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="a" aria-pressed="true">Gráfico</button>
+          <button data-view="b" aria-pressed="false">Respuestas</button>
+        </div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:270px"></canvas><div class="tag" id="tag-a"></div></div>
+        <div class="pcap" id="cap-a"></div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:300px"></canvas><div class="tag">Lo que pide el enunciado, calculado con los valores actuales</div></div>
+        <div class="pcap">Cambiá los cursores y mirá cómo cambian las respuestas.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G4-P28 a P33</summary>
+      <p><b>28.</b> Lente convergente de f = 30 cm a 20 cm a la izquierda de una divergente de f = 50 cm. Objeto a 40 cm a la izquierda de la primera: imagen final, aumento, ¿real o virtual, directa o invertida?</p>
+      <p><b>29.</b> Lente convergente de 5 cm de diámetro y f = 4 cm, 2 cm a la derecha de un diafragma de 3 cm. a) Objeto puntual axial a 9 cm de la lente: pupilas de entrada y salida. b) Objeto corrido 1,5 cm del eje: ¿está bien definido el diafragma de apertura? c) Ídem con 3 cm: viñeteo y altura máxima del objeto.</p>
+      <p><b>30.</b> Microscopio: objetivo de 4 mm, ocular de 30 mm, intervalo óptico g = 18 cm. a) Aumento normal. b) Distancia objeto–objetivo. c) Diafragma de apertura, su diámetro y la pupila de salida si debe medir ≈ 12 mm (dato del enunciado). d) Diafragma de campo.</p>
+      <p><b>31.</b> Anteojo: objetivo de 2 m y 10 cm de diámetro, ocular de 4 cm. a) Aumento. b) Imágenes de la luna (31′). c) Largo del tubo. d) Diámetro mínimo del ocular para que el objetivo sea diafragma de apertura. e) Con ocular de 4 cm de diámetro, pupila de salida. f) Posición del ojo. g–h) Diafragma de campo y su diámetro mínimo.</p>
+      <p><b>32.</b> Objeto de altura h a distancia s &gt; f′_ob delante de un telescopio: posición de la imagen y aumento lateral, independiente de s.</p>
+      <p><b>33.</b> Cámara de 50 mm, película de 24×36 mm. a) Recorrido de la rosca para enfocar de 1 m a ∞. b) Profundidad de campo. c) Objetos a 50 cm. d) Ángulos de campo. e) Distancia mínima para un árbol de 5 m. f) Diafragma para f/1,4 y f/22.</p>
+      <p class="src">Física 2 (Físicos), Guía 4.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>P28: una convergente y, 20 cm después, una divergente. La imagen final del objeto es…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="ri">real e invertida</button>
+          <button class="opt" data-ans="vd">virtual y directa</button>
+          <button class="opt" data-ans="rd">real y directa</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P29 c: encontrá la altura máxima del objeto para que no haya viñeteo (±0,02 cm).<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P31 d: elegí el diámetro mínimo del ocular para ver la luna entera sin viñeteo (±0,02 cm).<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P33 b: enfocando a 1 m, elegí el número f para que un objeto a 1,2 m dé un círculo de confusión menor a 0,03 mm en la película.<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Trazado paraxial con lentes delgadas en aire: entre elementos y = y₀ + u·Δx, en cada lente u′ = u − y/f, y un rayo se corta si pasa fuera del diámetro de algún elemento. Imágenes sucesivas con 1/s′ − 1/s = 1/f. Pupila de entrada: imagen del diafragma de apertura por lo que está antes; de salida: por lo que está después. El viñeteo se mide como la fracción del haz meridional que atraviesa todo el sistema. Las escenas tienen la escala vertical exagerada.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--ray','--ray2','--ray3','--glass','--src','--img','--vir','--stop','--pup','--ok','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI, MOON=31/60*PI/180;
+const P={s28:40, d28:20, h29:0, g30:18, dob:0.6, eye:12, doc:4, fs31:1.804, s32:60, N33:4, foc33:100, obj33:120};
+const DEF=[
+  {id:'s28',lab:'objeto a la izquierda de la 1.ª lente',unit:'cm',min:5,max:120,step:0.1,pre:['p28']},
+  {id:'d28',lab:'separación entre lentes',unit:'cm',min:1,max:60,step:0.1,pre:['p28']},
+  {id:'h29',lab:'altura del objeto',unit:'cm',min:0,max:3.5,step:0.005,pre:['p29']},
+  {id:'g30',lab:'intervalo óptico g',unit:'cm',min:8,max:30,step:0.1,pre:['p30']},
+  {id:'dob',lab:'diámetro del objetivo',unit:'cm',min:0.1,max:2,step:0.01,pre:['p30']},
+  {id:'doc',lab:'diámetro del ocular',unit:'cm',min:0.5,max:6,step:0.005,pre:['p31']},
+  {id:'fs31',lab:'diafragma de campo (diámetro)',unit:'cm',min:0.3,max:4,step:0.001,pre:['p31']},
+  {id:'s32',lab:'objeto delante del objetivo',unit:'cm',min:22,max:200,step:0.1,pre:['p32']},
+  {id:'N33',lab:'número f (f/D)',unit:'',min:1.4,max:22,step:0.1,pre:['p33']},
+  {id:'foc33',lab:'enfocado a',unit:'cm',min:50,max:1000,step:1,pre:['p33']},
+  {id:'obj33',lab:'objeto a',unit:'cm',min:30,max:1500,step:1,pre:['p33']},
+];
+const S={pre:'p28',view:'a'};
+// ===== sistemas =====
+function sys(){ switch(S.pre){
+  case 'p28': return {el:[{x:0,f:30,D:10,n:'L₁'},{x:P.d28,f:-50,D:10,n:'L₂'}], obj:-P.s28, h:1.5};
+  case 'p29': return {el:[{x:-2,f:Infinity,D:3,n:'diafragma'},{x:0,f:4,D:5,n:'lente'}], obj:-9, h:P.h29};
+  case 'p30': { const fo=0.4, fc=3, L=fo+P.g30+fc; return {el:[{x:0,f:fo,D:P.dob,n:'objetivo'},{x:L,f:fc,D:2,n:'ocular'}], obj:objMicro(), h:0.002}; }
+  case 'p31': return {el:[{x:0,f:200,D:10,n:'objetivo'},{x:200,f:Infinity,D:P.fs31,n:'diafragma de campo'},{x:204,f:4,D:P.doc,n:'ocular'}], obj:-Infinity, ang:MOON/2};
+  case 'p32': return {el:[{x:0,f:20,D:6,n:'objetivo'},{x:25,f:5,D:3,n:'ocular'}], obj:-P.s32, h:3};
+  case 'p33': { const v=1/(1/5-1/P.foc33); return {el:[{x:0,f:5,D:5/P.N33,n:'objetivo'},{x:v,f:Infinity,D:3.6,n:'película',film:true}], obj:-P.obj33, h:0}; } } }
+function objMicro(){ const fo=0.4, v=fo+P.g30; return -1/(1/fo-1/v); } // imagen del objetivo en el foco del ocular
+// imágenes sucesivas por las lentes (objeto finito)
+function chain(xo,lenses){ let x=xo, m=1; const out=[]; lenses.forEach(L=>{ if(!isFinite(L.f)){ return; } const s=x-L.x; const v=Math.abs(1/L.f+1/s)<1e-14?Infinity:1/(1/L.f+1/s); m*=isFinite(v)?v/s:Infinity; x=L.x+v; out.push({x,m,real:v>0,v,s,L}); }); return out; }
+// imagen de un plano (posición, diámetro) a través de lentes, hacia adelante o hacia atrás
+function imgThrough(x,D,lenses,back){ let xx=x, dd=D; const ls=back?lenses.slice().reverse():lenses;
+  ls.forEach(L=>{ if(!isFinite(L.f)) return; const so=back?(L.x-xx):(xx-L.x), den=1/L.f+1/so; if(Math.abs(den)<1e-14){ xx=back?-Infinity:Infinity; dd=Infinity; return; } const v=1/den; dd*=Math.abs(v/so); xx=back?L.x-v:L.x+v; }); return {x:xx,D:dd}; }
+// trazado paraxial de un rayo: devuelve puntos y si pasa
+function ray(x0,y0,u,el,xEnd){ let x=x0, y=y0, uu=u, ok=true; const pts=[[x,y]];
+  for(const e of el){ y=y+uu*(e.x-x); x=e.x; pts.push([x,y]); if(Math.abs(y)>e.D/2+1e-12) { ok=false; break; } if(isFinite(e.f)) uu=uu-y/e.f; }
+  if(ok&&xEnd!==undefined){ y=y+uu*(xEnd-x); pts.push([xEnd,y]); } return {pts,ok,u:uu}; }
+// diafragma de apertura y pupilas (objeto axial finito, o en el infinito)
+function stopInfo(){ const s=sys(), el=s.el.filter(e=>!e.film); let best=null;
+  el.forEach((e,i)=>{ const before=el.slice(0,i).filter(q=>isFinite(q.f)); const im=imgThrough(e.x,e.D,before,true); // imagen hacia el espacio objeto
+    const val= isFinite(s.obj)? (im.D/2)/Math.abs(im.x-s.obj) : im.D/2; if(!best||val<best.val) best={i,e,val,ep:im}; });
+  const after=el.slice(best.i+1).filter(q=>isFinite(q.f)); best.xp=imgThrough(best.e.x,best.e.D,after,false); return best; }
+// fracción del haz meridional que pasa (objeto a altura h, o haz paralelo con ángulo a)
+function passFrac(){ const s=sys(), st=stopInfo(), el=s.el.filter(e=>!e.film), N=400; let ok=0;
+  for(let i=0;i<=N;i++){ const yEP=st.ep.D/2*(2*i/N-1)*1.6; // barrido amplio en la pupila de entrada
+    let r; if(isFinite(s.obj)){ const u=(yEP-s.h)/(st.ep.x-s.obj); r=ray(s.obj,s.h,u,el); } else { const u=-s.ang; const x0=el[0].x-10; r=ray(x0,yEP-u*(st.ep.x-x0),u,el); }
+    if(r.ok) ok++; }
+  // normalizar a la fracción del haz axial que pasa
+  return ok; }
+function vign(){ const keepH=P.h29; const s=sys(); let n=passFrac(); let n0; if(S.pre==='p29'){ P.h29=0; n0=passFrac(); P.h29=keepH; } else if(S.pre==='p31'){ const a=MOON; n0=n; } return {n,n0}; }
+// P29: rayos borde de la pupila de entrada para un objeto a altura h → alturas en la lente
+function p29edges(h){ const y=[1.5,-1.5].map(e=>h+(e-h)*(9/7)); return y; }
+const p29max=()=>{ // h con |borde inferior| = 2,5
+  return (2.5-1.5*9/7)/(9/7-1); };
+// P31: altura máxima en el ocular para el borde de la luna
+function p31need(){ const yi=200*Math.tan(MOON/2); return Math.max(Math.abs(5+(-yi-5)*204/200),Math.abs(-5+(-yi+5)*204/200)); }
+function p31exit(){ const so=-204, v=1/(1/4+1/so); return {x:204+v,D:10*v/204}; }
+
+const pEl=$('params');
+DEF.forEach(d=>{
+  const el=document.createElement('div'); el.className='param'; el.dataset.pre=d.pre.join(' ');
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el);
+  const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelectorAll('.param').forEach(p=>p.hidden=!p.dataset.pre.split(' ').includes(S.pre)); }
+function setPre(k){ S.pre=k; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+let CG=null; $('pa').addEventListener('pointerdown',e=>{ if(!CG) return; const r=e.currentTarget.getBoundingClientRect(), v=CG.x0+Math.min(1,Math.max(0,(e.clientX-r.left-CG.L0)/CG.pw))*(CG.x1-CG.x0);
+  const map={p28:'d28',p29:'h29',p30:'g30',p31:'doc',p32:'s32',p33:'obj33'}, id=map[S.pre], d=DEF.find(q=>q.id===id); P[id]=+Math.min(d.max,Math.max(d.min,v)).toFixed(3); sync(); refresh(); });
+
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>isFinite(x)&&Math.abs(x)<1e7?f(x,d).replace('.',','):'∞';
+// ===== respuestas por problema =====
+function answers(){ const s=sys();
+  if(S.pre==='p28'){ const ch=chain(s.obj,s.el), a=ch[0], b=ch[1]; return [['I₁ (por L₁)',`${fc(a.v,2)} cm a la derecha de L₁, ${a.real?'real':'virtual'}, m₁ = ${fc(a.m,3)}`],['objeto para L₂',`${fc(a.x-P.d28,2)} cm de L₂ (${a.x>P.d28?'virtual':'real'})`],['imagen final',`${fc(b.v,2)} cm de L₂ (x = ${fc(b.x,2)} cm), ${b.real?'real':'virtual'}`],['aumento total',`${fc(b.m,3)} → ${b.m>0?'directa':'invertida'}`]]; }
+  if(S.pre==='p29'){ const st=stopInfo(), [yu,yd]=p29edges(P.h29); return [['diafragma de apertura',st.e.n],['pupila de entrada',`x = ${fc(st.ep.x,2)} cm, Ø ${fc(st.ep.D,2)} cm`],['pupila de salida',`x = ${fc(st.xp.x,2)} cm (${st.xp.x<0?'virtual, a la izquierda de la lente':'real'}), Ø ${fc(st.xp.D,2)} cm`],['bordes del haz en la lente',`${fc(yu,3)} y ${fc(yd,3)} cm (radio de la lente 2,5)`],['viñeteo',Math.max(Math.abs(yu),Math.abs(yd))>2.5+1e-9?'sí: la lente recorta el haz':'no: el diafragma está bien definido'],['altura máxima sin viñeteo',`${fc(p29max(),3)} cm`]]; }
+  if(S.pre==='p30'){ const fo=0.4, fcc=3, M=-(P.g30/fo)*(25/fcc), so=objMicro(), L=fo+P.g30+fcc, v=1/(1/fcc-1/L), mp=v/L; return [['aumento normal',`M = −(g/f_ob)(25 cm/f_oc) = ${fc(M,1)}`],['objeto–objetivo',`${fc(-so*10,4)} mm`],['diafragma de apertura','el objetivo (la imagen del ocular desde el objeto subtiende más)'],['pupila de salida',`imagen del objetivo por el ocular: ${fc(v*10,2)} mm detrás del ocular, Ø ${fc(P.dob*mp*10,3)} mm`],['objetivo para pupila de 12 mm',`Ø = 12 mm·L/s′ = ${fc(12/mp,1)} mm (con un ojo real, 2–8 mm, haría falta mucho menos)`],['diafragma de campo','en el plano focal objeto del ocular, donde se forma la imagen del objetivo: no cambia el diafragma de apertura']]; }
+  if(S.pre==='p31'){ const ex=p31exit(), yi=200*MOON; return [['aumento',`−f_ob/f_oc = −50`],['1.ª imagen de la luna',`real, invertida, en el foco (200 cm), de ${fc(yi*10,2)} mm`],['imagen final',`en el infinito, subtiende 50·31′ = ${fc(50*31/60,1)}°`],['largo del tubo','f_ob + f_oc = 204 cm'],['ocular mínimo',`Ø ${fc(2*p31need(),3)} cm`],['pupila de salida',`${fc(ex.x-204,3)} cm detrás del ocular, Ø ${fc(ex.D*10,2)} mm`],['ojo','en la pupila de salida'],['diafragma de campo',`en el foco común; para ver la luna entera, Ø ≥ ${fc(yi,3)} cm`]]; }
+  if(S.pre==='p32'){ const ch=chain(s.obj,s.el); const b=ch[1]; return [['imagen final',`x = ${fc(b.x,2)} cm (${fc(b.v,2)} del ocular), ${b.real?'real':'virtual'}`],['aumento lateral',`${fc(b.m,4)} = −f_oc/f_ob = ${fc(-5/20,4)}`],['independiente de s','sí: un sistema afocal tiene aumento lateral constante']]; }
+  const v1=1/(1/5-1/100), vInf=5, v50=1/(1/5-1/50), D=5/P.N33, vf=1/(1/5-1/P.foc33), vo=1/(1/5-1/P.obj33), blur=D*Math.abs(vo-vf)/vo;
+  return [['rosca (1 m a ∞)',`${fc((v1-vInf)*10,2)} mm`],['rosca hasta 50 cm',`${fc((v50-vInf)*10,2)} mm`],['círculo de confusión',`${fc(blur*10,4)} mm (objeto a ${fc(P.obj33,0)} cm, enfocado a ${fc(P.foc33,0)} cm, f/${fc(P.N33,1)})`],['ángulos de campo (∞)',`±${fc(Math.atan(1.8/5)*180/PI,1)}° (36 mm), ±${fc(Math.atan(1.2/5)*180/PI,1)}° (24 mm), ±${fc(Math.atan(Math.hypot(1.8,1.2)/5)*180/PI,1)}° (diagonal)`],['árbol de 5 m',`a ≥ ${fc((5*(500/2.4+1))/100,2)} m (24 mm vertical) o ${fc((5*(500/3.6+1))/100,2)} m (36 mm vertical)`],['diafragma',`f/1,4: Ø ${fc(50/1.4,1)} mm · f/22: Ø ${fc(50/22,2)} mm · ahora Ø ${fc(D*10,2)} mm`]]; }
+function refresh(){
+  const ans=answers();
+  $('readout').innerHTML=ans.slice(0,4).map(([k,v])=>`<span><span class="k">${k}</span> ${v}</span>`).join('');
+  $('formula').innerHTML={p28:'<span class="k">la imagen de L₁ es el objeto de L₂; m = m₁·m₂</span>',p29:'<span class="k">diafragma de apertura: el que, visto desde el objeto a través de lo anterior, subtiende el menor ángulo · viñeteo: el haz que llena la pupila de entrada es recortado por otro borde</span>',p30:'<span class="k">M = m_ob · M_oc = −(g/f_ob)(25 cm/f_oc) · el objeto queda casi en el foco del objetivo</span>',p31:'<span class="k">M = −f_ob/f_oc · pupila de salida: imagen del objetivo por el ocular (el "anillo de Ramsden", donde va el ojo)</span>',p32:'<span class="k">sistema afocal (lentes separadas f_ob + f_oc): m = −f_oc/f_ob para cualquier s</span>',p33:'<span class="k">1/s′ − 1/s = 1/f · círculo de confusión c = D|v_obj − v_película|/v_obj, con D = f/N</span>'}[S.pre];
+  $('tag-a').textContent={p28:'Aumento total e imagen final según la separación · tocá para elegir',p29:'Fracción del haz que pasa según la altura del objeto · tocá para elegir',p30:'Aumento normal según el intervalo óptico · tocá para elegir',p31:'Fracción del haz del borde de la luna que pasa, según el diámetro del ocular · tocá para elegir',p32:'Aumento lateral según la distancia del objeto · tocá para elegir',p33:'Círculo de confusión según la distancia del objeto · tocá para elegir'}[S.pre];
+  $('cap-a').textContent={p28:'Con las lentes a 20 cm, la imagen intermedia cae detrás de L₂ y es un objeto virtual para la divergente.',p29:'Hasta h = 2 cm pasa todo el haz definido por el diafragma; más arriba, el borde de la lente empieza a cortar (viñeteo).',p30:'El aumento crece con g: el objetivo amplía g/f_ob veces y el ocular, como lupa, 25 cm/f_oc.',p31:'Con el ocular chico se pierde luz del borde de la luna; desde 2,04 cm entra todo el haz.',p32:'La línea es horizontal: el aumento lateral no depende de dónde esté el objeto.',p33:'Mínimo nulo en la distancia enfocada; cerrar el diafragma (N grande) achica la mancha y aumenta la profundidad de campo.'}[S.pre];
+  draw(); renderCuentas(false); updateChal();
+}
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  P.s28=40; P.d28=20; setPre('p28');
+  document.querySelector('#pred-opts [data-ans=vd]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='vd'?'<b>Así es.</b> ':'<b>Mirá la cadena.</b> ')+'L₁ forma una imagen real a 120 cm, invertida (m₁ = −3). Esa imagen cae 100 cm detrás de L₂: para la divergente es un objeto virtual, y la imagen final queda 100 cm antes de L₂, virtual, con m₂ = −1. En total m = +3: virtual y derecha.';
+  $('pred-go').hidden=true;
+};
+function blur33(){ const D=5/P.N33, vf=1/(1/5-1/P.foc33), vo=1/(1/5-1/P.obj33); return D*Math.abs(vo-vf)/vo; }
+function updateChal(){
+  if(S.pre==='p29'&&Math.abs(P.h29-p29max())<0.02) S.d1=true;
+  $('c1').textContent= S.d1? `Logrado: h = ${fc(p29max(),3)} cm. Con 1,5 cm no hay viñeteo; con 3 cm, sí: la lente corta la parte de abajo del haz.` : (S.pre==='p29'?`Ahora h = ${fc(P.h29,3)} cm`:'Elegí el P29');
+  $('c1').classList.toggle('done',!!S.d1);
+  if(S.pre==='p31'&&Math.abs(P.doc-2*p31need())<0.02) S.d2=true;
+  $('c2').textContent= S.d2? `Logrado: Ø ${fc(2*p31need(),3)} cm. El rayo del borde inferior del objetivo hacia el borde de la imagen de la luna llega al ocular a ${fc(p31need(),3)} cm del eje.` : (S.pre==='p31'?`Ahora Ø ${fc(P.doc,3)} cm`:'Elegí el P31');
+  $('c2').classList.toggle('done',!!S.d2);
+  if(S.pre==='p33'&&Math.abs(P.foc33-100)<1&&Math.abs(P.obj33-120)<1&&blur33()*10<0.03) S.d3=true;
+  $('c3').textContent= S.d3? `Logrado con f/${fc(P.N33,1)}: c = ${fc(blur33()*10,4)} mm. Hace falta cerrar hasta f/11 aproximadamente: más profundidad de campo, a cambio de menos luz (exposición más larga).` : (S.pre==='p33'?`Ahora c = ${fc(blur33()*10,4)} mm (enfocá a 100 cm y poné el objeto a 120 cm)`:'Elegí el P33');
+  $('c3').classList.toggle('done',!!S.d3);
+}
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    const T={p28:['P28 paso a paso',[['L₁: objeto a 40 cm',`\\[\\frac1{s_1'}=\\frac1{30}-\\frac1{40}=\\frac1{120}\\Rightarrow s_1'=120\\ \\text{cm},\\ m_1=-3\\]`],['Para L₂, 20 cm después, la imagen está 100 cm a su derecha: objeto virtual',`\\[\\frac1{s_2'}=-\\frac1{50}+\\frac1{100}\\Rightarrow s_2'=-100\\ \\text{cm},\\ m_2=\\frac{-100}{100}=-1\\]`],['Total',`\\[m=m_1m_2=+3:\\ \\text{virtual y directa, 80 cm a la izquierda de }L_1\\]`]]],
+      p29:['P29 paso a paso',[['Ángulos vistos desde el objeto (a 7 cm del diafragma y 9 cm de la lente)',`\\[\\frac{1{,}5}{7}=0{,}214<\\frac{2{,}5}{9}=0{,}278\\ \\Rightarrow\\ \\text{el diafragma es el de apertura}\\]`],['Pupila de entrada: el diafragma mismo. Pupila de salida: su imagen por la lente',`\\[\\frac1{s'}=\\frac14-\\frac12\\Rightarrow s'=-4\\ \\text{cm},\\ m=2\\Rightarrow \\varnothing\\,6\\ \\text{cm, virtual}\\]`],['Objeto a altura h: los rayos a los bordes del diafragma llegan a la lente a',`\\[y=h+(\\pm1{,}5-h)\\frac97,\\qquad |y|\\le2{,}5\\Rightarrow h\\le2\\ \\text{cm}\\]`]]],
+      p30:['P30 paso a paso',[['Aumento normal (imagen final en el infinito, visión a 25 cm)',`\\[M=-\\frac{g}{f_{ob}}\\cdot\\frac{25}{f_{oc}}=-\\frac{180}{4}\\cdot\\frac{250}{30}=-375\\]`],['El objetivo forma la imagen en su foco más g',`\\[s'=f_{ob}+g=184\\ \\text{mm}\\Rightarrow s=-\\Big(\\frac1{f_{ob}}-\\frac1{s'}\\Big)^{-1}=-4{,}089\\ \\text{mm}\\]`],['Pupila de salida: imagen del objetivo por el ocular (a L = 214 mm)',`\\[s'=\\Big(\\frac1{30}-\\frac1{214}\\Big)^{-1}=34{,}9\\ \\text{mm},\\quad m=0{,}163\\]`]]],
+      p31:['P31 paso a paso',[['Aumento y tubo',`\\[M=-\\frac{200}{4}=-50,\\qquad L=204\\ \\text{cm}\\]`],['Imagen de la luna en el foco del objetivo',`\\[y'=f_{ob}\\theta=200\\cdot9{,}02\\cdot10^{-3}=1{,}80\\ \\text{cm}\\]`],['Pupila de salida: imagen del objetivo por el ocular',`\\[s'=\\Big(\\frac14-\\frac1{204}\\Big)^{-1}=4{,}08\\ \\text{cm},\\quad \\varnothing=10\\cdot\\frac{4{,}08}{204}=0{,}2\\ \\text{cm}\\]`]]],
+      p32:['P32 paso a paso',[['Objetivo: imagen intermedia',`\\[s_1'=\\frac{f_{ob}\\,s}{s+f_{ob}}\\]`],['Ocular a f_ob + f_oc del objetivo; componiendo los aumentos',`\\[m=\\frac{s_1'}{s}\\cdot\\frac{s_2'}{s_2}=-\\frac{f_{oc}}{f_{ob}}\\]`]]],
+      p33:['P33 paso a paso',[['a) Imagen de un objeto a 1 m y a ∞',`\\[s'_{1\\,\\text m}=\\Big(\\frac1{50}-\\frac1{1000}\\Big)^{-1}=52{,}63\\ \\text{mm},\\quad s'_\\infty=50\\ \\text{mm}\\Rightarrow 2{,}63\\ \\text{mm}\\]`],['b) Un objeto fuera de foco da una mancha de diámetro',`\\[c=D\\,\\frac{|v_{obj}-v_{pel}|}{v_{obj}},\\qquad D=\\frac fN\\]`],['d) Ángulos de campo con la película 24 × 36 mm a 50 mm',`\\[\\arctan\\frac{18}{50}=19{,}8^\\circ,\\quad \\arctan\\frac{12}{50}=13{,}5^\\circ\\]`],['e) Árbol de 5 m en 24 mm',`\\[|m|=\\frac{24}{5000}\\Rightarrow d\\approx f\\Big(1+\\frac1{|m|}\\Big)=10{,}5\\ \\text{m}\\]`]]]}[S.pre];
+    $('cu-title').textContent=T[0];
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=T[1].map(li).join(''); $('final').innerHTML=answers().slice(0,3).map(([k,v])=>`<div><b>${k}:</b> ${v}</div>`).join('');
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function legend(c,items,x,y){ c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; items.forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,x,y); x-=c.measureText(s).width+14; }); }
+function txt(c,s,x,y,col,al='left',bl='bottom'){ c.font=`600 12px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+function arrowV(c,x,y0,y1,col,dash,wd=2.4){ line(c,[[x,y0],[x,y1]],col,wd,dash); const s=Math.sign(y1-y0)||1; c.fillStyle=col; c.beginPath(); c.moveTo(x,y1); c.lineTo(x-5,y1-8*s); c.lineTo(x+5,y1-8*s); c.closePath(); c.fill(); }
+function drawEl(c,X,Y,e){ const y=e.D/2; if(e.film){ c.fillStyle=C.stop; c.fillRect(X(e.x)-2,Y(y),4,Y(-y)-Y(y)); txt(c,e.n,X(e.x),Y(y)-4,C.muted,'center'); return; }
+  if(!isFinite(e.f)){ c.strokeStyle=C.stop; c.lineWidth=4; c.beginPath(); c.moveTo(X(e.x),Y(y)); c.lineTo(X(e.x),Y(y+Math.max(0.3*y,0.02))); c.moveTo(X(e.x),Y(-y)); c.lineTo(X(e.x),Y(-y-Math.max(0.3*y,0.02))); c.stroke(); if(e.n==='diafragma de campo') txt(c,e.n,X(e.x)-4,Y(-y*1.3-0.02)+4,C.muted,'right','top'); else txt(c,e.n,X(e.x),Y(y*1.3+0.02)-4,C.muted,'center'); return; }
+  c.strokeStyle=C.glass; c.lineWidth=2.4; c.beginPath(); c.moveTo(X(e.x),Y(y)); c.lineTo(X(e.x),Y(-y)); c.stroke(); const s=e.f>0?1:-1; [y,-y].forEach(q=>{ const d=Math.sign(q); c.beginPath(); c.moveTo(X(e.x)-6,Y(q)+d*s*6); c.lineTo(X(e.x),Y(q)); c.lineTo(X(e.x)+6,Y(q)+d*s*6); c.stroke(); }); txt(c,e.n,X(e.x),Y(y)-6,C.muted,'center'); }
+function drawScene(){
+  const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H);
+  const s=sys(), el=s.el; let xs=el.map(e=>e.x); if(isFinite(s.obj)) xs.push(s.obj);
+  const ch=isFinite(s.obj)?chain(s.obj,el):[]; ch.forEach(q=>{ if(isFinite(q.x)&&Math.abs(q.x)<400) xs.push(q.x); });
+  if(S.pre==='p30') xs=[s.obj,...el.map(e=>e.x)]; if(S.pre==='p31') xs=[-12,0,204,p31exit().x+4]; if(S.pre==='p29'){ const st=stopInfo(); xs.push(st.xp.x); }
+  let a=Math.min(...xs), b=Math.max(...xs); const pad=(b-a)*0.1+0.5; a-=pad; b+=pad;
+  const ym=Math.max(...el.map(e=>e.D/2*1.4), s.h?Math.abs(s.h)*1.5:0, ...ch.map(q=>isFinite(q.m)?Math.min(12,Math.abs((s.h||0)*q.m)):0)), sc=(W-24)/(b-a), scy=(H-70)/(2*ym), cy=H/2+6, X=x=>12+(x-a)*sc, Y=y=>cy-y*scy;
+  line(c,[[0,cy],[W,cy]],C.line,1); el.forEach(e=>drawEl(c,X,Y,e));
+  if(S.pre==='p31'){ // haces axial y del borde de la luna
+    [[0,C.ray2],[s.ang,C.ray]].forEach(([an,col])=>{ for(let i=-6;i<=6;i++){ const y0=5*i/6, u=-an, x0=-12; const r=ray(x0,y0-u*(0-x0),u,el,b); line(c,r.pts.map(p=>[X(p[0]),Y(p[1])]),r.ok?col:C.crit,1.2,null,r.ok?0.85:0.6); } });
+    const ex=p31exit(); c.strokeStyle=C.pup; c.lineWidth=3; c.beginPath(); c.moveTo(X(ex.x),Y(ex.D/2)); c.lineTo(X(ex.x),Y(-ex.D/2)); c.stroke(); txt(c,'pupila de salida (ojo)',X(ex.x)-4,Y(-ex.D/2)+22,C.pup,'right','top');
+    txt(c,'haz axial',12,24,C.ray2,'left','top'); txt(c,'haz del borde de la luna (15,5′)',12,40,C.ray,'left','top');
+  } else if(S.pre==='p33'){ const L=el[0], film=el[1]; // rayos desde un punto del eje a distancia obj
+    for(let i=-4;i<=4;i++){ const yl=L.D/2*i/4, u=(yl-0)/(0-s.obj); const r=ray(s.obj,0,u,el,b); line(c,r.pts.map(p=>[X(p[0]),Y(p[1])]),C.ray,1.2,null,0.85); }
+    const vo=1/(1/5-1/P.obj33); c.fillStyle=C.img; c.beginPath(); c.arc(X(vo),cy,4,0,7); c.fill(); txt(c,'imagen del objeto',X(vo),cy+16,C.img,'center','top');
+    c.fillStyle=C.src; c.beginPath(); c.arc(X(Math.max(a+0.2,s.obj)),cy,4,0,7); c.fill(); if(s.obj<a) txt(c,`← objeto a ${fc(P.obj33,0)} cm`,X(a)+6,cy-8,C.src);
+  } else {
+    // rayos desde la punta del objeto, llenando la pupila de entrada
+    const st=stopInfo(); for(let i=-5;i<=5;i++){ const yE=st.ep.D/2*i/5, u=(yE-s.h)/(st.ep.x-s.obj); const r=ray(s.obj,s.h,u,el,b); line(c,r.pts.map(p=>[X(p[0]),Y(p[1])]),r.ok?C.ray:C.crit,1.2,null,r.ok?0.85:0.55);
+      if(r.ok&&ch.length&&!ch[ch.length-1].real){ const p=r.pts[r.pts.length-2]; line(c,[[X(p[0]),Y(p[1])],[X(a),Y(p[1]+r.u*(a-p[0]))]],C.vir,1,[3,4],0.35); } }
+    if(S.pre==='p29'){ [[st.ep,'pupila de entrada'],[st.xp,'pupila de salida']].forEach(([q,l],k)=>{ c.strokeStyle=C.pup; c.lineWidth=2.4; c.setLineDash(k?[4,3]:[]); c.beginPath(); c.moveTo(X(q.x),Y(q.D/2)); c.lineTo(X(q.x),Y(-q.D/2)); c.stroke(); c.setLineDash([]); txt(c,l,X(q.x),Y(-q.D/2)+14,C.pup,'center','top'); }); }
+    arrowV(c,X(s.obj),cy,Y(s.h||ym*0.3),C.src); txt(c,'objeto',X(s.obj),Y(s.h||ym*0.3)-6,C.src,'center');
+    ch.forEach((q,k)=>{ if(!isFinite(q.x)||q.x<a||q.x>b) return; const hh=Math.max(-ym,Math.min(ym,(s.h||0)*q.m)), fin=k===ch.length-1; arrowV(c,X(q.x),cy,Y(hh),fin?(q.real?C.img:C.vir):C.ray3,q.real?null:[4,3],fin?2.4:1.5); txt(c,fin?(q.real?'imagen real':'imagen virtual'):'I'+(k+1),X(q.x),Y(hh)+(hh<0?14:-4),fin?(q.real?C.img:C.vir):C.ray3,'center',hh<0?'top':'bottom'); }); }
+  legend(c,[['rayo cortado',C.crit],[`vertical ×${fc(scy/sc,1)}`,C.faint]],W-12,H-8);
+  $('clock').textContent='';
+}
+function axes(c,W,H,o){ const L0=56,R=16,T=32,B=32,pw=W-L0-R,ph=H-T-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); });
+  c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T+ph+4)); c.textAlign='right'; c.fillText(o.xl,L0+pw,T+ph+16); return {X,Y,L0,T,pw,ph}; }
+function nice(a,b,n=6){ const st=[0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100,200,500].find(s=>(b-a)/s<=n)||500, o=[]; for(let v=Math.ceil(a/st)*st; v<=b+1e-9; v+=st) o.push(+v.toFixed(6)); return o; }
+function series(id,x0,x1,fn,n=300){ const keep=P[id], out=[]; for(let i=0;i<=n;i++){ P[id]=x0+(x1-x0)*i/n; const y=fn(); if(isFinite(y)) out.push([P[id],y]); } P[id]=keep; return out; }
+function drawA(){
+  const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H);
+  const map={p28:['d28',1,60,()=>{ const s=sys(); return chain(s.obj,s.el)[1].m; },'separación (cm)','m total'],
+    p29:['h29',0,3.5,()=>{ const v=vign(); return v.n0?v.n/v.n0:NaN; },'altura del objeto (cm)','fracción del haz'],
+    p30:['g30',8,30,()=>(P.g30/0.4)*(25/3),'g (cm)','|M|'],
+    p31:['doc',0.5,6,()=>{ const s=sys(); const keep=s.ang; let ok=0,N=200; for(let i=0;i<=N;i++){ const y0=5*(2*i/N-1), u=-MOON/2; const r=ray(-12,y0-u*12,u,s.el); if(r.ok) ok++; } return ok/(N+1); },'diámetro del ocular (cm)','fracción del haz del borde'],
+    p32:['s32',22,200,()=>{ const s=sys(); return chain(s.obj,s.el)[1].m; },'distancia del objeto (cm)','m'],
+    p33:['obj33',30,1500,()=>blur33()*10,'distancia del objeto (cm)','c (mm)']}[S.pre];
+  const [id,x0,x1,fn,xl,yl]=map, pts=series(id,x0,x1,fn); let ys=pts.map(p=>p[1]); let y0=Math.min(0,...ys), y1=Math.max(...ys); if(S.pre==='p28'){ y0=Math.max(-20,y0); y1=Math.min(20,y1); } if(S.pre==='p32'){ y0=-0.5; y1=0.1; } if(y1-y0<1e-9){ y1+=1; } const pd=(y1-y0)*0.06; y0-=S.pre==='p32'?0:pd; y1+=pd;
+  const g=axes(c,W,H,{x0,x1,y0,y1,yt:nice(y0,y1,5),yf:v=>fc(v,Math.abs(v)<1?2:0),xt:nice(x0,x1),xf:v=>fc(v,v%1?1:0),xl}); CG={L0:g.L0,pw:g.pw,x0,x1};
+  c.save(); c.beginPath(); c.rect(g.L0,g.T,g.pw,g.ph); c.clip(); let seg=[], prev=null; pts.forEach(p=>{ if(prev!==null&&Math.abs(p[1]-prev)>(y1-y0)){ line(c,seg,C.img,2.2); seg=[]; } seg.push([g.X(p[0]),g.Y(p[1])]); prev=p[1]; }); line(c,seg,C.img,2.2); c.restore();
+  if(S.pre==='p29') line(c,[[g.X(p29max()),g.T],[g.X(p29max()),g.T+g.ph]],C.crit,1.2,[4,4]); if(S.pre==='p31') line(c,[[g.X(2*p31need()),g.T],[g.X(2*p31need()),g.T+g.ph]],C.crit,1.2,[4,4]); if(S.pre==='p33') line(c,[[g.L0,g.Y(0.03)],[g.L0+g.pw,g.Y(0.03)]],C.crit,1,[4,4]);
+  const cur=fn(); if(isFinite(cur)){ c.fillStyle=C.sys; c.beginPath(); c.arc(g.X(P[id]),g.Y(Math.max(y0,Math.min(y1,cur))),5,0,7); c.fill(); }
+  c.fillStyle=C.muted; c.textAlign='left'; c.textBaseline='top'; c.font=`11px ${css('--font-num')}`; c.fillText(yl,g.L0+6,g.T+4);
+}
+function drawB(){
+  const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H); const ans=answers(); c.font=`12px ${css('--font-ui')}`; let y=40;
+  ans.forEach(([k,v])=>{ c.fillStyle=C.muted; c.textAlign='left'; c.textBaseline='top'; c.font=`600 12px ${css('--font-ui')}`; c.fillText(k,16,y); c.fillStyle=C.fg; c.font=`12px ${css('--font-num')}`;
+    // corte de línea simple
+    const words=v.split(' '); let lineTxt='', yy=y+17; const maxW=W-32; words.forEach(w=>{ const t=lineTxt?lineTxt+' '+w:w; if(c.measureText(t).width>maxW){ c.fillText(lineTxt,16,yy); yy+=15; lineTxt=w; } else lineTxt=t; }); c.fillText(lineTxt,16,yy); y=yy+22; });
+}
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+setPre('p28');
+</script>
+</body>
+</html>

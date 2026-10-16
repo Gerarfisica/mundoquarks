@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Prisma y dispersión G4-P6</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --ray:#ffcf3a; --rojo:#ff5c3a; --viol:#b48cff; --lF:#36d4ff; --lD:#ffcf3a; --lC:#ff5c3a; --glass:#36d4ff; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:340px}
+#pa{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 4 · Prismas</span>
+  <h1>Prisma y dispersión <i>· desviación mínima, ángulo límite y colores</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 4">
+    <h2>Guía 4</h2>
+    <ol>
+      <li><a href="p1-fermat.html"><b class="code">P1–3</b>Principio de Fermat</a></li>
+      <li><a href="p4-lamina.html"><b class="code">P4, P14</b>Lámina de caras paralelas</a></li>
+      <li><a href="p5-cubo-fibra.html"><b class="code">P5</b>Cubo y fibra óptica</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6–9</b>Prisma y dispersión</a></li>
+      <li><a href="p10-espejos-planos.html"><b class="code">P10–12</b>Espejos planos</a></li>
+      <li><a href="p13-dioptra-plana.html"><b class="code">P13</b>Dioptra plana</a></li>
+      <li><a href="p15-dioptra-esferica.html"><b class="code">P15, P18</b>Dioptra y espejo esférico</a></li>
+      <li><a href="p16-sistemas-gruesos.html"><b class="code">P16, P17, P19</b>Sistemas gruesos</a></li>
+      <li><a href="p20-lente-delgada.html"><b class="code">P20–27</b>Lente delgada</a></li>
+      <li><a href="p28-instrumentos.html"><b class="code">P28–33</b>Dos lentes e instrumentos</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Rayos atravesando un prisma o una interfaz vidrio–aire"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p6" aria-pressed="true">P6 · desviación mínima</button>
+          <button class="chip" data-pre="p7">P7 · ángulo límite por color</button>
+          <button class="chip" data-pre="p8">P8 · rojo y violeta en el prisma</button>
+          <button class="chip" data-pre="p9">P9 · prisma de Crown, líneas F, D y C</button>
+        </div></div>
+      <div class="row"><button class="btn primary" id="go">Ir a la desviación mínima</button></div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="a" aria-pressed="true" id="vA">δ(θ₁)</button>
+          <button data-view="b" aria-pressed="false" id="vB">Prisma delgado</button>
+        </div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:260px"></canvas><div class="tag" id="tag-a"></div></div>
+        <div class="pcap" id="cap-a"></div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:260px"></canvas><div class="tag" id="tag-b"></div></div>
+        <div class="pcap" id="cap-b"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G4-P6 a P9</summary>
+      <p><b>6.</b> a) Calcule analíticamente el ángulo de desviación mínima del prisma. Justifique por qué es único. Grafique cualitativamente la desviación en función del ángulo de incidencia. b) Calcule la desviación mínima para prismas delgados. c) Si el prisma es delgado y el ángulo de incidencia es pequeño, calcule la desviación.</p>
+      <p><b>7.</b> Los índices de cierto vidrio para el rojo y el violeta son 1,51 y 1,53. Halle los ángulos límite para rayos que inciden en la superficie vidrio–aire. ¿Qué ocurre si un rayo de luz blanca incide formando 41° con dicha superficie?</p>
+      <p><b>8.</b> a) En un vidrio común se propaga luz blanca: ¿qué componente viaja más rápido, la roja o la violeta? b) ¿Para cuál será mayor la desviación en un prisma? ¿Qué puede decir del ángulo de desviación mínima?</p>
+      <p><b>9.</b> Prisma de Crown de ángulo α = 4°: calcule, para las líneas F, D y C, las desviaciones de rayos que inciden casi perpendicularmente. n<sub>F</sub> = 1,513; n<sub>D</sub> = 1,508; n<sub>C</sub> = 1,504.</p>
+      <p class="src">Física 2 (Físicos), Guía 4.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>P7: luz blanca dentro del vidrio llega a la cara con el aire formando 41° con la normal. Lo que sale al aire es…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="rojo">solo el rojo; el violeta se refleja todo</button>
+          <button class="opt" data-ans="viol">solo el violeta</button>
+          <button class="opt" data-ans="todo">todo, separado en colores</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo con 41°</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P6: encontrá a mano el ángulo de incidencia de desviación mínima (±0,1°) y comprobá que el rayo atraviesa el prisma simétrico.<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P7: elegí un ángulo para el que salga el rojo y el violeta se refleje totalmente.<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P9: elegí el ángulo del prisma para que, a incidencia normal, las líneas F y C salgan separadas 0,1° (±0,002°).<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Trazado exacto con Snell en forma vectorial en cada cara del prisma; la desviación sale del ángulo entre el rayo que entra y el que sale. Fórmulas: θ₂ = arcsen(sen θ₁/n), θ₃ = A − θ₂, θ₄ = arcsen(n sen θ₃), δ = θ₁ + θ₄ − A. Si n sen θ₃ &gt; 1 el rayo se refleja totalmente en la segunda cara y no sale. Colores: rojo n = 1,51 y violeta n = 1,53 (P7–P8); C, D y F según el P9.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--ray','--rojo','--viol','--lF','--lD','--lC','--glass','--ok','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI, D=180/PI;
+const P={A:60, n:1.5, th:40, t7:41, A9:4, th9:0};
+const DEF=[
+  {id:'A',lab:'ángulo del prisma A',unit:'°',min:10,max:80,step:0.1,pre:['p6','p8']},
+  {id:'n',lab:'n',unit:'',min:1.1,max:2,step:0.001,pre:['p6']},
+  {id:'th',lab:'θ₁ incidencia',unit:'°',min:0,max:89.9,step:0.05,pre:['p6','p8']},
+  {id:'t7',lab:'ángulo de incidencia en la cara (desde el vidrio)',unit:'°',min:0,max:89,step:0.01,pre:['p7']},
+  {id:'A9',lab:'ángulo del prisma α',unit:'°',min:1,max:20,step:0.01,pre:['p9']},
+  {id:'th9',lab:'θ₁ incidencia',unit:'°',min:0,max:20,step:0.01,pre:['p9']},
+];
+const COL={p6:()=>[['n',P.n,C.ray]], p7:()=>[['rojo',1.51,C.rojo],['violeta',1.53,C.viol]], p8:()=>[['rojo',1.51,C.rojo],['violeta',1.53,C.viol]], p9:()=>[['C',1.504,C.lC],['D',1.508,C.lD],['F',1.513,C.lF]]};
+const S={pre:'p6',view:'a'};
+const Ap=()=>(S.pre==='p9'?P.A9:P.A)/D, Th=()=>(S.pre==='p9'?P.th9:P.th)/D;
+// fórmulas
+function prism(n,A,th1){ const t2=Math.asin(Math.sin(th1)/n), t3=A-t2, s4=n*Math.sin(t3); if(Math.abs(s4)>1) return {t2,t3,tir:true,d:NaN}; const t4=Math.asin(s4); return {t2,t3,t4,tir:false,d:th1+t4-A}; }
+const thMin=(n,A)=>Math.asin(Math.min(1,n*Math.sin(A/2))), dMin=(n,A)=>2*thMin(n,A)-A;
+// trazado vectorial
+const rot=(v,a)=>[v[0]*Math.cos(a)-v[1]*Math.sin(a),v[0]*Math.sin(a)+v[1]*Math.cos(a)], nz=v=>{ const l=Math.hypot(v[0],v[1]); return [v[0]/l,v[1]/l]; }, dot=(a,b)=>a[0]*b[0]+a[1]*b[1];
+function refr(d,nn,eta){ let n=nn; let ci=-dot(n,d); if(ci<0){ n=[-n[0],-n[1]]; ci=-ci; } const k=1-eta*eta*(1-ci*ci); if(k<0) return null; return nz([eta*d[0]+(eta*ci-Math.sqrt(k))*n[0], eta*d[1]+(eta*ci-Math.sqrt(k))*n[1]]); }
+function hitSeg(p,d,a,b){ const e=[b[0]-a[0],b[1]-a[1]], den=d[0]*(-e[1])-d[1]*(-e[0]); if(Math.abs(den)<1e-14) return null; const w=[a[0]-p[0],a[1]-p[1]]; const t=(w[0]*(-e[1])-w[1]*(-e[0]))/den, s=(d[0]*w[1]-d[1]*w[0])/den; return (t>1e-9&&s>=0&&s<=1)?[t,s]:null; }
+function geom(A){ const h=1, b=h*Math.tan(A/2); return {V:[0,h],L:[-b,0],R:[b,0]}; }
+function traceV(n,A,th1){ const g=geom(A), eL=nz([g.V[0]-g.L[0],g.V[1]-g.L[1]]), nL=[-eL[1],eL[0]]; // normal exterior izquierda
+  const din=rot([-nL[0],-nL[1]],th1), p0=[g.L[0]+0.42*(g.V[0]-g.L[0]),g.L[1]+0.42*(g.V[1]-g.L[1])];
+  const d1=refr(din,nL,1/n); const eR=nz([g.R[0]-g.V[0],g.R[1]-g.V[1]]), nR=[-eR[1],eR[0]];
+  let h=hitSeg(p0,d1,g.V,g.R), face='R'; let hb=hitSeg(p0,d1,g.R,g.L); if(!h||(hb&&hb[0]<h[0])){ h=hb; face='base'; }
+  if(!h) return null; const p1=[p0[0]+h[0]*d1[0],p0[1]+h[0]*d1[1]]; if(face==='base') return {p0,p1,din,d1,base:true};
+  const d2=refr(d1,nR,n); if(!d2){ return {p0,p1,din,d1,tir:true}; }
+  const dev=Math.acos(Math.max(-1,Math.min(1,dot(din,d2)))); return {p0,p1,din,d1,d2,dev}; }
+
+const pEl=$('params');
+DEF.forEach(d=>{
+  const el=document.createElement('div'); el.className='param'; el.dataset.pre=d.pre.join(' ');
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el);
+  const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; P[d.id]=val; sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelectorAll('.param').forEach(p=>p.hidden=!p.dataset.pre.split(' ').includes(S.pre));
+  $('go').hidden=S.pre==='p7'||S.pre==='p9'; $('vA').textContent=S.pre==='p7'?'Ángulo de salida':'δ(θ₁)'; $('vB').textContent=S.pre==='p7'?'Ángulo límite y n':'Prisma delgado'; }
+function setPre(k){ S.pre=k; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+$('go').onclick=()=>{ const n=S.pre==='p6'?P.n:1.52; P.th=+(thMin(n,P.A/D)*D).toFixed(2); sync(); refresh(); };
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+let CG=null; $('pa').addEventListener('pointerdown',e=>{ if(!CG) return; const r=e.currentTarget.getBoundingClientRect(), v=CG.x0+Math.min(1,Math.max(0,(e.clientX-r.left-CG.L0)/CG.pw))*(CG.x1-CG.x0);
+  if(S.pre==='p7') P.t7=+v.toFixed(2); else if(S.pre==='p9') P.th9=+v.toFixed(2); else P.th=+Math.min(89.9,v).toFixed(2); sync(); refresh(); });
+
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>f(x,d).replace('.',',');
+function refresh(){
+  const cols=COL[S.pre]();
+  if(S.pre==='p7'){ const t=P.t7/D;
+    $('readout').innerHTML=cols.map(([lab,n,col])=>{ const tc=Math.asin(1/n)*D, s=n*Math.sin(t); return `<span><span class="k">${lab}</span> <span style="color:${col}">límite ${fc(tc,2)}° · ${s>1?'reflexión total':'sale a '+fc(Math.asin(s)*D,2)+'°'}</span></span>`; }).join('');
+    $('formula').innerHTML=`<span class="k">θ_c = arcsen(1/n): el violeta (n mayor) tiene ángulo límite menor y es el primero en quedar atrapado</span>`;
+  } else { const A=Ap(), th=Th();
+    $('readout').innerHTML=cols.map(([lab,n,col])=>{ const r=prism(n,A,th); return `<span><span class="k">${lab}</span> <span style="color:${col}">${r.tir?'reflexión total en la 2.ª cara':'δ = '+fc(r.d*D,S.pre==='p9'?4:2)+'°'}</span> <span class="k">(δ_min ${fc(dMin(n,A)*D,S.pre==='p9'?4:2)}° en θ₁ = ${fc(thMin(n,A)*D,2)}°)</span></span>`; }).join('');
+    const n0=cols[0][1], r0=prism(n0,A,th);
+    $('formula').innerHTML= S.pre==='p9'? `<span class="k">prisma delgado, incidencia casi normal: δ ≈ (n − 1)α → F ${fc((1.513-1)*P.A9,4)}°, D ${fc((1.508-1)*P.A9,4)}°, C ${fc((1.504-1)*P.A9,4)}° · F − C = </span>${fc((prism(1.513,A,th).d-prism(1.504,A,th).d)*D,4)}°`
+      : `<span class="k">θ₂ = </span>${fc(r0.t2*D,2)}°<span class="k"> · θ₃ = A − θ₂ = </span>${fc(r0.t3*D,2)}°${r0.tir?'':`<span class="k"> · θ₄ = </span>${fc(r0.t4*D,2)}°`}<span class="k"> · en el mínimo θ₂ = θ₃ = A/2 (simétrico)</span>`; }
+  $('tag-a').textContent= S.pre==='p7'? 'Ángulo de salida al aire en función del ángulo de incidencia, por color · tocá para elegir' : 'Desviación δ en función de θ₁ · tocá para elegir θ₁';
+  $('cap-a').textContent= S.pre==='p7'? 'Cada curva termina en su ángulo límite: ahí el rayo sale rasante y, pasado ese ángulo, se refleja todo.' : S.pre==='p9'? 'Para un prisma delgado δ casi no depende de θ₁ cerca de la incidencia normal: vale (n − 1)α.' : 'La curva tiene un único mínimo: si hubiera dos θ₁ con la misma δ mínima, por reversibilidad del camino de la luz habría otro mínimo en θ₄, y no puede haber dos. Ahí el rayo pasa simétrico.';
+  $('tag-b').textContent= S.pre==='p7'? 'Ángulo límite en función de n' : 'δ_min exacta y aproximación de prisma delgado (n − 1)A';
+  $('cap-b').textContent= S.pre==='p7'? 'Un poco más de n alcanza para cambiar el ángulo límite en más de medio grado: el violeta queda atrapado antes.' : 'Para A chico la desviación mínima es (n − 1)A; con A de 60° el error ya es de varios grados.';
+  draw(); renderCuentas(false); updateChal();
+}
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  P.t7=41; setPre('p7'); setView('a');
+  document.querySelector('#pred-opts [data-ans=rojo]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='rojo'?'<b>Exacto.</b> ':'<b>Mirá los límites.</b> ')+`Rojo: θ_c = arcsen(1/1,51) = 41,47°. Violeta: θ_c = arcsen(1/1,53) = 40,81°. A 41° el rojo todavía sale (casi rasante, a ${fc(Math.asin(1.51*Math.sin(41/D))*D,1)}°) y el violeta ya se refleja todo: el haz que sale es rojizo y el reflejado queda enriquecido en violeta.`;
+  $('pred-go').hidden=true;
+};
+function sep9(){ const A=P.A9/D, th=P.th9/D; return (prism(1.513,A,th).d-prism(1.504,A,th).d)*D; }
+function updateChal(){
+  if(S.pre==='p6'&&Math.abs(P.th-thMin(P.n,P.A/D)*D)<0.1) S.d1=true;
+  $('c1').textContent= S.d1? `Logrado: θ₁ = arcsen(n sen(A/2)) = ${fc(thMin(P.n,P.A/D)*D,2)}°, θ₂ = θ₃ = A/2 y δ_min = 2θ₁ − A = ${fc(dMin(P.n,P.A/D)*D,2)}°.` : (S.pre==='p6'?`Ahora θ₁ = ${fc(P.th,2)}°, δ = ${fc(prism(P.n,P.A/D,P.th/D).d*D,3)}°`:'Elegí el P6');
+  $('c1').classList.toggle('done',!!S.d1);
+  if(S.pre==='p7'&&P.t7>Math.asin(1/1.53)*D&&P.t7<Math.asin(1/1.51)*D) S.d2=true;
+  $('c2').textContent= S.d2? 'Logrado: cualquier ángulo entre 40,81° y 41,47°. Es una ventana de apenas 0,66°: así se separan colores por reflexión total.' : (S.pre==='p7'?`Ahora ${fc(P.t7,2)}°`:'Elegí el P7');
+  $('c2').classList.toggle('done',!!S.d2);
+  if(S.pre==='p9'&&P.th9<1&&Math.abs(sep9()-0.1)<0.002) S.d3=true;
+  $('c3').textContent= S.d3? `Logrado: α ≈ ${fc(P.A9,2)}°. Con prisma delgado, Δδ = (n_F − n_C)α = 0,009α: hace falta α ≈ 11,1°.` : (S.pre==='p9'?`Ahora F − C = ${fc(sep9(),4)}° (con θ₁ < 1°)`:'Elegí el P9');
+  $('c3').classList.toggle('done',!!S.d3);
+}
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps, fin;
+    if(S.pre==='p7'){ $('cu-title').textContent='P7 paso a paso';
+      steps=[['Reflexión total cuando el ángulo de refracción llegaría a 90°', `\\[n\\operatorname{sen}\\theta_c=1\\ \\Rightarrow\\ \\theta_c=\\arcsen\\frac1n\\]`],
+        ['Para cada color', `\\[\\theta_c^{\\text{rojo}}=\\arcsen\\frac1{1{,}51}=41{,}47^\\circ,\\qquad \\theta_c^{\\text{violeta}}=\\arcsen\\frac1{1{,}53}=40{,}81^\\circ\\]`],
+        ['A 41°: sale el rojo, el violeta se refleja todo', `\\[40{,}81^\\circ<41^\\circ<41{,}47^\\circ\\]`]];
+      fin=`\\[\\theta=${f(P.t7,2)}^\\circ:\\ \\text{rojo }${1.51*Math.sin(P.t7/D)>1?'\\text{reflexión total}':'\\text{sale a }'+f(Math.asin(1.51*Math.sin(P.t7/D))*D,2)+'^\\circ'},\\ \\ \\text{violeta }${1.53*Math.sin(P.t7/D)>1?'\\text{reflexión total}':'\\text{sale a }'+f(Math.asin(1.53*Math.sin(P.t7/D))*D,2)+'^\\circ'}\\]`;
+    } else if(S.pre==='p9'){ $('cu-title').textContent='P9 paso a paso';
+      steps=[['Prisma delgado e incidencia casi normal: todos los senos se aproximan por sus ángulos', `\\[\\theta_1\\approx n\\theta_2,\\quad \\theta_4\\approx n\\theta_3,\\quad \\delta=\\theta_1+\\theta_4-\\alpha\\approx n(\\theta_2+\\theta_3)-\\alpha=(n-1)\\alpha\\]`],
+        ['Con α = 4°', `\\[\\delta_F=0{,}513\\cdot4^\\circ=2{,}052^\\circ,\\quad \\delta_D=2{,}032^\\circ,\\quad \\delta_C=2{,}016^\\circ\\]`],
+        ['La dispersión angular entre F y C', `\\[\\delta_F-\\delta_C=(n_F-n_C)\\alpha=0{,}036^\\circ\\]`]];
+      fin=`\\[\\text{exacto con }\\alpha=${f(P.A9,2)}^\\circ,\\ \\theta_1=${f(P.th9,2)}^\\circ:\\ \\delta_F=${f(prism(1.513,P.A9/D,P.th9/D).d*D,4)}^\\circ,\\ \\delta_D=${f(prism(1.508,P.A9/D,P.th9/D).d*D,4)}^\\circ,\\ \\delta_C=${f(prism(1.504,P.A9/D,P.th9/D).d*D,4)}^\\circ\\]`;
+    } else { const n=S.pre==='p6'?P.n:1.51, A=P.A/D; $('cu-title').textContent=(S.pre==='p6'?'P6':'P8')+' paso a paso';
+      steps=[['Dos refracciones y la geometría del prisma', `\\[\\operatorname{sen}\\theta_1=n\\operatorname{sen}\\theta_2,\\quad \\theta_2+\\theta_3=A,\\quad n\\operatorname{sen}\\theta_3=\\operatorname{sen}\\theta_4,\\quad \\delta=\\theta_1+\\theta_4-A\\]`],
+        ['Mínimo: dδ/dθ₁ = 0 ⇒ dθ₄/dθ₁ = −1, y con la simetría de las dos refracciones θ₂ = θ₃ = A/2', `\\[\\operatorname{sen}\\frac{\\delta_{\\min}+A}{2}=n\\operatorname{sen}\\frac A2\\]`],
+        ['b) Prisma delgado: senos ≈ ángulos', `\\[\\delta_{\\min}\\approx(n-1)A\\]`],
+        ['P8: en el vidrio n_violeta > n_rojo, así que v = c/n es mayor para el rojo; el violeta se desvía más y su δ_min también es mayor', `\\[v_{\\text{rojo}}=\\frac{c}{1{,}51}>v_{\\text{violeta}}=\\frac{c}{1{,}53}\\]`]];
+      fin=`\\[n=${f(n,3)},\\ A=${f(P.A,1)}^\\circ:\\ \\ \\delta_{\\min}=${f(dMin(n,A)*D,3)}^\\circ\\ \\text{en}\\ \\theta_1=${f(thMin(n,A)*D,2)}^\\circ;\\ \\ (n-1)A=${f((n-1)*P.A,3)}^\\circ\\]`;
+    }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function legend(c,items,x,y){ c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; items.forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,x,y); x-=c.measureText(s).width+14; }); }
+function txt(c,s,x,y,col,al='left',bl='bottom'){ c.font=`600 12px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+function drawScene(){
+  const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H);
+  const cols=COL[S.pre]();
+  if(S.pre==='p7'){ const R=Math.min(H*0.42,W*0.3), cx=W/2, cy=H*0.55, t=P.t7/D;
+    c.fillStyle=C.glass; c.globalAlpha=0.12; c.beginPath(); c.arc(cx,cy,R,0,PI); c.closePath(); c.fill(); c.globalAlpha=1; c.strokeStyle=C.glass; c.lineWidth=1.4; c.beginPath(); c.arc(cx,cy,R,0,PI); c.closePath(); c.stroke();
+    c.strokeStyle=C.faint; c.setLineDash([3,3]); c.beginPath(); c.moveTo(cx,cy-R*0.8); c.lineTo(cx,cy+R); c.stroke(); c.setLineDash([]);
+    const src=[cx-R*Math.sin(t),cy+R*Math.cos(t)]; line(c,[src,[cx,cy]],C.fg,2.6);
+    cols.forEach(([lab,n,col],i)=>{ const s=n*Math.sin(t); line(c,[[cx,cy],[cx+R*Math.sin(t),cy+R*Math.cos(t)]],col,s>1?2.4:1.2,null,s>1?1:0.5);
+      if(s<=1){ const a=Math.asin(s); line(c,[[cx,cy],[cx+R*1.1*Math.sin(a),cy-R*1.1*Math.cos(a)]],col,2.2); } });
+    txt(c,'aire',12,cy-10,C.muted); txt(c,'vidrio',12,cy+20,C.glass); txt(c,'luz blanca',src[0]-6,src[1]+14,C.fg,'right','top');
+    legend(c,cols.map(([l,n,col])=>[l,col]).reverse(),W-12,H-8);
+  } else { const A=Ap(), th=Th(), g=geom(A), sc=Math.min((H-60)/1.15,(W*0.32)/Math.max(0.25,2*g.R[0])), ox=W*0.42, oy=H-40, T=p=>[ox+p[0]*sc,oy-p[1]*sc];
+    c.fillStyle=C.glass; c.globalAlpha=0.12; c.beginPath(); [g.L,g.V,g.R].forEach((p,i)=>{ const q=T(p); i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]); }); c.closePath(); c.fill(); c.globalAlpha=1; c.strokeStyle=C.glass; c.lineWidth=1.5; c.stroke();
+    const far=S.pre==='p9'?4000:1.2; let spots=[];
+    cols.forEach(([lab,n,col],i)=>{ const r=traceV(n,A,th); if(!r) return; if(i===0) line(c,[T([r.p0[0]-1.4*r.din[0],r.p0[1]-1.4*r.din[1]]),T(r.p0)],C.fg,2.4);
+      line(c,[T(r.p0),T(r.p1)],col,1.8,null,0.9);
+      if(r.d2){ const e=[r.p1[0]+far*r.d2[0],r.p1[1]+far*r.d2[1]]; line(c,[T(r.p1),T([r.p1[0]+1.6*r.d2[0],r.p1[1]+1.6*r.d2[1]])],col,2.2); spots.push([lab,col,r]); }
+      else if(r.tir) txt(c,`${lab}: reflexión total`,T(r.p1)[0]+8,T(r.p1)[1],col); });
+    if(S.pre==='p9'&&spots.length){ // pantalla lejana: posiciones relativas ampliadas
+      const L=1000, ref=spots[1]||spots[0], ang=r=>Math.atan2(r.d2[1],r.d2[0]); const x0=W-120, y0=60, hgt=H-120; c.strokeStyle=C.line; c.strokeRect(x0,y0,24,hgt); txt(c,'pantalla a 1 m',x0+12,y0-6,C.muted,'center');
+      spots.forEach(([lab,col,r])=>{ const dy=(ang(r)-ang(ref.length?ref[2]:ref[2]))*L; const y=y0+hgt/2-dy*100; c.fillStyle=col; c.fillRect(x0,y-2,24,4); txt(c,`${lab} ${dy>=0?'+':''}${fc(dy,2)} mm`,x0+30,y+4,col); });
+      txt(c,'(respecto de D, ampliado ×100)',x0+12,y0+hgt+16,C.faint,'center','top'); }
+    txt(c,`A = ${fc(A*D,2)}°`,T(g.V)[0]+10,T(g.V)[1]+16,C.glass);
+    legend(c,cols.map(([l,n,col])=>[S.pre==='p6'?'n = '+fc(n,3):l,col]).reverse(),W-12,H-8); }
+  $('clock').textContent='';
+}
+function axes(c,W,H,o){ const L0=56,R=16,T=32,B=32,pw=W-L0-R,ph=H-T-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); });
+  c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T+ph+4)); c.textAlign='right'; c.fillText(o.xl,L0+pw,T+ph+16); return {X,Y,L0,T,pw,ph}; }
+function nice(a,b,n=5){ const st=[0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20].find(s=>(b-a)/s<=n)||20, o=[]; for(let v=Math.ceil(a/st)*st; v<=b+1e-9; v+=st) o.push(+v.toFixed(6)); return o; }
+function drawA(){
+  const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const cols=COL[S.pre]();
+  if(S.pre==='p7'){ const g=axes(c,W,H,{x0:30,x1:45,y0:0,y1:90,yt:[0,30,60,90],yf:v=>v+'°',xt:[30,35,40,45],xf:v=>v+'°',xl:'θ en el vidrio'}); CG={L0:g.L0,pw:g.pw,x0:30,x1:45};
+    cols.forEach(([l,n,col])=>{ const pts=[]; for(let i=0;i<=400;i++){ const t=30+15*i/400, s=n*Math.sin(t/D); if(s<=1) pts.push([g.X(t),g.Y(Math.asin(s)*D)]); } line(c,pts,col,2.2); const tc=Math.asin(1/n)*D; c.strokeStyle=col; c.setLineDash([3,3]); c.beginPath(); c.moveTo(g.X(tc),g.T); c.lineTo(g.X(tc),g.T+g.ph); c.stroke(); c.setLineDash([]); });
+    c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.moveTo(g.X(P.t7),g.T); c.lineTo(g.X(P.t7),g.T+g.ph); c.stroke(); return; }
+  const A=Ap(), x1=S.pre==='p9'?20:90; const ser=cols.map(([l,n,col])=>{ const pts=[]; for(let i=0;i<=400;i++){ const t=x1*i/400, r=prism(n,A,t/D); if(!r.tir) pts.push([t,r.d*D]); } return [pts,col,n]; });
+  const all=ser.flatMap(s=>s[0].map(p=>p[1])); let y0=Math.min(...all), y1=Math.max(...all); if(S.pre!=='p9'){ y1=Math.min(y1,y0+60); } const pad=(y1-y0)*0.08+1e-3; y0-=pad; y1+=pad;
+  const g=axes(c,W,H,{x0:0,x1,y0,y1,yt:nice(y0,y1),yf:v=>fc(v,S.pre==='p9'?3:0)+'°',xt:nice(0,x1,6),xf:v=>v+'°',xl:'θ₁'}); CG={L0:g.L0,pw:g.pw,x0:0,x1};
+  c.save(); c.beginPath(); c.rect(g.L0,g.T,g.pw,g.ph); c.clip(); ser.forEach(([pts,col,n])=>{ line(c,pts.map(p=>[g.X(p[0]),g.Y(p[1])]),col,2.2); const tm=thMin(n,A)*D; if(tm<x1){ c.fillStyle=col; c.beginPath(); c.arc(g.X(tm),g.Y(dMin(n,A)*D),3.5,0,7); c.fill(); } }); c.restore();
+  const th=Th()*D; c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.moveTo(g.X(th),g.T); c.lineTo(g.X(th),g.T+g.ph); c.stroke();
+}
+function drawB(){
+  const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H);
+  if(S.pre==='p7'){ const g=axes(c,W,H,{x0:1.3,x1:2,y0:25,y1:55,yt:[30,40,50],yf:v=>v+'°',xt:[1.3,1.4,1.5,1.6,1.7,1.8,1.9,2],xf:v=>fc(v,1),xl:'n'});
+    const pts=[]; for(let i=0;i<=200;i++){ const n=1.3+0.7*i/200; pts.push([g.X(n),g.Y(Math.asin(1/n)*D)]); } line(c,pts,C.fg,2);
+    COL.p7().forEach(([l,n,col])=>{ c.fillStyle=col; c.beginPath(); c.arc(g.X(n),g.Y(Math.asin(1/n)*D),5,0,7); c.fill(); }); return; }
+  const n=S.pre==='p6'?P.n:S.pre==='p9'?1.508:1.51, g=axes(c,W,H,{x0:0,x1:80,y0:0,y1:Math.min(90,dMin(n,80/D)*D*1.1||90),yt:[0,20,40,60,80].filter(v=>v<=90),yf:v=>v+'°',xt:[0,20,40,60,80],xf:v=>v+'°',xl:'A'});
+  const a=[],b=[]; for(let i=1;i<=300;i++){ const A=80*i/300; const dm=dMin(n,A/D)*D; if(n*Math.sin(A/2/D)<=1) a.push([g.X(A),g.Y(dm)]); b.push([g.X(A),g.Y((n-1)*A)]); } line(c,a,C.ray,2.2); line(c,b,C.faint,1.4,[5,4]);
+  const Ac=Ap()*D; c.fillStyle=C.sys; c.beginPath(); c.arc(g.X(Ac),g.Y(dMin(n,Ap())*D),5,0,7); c.fill();
+  legend(c,[['- - (n − 1)A',C.faint],[`δ_min exacta, n = ${fc(n,3)}`,C.ray]],g.L0+g.pw,g.T-8);
+}
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+setPre('p6');
+</script>
+</body>
+</html>

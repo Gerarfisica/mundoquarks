@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Lente delgada G4-P20</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+:root{ --ray:#ffcf3a; --glass:#36d4ff; --src:#ff5c3a; --img:#34e08a; --vir:#ff7ad9; --med:#36d4ff; --r1:#ffcf3a; --r2:#36d4ff; --r3:#b48cff; }
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:340px}
+#pa{cursor:crosshair}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 4 · Lente delgada</span>
+  <h1>Lente delgada <i>· ecuación, 4f, lentes sumergidas, lupa y aberración</i></h1>
+  <a class="mq-back" href="../../fisica2.html">← Física 2</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 4">
+    <h2>Guía 4</h2>
+    <ol>
+      <li><a href="p1-fermat.html"><b class="code">P1–3</b>Principio de Fermat</a></li>
+      <li><a href="p4-lamina.html"><b class="code">P4, P14</b>Lámina de caras paralelas</a></li>
+      <li><a href="p5-cubo-fibra.html"><b class="code">P5</b>Cubo y fibra óptica</a></li>
+      <li><a href="p6-prisma.html"><b class="code">P6–9</b>Prisma y dispersión</a></li>
+      <li><a href="p10-espejos-planos.html"><b class="code">P10–12</b>Espejos planos</a></li>
+      <li><a href="p13-dioptra-plana.html"><b class="code">P13</b>Dioptra plana</a></li>
+      <li><a href="p15-dioptra-esferica.html"><b class="code">P15, P18</b>Dioptra y espejo esférico</a></li>
+      <li><a href="p16-sistemas-gruesos.html"><b class="code">P16, P17, P19</b>Sistemas gruesos</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P20–27</b>Lente delgada</a></li>
+      <li><a href="p28-instrumentos.html"><b class="code">P28–33</b>Dos lentes e instrumentos</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Lente delgada con objeto, rayos principales e imagen"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Problema</div>
+        <div class="chips" id="pre">
+          <button class="chip" data-pre="p20" aria-pressed="true">P20 · ecuación y 4f</button>
+          <button class="chip" data-pre="p21">P21 · lentes concretas</button>
+          <button class="chip" data-pre="p22">P22 · la luna</button>
+          <button class="chip" data-pre="p23">P23 · objeto y pantalla</button>
+          <button class="chip" data-pre="p24">P24–25 · en otros medios</button>
+          <button class="chip" data-pre="p27">P27 · lupa</button>
+        </div></div>
+      <div class="row" id="cases" hidden><div class="chips" id="case">
+        <button class="chip" data-c="a" aria-pressed="true">a) plano-cóncava</button>
+        <button class="chip" data-c="b1">b) biconvexa, aire | líquido 1,7</button>
+        <button class="chip" data-c="b2">b i) en aire</button>
+        <button class="chip" data-c="b3">b ii) en líquido 1,7</button>
+      </div></div>
+      <div class="row"><label class="lbl" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="exact" checked> rayos exactos (lente de espesor real)</label></div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="a" aria-pressed="true" id="vA">s′ vs s</button>
+          <button data-view="b" aria-pressed="false">P26 · exacto vs paraxial</button>
+        </div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:270px"></canvas><div class="tag" id="tag-a"></div></div>
+        <div class="pcap" id="cap-a"></div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:270px"></canvas><div class="tag">Rayos exactos según su altura y</div></div>
+        <div class="pcap" id="cap-b"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G4-P20 a P27</summary>
+      <p><b>20.</b> a) Con dos dioptras muy próximas deduzca la ecuación de las lentes delgadas. b) ¿De qué depende la convergencia? c) Grafique s′ vs s para lentes convergentes y divergentes; aumento, objeto en el foco y en el infinito. d) ¿Pueden ser iguales en módulo los focos? e) Demuestre que la menor distancia objeto–imagen es 4f si la lente está en un único medio. f) Dibuje los frentes de onda.</p>
+      <p><b>21.</b> a) Focal y potencia de una plano–cóncava (n = 1,5, R = 10 cm). b) Biconvexa R₁ = R₂ = 10 cm, n = 1,5, con aire de un lado y un líquido de 1,7 del otro: focales, ¿convergente o divergente? Ídem i) en aire, ii) en el líquido.</p>
+      <p><b>22.</b> La luna subtiende 31′08″. ¿Qué tamaño tiene su imagen a través de una lente convergente de 1 m de focal?</p>
+      <p><b>23.</b> a) Objeto a 18 cm de una pantalla: ¿dónde poner una lente de f = 4 cm para tener imagen en la pantalla? b) Una lente de f = 16 cm da imagen nítida en dos posiciones separadas 60 cm: ¿distancia objeto–pantalla?</p>
+      <p><b>24.</b> Focal de una lente sumergida en agua, si en aire es 20 cm y n = 1,6. <b>25.</b> Lente entre dos medios, n &gt; n₁ &gt; n₂: ¿por qué punto del eje debe pasar un rayo para no desviarse? <b>26.</b> Fermat y caminos ópticos entre puntos conjugados. <b>27.</b> a) Radio de una lupa equiconvexa (n = 1,5) de aumento 10X; b) aumento con la imagen a la distancia de visión clara.</p>
+      <p class="src">Física 2 (Físicos), Guía 4.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>P24: una lente de vidrio (n = 1,6) tiene focal 20 cm en el aire. Sumergida en agua, su focal…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="mas">se alarga mucho (casi el triple)</button>
+          <button class="opt" data-ans="igual">no cambia: depende solo de la forma</button>
+          <button class="opt" data-ans="menos">se acorta</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> P23 a: encontrá las dos posiciones de la lente que dan imagen nítida en la pantalla.<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> P20 e: ubicá el objeto para que la distancia objeto–imagen real sea la mínima posible (±1 %).<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> P27: diseñá la lupa equiconvexa de 10X (imagen en el infinito, 25 cm de visión clara): elegí R (±0,02 cm).<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Lente delgada entre medios n₁ (izquierda) y n₂ (derecha): potencia P = (n_L − n₁)/R₁ + (n₂ − n_L)/R₂, f′ = n₂/P, f = −n₁/P, ecuación n₂/s′ − n₁/s = P y aumento m = n₁s′/(n₂s). Convención cartesiana (todo positivo a la derecha de la lente; objetos reales en s &lt; 0). Los rayos amarillos se trazan en forma exacta por una lente de espesor real (el mínimo para que el borde tenga 1 mm); las flechas y los rayos principales son paraxiales.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--ray','--glass','--src','--img','--vir','--med','--r1','--r2','--r3','--ok','--crit'].forEach(k=>C[k.slice(2)]=css(k));
+const PI=Math.PI;
+const P={R1:20, R2:-20, nL:1.5, n1:1, n2:1, s:-30, h:2, ap:4, D23:18, x23:5, f23:4, Rl:5};
+const DEF=[
+  {id:'R1',lab:'R₁ (1.ª cara)',unit:'cm',min:-60,max:60,step:0.1,pre:['p20','p24']},
+  {id:'R2',lab:'R₂ (2.ª cara)',unit:'cm',min:-60,max:60,step:0.1,pre:['p20','p24']},
+  {id:'nL',lab:'n de la lente',unit:'',min:1.2,max:2,step:0.001,pre:['p20','p24']},
+  {id:'n1',lab:'n₁ (izquierda)',unit:'',min:1,max:1.8,step:0.001,pre:['p24']},
+  {id:'n2',lab:'n₂ (derecha)',unit:'',min:1,max:1.8,step:0.001,pre:['p24']},
+  {id:'s',lab:'objeto en s',unit:'cm',min:-100,max:40,step:0.1,pre:['p20','p21','p24']},
+  {id:'h',lab:'altura del objeto',unit:'cm',min:-5,max:5,step:0.01,pre:['p20','p21','p24']},
+  {id:'ap',lab:'abertura (rayos exactos)',unit:'cm',min:0.3,max:8,step:0.01,pre:['p20','p21','p24','p22']},
+  {id:'D23',lab:'distancia objeto–pantalla',unit:'cm',min:5,max:120,step:0.1,pre:['p23']},
+  {id:'f23',lab:'focal de la lente',unit:'cm',min:1,max:40,step:0.01,pre:['p23']},
+  {id:'x23',lab:'lente a esta distancia del objeto',unit:'cm',min:0.5,max:119,step:0.01,pre:['p23']},
+  {id:'Rl',lab:'radio de la lupa equiconvexa',unit:'cm',min:0.5,max:20,step:0.01,pre:['p27']},
+];
+const S={pre:'p20',view:'a',cs:'a',seen23:{}};
+const CASES={a:{R1:Infinity,R2:10,nL:1.5,n1:1,n2:1},b1:{R1:10,R2:-10,nL:1.5,n1:1,n2:1.7},b2:{R1:10,R2:-10,nL:1.5,n1:1,n2:1},b3:{R1:10,R2:-10,nL:1.5,n1:1.7,n2:1.7}};
+// lente actual según el problema
+function lens(){ if(S.pre==='p21') return CASES[S.cs];
+  if(S.pre==='p22') return {R1:100,R2:-100,nL:1.5,n1:1,n2:1};             // f = 100 cm
+  if(S.pre==='p23'){ const R=2*0.5*P.f23; return {R1:R,R2:-R,nL:1.5,n1:1,n2:1}; }
+  if(S.pre==='p27') return {R1:P.Rl,R2:-P.Rl,nL:1.5,n1:1,n2:1};
+  if(S.pre==='p24') return {R1:P.R1,R2:P.R2,nL:P.nL,n1:P.n1,n2:P.n2};
+  return {R1:P.R1,R2:P.R2,nL:P.nL,n1:1,n2:1}; }
+const inv=R=>isFinite(R)?1/R:0;
+function power(L=lens()){ return (L.nL-L.n1)*inv(L.R1)+(L.n2-L.nL)*inv(L.R2); }
+const fp=(L=lens())=>{ const p=power(L); return Math.abs(p)<1e-12?Infinity:L.n2/p; }, fo=(L=lens())=>{ const p=power(L); return Math.abs(p)<1e-12?Infinity:-L.n1/p; };
+function objS(){ if(S.pre==='p23') return -P.x23; if(S.pre==='p27') return -0.92*Math.abs(fp()); if(S.pre==='p22') return -1e9; return P.s; }
+function img(s,L=lens()){ const v=power(L)+L.n1/s; return Math.abs(v)<1e-14?Infinity:L.n2/v; }
+const magn=(s,L=lens())=>{ const v=img(s,L); return L.n1*v/(L.n2*s); };
+// ===== trazado exacto (lente gruesa con el espesor mínimo) =====
+function sag(R,y){ if(!isFinite(R)) return 0; return R-Math.sign(R)*Math.sqrt(Math.max(0,R*R-y*y)); }
+function apEff(L=lens()){ return Math.min(S.pre==='p27'?Math.min(P.Rl*0.8,2):(S.pre==='p22'?6:P.ap), 0.8*Math.min(isFinite(L.R1)?Math.abs(L.R1):1e9,isFinite(L.R2)?Math.abs(L.R2):1e9)); }
+function thick(L=lens(),ap=apEff(L)){ const e=sag(L.R2,ap)-sag(L.R1,ap); return Math.max(0.1,0.1-e); } // espesor en el eje para que el borde mida ≥ 1 mm
+const nz=v=>{ const l=Math.hypot(v[0],v[1]); return [v[0]/l,v[1]/l]; };
+function hitSurf(p,d,x0,R){ if(!isFinite(R)){ const t=(x0-p[0])/d[0]; return t>1e-9?[x0,p[1]+t*d[1]]:null; } const cx=x0+R, o=[p[0]-cx,p[1]], b=o[0]*d[0]+o[1]*d[1], c=o[0]*o[0]+o[1]*o[1]-R*R, disc=b*b-c; if(disc<0) return null; let best=null; [-b-Math.sqrt(disc),-b+Math.sqrt(disc)].forEach(t=>{ if(t<=1e-9) return; const q=[p[0]+t*d[0],p[1]+t*d[1]]; if(Math.abs(q[0]-x0)<Math.abs(R)&&(!best||t<best.t)) best={t,q}; }); return best?best.q:null; }
+function refr(d,q,x0,R,n1,n2){ let nn=isFinite(R)?nz([q[0]-(x0+R),q[1]]):[1,0]; if(nn[0]*d[0]+nn[1]*d[1]>0) nn=[-nn[0],-nn[1]]; const eta=n1/n2, ci=-(d[0]*nn[0]+d[1]*nn[1]), k=1-eta*eta*(1-ci*ci); if(k<0) return null; return nz([eta*d[0]+(eta*ci-Math.sqrt(k))*nn[0], eta*d[1]+(eta*ci-Math.sqrt(k))*nn[1]]); }
+function traceLens(src,y,L=lens(),dirInf){ const t=thick(L), x1=-t/2, x2=t/2; let p, d;
+  if(dirInf){ d=nz(dirInf); p=[x1-200, y-200*d[1]/d[0]]; } else { p=src; d=nz([x1-src[0],y-src[1]]); }
+  const q1=hitSurf(p,d,x1,L.R1); if(!q1) return null; const d1=refr(d,q1,x1,L.R1,L.n1,L.nL); if(!d1) return null;
+  const q2=hitSurf(q1,d1,x2,L.R2); if(!q2) return null; const d2=refr(d1,q2,x2,L.R2,L.nL,L.n2); if(!d2) return null;
+  const opl=(dirInf?0:L.n1*Math.hypot(q1[0]-p[0],q1[1]-p[1]))+L.nL*Math.hypot(q2[0]-q1[0],q2[1]-q1[1]);
+  return {p,q1,q2,d,d2,cross:Math.abs(d2[1])>1e-14?q2[0]-q2[1]/d2[1]*d2[0]:NaN,opl,inc:d}; }
+// imagen paraxial de la lente gruesa (para comparar sin el error de "delgada")
+function thickImage(s,L=lens()){ const t=thick(L), x1=-t/2, x2=t/2; const so=s-x1; let v=(L.nL-L.n1)*inv(L.R1)+L.n1/so; const s1=L.nL/v; const s2=x1+s1-x2; v=(L.n2-L.nL)*inv(L.R2)+L.nL/s2; return x2+L.n2/v; }
+
+const pEl=$('params');
+DEF.forEach(d=>{
+  const el=document.createElement('div'); el.className='param'; el.dataset.pre=d.pre.join(' ');
+  el.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit}</span></span>`;
+  pEl.appendChild(el);
+  const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=val=>{ val=Math.min(d.max,Math.max(d.min,+val)); if(!isFinite(val)) return; if((d.id==='R1'||d.id==='R2')&&Math.abs(val)<1) val=val<0?-1:1; if(d.id==='s'&&Math.abs(val)<0.3) val=-0.3; P[d.id]=val; if(d.id==='D23'&&P.x23>=P.D23) P.x23=+(P.D23/2).toFixed(2); if(d.id==='x23'&&P.x23>=P.D23) P.x23=+(P.D23-0.1).toFixed(2); sync(); refresh(); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+});
+function sync(){ DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+P[d.id].toFixed(3); }); document.querySelectorAll('.param').forEach(p=>p.hidden=!p.dataset.pre.split(' ').includes(S.pre)); $('cases').hidden=S.pre!=='p21'; $('r-x23').max=P.D23-0.1; }
+function setPre(k){ S.pre=k; document.querySelectorAll('#pre .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===k)); if(k==='p24'&&P.n1===1&&P.n2===1){ P.n1=1.33; P.n2=1.33; P.R1=24; P.R2=-24; P.nL=1.6; } sync(); refresh(); }
+document.querySelectorAll('#pre .chip').forEach(b=>b.onclick=()=>setPre(b.dataset.pre));
+document.querySelectorAll('#case .chip').forEach(b=>b.onclick=()=>{ S.cs=b.dataset.c; document.querySelectorAll('#case .chip').forEach(x=>x.setAttribute('aria-pressed',x===b)); refresh(); });
+$('exact').onchange=()=>draw();
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+function setView(vw){ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+  if(b.dataset.tab==='cuentas') renderCuentas(true);
+});
+let CG=null; $('pa').addEventListener('pointerdown',e=>{ if(!CG) return; const r=e.currentTarget.getBoundingClientRect(), v=CG.x0+Math.min(1,Math.max(0,(e.clientX-r.left-CG.L0)/CG.pw))*(CG.x1-CG.x0);
+  if(S.pre==='p23') P.x23=+Math.min(P.D23-0.1,Math.max(0.5,v)).toFixed(2); else if(S.pre==='p27') P.Rl=+Math.min(20,Math.max(0.5,v)).toFixed(2); else if(['p20','p21','p24'].includes(S.pre)) P.s=+(Math.abs(v)<0.3?-0.3:v).toFixed(1); else return; sync(); refresh(); });
+
+const f=(x,d=3)=>(Math.abs(x)<1e-12?0:x).toFixed(d);
+const fc=(x,d=2)=>isFinite(x)&&Math.abs(x)<1e7?f(x,d).replace('.',','):'∞';
+const MOON=(31+8/60)/60*PI/180;
+function pos23(){ const D=P.D23, F=P.f23, disc=D*D-4*D*F; if(disc<0) return []; return [(D-Math.sqrt(disc))/2,(D+Math.sqrt(disc))/2]; }
+function refresh(){
+  const L=lens(), F=fp(L), Fo=fo(L), s=objS(), v=img(s,L), m=magn(s,L);
+  let ro=`<span><span class="k">f′</span> ${fc(F,2)} cm</span><span><span class="k">f</span> ${fc(Fo,2)} cm</span><span><span class="k">potencia</span> ${fc(power(L)*100,2)} D <span class="k">(${power(L)>0?'convergente':'divergente'})</span></span>`;
+  if(S.pre==='p22'){ ro+=`<span><span class="k">ángulo de la luna</span> 31′08″ = ${fc(MOON*1e3,3)} mrad</span><span><span class="k">imagen</span> f′·θ = ${fc(F*MOON*10,2)} mm</span>`; }
+  else if(S.pre==='p23'){ const ps=pos23(), v2=img(-P.x23,L), scr=P.D23-P.x23; ro=`<span><span class="k">f</span> ${fc(P.f23,2)} cm</span><span><span class="k">imagen a</span> ${fc(v2,2)} cm <span class="k">de la lente; pantalla a</span> ${fc(scr,2)}</span><span><b style="color:${Math.abs(v2-scr)<0.05?'var(--ok)':'var(--crit)'}">${Math.abs(v2-scr)<0.05?'nítida':'desenfocada'}</b></span><span><span class="k">posiciones nítidas</span> ${ps.length?ps.map(x=>fc(x,2)).join(' y ')+' cm':'ninguna (D < 4f)'}</span>`; }
+  else if(S.pre==='p27'){ const Fl=fp(L); ro+=`<span><span class="k">aumento (imagen en ∞)</span> 25/f = ${fc(25/Fl,2)}X</span><span><span class="k">imagen a 25 cm</span> 1 + 25/f = ${fc(1+25/Fl,2)}X</span>`; }
+  else { ro+=`<span><span class="k">s′</span> ${fc(v,2)} cm</span><span><span class="k">m</span> ${fc(m,3)}</span><span><span class="k">objeto–imagen</span> ${fc(v-s,2)} cm</span>`; }
+  $('readout').innerHTML=ro;
+  $('formula').innerHTML= S.pre==='p24'? `<span class="k">P = (n_L − n₁)/R₁ + (n₂ − n_L)/R₂ · f′/f = −n₂/n₁ · rayo sin desviarse: apuntado al punto x_N = f′ + f = </span>${fc(F+Fo,2)} cm<span class="k"> de la lente (n₁ ≠ n₂ lo corre del centro)</span>`
+    : `<span class="k">n₂/s′ − n₁/s = (n_L − n₁)/R₁ + (n₂ − n_L)/R₂ · en un medio único: 1/s′ − 1/s = 1/f′, (n_L/n − 1)(1/R₁ − 1/R₂) · distancia objeto–imagen real mínima 4f′ = </span>${fc(4*F,1)} cm`;
+  $('tag-a').textContent={p23:'Imagen y pantalla en función de la posición de la lente · tocá para mover la lente',p27:'Aumento de la lupa en función de R · tocá para elegir R',p22:'Tamaño de la imagen de la luna según la focal'}[S.pre]||'s′ en función de s · tocá para mover el objeto';
+  $('cap-a').textContent={p23:'La imagen cae en la pantalla donde las dos curvas se cruzan: dos posiciones, simétricas (objeto e imagen intercambiados), con aumentos inversos.',p27:'La lupa equiconvexa de n = 1,5 tiene f = R; el aumento con imagen en el infinito es 25 cm/f.',p22:'La imagen de un objeto en el infinito está en el plano focal y mide f′·θ: 9 mm por cada metro de focal para la luna.'}[S.pre]||'Hipérbola con asíntotas en los dos focos. En un medio único, la distancia objeto–imagen real nunca baja de 4f′ (objeto en 2f).';
+  $('cap-b').textContent='Para el P26: los rayos de la lente esférica no convergen todos al mismo punto (curva), y su camino óptico hasta la imagen paraxial difiere del rayo axial en una cantidad que crece como y⁴: en la aproximación paraxial (orden y²) todos los caminos son iguales.';
+  draw(); renderCuentas(false); updateChal();
+}
+let predAns=null;
+document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ predAns=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+$('pred-go').onclick=()=>{
+  P.R1=24; P.R2=-24; P.nL=1.6; P.n1=1.33; P.n2=1.33; P.s=-80; setPre('p24');
+  document.querySelector('#pred-opts [data-ans=mas]').classList.add('right');
+  const el=$('pred-reveal'); el.hidden=false;
+  el.innerHTML=(predAns==='mas'?'<b>Así es.</b> ':'<b>Mirá f′.</b> ')+`La potencia es proporcional a (n_L/n − 1): en aire 0,6, en agua 1,6/1,33 − 1 = 0,203. La focal crece en la misma proporción: 20·0,6/0,203 ≈ ${fc(fp(),1)} cm. Por eso bajo el agua sin antiparras se ve borroso: la córnea casi deja de enfocar.`;
+  $('pred-go').hidden=true;
+};
+function updateChal(){
+  if(S.pre==='p23'){ const ps=pos23(); ps.forEach((x,i)=>{ if(Math.abs(P.x23-x)<0.05&&Math.abs(P.D23-18)<0.05&&Math.abs(P.f23-4)<0.01) S.seen23[i]=true; }); }
+  if(S.seen23[0]&&S.seen23[1]) S.d1=true;
+  $('c1').textContent= S.d1? 'Logrado: a 6 cm y a 12 cm del objeto. En una la imagen es ampliada (×2) y en la otra reducida (×½), las dos invertidas.' : (S.pre==='p23'?`Con D = 18 y f = 4: ${S.seen23[0]?'6 cm ✓':'—'} · ${S.seen23[1]?'12 cm ✓':'—'}`:'Elegí el P23 (D = 18 cm, f = 4 cm)');
+  $('c1').classList.toggle('done',!!S.d1);
+  const L=lens(); if(['p20','p21'].includes(S.pre)&&fp(L)>0&&L.n1===L.n2){ const dd=img(P.s,L)-P.s; if(img(P.s,L)>0&&Math.abs(dd/(4*fp(L))-1)<0.01) S.d2=true; }
+  $('c2').textContent= S.d2? `Logrado: objeto en s = −2f′ = ${fc(-2*fp(),1)} cm, imagen en 2f′, distancia 4f′ = ${fc(4*fp(),1)} cm y m = −1.` : 'Con una lente convergente en un único medio';
+  $('c2').classList.toggle('done',!!S.d2);
+  if(S.pre==='p27'&&Math.abs(P.Rl-2.5)<0.02) S.d3=true;
+  $('c3').textContent= S.d3? 'Logrado: f = 25/10 = 2,5 cm y, equiconvexa con n = 1,5, R = 2(n − 1)f = 2,5 cm. Con la imagen a 25 cm el aumento sube a 11X, pero el ojo tiene que acomodar.' : (S.pre==='p27'?`Ahora ${fc(25/fp(),2)}X`:'Elegí el P27');
+  $('c3').classList.toggle('done',!!S.d3);
+}
+let ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(ct); ct=setTimeout(()=>{
+    let steps, fin; const L=lens(), F=fp(L);
+    if(S.pre==='p21'){ $('cu-title').textContent='P21 paso a paso';
+      steps=[['a) Plano–cóncava, n = 1,5 en aire (cara plana R₁ = ∞, cóncava R₂ = 10 cm)', `\\[\\frac1{f'}=(1{,}5-1)\\Big(0-\\frac1{10}\\Big)=-\\frac1{20}\\ \\Rightarrow\\ f'=-20\\ \\text{cm},\\ \\ -5\\ \\text{D}\\]`],
+        ['b) Biconvexa con aire a la izquierda y líquido de 1,7 a la derecha', `\\[P=\\frac{1{,}5-1}{10}+\\frac{1{,}7-1{,}5}{-10}=0{,}03\\ \\text{cm}^{-1},\\ \\ f'=\\frac{1{,}7}{P}=56{,}7\\ \\text{cm},\\ \\ f=-\\frac1P=-33{,}3\\ \\text{cm}\\]`],
+        ['i) En aire: P = 0,1 cm⁻¹, f = 10 cm, convergente. ii) En el líquido de 1,7 > 1,5: la lente se vuelve divergente', `\\[P=\\frac{1{,}5-1{,}7}{10}+\\frac{1{,}7-1{,}5}{-10}=-0{,}04\\ \\Rightarrow\\ f'=-42{,}5\\ \\text{cm}\\]`]];
+      fin=`\\[\\text{caso actual: }f'=${f(F,2)}\\ \\text{cm},\\ f=${f(fo(L),2)}\\ \\text{cm}\\]`;
+    } else if(S.pre==='p22'){ $('cu-title').textContent='P22 paso a paso';
+      steps=[['Objeto en el infinito: la imagen está en el plano focal. Un punto que se ve a ángulo θ queda a f′ tan θ del eje', `\\[y'=f'\\tan\\theta\\approx f'\\theta\\]`], ['Con θ = 31′08″', `\\[\\theta=\\frac{31+8/60}{60}\\cdot\\frac{\\pi}{180}=9{,}06\\cdot10^{-3}\\ \\text{rad}\\]`]];
+      fin=`\\[y'=1\\ \\text{m}\\cdot9{,}06\\cdot10^{-3}=9{,}06\\ \\text{mm}\\]`;
+    } else if(S.pre==='p23'){ $('cu-title').textContent='P23 paso a paso';
+      steps=[['Lente a x del objeto, pantalla a D: 1/(D − x) + 1/x = 1/f', `\\[x^2-Dx+Df=0\\ \\Rightarrow\\ x=\\frac{D\\pm\\sqrt{D^2-4Df}}{2}\\]`],
+        ['a) D = 18, f = 4', `\\[x=\\frac{18\\pm6}{2}=6\\ \\text{ó}\\ 12\\ \\text{cm}\\]`],
+        ['b) Las dos posiciones están separadas d = √(D² − 4Df). Con d = 60 y f = 16', `\\[D^2-64D-3600=0\\ \\Rightarrow\\ D=100\\ \\text{cm}\\]`]];
+      fin=`\\[D=${f(P.D23,2)},\\ f=${f(P.f23,2)}:\\ \\ ${pos23().length?'x='+pos23().map(x=>f(x,3)).join('\\ \\text{y}\\ '):'\\text{no hay solución (}D<4f)'}\\]`;
+    } else if(S.pre==='p27'){ $('cu-title').textContent='P27 paso a paso';
+      steps=[['Con la imagen en el infinito, el ángulo con lupa es y/f; a simple vista, a 25 cm, y/25', `\\[M_\\infty=\\frac{25\\ \\text{cm}}{f}=10\\ \\Rightarrow\\ f=2{,}5\\ \\text{cm}\\]`],
+        ['Equiconvexa en aire', `\\[\\frac1f=(n-1)\\frac2R\\ \\Rightarrow\\ R=2(n-1)f=2{,}5\\ \\text{cm}\\]`],
+        ['b) Imagen a 25 cm (visión clara): el objeto queda un poco más adentro del foco', `\\[M=1+\\frac{25}{f}=11\\]`]];
+      fin=`\\[R=${f(P.Rl,2)}\\ \\text{cm}:\\ f=${f(fp(),3)}\\ \\text{cm},\\ M_\\infty=${f(25/fp(),2)},\\ M_{25}=${f(1+25/fp(),2)}\\]`;
+    } else { $('cu-title').textContent=(S.pre==='p24'?'P24–25':'P20')+' paso a paso';
+      steps=[['Dos dioptras pegadas: la imagen de la primera es el objeto de la segunda', `\\[\\frac{n_L}{s_1}-\\frac{n_1}{s}=\\frac{n_L-n_1}{R_1},\\qquad \\frac{n_2}{s'}-\\frac{n_L}{s_1}=\\frac{n_2-n_L}{R_2}\\]`],
+        ['Sumando, n_L/s₁ se cancela', `\\[\\frac{n_2}{s'}-\\frac{n_1}{s}=\\frac{n_L-n_1}{R_1}+\\frac{n_2-n_L}{R_2}=P\\]`],
+        ['En un medio único (n₁ = n₂ = n) y el fabricante de lentes', `\\[\\frac1{s'}-\\frac1s=\\frac1{f'},\\qquad \\frac1{f'}=\\Big(\\frac{n_L}{n}-1\\Big)\\Big(\\frac1{R_1}-\\frac1{R_2}\\Big)\\]`],
+        ['e) Objeto real a distancia u, imagen real a v: u + v mínimo con 1/u + 1/v = 1/f', `\\[\\frac{d(u+v)}{du}=0\\ \\Rightarrow\\ u=v=2f\\ \\Rightarrow\\ (u+v)_{\\min}=4f\\]`]];
+      if(S.pre==='p24') steps.push(['P24: misma lente en agua. P25: un rayo no se desvía si pasa por el punto nodal, que con n₁ ≠ n₂ se corre a', `\\[f_{\\text{agua}}=f_{\\text{aire}}\\,\\frac{n_L-1}{n_L/n_w-1}=20\\cdot\\frac{0{,}6}{0{,}203}=59{,}1\\ \\text{cm},\\qquad x_N=f'+f=f\\Big(1-\\frac{n_2}{n_1}\\Big)\\]`]);
+      fin=`\\[f'=${f(F,2)}\\ \\text{cm},\\quad s=${f(P.s,1)}\\Rightarrow s'=${isFinite(img(P.s))?f(img(P.s),2):'\\infty'},\\ m=${isFinite(magn(P.s))?f(magn(P.s),3):'\\infty'}\\]`; }
+    const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`;
+    $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+new ResizeObserver(()=>draw()).observe(document.body);
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.lineJoin='round'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function legend(c,items,x,y){ c.font=`11px ${css('--font-num')}`; c.textAlign='right'; c.textBaseline='bottom'; items.forEach(([s,col])=>{ c.fillStyle=col; c.fillText(s,x,y); x-=c.measureText(s).width+14; }); }
+function txt(c,s,x,y,col,al='left',bl='bottom'){ c.font=`600 12px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+function arrowV(c,x,y0,y1,col,dash,wd=2.4){ line(c,[[x,y0],[x,y1]],col,wd,dash); const s=Math.sign(y1-y0)||1; c.fillStyle=col; c.beginPath(); c.moveTo(x,y1); c.lineTo(x-5,y1-8*s); c.lineTo(x+5,y1-8*s); c.closePath(); c.fill(); }
+function drawLens(c,X,Y,L,ap){ const t=thick(L,ap), x1=-t/2, x2=t/2, pts=[]; for(let i=-30;i<=30;i++){ const y=ap*i/30; pts.push([X(x1+sag(L.R1,y)),Y(y)]); } for(let i=30;i>=-30;i--){ const y=ap*i/30; pts.push([X(x2+sag(L.R2,y)),Y(y)]); }
+  c.fillStyle=C.glass; c.globalAlpha=0.18; c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])); c.closePath(); c.fill(); c.globalAlpha=1; c.strokeStyle=C.glass; c.lineWidth=1.5; c.stroke(); }
+function drawScene(){
+  const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H);
+  const L=lens(), F=fp(L), Fo=fo(L), s=objS(), v=img(s,L), m=magn(s,L), ex=$('exact').checked;
+  let x0,x1; if(S.pre==='p22'){ x0=-20; x1=F*1.25; } else if(S.pre==='p23'){ x0=-P.x23-2; x1=P.D23-P.x23+4; } else if(S.pre==='p27'){ x0=Math.max(-120,Math.min(-30,(isFinite(v)?v:-30)*1.1)); x1=Math.max(6,1.6*F); } else { const xs=[s,isFinite(v)&&Math.abs(v)<150?v:0,isFinite(F)&&Math.abs(F)<150?F:0,isFinite(Fo)&&Math.abs(Fo)<150?Fo:0,-5,5]; x0=Math.min(...xs)*1.12-2; x1=Math.max(...xs)*1.12+2; }
+  const ap=apEff(L), sc=(W-24)/(x1-x0), hmax=Math.max(ap,Math.abs(P.h),Math.abs(P.h*(isFinite(m)?Math.min(Math.abs(m),4):1)),1), scy=Math.min((H-60)/(2.3*hmax),sc*6), cy=H/2+4, X=x=>12+(x-x0)*sc, Y=y=>cy-y*scy;
+  if(L.n1>1.001){ c.fillStyle=C.med; c.globalAlpha=0.07; c.fillRect(0,0,X(0),H); c.globalAlpha=1; } if(L.n2>1.001){ c.fillStyle=C.med; c.globalAlpha=0.07+(L.n2!==L.n1?0.05:0); c.fillRect(X(0),0,W,H); c.globalAlpha=1; }
+  line(c,[[0,cy],[W,cy]],C.line,1); drawLens(c,X,Y,L,ap);
+  [[F,'F′'],[Fo,'F']].forEach(([x,l])=>{ if(!isFinite(x)||x<x0||x>x1) return; c.fillStyle=C.muted; c.beginPath(); c.arc(X(x),cy,3,0,7); c.fill(); txt(c,l,X(x),cy+14,C.muted,'center','top'); });
+  if(S.pre==='p22'){ // haz paralelo inclinado (borde de la luna) y haz axial
+    [[0,C.ray],[MOON*40,C.r3]].forEach(([th,col],k)=>{ for(let i=-5;i<=5;i++){ const y=ap*0.9*i/5, dir=[Math.cos(th),Math.sin(th)]; const r=ex?traceLens(null,y,L,dir):null; if(r){ const e=[r.q2[0]+(x1-r.q2[0])/r.d2[0]*r.d2[0],r.q2[1]+(x1-r.q2[0])/r.d2[0]*r.d2[1]]; line(c,[[X(x0),Y(y-(0-x0)*Math.tan(th))],[X(r.q1[0]),Y(r.q1[1])],[X(r.q2[0]),Y(r.q2[1])],[X(e[0]),Y(e[1])]],col,1.1,null,0.8); } } });
+    txt(c,'haz del borde de la luna (ángulo ×40 para que se vea)',12,24,C.r3,'left','top'); line(c,[[X(F),Y(-ap)],[X(F),Y(ap)]],C.faint,1,[3,3]); txt(c,'plano focal',X(F)+4,Y(ap)-4,C.muted);
+  } else {
+    // rayos exactos desde el pie del objeto
+    if(ex&&isFinite(s)&&s<0){ for(let i=-6;i<=6;i++){ if(!i) continue; const r=traceLens([s,0],ap*0.95*i/6,L); if(!r) continue; const Lr=(x1-x0)*1.5; line(c,[[X(s),Y(0)],[X(r.q1[0]),Y(r.q1[1])],[X(r.q2[0]),Y(r.q2[1])],[X(r.q2[0]+Lr*r.d2[0]),Y(r.q2[1]+Lr*r.d2[1])]],C.ray,1.1,null,0.75); if(!(v>0)) line(c,[[X(r.q2[0]),Y(r.q2[1])],[X(r.q2[0]-Lr*r.d2[0]),Y(r.q2[1]-Lr*r.d2[1])]],C.vir,1,[3,4],0.35); } }
+    // rayos principales paraxiales desde la punta (lente delgada)
+    const h=S.pre==='p27'?0.5:P.h, tip=[s,h], P_=power(L), u1=0; const prin=[];
+    { const y=h, u2=(L.n1*0-y*P_)/L.n2; prin.push([[s,h],[0,y],u2,C.r1]); }
+    { const u=(0-h)/(0-s), y=0, u2=(L.n1*u-y*P_)/L.n2; prin.push([[s,h],[0,0],u2,C.r2]); }
+    if(isFinite(Fo)&&Math.abs(s-Fo)>1e-6){ const u=(0-h)/(Fo-s), y=h+u*(0-s), u2=(L.n1*u-y*P_)/L.n2; prin.push([[s,h],[0,y],u2,C.r3]); }
+    prin.forEach(([a,b,u2,col])=>{ line(c,[[X(a[0]),Y(a[1])],[X(b[0]),Y(b[1])]],col,1.6); const e=[x1,b[1]+u2*(x1-b[0])]; line(c,[[X(b[0]),Y(b[1])],[X(e[0]),Y(e[1])]],col,1.6); if(!(v>0)) line(c,[[X(b[0]),Y(b[1])],[X(x0),Y(b[1]+u2*(x0-b[0]))]],col,1,[3,4],0.5); });
+    if(isFinite(s)) { arrowV(c,X(s),cy,Y(h),C.src); txt(c,'objeto',X(s),Y(h)-6,C.src,'center'); }
+    if(isFinite(v)&&v>x0&&v<x1){ const hy=h*m, real=v>0; arrowV(c,X(v),cy,Y(hy),real?C.img:C.vir,real?null:[4,3]); txt(c,real?'imagen real':'imagen virtual',X(v),Y(hy)+(hy<0?16:-6),real?C.img:C.vir,'center',hy<0?'top':'bottom'); }
+    if(S.pre==='p23'){ const xs=P.D23-P.x23; c.fillStyle=C.faint; c.fillRect(X(xs)-2,Y(hmax*1.1),4,(hmax*2.2)*scy); txt(c,'pantalla',X(xs),Y(hmax*1.1)-4,C.muted,'center'); }
+    if(S.pre==='p24'){ const xn=F+Fo; if(isFinite(xn)){ c.fillStyle=C.crit; c.beginPath(); c.arc(X(xn),cy,4,0,7); c.fill(); txt(c,'N',X(xn),cy-6,C.crit,'center'); const u=0.12, y=-u*xn; line(c,[[X(x0),Y(y+u*(x0-0))],[X(0),Y(y)],[X(x1),Y(y+u*x1)]],C.crit,1.4,[6,3]); } }
+    txt(c,`n₁ = ${fc(L.n1,2)} · n_L = ${fc(L.nL,2)} · n₂ = ${fc(L.n2,2)}`,12,24,C.muted,'left','top');
+  }
+  legend(c,[...(ex?[['rayos exactos',C.ray]]:[]),['principales (paraxial)',C.r2],[`vertical ×${fc(scy/sc,1)}`,C.faint]],W-12,H-8);
+  $('clock').textContent='';
+}
+function axes(c,W,H,o){ const L0=56,R=16,T=32,B=32,pw=W-L0-R,ph=H-T-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); });
+  c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T+ph+4)); c.textAlign='right'; c.fillText(o.xl,L0+pw,T+ph+16); return {X,Y,L0,T,pw,ph}; }
+function nice(a,b,n=6){ const st=[0.0001,0.0002,0.0005,0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100].find(s=>(b-a)/s<=n)||100, o=[]; for(let v=Math.ceil(a/st)*st; v<=b+1e-9; v+=st) o.push(+v.toFixed(6)); return o; }
+function curve(c,g,fn,x0,x1,y0,y1,col){ let seg=[], prev=null; for(let i=0;i<=800;i++){ const x=x0+(x1-x0)*i/800, y=fn(x); if(!isFinite(y)||(prev!==null&&Math.abs(y-prev)>(y1-y0))){ if(seg.length>1) line(c,seg,col,2.2); seg=[]; } if(isFinite(y)) seg.push([g.X(x),g.Y(Math.max(y0-10,Math.min(y1+10,y)))]); prev=y; } if(seg.length>1) line(c,seg,col,2.2); }
+function drawA(){
+  const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const L=lens();
+  if(S.pre==='p23'){ const D=P.D23, g=axes(c,W,H,{x0:0,x1:D,y0:0,y1:D*1.5,yt:nice(0,D*1.5),yf:v=>fc(v,0),xt:nice(0,D),xf:v=>fc(v,0),xl:'posición de la lente (cm desde el objeto)'}); CG={L0:g.L0,pw:g.pw,x0:0,x1:D};
+    c.save(); c.beginPath(); c.rect(g.L0,g.T,g.pw,g.ph); c.clip(); curve(c,g,x=>{ const v=img(-x,L); return v>0?v:NaN; },0.01,D,0,D*1.5,C.img); line(c,[[g.X(0),g.Y(D)],[g.X(D),g.Y(0)]],C.faint,1.6,[5,4]); c.restore();
+    pos23().forEach(x=>{ c.fillStyle=C.ok; c.beginPath(); c.arc(g.X(x),g.Y(D-x),4,0,7); c.fill(); }); c.strokeStyle=C.sys; c.beginPath(); c.moveTo(g.X(P.x23),g.T); c.lineTo(g.X(P.x23),g.T+g.ph); c.stroke();
+    legend(c,[['- - pantalla (D − x)',C.faint],['imagen s′(x)',C.img]],g.L0+g.pw,g.T-8); return; }
+  if(S.pre==='p27'){ const g=axes(c,W,H,{x0:0.5,x1:20,y0:0,y1:50,yt:[0,10,20,30,40,50],yf:v=>v+'X',xt:[1,5,10,15,20],xf:v=>v,xl:'R (cm)'}); CG={L0:g.L0,pw:g.pw,x0:0.5,x1:20};
+    curve(c,g,R=>25/R,0.5,20,0,50,C.img); curve(c,g,R=>1+25/R,0.5,20,0,50,C.r3); c.fillStyle=C.sys; c.beginPath(); c.arc(g.X(P.Rl),g.Y(Math.min(50,25/fp())),5,0,7); c.fill(); legend(c,[['imagen a 25 cm',C.r3],['imagen en ∞',C.img]],g.L0+g.pw,g.T-8); return; }
+  if(S.pre==='p22'){ CG=null; const g=axes(c,W,H,{x0:0,x1:300,y0:0,y1:30,yt:[0,10,20,30],yf:v=>v+' mm',xt:[0,50,100,150,200,250,300],xf:v=>v,xl:'f′ (cm)'}); line(c,[[g.X(0),g.Y(0)],[g.X(300),g.Y(300*MOON*10)]],C.img,2.2); c.fillStyle=C.sys; c.beginPath(); c.arc(g.X(100),g.Y(100*MOON*10),5,0,7); c.fill(); return; }
+  const F=fp(L), lim=Math.max(40,Math.min(150,Math.abs(F)*4||40)), x0=-lim*1.2, x1=lim*0.5, y0=-lim*1.5, y1=lim*1.5;
+  const g=axes(c,W,H,{x0,x1,y0,y1,yt:nice(y0,y1),yf:v=>fc(v,0),xt:nice(x0,x1),xf:v=>fc(v,0),xl:'s (cm)'}); CG={L0:g.L0,pw:g.pw,x0,x1};
+  line(c,[[g.X(0),g.T],[g.X(0),g.T+g.ph]],C.faint,1); line(c,[[g.L0,g.Y(0)],[g.L0+g.pw,g.Y(0)]],C.faint,1);
+  c.save(); c.beginPath(); c.rect(g.L0,g.T,g.pw,g.ph); c.clip(); curve(c,g,s=>img(s,L),x0,x1,y0,y1,C.ray); if(L.n1===L.n2&&F>0) curve(c,g,s=>s+4*F,x0,x1,y0,y1,C.faint); c.restore();
+  const v=img(P.s,L); if(isFinite(v)&&v>y0&&v<y1){ c.fillStyle=C.sys; c.beginPath(); c.arc(g.X(P.s),g.Y(v),5,0,7); c.fill(); }
+}
+function drawB(){
+  const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H); const L=lens(); const s=S.pre==='p22'?null:objS(); const inf=s===null||s<-1e6;
+  const vT=inf? thickImage(-1e9,L) : thickImage(s,L); if(!isFinite(vT)) return; const ap=apEff(L);
+  const pts=[], opd=[]; let o0=null; for(let i=0;i<=60;i++){ const y=Math.max(1e-4,ap*0.95*i/60); const r=inf? traceLens(null,y,L,[1,0]) : traceLens([s,0],y,L); if(!r) continue; pts.push([y,r.cross]);
+    const tail=Math.abs(L.n2)*Math.hypot(vT-r.q2[0],0-r.q2[1])*Math.sign(vT-r.q2[0]); let op=r.opl+tail; if(inf) op=r.opl+tail+L.n1*(r.q1[0]-(-1e3)); if(o0===null) o0=op; opd.push([y,op-o0]); }
+  if(pts.length<3) return; const ys=pts.map(p=>p[1]-vT); let y0=Math.min(0,...ys), y1=Math.max(0,...ys); if(y1-y0<1e-6){ y0-=0.01; y1+=0.01; } const pd=(y1-y0)*0.1; y0-=pd; y1+=pd;
+  const g=axes(c,W,H,{x0:0,x1:ap,y0,y1,yt:nice(y0,y1,5),yf:v=>fc(v,v&&Math.abs(v)<0.1?3:2),xt:nice(0,ap,6),xf:v=>fc(v,1),xl:'altura y del rayo (cm)'});
+  line(c,[[g.L0,g.Y(0)],[g.L0+g.pw,g.Y(0)]],C.faint,1,[4,4]); line(c,pts.map(p=>[g.X(p[0]),g.Y(p[1]-vT)]),C.ray,2.2);
+  const om=Math.max(1e-12,...opd.map(p=>Math.abs(p[1]))), sc2=(y1-y0)*0.45/om; line(c,opd.map(p=>[g.X(p[0]),g.Y(p[1]*sc2)]),C.r3,1.6,[5,3]);
+  // exponente de la ley de potencias del camino óptico
+  const a1=opd[Math.floor(opd.length*0.4)], a2=opd[opd.length-1]; const ex=(a1&&a2&&a1[1]&&a2[1])? Math.log(Math.abs(a2[1]/a1[1]))/Math.log(a2[0]/a1[0]) : NaN;
+  legend(c,[[`- - Δ(camino óptico) (escala libre, ∝ y^${fc(ex,1)})`,C.r3],['corrimiento del cruce con el eje (cm)',C.ray]],g.L0+g.pw,g.T-8);
+}
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+setPre('p20');
+</script>
+</body>
+</html>

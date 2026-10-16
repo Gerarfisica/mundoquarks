@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Espejo de Lloyd G6-P16</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:300px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.tog{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+.params .param{grid-template-columns:1fr 118px}.params .param label{grid-column:1/-1}
+.tw{overflow-x:auto;padding:4px 12px 10px}
+.tw table{border-collapse:collapse;font-size:13px;min-width:560px}
+.tw th,.tw td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+.tw th{color:var(--muted);font-weight:600;font-size:12px}
+.tw td.num{font-family:var(--font-num);white-space:nowrap}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Guía 6 · División de frente de onda</span>
+  <h1>Espejo de Lloyd <i>· la reflexión invierte la onda</i></h1>
+  <a class="mq-back" href="../../simuladores-optica.html">← Óptica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 6">
+    <h2>Guía 6</h2>
+    <ol>
+      <li><a href="p1-young.html"><b class="code">P1–6</b>Young: interfranja y lámina</a></li>
+      <li><a href="p7-young-polarizacion.html"><b class="code">P7</b>Young con dos medios y polaroid</a></li>
+      <li><a href="p8-espejos-fresnel.html"><b class="code">P8–10</b>Espejos de Fresnel</a></li>
+      <li><a href="p11-biprisma.html"><b class="code">P11–15</b>Biprisma de Fresnel</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P16–17</b>Espejo de Lloyd</a></li>
+      <li><a href="p18-lamina.html"><b class="code">P18–23, 31</b>Lámina de caras paralelas</a></li>
+      <li><a href="p24-anillos.html"><b class="code">P24–30</b>Cuñas y anillos de Newton</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Fuente sobre un espejo plano, su imagen, el haz directo y el reflejado, y la pantalla"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row tog">
+        <label><input type="checkbox" id="t-nopi"> contraprueba: reflexión sin desfasaje (r = +|r|)</label>
+        <span>Polarización:</span><div class="chips" id="pol"><button class="chip" data-pol="s" aria-pressed="true">s (perpendicular al plano)</button><button class="chip" data-pol="p">p (en el plano)</button></div>
+      </div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="a" aria-pressed="true">Intensidad en la pantalla</button>
+          <button data-view="b" aria-pressed="false">P17 · cuadro comparativo</button>
+        </div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:240px"></canvas><div class="tag">I(y) / I_directa, desde la superficie del espejo (y = 0)</div></div>
+        <div class="pcap" id="cap-a"></div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="tw"><table>
+          <thead><tr><th>Interferómetro</th><th>Cómo se divide el frente</th><th>Fuentes secundarias</th><th>Separación a</th><th>Distancia D</th></tr></thead>
+          <tbody>
+            <tr><td>Young</td><td>dos ranuras toman dos partes del frente</td><td>las ranuras</td><td class="num">s</td><td class="num">D</td></tr>
+            <tr><td>Espejos de Fresnel</td><td>cada espejo refleja una mitad</td><td>dos imágenes virtuales a d del vértice</td><td class="num">2d sen α</td><td class="num">L + d cos α</td></tr>
+            <tr><td>Biprisma de Fresnel</td><td>cada mitad del biprisma refracta una parte</td><td>dos imágenes virtuales en el plano de la fuente</td><td class="num">2D₁(n − 1)α</td><td class="num">D₁ + D₂</td></tr>
+            <tr><td>Espejo de Lloyd</td><td>una parte llega directa, otra reflejada rasante</td><td>la fuente y su imagen (con desfasaje π)</td><td class="num">2h</td><td class="num">L</td></tr>
+          </tbody></table>
+          <p class="pcap" style="padding:8px 0 0">En todos la interfranja es i = λD/a. Solo en Lloyd las dos fuentes no son equivalentes: una es imagen por reflexión y la franja de igual camino es oscura.</p>
+        </div>
+        <div class="plot" hidden><canvas id="pb" style="height:10px"></canvas></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G6-P16 y P17</summary>
+      <p><b>16.</b> ¿Por qué se puede concluir, en el experimento del espejo de Lloyd, que la luz reflejada sufrió un desfasaje de 180°?</p>
+      <p><b>17.</b> Haga un cuadro comparativo de las magnitudes que caracterizan a los distintos interferómetros por división de frente e indique en cada uno cómo se divide el frente.</p>
+      <p class="src">Física 2 (Físicos), Guía 6.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>El espejo llega hasta la pantalla. En la línea de contacto los dos caminos (directo y reflejado) miden lo mismo. Ahí la pantalla está…</p>
+        <div class="opts" id="pred-opts">
+          <button class="opt" data-ans="osc">oscura</button>
+          <button class="opt" data-ans="bri">en un máximo, como el orden cero de Young</button>
+          <button class="opt" data-ans="med">a media intensidad</button>
+        </div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal">
+          <div class="item"><b>1.</b> Con λ = 600 nm y L = 1 m, elegí h para que la interfranja sea 0,5 mm (±0,5 %).<div class="state" id="c1">—</div></div>
+          <div class="item"><b>2.</b> Acortá el espejo (su extremo derecho) para que la zona de franjas empiece a 1 mm del plano del espejo (±0,02 mm).<div class="state" id="c2">—</div></div>
+          <div class="item"><b>3.</b> Hacé que entren al menos 20 franjas oscuras en la zona de interferencia.<div class="state" id="c3">—</div></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>La fuente está a h sobre el plano del espejo, en x = 0; el espejo va de x₁ a x₂ y la pantalla está en x = L. El campo reflejado sale de la imagen (a −h) multiplicado por el coeficiente de Fresnel de un vidrio de índice n al ángulo de incidencia de cada rayo; a incidencia rasante r ≈ −1 para las dos polarizaciones. Caminos exactos desde la fuente y la imagen. Esquema con alturas exageradas; franjas a escala.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ===== motor común de la Guía 6 (interferencia) =====
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const PI=Math.PI, DEG=PI/180;
+const fcj=(v,d=2)=>(+v).toFixed(d).replace('-','−').replace('.',',');      // número con coma
+const f3=(v,d=3)=>(+v).toFixed(d).replace('.','{,}');                     // número con coma para TeX
+const C={}; function loadColors(list){ list.forEach(k=>C[k.replace('--','')]=css(k)); }
+loadColors(['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--ok','--crit','--sob','--lin','--x','--v','--a']);
+// --- complejos mínimos ---
+const Z={ add:(a,b)=>[a[0]+b[0],a[1]+b[1]], mul:(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], div:(a,b)=>{ const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; }, sc:(a,s)=>[a[0]*s,a[1]*s], ab2:a=>a[0]*a[0]+a[1]*a[1], ex:t=>[Math.cos(t),Math.sin(t)] };
+// --- color de una longitud de onda (nm), 0..1 por canal ---
+function wl2rgb(l){ let r=0,g=0,b=0; if(l>=380&&l<440){ r=-(l-440)/60; b=1; } else if(l<490){ g=(l-440)/50; b=1; } else if(l<510){ g=1; b=-(l-510)/20; } else if(l<580){ r=(l-510)/70; g=1; } else if(l<645){ r=1; g=-(l-645)/65; } else if(l<=780){ r=1; }
+  let f= l<380||l>780?0: l<420?0.3+0.7*(l-380)/40 : l>700?0.3+0.7*(780-l)/80 : 1; return [r*f,g*f,b*f]; }
+const rgbStr=(c,k=1)=>`rgb(${c.map(v=>Math.round(255*Math.max(0,Math.min(1,v*k)))).join(',')})`;
+const WL=[]; for(let l=400;l<=700;l+=6) WL.push(l);
+const WSUM=WL.reduce((s,l)=>{ const c=wl2rgb(l); return [s[0]+c[0],s[1]+c[1],s[2]+c[2]]; },[0,0,0]);
+// luz blanca: f(λ) da la intensidad relativa (1 = sin interferencia); devuelve el color que se ve
+function whiteRGB(f,k=1){ const s=[0,0,0]; WL.forEach(l=>{ const c=wl2rgb(l), v=f(l); s[0]+=c[0]*v; s[1]+=c[1]*v; s[2]+=c[2]*v; }); return [s[0]/WSUM[0]*k,s[1]/WSUM[1]*k,s[2]/WSUM[2]*k]; }
+// --- lámina delgada (Airy, sin absorción). n1 | n2 (espesor d) | n3, incidencia th1 desde n1 ---
+function film(n1,n2,n3,d,lam,th1=0,pol='s'){ const s1=Math.sin(th1), c1=Math.cos(th1), c2=Math.sqrt(1-(n1*s1/n2)**2), s3=n1*s1/n3; if(s3>=1) return {R:1,T:0,r:[1,0]};
+  const c3=Math.sqrt(1-s3*s3); let r12,r23; if(pol==='s'){ r12=(n1*c1-n2*c2)/(n1*c1+n2*c2); r23=(n2*c2-n3*c3)/(n2*c2+n3*c3); } else { r12=(n2*c1-n1*c2)/(n2*c1+n1*c2); r23=(n3*c2-n2*c3)/(n3*c2+n2*c3); }
+  const e=Z.ex(4*PI*n2*d*c2/lam), r=Z.div(Z.add([r12,0],Z.sc(e,r23)),Z.add([1,0],Z.sc(e,r12*r23))), R=Z.ab2(r); return {R,T:1-R,r,r12,r23,c2}; }
+const filmU=(n1,n2,n3,d,lam,th1=0)=>{ if(th1<1e-9) return film(n1,n2,n3,d,lam,0,'s'); const a=film(n1,n2,n3,d,lam,th1,'s'), b=film(n1,n2,n3,d,lam,th1,'p'); return {R:(a.R+b.R)/2,T:(a.T+b.T)/2}; };
+// --- dibujo ---
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function txt(c,s,x,y,col,al='left',bl='bottom',sz=12){ c.font=`600 ${sz}px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+function dot(c,x,y,r,col){ c.fillStyle=col; c.beginPath(); c.arc(x,y,r,0,2*PI); c.fill(); }
+function axes(c,W,H,o){ const L0=o.L||50,R=16,T_=26,B=30,pw=W-L0-R,ph=H-T_-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T_+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); }); c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T_+ph+4));
+  if(o.xl){ c.textAlign='right'; c.fillText(o.xl,L0+pw,T_+ph+16); } if(o.yl){ c.textAlign='left'; c.textBaseline='bottom'; c.fillText(o.yl,L0,T_-6); } return {X,Y,L0,T:T_,pw,ph}; }
+const ticks=(a,b,n=5)=>{ const st=Math.pow(10,Math.floor(Math.log10((b-a)/n))), m=[1,2,2.5,5,10].map(k=>k*st).find(s=>(b-a)/s<=n+1)||st*10, out=[]; for(let v=Math.ceil(a/m-1e-9)*m;v<=b+1e-9;v+=m) out.push(+v.toFixed(10)); return out; };
+// franja de color (perfil de intensidad a lo largo de un eje)
+function strip(c,x,y,w,h,vertical,colAt,n=240){ for(let i=0;i<n;i++){ const u=(i+0.5)/n; c.fillStyle=colAt(u); if(vertical) c.fillRect(x,y+i*h/n,w,h/n+0.6); else c.fillRect(x+i*w/n,y,w/n+0.6,h); } }
+// --- interfaz común ---
+function mkParams(DEF,P,onSet){ const box=$('params'); DEF.forEach(d=>{ const el=document.createElement('div'); el.className='param'; el.dataset.id=d.id;
+  el.innerHTML=`<label for="r-${d.id}"><b id="lab-${d.id}">${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit||''}</span></span>`;
+  box.appendChild(el); const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value)); });
+  return (show)=>DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+(+P[d.id]).toFixed(d.dec??3); if(show) document.querySelector(`.param[data-id="${d.id}"]`).hidden=!show(d.id); }); }
+function chips(sel,attr,fn){ document.querySelectorAll(sel+' .chip').forEach(b=>b.onclick=()=>fn(b.dataset[attr])); }
+const press=(sel,attr,val)=>document.querySelectorAll(sel+' .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset[attr]===String(val)));
+function bindViews(S,draw){ const setView=vw=>{ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }; document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view)); return setView; }
+function bindTabs(){ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b)); document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab); if(b.dataset.tab==='cuentas') renderCuentas(true); }); }
+function bindPred(right,go){ let ans=null; document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ ans=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+  $('pred-go').onclick=()=>{ const html=go(ans===right); document.querySelector(`#pred-opts [data-ans="${right}"]`).classList.add('right'); const el=$('pred-reveal'); el.hidden=false; el.innerHTML=(ans===right?'<b>Así es.</b> ':'<b>Mirá la simulación.</b> ')+html; $('pred-go').hidden=true; }; }
+let __ct=null;
+function typesetSteps(now,build){ if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{ const {steps,fin,title}=build(); if(title) $('cu-title').textContent=title; const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`; $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{}); }, now?0:250); }
+function chal(id,done,okTxt,nowTxt){ $(id).textContent=done?okTxt:nowTxt; $(id).classList.toggle('done',!!done); }
+// ===== fin del motor común =====
+
+const P={lam:550, h:1, L:1, x1:0.3, x2:1, n:1.5};
+const S={pol:'s', nopi:false, view:'a'};
+const DEF=[{id:'lam',lab:'λ',unit:'nm',min:380,max:750,step:0.1,dec:1},{id:'h',lab:'h · altura de la fuente sobre el espejo',unit:'mm',min:0.1,max:5,step:0.001,dec:3},{id:'L',lab:'L · fuente–pantalla',unit:'m',min:0.2,max:3,step:0.01,dec:2},
+  {id:'x1',lab:'x₁ · comienzo del espejo',unit:'m',min:0.01,max:2.9,step:0.001,dec:3},{id:'x2',lab:'x₂ · final del espejo',unit:'m',min:0.02,max:3,step:0.0001,dec:4},{id:'n',lab:'n · índice del vidrio del espejo',unit:'',min:1.2,max:2.5,step:0.01,dec:2}];
+const sync=mkParams(DEF,P,id=>{ if(id==='L'&&P.x2>P.L) P.x2=P.L; P.x2=Math.min(P.x2,P.L); P.x1=Math.min(P.x1,P.x2-0.005); sync(); refresh(); });
+chips('#pol','pol',k=>{ S.pol=k; press('#pol','pol',k); refresh(); });
+$('t-nopi').onchange=e=>{ S.nopi=e.target.checked; refresh(); };
+const setView=bindViews(S,()=>draw()); bindTabs();
+// --- física (mm y nm) ---
+const Lm=()=>P.L*1e3, hm=()=>P.h;
+const zone=()=>[hm()*(Lm()/(P.x2*1e3)-1), hm()*(Lm()/(P.x1*1e3)-1)];          // donde llega el reflejado
+function rcoef(y){ const g=Math.atan((y+hm())/Lm()), th=PI/2-g, c1=Math.cos(th), st=Math.sin(th)/P.n, c2=Math.sqrt(1-st*st);
+  const r= S.pol==='s'? (c1-P.n*c2)/(c1+P.n*c2) : (P.n*c1-c2)/(P.n*c1+c2); return S.nopi?Math.abs(r):r; }   // convención de Hecht: a incidencia rasante r_s, r_p → −1
+function I(y){ const [a,b]=zone(); if(y<a||y>b) return 1; const r1=Math.hypot(Lm(),y-hm()), r2=Math.hypot(Lm(),y+hm()), ph=2*PI*(r2-r1)*1e6/P.lam, r=rcoef(y);
+  return 1+r*r+2*r*Math.cos(ph); }
+const iFr=()=>P.lam*1e-6*Lm()/(2*hm());
+const nDark=()=>{ const [a,b]=zone(); return Math.floor(b/iFr()+0.5)-Math.ceil(a/iFr()-0.5)+1; };
+function refresh(){ const [a,b]=zone(), r0=rcoef(a);
+  $('readout').innerHTML=`<span><span class="k">interfranja</span> ${fcj(iFr(),4)} mm</span><span><span class="k">zona con franjas</span> ${fcj(a,3)} a ${fcj(b,2)} mm</span><span><span class="k">r en el borde de la zona</span> ${fcj(r0,4)}</span><span><span class="k">I en y = 0</span> ${a<=1e-9?fcj(I(0),4):'sin franjas ahí'}</span>`;
+  $('formula').innerHTML=`<span class="k">Δ = r_imagen − r_fuente ≈ 2hy/L · I = 1 + r² + 2r cos(2πΔ/λ) · con r ≈ −1: oscuro en Δ = mλ · i = λL/(2h) = </span>${fcj(iFr(),4)} mm`;
+  $('cap-a').textContent=S.nopi?'Contraprueba: si la reflexión no cambiara el signo, la línea de contacto (Δ = 0) sería brillante. El experimento la muestra oscura.':'En y = 0 los caminos son iguales y, aun así, hay un mínimo: la onda reflejada llega invertida (r ≈ −1). Todo el patrón está corrido media franja respecto de Young.';
+  draw(); renderCuentas(false); updateChal(); }
+bindPred('osc',()=>{ S.nopi=false; $('t-nopi').checked=false; Object.assign(P,{h:1,L:1,x1:0.3,x2:1}); sync(); refresh(); setView('a'); return `Con caminos iguales esperaríamos un máximo, pero la reflexión rasante en el vidrio da r = ${fcj(rcoef(0),4)} ≈ −1: la onda reflejada llega con la fase invertida y se cancela con la directa. Esa franja oscura en el contacto es la prueba del desfasaje de 180° (P16). Activá la contraprueba para ver qué pasaría sin él.`; });
+function updateChal(){ if(P.lam===600&&Math.abs(P.L-1)<1e-9&&Math.abs(iFr()-0.5)<0.0025) S.d1=true; chal('c1',S.d1,'Logrado: h = λL/(2i) = 0,6 mm.',`ahora i = ${fcj(iFr(),4)} mm`);
+  if(Math.abs(zone()[0]-1)<0.02) S.d2=true; chal('c2',S.d2,`Logrado: el rayo reflejado más bajo sale del extremo del espejo: y = h(L/x₂ − 1) ⇒ x₂ = L/(1 + 1 mm/h) = ${fcj(P.x2,4)} m.`,`ahora la zona empieza en ${fcj(zone()[0],3)} mm`);
+  if(nDark()>=20) S.d3=true; chal('c3',S.d3,'Logrado: el número de franjas es el ancho de la zona sobre λL/(2h); crece con h² (la zona se agranda y la interfranja se achica).',`ahora ${nDark()} franjas oscuras`); }
+function renderCuentas(now){ typesetSteps(now,()=>({steps:[
+  ['La fuente S y su imagen S′ en el espejo (a −h) son dos fuentes coherentes separadas 2h',`\\[\\Delta=r_{S'}-r_S=\\sqrt{L^2+(y+h)^2}-\\sqrt{L^2+(y-h)^2}\\simeq\\frac{2hy}{L}\\]`],
+  ['A incidencia rasante el coeficiente de Fresnel tiende a −1 (las dos polarizaciones)',`\\[r_s=\\frac{\\cos\\theta_i-n\\cos\\theta_t}{\\cos\\theta_i+n\\cos\\theta_t}\\xrightarrow{\\theta_i\\to90^\\circ}-1\\]`],
+  ['Intensidad: oscuro donde los caminos son iguales o difieren en mλ',`\\[I=I_0\\big(1+r^2+2r\\cos k\\Delta\\big)\\simeq2I_0\\big(1-\\cos k\\Delta\\big),\\qquad i=\\frac{\\lambda L}{2h}\\]`],
+  ['P16: la franja que toca el espejo (Δ = 0) es oscura. Sin un desfasaje de π sería brillante; por eso se concluye que la reflexión lo introduce',`\\[I(y=0)=I_0(1+r)^2\\approx0\\]`],
+  ['Zona de interferencia: el rayo reflejado más bajo sale del extremo del espejo',`\\[h\\Big(\\frac{L}{x_2}-1\\Big)\\le y\\le h\\Big(\\frac{L}{x_1}-1\\Big)\\]`]],
+  fin:`\\[i=${f3(iFr(),4)}\\ \\text{mm},\\qquad r(0)=${f3(rcoef(0),4)}\\]`})); }
+// --- dibujo ---
+new ResizeObserver(()=>draw()).observe(document.body);
+function drawScene(){ const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H); const x0=W*0.06, sx=W<640?W*0.74:W*0.84, my=H*0.7, X=x=>x0+(sx-x0)*x/P.L, hp=Math.min(H*0.3,40+P.h*18), sw=Math.min(36,W*0.05);
+  const col=rgbStr(wl2rgb(P.lam)); const Sy=my-hp, Iy=my+hp;
+  // haz reflejado: desde la imagen por el espejo
+  const hit=x=>[sx,Iy+(my-Iy)*(sx-x0)/(X(x)-x0)]; const a=hit(P.x2), b=hit(P.x1); c.fillStyle=col; c.globalAlpha=0.13; c.beginPath(); c.moveTo(X(P.x1),my); c.lineTo(X(P.x2),my); c.lineTo(a[0],Math.max(0,a[1])); c.lineTo(b[0],Math.max(0,b[1])); c.closePath(); c.fill(); c.globalAlpha=1;
+  line(c,[[x0,Iy],[X(P.x1),my]],C.faint,1,[3,3]); line(c,[[x0,Iy],[X(P.x2),my]],C.faint,1,[3,3]); line(c,[[x0,Sy],[X(P.x1),my],b],C.sys,1,null,0.6); line(c,[[x0,Sy],[X(P.x2),my],a],C.sys,1,null,0.6);
+  c.fillStyle=C.muted; c.fillRect(X(P.x1),my,X(P.x2)-X(P.x1),5); txt(c,'espejo',(X(P.x1)+X(P.x2))/2,my+8,C.muted,'center','top'); line(c,[[x0-6,my],[sx,my]],C.faint,1,[2,4]);
+  dot(c,x0,Sy,5,col); txt(c,'S',x0+8,Sy,C.fg,'left','middle'); dot(c,x0,Iy,4,C.a); txt(c,'S′',x0+8,Iy,C.a,'left','middle'); txt(c,'h',x0-4,(Sy+my)/2,C.muted,'right','middle');
+  // pantalla: franja a escala desde y = 0 hasta ymax (arriba)
+  const [za,zb]=zone(), ymx=Math.max(8*iFr(),Math.min(zb*1.1,za+40*iFr())), top=H*0.06, sc=(my-top)/ymx; strip(c,sx,top,sw,my-top,true,u=>rgbStr(wl2rgb(P.lam),I(ymx*(1-u))/4),300); c.strokeStyle=C.line; c.strokeRect(sx,top,sw,my-top);
+  txt(c,`0 a ${fcj(ymx,2)} mm`,sx+sw/2,my+4,C.muted,'center','top'); txt(c,'pantalla',sx+sw/2,top-2,C.muted,'center','bottom');
+  if(W>=640) txt(c,'alturas exageradas; franjas a escala',12,H-8,C.faint,'left','bottom'); $('clock').textContent=''; }
+function drawA(){ const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const [za,zb]=zone(), ymx=Math.max(8*iFr(),Math.min(zb*1.1,za+40*iFr())), g=axes(c,W,H,{x0:0,x1:ymx,y0:0,y1:4.3,yt:[0,1,2,3,4],yf:v=>v,xt:ticks(0,ymx,8),xf:v=>fcj(v,v%1?(v<1?2:1):0),xl:'y (mm)'});
+  c.fillStyle=C.sys; c.globalAlpha=0.08; c.fillRect(g.X(za),g.T,g.X(Math.min(zb,ymx))-g.X(za),g.ph); c.globalAlpha=1; strip(c,g.L0,g.T,g.pw,10,false,u=>rgbStr(wl2rgb(P.lam),I(ymx*u)/4),300);
+  const pts=[]; for(let k=0;k<=1200;k++){ const y=ymx*k/1200; pts.push([g.X(y),g.Y(I(y))]); } line(c,pts,rgbStr(wl2rgb(P.lam)),2.2); }
+function draw(){ drawScene(); if(S.view==='a') drawA(); }
+sync(); refresh();
+</script>
+</body>
+</html>

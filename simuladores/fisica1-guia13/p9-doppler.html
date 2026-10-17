@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Doppler relativista G13-P9</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a la Guía 13: chips de sistema, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 13 · Relatividad especial</span>
+  <h1>Doppler relativista <i>· pulsos de una nave</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 13">
+    <h2>Guía 13</h2>
+    <ol>
+      <li><a href="p1-relojes-reglas.html"><b class="code">P1–4, 8</b>Relojes y reglas</a></li>
+      <li><a href="p5-minkowski.html"><b class="code">P5–6, 10</b>Diagrama de Minkowski</a></li>
+      <li><a href="p7-garaje.html"><b class="code">P7</b>Paradoja del garaje</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P9</b>Doppler relativista</a></li>
+      <li><a href="p10-velocidades.html"><b class="code">P10–11</b>Suma de velocidades</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:230px" aria-label="Una nave emite pulsos de luz mientras se mueve entre dos observadores, O₁ a la izquierda y O₂ a la derecha. Los frentes de onda se apilan adelante y se separan atrás."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+
+      <div class="params" id="params"></div>
+      <div class="note">Unidades: segundos y segundos luz, así c = 1. β &gt; 0: la nave se aleja de O₁ y se acerca a O₂. El cuadrado junto a cada observador muestra el color que recibe si la nave emite luz de longitud de onda λ₀.</div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="curva" aria-pressed="true">T/T₀ vs β</button>
+          <button data-view="esp" aria-pressed="false">Espectro</button>
+          <button data-view="pul" aria-pressed="false">Pulsos vs t</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="curva">
+        <div class="plot"><canvas id="pc" style="height:260px"></canvas><div class="tag" style="color:var(--fg)">Período recibido por O₁ / T₀</div><div class="legend" id="leg-c"></div></div>
+        <div class="pcap" id="cap-c"></div>
+      </div>
+      <div data-vpanel="esp" hidden>
+        <div class="plot"><canvas id="pe" style="height:170px"></canvas><div class="tag" style="color:var(--fg)">Longitud de onda (nm)</div></div>
+        <div class="pcap" id="cap-e"></div>
+      </div>
+      <div data-vpanel="pul" hidden>
+        <div class="plot"><canvas id="pp" style="height:210px"></canvas><div class="tag" style="color:var(--fg)">Emisión y recepción en tiempo de tierra</div></div>
+        <div class="pcap" id="cap-p"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G13-P9</summary>
+      <p><b>P9.</b> Una nave se aleja de la Tierra con velocidad V y emite pulsos de luz con período propio T₀ (medido con el reloj de la nave). Calcule el período con que se reciben en la Tierra, teniendo en cuenta la dilatación del tiempo y el retardo por la distancia creciente. Repita para una nave que se acerca. Compare con el resultado sin relatividad y discuta el corrimiento al rojo y al azul de una fuente de longitud de onda λ₀.</p>
+      <p class="src">Física 1, Guía 13 (Relatividad especial). Resumen del problema a partir del catálogo de simuladores; conviene reemplazarlo por el enunciado textual de la guía.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución exacta: los pulsos se emiten cada γT₀ en tiempo de tierra y viajan a c; las recepciones se calculan como cruces de cada frente con cada observador. Colores: celeste, la nave y la fórmula relativista; lila de trazos, el resultado sin dilatación (Galileo); gris de puntos, solo la dilatación; blanco, los frentes de onda; los cuadrados de color, la luz recibida.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de la Guía 13 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G13-P9 · Doppler relativista =================
+const P={b:0.2,T0:1,lam0:500};
+const DEF=[
+  {id:'b',   lab:'β',  unit:'V/c', min:-0.95, max:0.95, step:0.005, dec:3},
+  {id:'T0',  lab:'T₀', unit:'s',   min:0.4, max:3, step:0.05, dec:2},
+  {id:'lam0',lab:'λ₀', unit:'nm',  min:380, max:780, step:1, dec:0},
+];
+const XR=12;                                   // O₂ a 12 s-luz de O₁
+const g=()=>gam(P.b);
+const T1=()=>P.T0*Math.sqrt((1+P.b)/(1-P.b));  // recibido por O₁ (la nave se aleja si β > 0)
+const T2=()=>P.T0*Math.sqrt((1-P.b)/(1+P.b));  // recibido por O₂
+const Tcl=()=>P.T0*(1+P.b);                     // fuente que se mueve, sin dilatación
+function wl(l){ if(l<380||l>780) return null; let r=0,gg=0,b=0;
+  if(l<440){r=-(l-440)/60;b=1;} else if(l<490){gg=(l-440)/50;b=1;} else if(l<510){gg=1;b=-(l-510)/20;} else if(l<580){r=(l-510)/70;gg=1;} else if(l<645){r=1;gg=-(l-645)/65;} else r=1;
+  const f=l<420?0.3+0.7*(l-380)/40:l>700?0.3+0.7*(780-l)/80:1; const c=v=>Math.round(255*Math.pow(v*f,0.8)); return `rgb(${c(r)},${c(gg)},${c(b)})`; }
+const band=l=>l<380?'UV':l>780?'IR':'';
+
+// ================= Simulación (tiempo de tierra, s) =================
+const W={pulses:[],em:[],r1:[],r2:[],k:0,x0:1.5};
+function restart(){ S.t=0; W.pulses=[]; W.em=[]; W.r1=[]; W.r2=[]; W.k=0; W.x0=P.b>=0?1.5:XR-1.5; }
+const xs=t=>W.x0+P.b*t;
+function step(dt){
+  S.t+=dt*1.4; const Te=g()*P.T0;
+  while(W.k*Te<=S.t){ const te=W.k*Te; W.pulses.push({te,x:xs(te),h1:false,h2:false}); W.em.push(te); W.k++; }
+  W.pulses.forEach(p=>{ const r=S.t-p.te; if(!p.h1&&r>=p.x){ p.h1=true; W.r1.push(p.te+p.x); } if(!p.h2&&r>=XR-p.x){ p.h2=true; W.r2.push(p.te+XR-p.x); } });
+  W.pulses=W.pulses.filter(p=>!(p.h1&&p.h2));
+  const x=xs(S.t); if((x>XR-0.6||x<0.6)&&W.pulses.length===0) restart();
+  else if(x>XR-0.6||x<0.6){ /* la nave llegó: deja de emitir hasta que lleguen los últimos pulsos */ W.k=Math.max(W.k,Math.ceil(S.t/Te)+1e6); }
+  ['em','r1','r2'].forEach(k=>{ while(W[k].length&&W[k][0]<S.t-40) W[k].shift(); });
+}
+function measured(arr){ return arr.length>=2?arr[arr.length-1]-arr[arr.length-2]:NaN; }
+
+// ================= Escena =================
+const scene=$('scene');
+function observer(ctx,x,y,lab,lam,right){ const col=wl(lam);
+  ctx.fillStyle=C['panel-2']; ctx.strokeStyle=C.muted; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(x,y,9,0,7); ctx.fill(); ctx.stroke();
+  const sx=right?x-34:x+16; ctx.fillStyle=col||C.faint; ctx.fillRect(sx,y-30,18,18); ctx.strokeStyle=C['line-2']; ctx.strokeRect(sx,y-30,18,18);
+  txt(ctx,lab,x,y+26,C.muted,{align:'center',size:12,font:UI,weight:600});
+  txt(ctx,col?`${cm(lam,0)} nm`:`${band(lam)} ${cm(lam,0)} nm`,sx+9,y-36,C.muted,{align:'center',size:10.5}); }
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h);
+  const s=(w-70)/XR, X=x=>35+x*s, ym=h/2+10;
+  ctx.save(); ctx.beginPath(); ctx.rect(0,0,w,h); ctx.clip();
+  W.pulses.forEach(p=>{ const r=(S.t-p.te)*s; if(r<=0) return; ctx.strokeStyle=C.fg; ctx.globalAlpha=Math.max(.12,.55-0.02*(S.t-p.te)); ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(X(p.x),ym,r,0,7); ctx.stroke(); });
+  ctx.globalAlpha=1; ctx.restore();
+  line(ctx,[[X(0),ym],[X(XR),ym]],C.line,1);
+  observer(ctx,X(0),ym,'O₁',P.lam0*T1()/P.T0,false); observer(ctx,X(XR),ym,'O₂',P.lam0*T2()/P.T0,true);
+  // nave
+  const x=xs(S.t), d=P.b>=0?1:-1, px=X(Math.min(XR-0.3,Math.max(0.3,x)));
+  ctx.fillStyle=C.sys; ctx.beginPath(); ctx.moveTo(px+d*14,ym); ctx.lineTo(px-d*10,ym-8); ctx.lineTo(px-d*6,ym); ctx.lineTo(px-d*10,ym+8); ctx.closePath(); ctx.fill();
+  if(Math.abs(P.b)>0.001) arrow(ctx,px+d*20,ym-18,px+d*(24+30*Math.abs(P.b)),ym-18,C.sys,1.5,6);
+  txt(ctx,`t = ${cm(S.t,1)} s (tierra)`,12,17,C.muted,{size:11.5});
+  const m1=measured(W.r1);
+  readout([['γ',cm(g(),3)],['emite cada (tierra) γT₀',cm(g()*P.T0,3)+' s'],['O₁ recibe cada',cm(T1(),3)+' s'+(isFinite(m1)?` (medido ${cm(m1,3)})`:''),C.sys],['O₂ recibe cada',cm(T2(),3)+' s']]);
+  $('formula').innerHTML=`<b>T₁ = T₀ √((1+β)/(1−β))</b> = ${cm(T1(),3)} s · <b>T₂ = T₀ √((1−β)/(1+β))</b> = ${cm(T2(),3)} s · z₁ = ${cm(T1()/P.T0-1,3)}`;
+}
+
+// ================= Gráficos =================
+function drawCurva(){
+  const F=frame($('pc'),{x0:-0.95,x1:0.95,y0:0,y1:7,xt:[-0.8,-0.4,0,0.4,0.8],yt:[0,1,2,3,4,5,6,7],xlab:'β (> 0: se aleja de O₁)'}); const {ctx,X,Y}=F;
+  const R=[],Cl=[],Tr=[]; for(let i=0;i<=400;i++){ const b=-0.95+1.9*i/400; R.push([X(b),Y(Math.sqrt((1+b)/(1-b)))]); Cl.push([X(b),Y(1+b)]); Tr.push([X(b),Y(gam(b))]); }
+  F.clip(); line(ctx,[[X(-0.95),Y(1)],[X(0.95),Y(1)]],C.muted,1); line(ctx,Tr,C.muted,1.4,[2,3]); line(ctx,Cl,C.lin,1.8,[5,4]); line(ctx,R,C.sys,2.2); line(ctx,[[X(P.b),Y(0)],[X(P.b),Y(7)]],C.fg,1,[3,3],.5); F.unclip();
+  dot(ctx,X(P.b),Y(T1()/P.T0),4.5,C.sys); dot(ctx,X(P.b),Y(Tcl()/P.T0),4,C.lin);
+  legend('leg-c',[[C.sys,'relativista'],[C.lin,'sin dilatación','dashed'],[C.muted,'solo dilatación γ','dotted']]);
+  $('cap-c').textContent=`Con β = ${cm(P.b,3)}: T₁/T₀ = ${cm(T1()/P.T0,3)}. Sin dilatación daría ${cm(Tcl()/P.T0,3)}. ${P.b>0?'La nave se aleja: los pulsos llegan más espaciados (corrimiento al rojo).':P.b<0?'La nave se acerca: los pulsos llegan más juntos (corrimiento al azul).':'Sin movimiento no hay corrimiento.'} La curva gris de puntos (γ) es lo que se mediría mirando la nave de costado, cuando no hay retardo por la distancia: Doppler transversal.`;
+}
+function drawEsp(){
+  const F=frame($('pe'),{x0:300,x1:900,y0:0,y1:1,yt:[],xt:[300,400,500,600,700,800,900],T:26}); const {ctx,X,Y}=F;
+  const y0=Y(0.7), y1=Y(0.25);
+  for(let l=300;l<900;l+=2){ const c=wl(l); ctx.fillStyle=c||C['panel-2']; ctx.fillRect(X(l),y0,X(l+2)-X(l)+0.6,y1-y0); }
+  txt(ctx,'UV',X(340),(y0+y1)/2,C.faint,{align:'center',base:'middle'}); txt(ctx,'IR',X(840),(y0+y1)/2,C.faint,{align:'center',base:'middle'});
+  const l1=P.lam0*T1()/P.T0, l2=P.lam0*T2()/P.T0;
+  [[P.lam0,'λ₀',C.fg,-1],[l1,'O₁',C.sys,1],[l2,'O₂',C.v,1]].forEach(([l,n,col,sg])=>{ const xx=X(Math.max(300,Math.min(900,l))); line(ctx,[[xx,y0-6],[xx,y1+6]],col,2.2); const lx=Math.max(F.L+34,Math.min(F.L+F.pw-34,xx)); txt(ctx,n+(l>900?' →':l<300?' ←':''),lx,sg<0?y0-12:y1+18,col,{align:'center',size:12,weight:600,font:UI}); });
+  $('cap-e').textContent=`λ₀ = ${cm(P.lam0,0)} nm. O₁ recibe ${cm(l1,0)} nm (z = ${cm(l1/P.lam0-1,3)}) y O₂ recibe ${cm(l2,0)} nm (z = ${cm(l2/P.lam0-1,3)}). λ escala igual que el período: λ/λ₀ = T/T₀.`;
+}
+function drawPul(){
+  const t1=Math.max(S.t,12), t0=t1-12;
+  const F=frame($('pp'),{x0:t0,x1:t1,y0:0,y1:4,yt:[],xlab:'t en tierra (s)',L:84}); const {ctx,X,Y,L}=F;
+  [[3,'emite',W.em,C.fg],[2,'recibe O₁',W.r1,C.sys],[1,'recibe O₂',W.r2,C.v]].forEach(([y,lab,arr,col])=>{
+    line(ctx,[[X(t0),Y(y)],[X(t1),Y(y)]],C['line-2'],1.2);
+    txt(ctx,lab,L-8,Y(y),col,{align:'right',base:'middle',size:12,font:UI,weight:600});
+    arr.forEach(t=>{ if(t>=t0&&t<=S.t) line(ctx,[[X(t),Y(y)-10],[X(t),Y(y)+10]],col,2); });
+  });
+  line(ctx,[[X(S.t),Y(3.6)],[X(S.t),Y(0.4)]],C.fg,1,[3,3],.5);
+  const m1=measured(W.r1), m2=measured(W.r2);
+  $('cap-p').textContent=`La nave emite cada γT₀ = ${cm(g()*P.T0,3)} s de tierra. Medido en la escena: O₁ recibe cada ${isFinite(m1)?cm(m1,3):'…'} s y O₂ cada ${isFinite(m2)?cm(m2,3):'…'} s; la teoría da ${cm(T1(),3)} s y ${cm(T2(),3)} s.`;
+}
+function draw(){ drawScene(); if(S.view==='curva') drawCurva(); else if(S.view==='esp') drawEsp(); else drawPul(); }
+
+// ================= Predecí =================
+buildPred({ q:'Una nave se aleja a 0,6c y emite un pulso cada 1 s según su propio reloj. Desde la Tierra recibís los pulsos cada…',
+  opts:[['1.25','1,25 s: solo la dilatación del tiempo'],['1.6','1,6 s: el Doppler clásico'],['2','2 s']], right:'2', go:'Probalo: β = 0,6 y T₀ = 1 s',
+  run(){ P.b=0.6; P.T0=1; restart(); setView('pul'); refresh();
+    return `Se suman los dos efectos. En tierra la nave emite cada γT₀ = <span class="num">1,25 s</span> (dilatación). Entre pulso y pulso se aleja VγT₀ = 0,75 s-luz, así que cada pulso tarda 0,75 s más en llegar: T = 1,25 + 0,75 = <span class="num">2 s</span>. En general T = γT₀(1 + β) = T₀√((1+β)/(1−β)). Mirá la fila «recibe O₁».`; } });
+
+// ================= Desafíos =================
+buildChal([
+  {txt:'Hacé que O₁ reciba un pulso cada 3T₀ (±0,5 %).',
+   chk(){ const q=T1()/P.T0; return Math.abs(q-3)/3<0.005?[true,`Logrado: β = ${cm(P.b,3)}. De (1+β)/(1−β) = 9 sale β = 0,8.`]:[false,`Ahora T₁/T₀ = ${cm(q,3)}`]; }},
+  {txt:'Con λ₀ = 500 nm (verde), hacé que O₁ reciba luz roja de 700 nm (±2 nm).',
+   chk(){ if(Math.abs(P.lam0-500)>0.5) return [false,'Primero poné λ₀ = 500 nm']; const l=P.lam0*T1()/P.T0; return Math.abs(l-700)<2?[true,`Logrado: β = ${cm(P.b,3)}, z = ${cm(l/500-1,3)}. Alcanza con un tercio de c.`]:[false,`Ahora O₁ recibe ${cm(l,0)} nm`]; }},
+  {txt:'Hacé que O₁ reciba los pulsos al doble del ritmo con que se emiten en la nave (T₁ = T₀/2, ±0,5 %). ¿La nave se acerca o se aleja?',
+   chk(){ const q=T1()/P.T0; return Math.abs(q-0.5)/0.5<0.005?[true,`Logrado: β = ${cm(P.b,3)}: la nave se acerca a O₁ a 0,6c.`]:[false,`Ahora T₁/T₀ = ${cm(q,3)}`]; }},
+]);
+
+// ================= Cuentas =================
+function cuentas(){
+  const G=g(), b=P.b, Te=G*P.T0, l1=P.lam0*T1()/P.T0;
+  return {title:'Dilatación más retardo', finLbl:'Períodos recibidos', steps:[
+    ['El reloj de la nave atrasa: en tierra, la nave emite cada', `\\[T_e=\\gamma T_0=${tx(G,4)}\\times ${tx(P.T0,2)}\\ \\text{s}=${tx(Te,3)}\\ \\text{s}\\]`],
+    ['Entre dos emisiones la nave se aleja de O₁ (o se acerca, si β < 0) una distancia V·Tₑ, que la luz tarda β·Tₑ más en recorrer', `\\[\\Delta d=V\\,T_e\\ \\Rightarrow\\ \\text{retardo extra}=\\beta\\,T_e=${tx(b*Te,3)}\\ \\text{s}\\]`],
+    ['Período recibido por O₁', `\\[T_1=\\gamma T_0(1+\\beta)\\qquad =T_0\\sqrt{\\frac{1+\\beta}{1-\\beta}}=${tx(T1(),3)}\\ \\text{s}\\]`,true],
+    ['Del otro lado la nave se acerca a O₂', `\\[T_2=\\gamma T_0(1-\\beta)\\qquad =T_0\\sqrt{\\frac{1-\\beta}{1+\\beta}}=${tx(T2(),3)}\\ \\text{s}\\]`],
+    ['La longitud de onda escala igual que el período', `\\[\\lambda_1=\\lambda_0\\frac{T_1}{T_0}=${tx(l1,1)}\\ \\text{nm},\\qquad z=\\frac{\\lambda_1}{\\lambda_0}-1=${tx(l1/P.lam0-1,3)}\\]`],
+    ['Sin relatividad (fuente que se mueve, tiempo absoluto)', `\\[T_{\\text{clás}}=T_0(1+\\beta)=${tx(Tcl(),3)}\\ \\text{s}\\]`],
+  ], fin:`\\[T_1=${tx(T1(),3)}\\ \\text{s},\\qquad T_2=${tx(T2(),3)}\\ \\text{s}\\]`};
+}
+
+// ================= Arranque =================
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,id=>{ if(id!=='lam0') restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart);
+restart(); refresh();
+startLoop(step,draw);
+
+</script>
+</body>
+</html>

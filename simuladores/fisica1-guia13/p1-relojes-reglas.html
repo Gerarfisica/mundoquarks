@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Relojes y reglas G13-P1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a la Guía 13: chips de sistema, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 13 · Relatividad especial</span>
+  <h1>Relojes de luz y reglas <i>· dilatación y contracción</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 13">
+    <h2>Guía 13</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P1–4, 8</b>Relojes y reglas</a></li>
+      <li><a href="p5-minkowski.html"><b class="code">P5–6, 10</b>Diagrama de Minkowski</a></li>
+      <li><a href="p7-garaje.html"><b class="code">P7</b>Paradoja del garaje</a></li>
+      <li><a href="p9-doppler.html"><b class="code">P9</b>Doppler relativista</a></li>
+      <li><a href="p10-velocidades.html"><b class="code">P10–11</b>Suma de velocidades</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:250px" aria-label="Arriba, el sistema de la nave; abajo, el de tierra. Un reloj de luz, una regla inclinada o un haz de piones según el caso elegido."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="reloj" aria-pressed="true">Reloj de luz · P1–2</button>
+        <button data-sy="regla" aria-pressed="false">Regla inclinada · P3–4</button>
+        <button data-sy="pion" aria-pressed="false">Piones · P8</button>
+      </div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="gam" aria-pressed="true">γ(β)</button>
+          <button data-view="esp" aria-pressed="false" id="vb-esp">Tics vs t</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="gam">
+        <div class="plot"><canvas id="pg" style="height:260px"></canvas><div class="tag" style="color:var(--sys)">Factor de Lorentz</div><div class="legend" id="leg-g"></div></div>
+        <div class="pcap" id="cap-g"></div>
+      </div>
+      <div data-vpanel="esp" hidden>
+        <div class="plot"><canvas id="pe" style="height:260px"></canvas><div class="tag" id="tag-e"></div><div class="legend" id="leg-e"></div></div>
+        <div class="pcap" id="cap-e"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G13-P1 a P4 y P8</summary>
+      <p><b>P1–2.</b> Un reloj de luz está formado por dos espejos paralelos separados una distancia L₀ entre los que rebota un pulso de luz; cada ida y vuelta es un tic. El reloj viaja en una nave con velocidad V perpendicular a la línea que une los espejos. Calcule la duración de un tic medida en la nave y medida desde tierra, y deduzca la dilatación del tiempo.</p>
+      <p><b>P3–4.</b> Una regla de longitud propia L₀ forma un ángulo θ′ con la dirección del movimiento en el sistema de la nave. Halle su longitud y el ángulo que forma con la dirección del movimiento medidos desde tierra.</p>
+      <p><b>P8.</b> Piones de vida media propia τ₀ = 26 ns se producen con velocidad V. ¿Qué distancia recorren en promedio en el laboratorio antes de decaer? ¿Qué fracción llega a un detector a una distancia D? Compare con lo que predice la física de Galileo.</p>
+      <p class="src">Física 1, Guía 13 (Relatividad especial). Resumen de los problemas a partir del catálogo de simuladores; conviene reemplazarlo por el enunciado textual de la guía.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Solución analítica exacta (transformaciones de Lorentz); los decaimientos de los piones se sortean con una distribución exponencial de vida media propia τ₀ = 26,03 ns. Colores: celeste, la nave y todo lo medido en S′; verde, el reloj de tierra; amarillo, el pulso de luz; lila de trazos, lo que daría Galileo; rojo, un pion que decae.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de la Guía 13 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G13-P1 a P4 y P8 · Relojes de luz, reglas y piones =================
+const TAU0=26.03;                 // vida media propia del pion cargado (ns)
+const P={b:0.6,L0:1,th:30,D:20};
+const DEF=[
+  {id:'b', lab:'β', unit:'V/c', min:0, max:0.995, step:0.001, dec:3},
+  {id:'L0',lab:'L₀',unit:'m', min:0.2, max:3, step:0.01, dec:2},
+  {id:'th',lab:'θ′',unit:'°', min:0, max:90, step:0.5, dec:1},
+  {id:'D', lab:'D', unit:'m', min:2, max:100, step:0.5, dec:1},
+];
+let SY='reloj';
+const g=()=>gam(P.b);
+const T0=()=>2*P.L0/CNS;                                  // tic propio (ns)
+function ruler(){ const t=rad(P.th), G=g(); const lx=P.L0*Math.cos(t)/G, ly=P.L0*Math.sin(t); return {lx,ly,L:Math.hypot(lx,ly),th:deg(Math.atan2(ly,lx))}; }
+const dMean=()=>g()*P.b*CNS*TAU0;                          // recorrido medio con relatividad (m)
+const dGal=()=>P.b*CNS*TAU0;                               // recorrido medio sin dilatación (m)
+const fracRel=x=>P.b>0?Math.exp(-x/dMean()):0;
+const fracGal=x=>P.b>0?Math.exp(-x/dGal()):0;
+
+// ================= Simulación =================
+// S.t es tiempo de tierra en ns (reloj y piones) o tiempo visual en s (regla)
+const PI={list:[],next:0,rel:0,gal:0,nR:0,nG:0};
+const Xmax=()=>Math.max(P.D*1.25,5);
+function K(){ if(SY==='reloj') return T0()/1.3; if(SY==='pion') return Xmax()/(Math.max(P.b,0.05)*CNS)/3.2; return 1; }
+function restart(){ S.t=0; PI.list=[]; PI.next=0; PI.rel=0; PI.gal=0; PI.nR=0; PI.nG=0; }
+function step(dt){
+  S.t+=dt*K();
+  if(SY!=='pion'||P.b<=0) return;
+  const v=P.b*CNS, G=g(), tc=Xmax()/v, every=tc/18;
+  while(PI.next<=S.t){ PI.list.push({t0:PI.next,tau:-TAU0*Math.log(1-Math.random()),lane:Math.random(),dR:false,dG:false}); PI.next+=every; }
+  PI.list.forEach(p=>{ const a=S.t-p.t0;
+    if(!p.dR&&a>=Math.min(G*p.tau,P.D/v)){ p.dR=true; PI.nR++; if(G*p.tau*v>=P.D) PI.rel++; }
+    if(!p.dG&&a>=Math.min(p.tau,P.D/v)){ p.dG=true; PI.nG++; if(p.tau*v>=P.D) PI.gal++; } });
+  PI.list=PI.list.filter(p=>S.t-p.t0<tc*1.25);
+}
+
+// ================= Escena =================
+const scene=$('scene');
+const tri=u=>{ const f=u-Math.floor(u); return f<0.5?2*f:2-2*f; };
+function strips(ctx,w,h,a,ca,b,cb){ const H2=h/2; ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,H2); ctx.lineTo(w,H2); ctx.stroke(); txt(ctx,a,12,17,ca,{size:12,font:UI,weight:600}); txt(ctx,b,12,H2+17,cb,{size:12,font:UI,weight:600}); }
+function lightClock(ctx,x,y0,gap,frac,col){ const hw=15; ctx.strokeStyle=col; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x-hw,y0); ctx.lineTo(x+hw,y0); ctx.moveTo(x-hw,y0+gap); ctx.lineTo(x+hw,y0+gap); ctx.stroke(); dot(ctx,x,y0+gap-frac*gap,4.5,C.v); }
+function shipBox(ctx,x,y0,gap){ ctx.strokeStyle=C.sys; ctx.globalAlpha=.35; ctx.lineWidth=1.2; ctx.strokeRect(x-24,y0-7,48,gap+14); ctx.globalAlpha=1; }
+function drawReloj(ctx,w,h){
+  const H2=h/2, pad=30, gap=H2-pad-10, T=T0(), G=g();
+  const nShip=Math.floor(S.t/(G*T)+1e-9), nLab=Math.floor(S.t/T+1e-9);
+  strips(ctx,w,h,'En la nave · S′',C.sys,'Desde tierra · S',C.x);
+  // arriba: el reloj en reposo en la nave
+  const cx=w*0.5; shipBox(ctx,cx,pad,gap); lightClock(ctx,cx,pad,gap,tri(S.t/(G*T)),C.sys);
+  txt(ctx,w<560?nt(nShip,'tic','tics'):`${nt(nShip,'tic','tics')} · τ = ${cm(S.t/G,1)} ns`,w-12,17,C.sys,{align:'right'});
+  // abajo: la nave pasa frente a un reloj idéntico en reposo en tierra
+  const y0=H2+pad, s=gap/P.L0, vpx=P.b*CNS*s, xL=w-46, span=Math.max(40,xL-90);
+  const xs=60+((vpx*S.t)%span+span)%span;
+  const pts=[]; const Wt=2*G*T;
+  for(let k=0;k<=120;k++){ const tk=S.t-Wt*k/120; if(tk<0) break; const x=xs-vpx*(S.t-tk); if(x<30) break; pts.push([x,y0+gap-tri(tk/(G*T))*gap]); }
+  line(ctx,pts,C.v,1.4,null,.55);
+  shipBox(ctx,xs,y0,gap); lightClock(ctx,xs,y0,gap,tri(S.t/(G*T)),C.sys);
+  if(P.b>0) arrow(ctx,xs+28,y0+gap/2,xs+40+30*P.b,y0+gap/2,C.sys,1.6,6);
+  lightClock(ctx,xL,y0,gap,tri(S.t/T),C.x);
+  txt(ctx,w<560?`${nLab} : ${nShip}`:`tierra ${nt(nLab,'tic','tics')} · nave ${nShip} · t = ${cm(S.t,1)} ns`,w-12,H2+17,C.x,{align:'right'});
+  readout([['γ',cm(G,3)],['tic propio Δt′',cm(T,2)+' ns',C.sys],['tic de la nave visto desde tierra',cm(G*T,2)+' ns'],['tierra : nave',`${nLab} : ${nShip}`]]);
+  $('formula').innerHTML=`<b>Δt = γ Δt′</b> = ${cm(G,3)} × ${cm(T,2)} ns = ${cm(G*T,2)} ns`;
+}
+function drawRuler(ctx,cx,cy,dx,dy,col,dash,wd=4){
+  const x1=cx-dx/2, y1=cy+dy/2, x2=cx+dx/2, y2=cy-dy/2;
+  ctx.lineCap='round'; line(ctx,[[x1,y1],[x2,y2]],col,wd,dash); ctx.lineCap='butt';
+  return {x1,y1,x2,y2};
+}
+function drawRegla(ctx,w,h){
+  const H2=h/2, G=g(), t=rad(P.th), r=ruler(), Lpx=Math.min(w*0.3,H2-46);
+  const dx=Lpx*Math.cos(t), dy=Lpx*Math.sin(t);
+  strips(ctx,w,h,'En la nave · S′',C.sys,'Desde tierra · S',C.x);
+  // arriba
+  const cy=H2/2+8, cx=w*0.5;
+  const e=drawRuler(ctx,cx,cy,dx,dy,C.sys);
+  line(ctx,[[e.x1,e.y1],[e.x2,e.y1],[e.x2,e.y2]],C.faint,1,[3,3]);
+  ctx.strokeStyle=C.muted; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(e.x1,e.y1,20,-t,0); ctx.stroke();
+  txt(ctx,'θ′',e.x1+24,e.y1-5,C.muted,{size:12});
+  txt(ctx,w<560?`θ′ = ${cm(P.th,1)}°`:`L₀ = ${cm(P.L0,2)} m · θ′ = ${cm(P.th,1)}°`,w-12,17,C.sys,{align:'right'});
+  // abajo: la regla viaja hacia +x
+  const dx2=dx/G, cyb=H2+H2/2+8, span=Math.max(20,w-110-Math.max(dx,dx2));
+  const xs= P.b>0? 55+Math.max(dx,dx2)/2+(((S.t*P.b*w*0.25)%span)+span)%span : w*0.5;
+  drawRuler(ctx,xs,cyb,dx,dy,C.lin,[5,4],1.6);
+  const f=drawRuler(ctx,xs,cyb,dx2,dy,C.sys);
+  line(ctx,[[f.x1,f.y1],[f.x2,f.y1],[f.x2,f.y2]],C.faint,1,[3,3]);
+  const th=rad(r.th); ctx.strokeStyle=C.muted; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(f.x1,f.y1,20,-th,0); ctx.stroke();
+  txt(ctx,'θ',f.x1+24,f.y1-5,C.muted,{size:12});
+  if(P.b>0) arrow(ctx,f.x2+14,cyb,f.x2+30+30*P.b,cyb,C.sys,1.6,6);
+  txt(ctx,w<560?`θ = ${cm(r.th,1)}°`:`L = ${cm(r.L,3)} m · θ = ${cm(r.th,1)}°`,w-12,H2+17,C.x,{align:'right'});
+  readout([['γ',cm(G,3)],['L medida en tierra',cm(r.L,3)+' m',C.sys],['θ en tierra',cm(r.th,1)+'°'],['Lₓ = L₀ cos θ′/γ',cm(r.lx,3)+' m']]);
+  $('formula').innerHTML=`<b>L = L₀ √(cos²θ′/γ² + sen²θ′)</b> = ${cm(r.L,3)} m · <b>tan θ = γ tan θ′</b> → θ = ${cm(r.th,1)}°`;
+}
+function drawPion(ctx,w,h){
+  const H2=h/2, Xm=Xmax(), x0=40, X=m=>x0+m/Xm*(w-x0-18), v=P.b*CNS, G=g(), tc=Xm/Math.max(v,1e-9);
+  strips(ctx,w,h,'Sin dilatación · Galileo',C.lin,'Con relatividad',C.sys);
+  [[0,false],[1,true]].forEach(([k,rel])=>{
+    const yT=H2*k+28, yB=H2*(k+1)-12;
+    ctx.fillStyle=C['panel-2']; ctx.fillRect(X(0)-14,yT,12,yB-yT); ctx.strokeStyle=C['line-2']; ctx.strokeRect(X(0)-14,yT,12,yB-yT);
+    ctx.fillStyle=C.x; ctx.globalAlpha=.85; ctx.fillRect(X(P.D)-2,yT,4,yB-yT); ctx.globalAlpha=1;
+    txt(ctx,'D',X(P.D)+6,yB-2,C.x,{size:11});
+    PI.list.forEach(p=>{ const a=S.t-p.t0, life=rel?G*p.tau:p.tau, y=yT+4+p.lane*(yB-yT-8);
+      if(a<life){ const x=v*a; if(x<=Xm) dot(ctx,X(x),y,2.6,rel?C.sys:C.lin); }
+      else { const xd=v*life, fd=(a-life)/(tc*0.12); if(fd<1&&xd<=Xm){ ctx.globalAlpha=1-fd; const px=X(xd); line(ctx,[[px-3,y-3],[px+3,y+3]],C.a,1.6); line(ctx,[[px-3,y+3],[px+3,y-3]],C.a,1.6); ctx.globalAlpha=1; } } });
+    const n=rel?PI.nR:PI.nG, ok=rel?PI.rel:PI.gal;
+    txt(ctx,w<560?`${ok}/${n}`:`llegan a D: ${ok} de ${n}`,w-12,H2*k+17,rel?C.sys:C.lin,{align:'right'});
+  });
+  readout([['γ',cm(G,3)],['recorrido medio γβcτ₀',cm(dMean(),1)+' m',C.sys],['sin dilatación βcτ₀',cm(dGal(),2)+' m',C.lin],['llegan a D',cm(100*fracRel(P.D),1)+' %']]);
+  $('formula').innerHTML=`<b>N/N₀ = e^(−D/γβcτ₀)</b> = e^(−${cm(P.D,1)}/${cm(dMean(),1)}) = ${cm(fracRel(P.D),3)} · Galileo: ${cm(fracGal(P.D),4)}`;
+}
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); if(SY==='reloj') drawReloj(ctx,w,h); else if(SY==='regla') drawRegla(ctx,w,h); else drawPion(ctx,w,h); }
+
+// ================= Gráficos =================
+function drawGam(){
+  const G=g(), ym=Math.min(12,Math.max(4,Math.ceil(G+1)));
+  const F=frame($('pg'),{x0:0,x1:1,y0:0,y1:ym,xt:[0,0.2,0.4,0.6,0.8,1],xlab:'β = V/c'}); const {ctx,X,Y}=F;
+  const pts=[],inv=[]; for(let i=0;i<=500;i++){ const b=0.9995*i/500, gg=gam(b); if(gg<=ym*1.05) pts.push([X(b),Y(gg)]); inv.push([X(b),Y(1/gg)]); }
+  F.clip(); line(ctx,pts,C.sys,2.2); line(ctx,inv,C.lin,1.6,[5,4]); line(ctx,[[X(P.b),Y(0)],[X(P.b),Y(ym)]],C.fg,1,[3,3],.5); F.unclip();
+  if(G<=ym) dot(ctx,X(P.b),Y(G),4.5,C.sys); dot(ctx,X(P.b),Y(1/G),4,C.lin);
+  legend('leg-g',[[C.sys,'γ: tics más largos'],[C.lin,'1/γ: longitudes más cortas','dashed']]);
+  $('cap-g').textContent=`Con β = ${cm(P.b,3)}, γ = ${cm(G,3)}. Un tic de la nave dura γ veces más medido desde tierra, y una longitud paralela al movimiento se reduce a 1/γ = ${cm(1/G,3)} de su valor propio. Para β < 0,1 la diferencia con Galileo es menor que 0,5 %.`;
+}
+function stair(X,Y,t0,t1,per){ const pts=[]; let prev=null; for(let i=0;i<=700;i++){ const t=t0+(t1-t0)*i/700; if(t>S.t) break; const n=Math.floor(t/per+1e-9); if(prev!==null&&n!==prev) pts.push([X(t),Y(prev)]); pts.push([X(t),Y(n)]); prev=n; } return pts; }
+function drawEsp(){
+  const G=g();
+  if(SY==='reloj'){
+    const T=T0(), Wt=12*T, t1=Math.max(S.t,Wt), t0=t1-Wt, n0=Math.floor(t0/T), n1=Math.floor(t1/T)+1;
+    const F=frame($('pe'),{x0:t0,x1:t1,y0:n0,y1:n1,yt:ticks(n0,n1,4).filter(v=>Number.isInteger(v)),xlab:'t en tierra (ns)'}); const {ctx,X,Y}=F;
+    F.clip();
+    line(ctx,[[X(t0),Y(t0/T)],[X(S.t),Y(S.t/T)]],C.x,1,[3,4],.5); line(ctx,[[X(t0),Y(t0/(G*T))],[X(S.t),Y(S.t/(G*T))]],C.sys,1,[3,4],.5);
+    line(ctx,stair(X,Y,t0,t1,T),C.x,2); line(ctx,stair(X,Y,t0,t1,G*T),C.sys,2.2);
+    F.unclip();
+    $('tag-e').textContent='Tics acumulados'; $('tag-e').style.color=C.fg;
+    legend('leg-e',[[C.x,'reloj de tierra'],[C.sys,'reloj de la nave']]);
+    $('cap-e').textContent=`En ${cm(S.t,1)} ns de tierra, el reloj de tierra dio ${Math.floor(S.t/T+1e-9)} tics y el de la nave ${Math.floor(S.t/(G*T)+1e-9)}. La escalera celeste sube con pendiente 1/γ = ${cm(1/G,3)} respecto de la verde.`;
+  } else if(SY==='regla'){
+    const F=frame($('pe'),{x0:0,x1:1,y0:0,y1:1.05,yt:[0,0.25,0.5,0.75,1],xt:[0,0.2,0.4,0.6,0.8,1],xlab:'β = V/c',R:40,yR:[[0,'0°'],[0.5,'45°'],[1,'90°']]}); const {ctx,X,Y}=F;
+    const t=rad(P.th), Lc=[],Tc=[];
+    for(let i=0;i<=400;i++){ const b=0.999*i/400, gg=gam(b), lx=Math.cos(t)/gg, ly=Math.sin(t); Lc.push([X(b),Y(Math.hypot(lx,ly))]); Tc.push([X(b),Y(Math.atan2(ly,lx)/(Math.PI/2))]); }
+    F.clip(); line(ctx,Lc,C.sys,2.2); line(ctx,Tc,C.v,2); line(ctx,[[X(P.b),Y(0)],[X(P.b),Y(1.05)]],C.fg,1,[3,3],.5); F.unclip();
+    const r=ruler(); dot(ctx,X(P.b),Y(r.L/P.L0),4.5,C.sys); dot(ctx,X(P.b),Y(r.th/90),4.5,C.v);
+    $('tag-e').textContent='L/L₀ y θ'; $('tag-e').style.color=C.fg;
+    legend('leg-e',[[C.sys,'L/L₀ (eje izquierdo)'],[C.v,'θ (eje derecho)']]);
+    $('cap-e').textContent=`Con θ′ = ${cm(P.th,1)}°: al acercarse β a 1, la componente paralela al movimiento desaparece, la regla queda perpendicular (θ → 90°) y mide L₀ sen θ′ = ${cm(P.L0*Math.sin(t),3)} m.`;
+  } else {
+    const Xm=Xmax(); const F=frame($('pe'),{x0:0,x1:Xm,y0:0,y1:1.05,yt:[0,0.25,0.5,0.75,1],xlab:'x (m)'}); const {ctx,X,Y}=F;
+    const R=[],Ga=[]; for(let i=0;i<=300;i++){ const x=Xm*i/300; R.push([X(x),Y(fracRel(x))]); Ga.push([X(x),Y(fracGal(x))]); }
+    F.clip(); line(ctx,R,C.sys,2.2); line(ctx,Ga,C.lin,1.8,[5,4]); line(ctx,[[X(P.D),Y(0)],[X(P.D),Y(1.05)]],C.x,1.2,[3,3],.8); F.unclip();
+    dot(ctx,X(P.D),Y(fracRel(P.D)),4.5,C.sys); dot(ctx,X(P.D),Y(fracGal(P.D)),4,C.lin);
+    if(PI.nR>0) dot(ctx,X(P.D),Y(PI.rel/PI.nR),7,C.sys,true); if(PI.nG>0) dot(ctx,X(P.D),Y(PI.gal/PI.nG),7,C.lin,true);
+    $('tag-e').textContent='Fracción que sobrevive'; $('tag-e').style.color=C.fg;
+    legend('leg-e',[[C.sys,'con relatividad'],[C.lin,'sin dilatación','dashed']]);
+    $('cap-e').textContent=`En D = ${cm(P.D,1)} m llega el ${cm(100*fracRel(P.D),1)} % con relatividad contra el ${cm(100*fracGal(P.D),2)} % sin dilatación. Los círculos huecos son lo contado en la escena (${PI.rel} de ${PI.nR}); se acercan a la curva a medida que pasan más piones.`;
+  }
+}
+function draw(){ drawScene(); if(S.view==='gam') drawGam(); else drawEsp(); }
+
+// ================= Predecí =================
+const PRED={
+  reloj:{ q:'La nave pasa a 0,8c. Mientras el reloj de tierra da 10 tics, el reloj de la nave da…',
+    opts:[['10','10 tics: los dos relojes son idénticos'],['6','6 tics'],['17','16,7 tics']], right:'6', go:'Probalo: β = 0,8',
+    run(){ P.b=0.8; syncParams(DEF,P); restart(); setView('esp'); refresh(); const G=g(), T=T0();
+      return `Con β = 0,8, γ = ${cm(G,3)}: cada tic de la nave dura, medido desde tierra, <span class="num">${cm(G*T,2)} ns</span> en lugar de <span class="num">${cm(T,2)} ns</span>, porque la luz recorre la diagonal a la misma velocidad c. En 10 tics de tierra la nave da 10/γ = 6. Desde la nave, el que atrasa es el reloj de tierra: los dos tienen razón porque no coinciden en qué eventos son simultáneos.`; } },
+  regla:{ q:'Una regla inclinada 45° en la nave se mueve a 0,8c. Desde tierra, el ángulo que forma con la dirección del movimiento…',
+    opts:[['igual','sigue siendo 45°'],['mayor','es mayor que 45°: la regla se para'],['menor','es menor que 45°: la regla se acuesta']], right:'mayor', go:'Probalo: θ′ = 45° y β = 0,8',
+    run(){ P.th=45; P.b=0.8; syncParams(DEF,P); setView('esp'); refresh(); const r=ruler();
+      return `Solo se acorta la componente paralela al movimiento: Lₓ pasa de ${cm(P.L0*Math.SQRT1_2,3)} m a ${cm(r.lx,3)} m y L_y no cambia. Entonces tan θ = γ tan θ′ = ${cm(g(),3)} y θ = <span class="num">${cm(r.th,1)}°</span>. La regla se ve más corta (${cm(r.L,3)} m) y más parada.`; } },
+  pion:{ q:'Piones con vida media de 26 ns viajan a 0,99c. Sin relatividad recorrerían en promedio 7,7 m antes de decaer. Con relatividad recorren…',
+    opts:[['7.7','lo mismo, 7,7 m'],['55','unos 55 m'],['1.1','menos, 1,1 m: sus reglas se contraen']], right:'55', go:'Probalo: β = 0,99',
+    run(){ P.b=0.99; syncParams(DEF,P); restart(); setView('esp'); refresh();
+      return `γ = ${cm(g(),2)}: en el laboratorio el pion vive γτ₀ = ${cm(g()*TAU0,0)} ns y recorre γβcτ₀ = <span class="num">${cm(dMean(),1)} m</span>. A D = ${cm(P.D,1)} m llega el ${cm(100*fracRel(P.D),1)} % del haz; sin dilatación llegaría el ${cm(100*fracGal(P.D),2)} %. Así se detectan piones y muones de rayos cósmicos al nivel del mar.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  reloj:[
+    {txt:'Encontrá la velocidad para la cual el reloj de la nave marcha a la mitad del ritmo del de tierra (γ = 2 ± 0,5 %).',
+     chk(){ const G=g(); return Math.abs(G-2)/2<0.005?[true,`Logrado: β = ${cm(P.b,3)}, γ = ${cm(G,3)}. Es β = √3/2 ≈ 0,866.`]:[false,`Ahora γ = ${cm(G,3)}`]; }},
+    {txt:'Encontrá β para que, mientras el reloj de tierra da 100 tics, el de la nave dé 99 (±0,2 tic). ¿A cuántos km/s va la nave?',
+     chk(){ const n=100/g(); return Math.abs(n-99)<0.2?[true,`Logrado: β = ${cm(P.b,3)}, V = ${cm(P.b*299792.458,0)} km/s. Hace falta ir a más de 40 000 km/s para que la diferencia llegue al 1 %.`]:[false,`Ahora la nave da ${cm(n,2)} tics cada 100`]; }},
+  ],
+  regla:[
+    {txt:'Con θ′ = 45°, hacé que desde tierra la regla forme 60° con la dirección del movimiento (±0,3°).',
+     chk(){ const r=ruler(); if(Math.abs(P.th-45)>0.01) return [false,'Primero poné θ′ = 45°']; return Math.abs(r.th-60)<0.3?[true,`Logrado: β = ${cm(P.b,3)}. Hace falta γ = tan 60° = √3, es decir β = √(2/3) ≈ 0,816.`]:[false,`Ahora θ = ${cm(r.th,1)}°`]; }},
+    {txt:'Hacé que la regla, medida desde tierra, mida la mitad de su longitud propia (±1 %). ¿Qué ángulo θ′ tuviste que elegir?',
+     chk(){ const q=ruler().L/P.L0; return Math.abs(q-0.5)<0.005?[true,`Logrado: L/L₀ = ${cm(q,3)} con θ′ = ${cm(P.th,1)}° y β = ${cm(P.b,3)}. Solo con la regla acostada (θ′ ≈ 0) alcanza con γ = 2.`]:[false,`Ahora L/L₀ = ${cm(q,3)}`]; }},
+  ],
+  pion:[
+    {txt:'Con el detector a D = 20 m, ajustá β para que llegue la mitad de los piones (±1 %).',
+     chk(){ if(Math.abs(P.D-20)>0.01) return [false,'Primero poné D = 20 m']; const f=fracRel(P.D); return Math.abs(f-0.5)<0.01?[true,`Logrado: β = ${cm(P.b,3)}, γβ = ${cm(g()*P.b,2)}. Sin dilatación llegaría el ${cm(100*fracGal(P.D),2)} %.`]:[false,`Ahora llega el ${cm(100*f,1)} %`]; }},
+    {txt:'En su propio sistema el pion vive siempre 26 ns, en promedio. ¿Cómo explica él que llegue hasta el detector? Usá la contracción de longitudes y verificá con la pestaña Cuentas.'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  const G=g(), b=P.b;
+  if(SY==='reloj'){ const T=T0();
+    return {title:'El reloj de luz', finLbl:'Tic de la nave medido desde tierra', steps:[
+      ['En la nave el pulso sube y baja la distancia L₀, que es perpendicular al movimiento y no se contrae. Un tic propio dura', `\\[\\Delta t'=\\frac{2L_0}{c}=\\frac{2\\cdot ${tx(P.L0,2)}\\ \\text{m}}{${tx(CNS,4)}\\ \\text{m/ns}}=${tx(T,3)}\\ \\text{ns}\\]`],
+      ['Desde tierra la nave avanza V Δt durante un tic. La luz va a c en los dos sistemas (segundo postulado), así que recorre la diagonal', `\\[\\left(\\frac{c\\,\\Delta t}{2}\\right)^2=L_0^2+\\left(\\frac{V\\,\\Delta t}{2}\\right)^2\\]`],
+      ['Despejando Δt', `\\[\\Delta t=\\frac{2L_0/c}{\\sqrt{1-V^2/c^2}}=\\gamma\\,\\Delta t'\\]`],
+      ['Factor de Lorentz con el β actual', `\\[\\gamma=\\frac{1}{\\sqrt{1-\\beta^2}}=\\frac{1}{\\sqrt{1-${tx(b,3)}^2}}=${tx(G,4)}\\]`],
+      [`En un tiempo t de tierra la nave acumula un tiempo propio menor: 100 tics de tierra equivalen a ${cm(100/G,2)} de la nave`, `\\[\\tau=\\frac{t}{\\gamma}\\]`],
+    ], fin:`\\[\\Delta t=\\gamma\\,\\Delta t'=${tx(G*T,3)}\\ \\text{ns}\\]`};
+  }
+  if(SY==='regla'){ const t=rad(P.th), r=ruler();
+    return {title:'Contracción de una regla inclinada', finLbl:'Regla medida desde tierra', steps:[
+      ['Componentes en el sistema de la nave', `\\[L'_x=L_0\\cos\\theta'=${tx(P.L0*Math.cos(t),3)}\\ \\text{m},\\qquad L'_y=L_0\\sin\\theta'=${tx(P.L0*Math.sin(t),3)}\\ \\text{m}\\]`],
+      ['Solo se contrae la componente paralela al movimiento', `\\[L_x=\\frac{L'_x}{\\gamma}=\\frac{${tx(P.L0*Math.cos(t),3)}}{${tx(G,4)}}=${tx(r.lx,3)}\\ \\text{m},\\qquad L_y=L'_y=${tx(r.ly,3)}\\ \\text{m}\\]`],
+      ['Longitud medida desde tierra, marcando los dos extremos en el mismo instante de S', `\\[L=L_0\\sqrt{\\frac{\\cos^2\\theta'}{\\gamma^2}+\\sin^2\\theta'}=${tx(r.L,3)}\\ \\text{m}\\]`],
+      ['Ángulo con la dirección del movimiento', P.th>=89.999?`\\[\\theta'=90^\\circ\\ \\Rightarrow\\ \\theta=90^\\circ\\]`:`\\[\\tan\\theta=\\frac{L_y}{L_x}=\\gamma\\tan\\theta'=${tx(G*Math.tan(t),3)}\\ \\Rightarrow\\ \\theta=${tx(r.th,1)}^\\circ\\]`],
+      ['Límite β → 1: la componente paralela desaparece', `\\[L\\to L_0\\sin\\theta'=${tx(P.L0*Math.sin(t),3)}\\ \\text{m},\\qquad \\theta\\to 90^\\circ\\]`],
+    ], fin:`\\[L=${tx(r.L,3)}\\ \\text{m},\\qquad \\theta=${tx(r.th,1)}^\\circ\\]`};
+  }
+  const d=dMean(), dg=dGal();
+  return {title:'Piones que llegan lejos', finLbl:'Fracción que llega al detector', steps:[
+    ['Vida media en el sistema del pion (tiempo propio)', `\\[\\tau_0=${tx(TAU0,2)}\\ \\text{ns}\\]`],
+    ['En el laboratorio el pion se mueve y su vida media se dilata', `\\[\\gamma\\tau_0=${tx(G,3)}\\times ${tx(TAU0,2)}\\ \\text{ns}=${tx(G*TAU0,1)}\\ \\text{ns}\\]`],
+    ['Recorrido medio en el laboratorio', `\\[d=V\\gamma\\tau_0=\\gamma\\beta c\\tau_0=${tx(d,2)}\\ \\text{m}\\]`],
+    ['Sin dilatación del tiempo (Galileo)', `\\[d_G=\\beta c\\tau_0=${tx(dg,2)}\\ \\text{m}\\]`],
+    ['Los decaimientos siguen una ley exponencial: la fracción que llega a D es', `\\[\\frac{N}{N_0}=e^{-D/d}=e^{-${tx(P.D,1)}/${tx(d,2)}}=${tx(fracRel(P.D),4)}\\]`],
+    ['Desde el pion: vive τ₀, pero el laboratorio se mueve y la distancia al detector está contraída a D/γ. Da lo mismo', `\\[e^{-(D/\\gamma)/(V\\tau_0)}=e^{-${tx(P.D/G,2)}/${tx(dg,2)}}=${tx(fracRel(P.D),4)}\\]`],
+  ], fin:`\\[\\frac{N}{N_0}=${tx(fracRel(P.D),4)}\\qquad(\\text{Galileo: }${tx(fracGal(P.D),5)})\\]`};
+}
+
+// ================= Arranque =================
+const NOTE={reloj:'En el reloj de luz, L₀ es la distancia entre espejos. La escena corre en cámara muy lenta: un tic propio dura unos pocos nanosegundos.',
+  regla:'La regla viaja hacia +x. En celeste, lo que mide tierra; en lila de trazos, la regla con su forma propia, para comparar.',
+  pion:'Cada pion vive un tiempo propio sorteado de una exponencial de vida media τ₀. Al cambiar β o D el haz vuelve a empezar.'};
+const VB={reloj:'Tics vs t',regla:'L y θ vs β',pion:'Supervivencia'};
+const SHOW={reloj:['b','L0'],regla:['b','L0','th'],pion:['b','D']};
+function setMode(sy){ SY=sy; DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); $('note').textContent=NOTE[SY]; $('vb-esp').textContent=VB[SY]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,id=>{ if(SY==='pion'&&(id==='b'||id==='D')) restart(); if(SY==='reloj'&&(id==='b'||id==='L0')) restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('reloj');
+startLoop(step,draw);
+
+</script>
+</body>
+</html>

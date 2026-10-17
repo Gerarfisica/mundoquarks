@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Arcoíris F2C-16</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:360px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.tog{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+.params .param{grid-template-columns:1fr 118px}.params .param label{grid-column:1/-1}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Óptica · Complementos</span>
+  <h1>Arcoíris <i>· la desviación mínima en una gota</i></h1>
+  <a class="mq-back" href="../../simuladores-optica.html">← Óptica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Complementos">
+    <h2>Complementos</h2>
+    <ol>
+      <li><a href="c22-huygens.html"><b class="code">F2C-22</b>Construcción de Huygens</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">F2C-16</b>Arcoíris</a></li>
+      <li><a href="c15-coherencia.html"><b class="code">F2C-15</b>Coherencia</a></li>
+      <li><a href="c11-multicapas.html"><b class="code">F2C-11</b>Películas y multicapas</a></li>
+      <li><a href="c09-michelson.html"><b class="code">F2C-09</b>Michelson</a></li>
+      <li><a href="c10-fabry-perot.html"><b class="code">F2C-10</b>Fabry-Pérot</a></li>
+      <li><a href="c13-fresnel-fraunhofer.html"><b class="code">F2C-13</b>De Fresnel a Fraunhofer</a></li>
+      <li><a href="c14-fourier.html"><b class="code">F2C-14</b>Óptica de Fourier</a></li>
+      <li><a href="c23-ojo.html"><b class="code">F2C-23</b>El ojo humano</a></li>
+      <li><a href="c24-cie.html"><b class="code">F2C-24</b>Colorimetría CIE</a></li>
+      <li><a href="c25-pinzas.html"><b class="code">F2C-25</b>Pinzas ópticas</a></li>
+      <li><a href="c26-plasmones.html"><b class="code">F2C-26</b>Plasmones</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Gota esférica con rayos que entran, se reflejan adentro y salen, y el arco en el cielo"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Casos</div>
+        <div class="chips" id="pre"><button class="chip" data-pre="prim" aria-pressed="true">arco primario (una reflexión)</button><button class="chip" data-pre="sec">arco secundario (dos reflexiones)</button><button class="chip" data-pre="ambos">los dos y la banda de Alexander</button><button class="chip" data-pre="vidrio">esferitas de vidrio</button></div></div>
+      <div class="row tog"><label><input type="checkbox" id="t-fan" checked> haz de rayos paralelos</label></div>
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista"><button data-view="a" aria-pressed="true">Desviación según el parámetro de impacto</button><button data-view="b" aria-pressed="false">Ángulo del arco según el color</button></div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:240px"></canvas><div class="tag" id="tag-a">D(b) para una y dos reflexiones internas, con la λ elegida</div></div>
+        <div class="pcap" id="cap-a">Donde D(b) tiene un mínimo, muchos rayos salen casi en la misma dirección: ahí se acumula la luz y se ve el arco. El arco está a 180° − D_mín del punto opuesto al Sol.</div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:240px"></canvas><div class="tag" id="tag-b">Radio angular del arco primario y del secundario según λ</div></div>
+        <div class="pcap" id="cap-b">El agua refracta más el violeta: en el primario el rojo queda afuera (42,3°) y el violeta adentro (40,6°); en el secundario el orden se invierte.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>La idea · F2C-16</summary>
+      <p>Un rayo de Sol que entra en una gota se refracta, se refleja una o más veces en la cara de atrás y sale. La desviación total depende de dónde entró (el parámetro de impacto b) y tiene un mínimo. Cerca de ese mínimo salen muchos rayos juntos: esa concentración, distinta para cada color porque n depende de λ, es el arcoíris.</p><p>Relacionado con la Guía 4, P7 y P9 (prismas y dispersión). Inspirado en JOptics.</p>
+      <p class="src">Complemento de Física 2, sin guía.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>En el arco primario, ¿de qué lado está el rojo?</p>
+        <div class="opts" id="pred-opts"><button class="opt" data-ans="afuera">afuera (radio mayor)</button><button class="opt" data-ans="adentro">adentro</button><button class="opt" data-ans="igual">depende de la altura del Sol</button></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal"><div class="item"><b>1.</b> Arco primario a 589 nm: ubicá el rayo de desviación mínima (b ± 0,005).<div class="state" id="c1">—</div></div><div class="item"><b>2.</b> Con esferitas de índice n, hacé que el arco primario quede a 30° (±0,2°).<div class="state" id="c2">—</div></div><div class="item"><b>3.</b> Arco secundario: ubicá su rayo de desviación mínima (b ± 0,005).<div class="state" id="c3">—</div></div></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Óptica geométrica en una esfera: refracción a la entrada y a la salida, k reflexiones internas. D = 2(θᵢ − θₜ) + k(π − 2θₜ). Índice del agua: n(λ) = 1,3235 + 3300 nm²/λ² (1,333 a 589 nm). No se tienen en cuenta las intensidades de Fresnel ni los arcos supernumerarios (efecto ondulatorio).</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ===== motor común de la Guía 6 (interferencia) =====
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const PI=Math.PI, DEG=PI/180;
+const fcj=(v,d=2)=>(+v).toFixed(d).replace('-','−').replace('.',',');      // número con coma
+const f3=(v,d=3)=>(+v).toFixed(d).replace('.','{,}');                     // número con coma para TeX
+const C={}; function loadColors(list){ list.forEach(k=>C[k.replace('--','')]=css(k)); }
+loadColors(['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--ok','--crit','--sob','--lin','--x','--v','--a']);
+// --- complejos mínimos ---
+const Z={ add:(a,b)=>[a[0]+b[0],a[1]+b[1]], mul:(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], div:(a,b)=>{ const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; }, sc:(a,s)=>[a[0]*s,a[1]*s], ab2:a=>a[0]*a[0]+a[1]*a[1], ex:t=>[Math.cos(t),Math.sin(t)] };
+// --- color de una longitud de onda (nm), 0..1 por canal ---
+function wl2rgb(l){ let r=0,g=0,b=0; if(l>=380&&l<440){ r=-(l-440)/60; b=1; } else if(l<490){ g=(l-440)/50; b=1; } else if(l<510){ g=1; b=-(l-510)/20; } else if(l<580){ r=(l-510)/70; g=1; } else if(l<645){ r=1; g=-(l-645)/65; } else if(l<=780){ r=1; }
+  let f= l<380||l>780?0: l<420?0.3+0.7*(l-380)/40 : l>700?0.3+0.7*(780-l)/80 : 1; return [r*f,g*f,b*f]; }
+const rgbStr=(c,k=1)=>`rgb(${c.map(v=>Math.round(255*Math.max(0,Math.min(1,v*k)))).join(',')})`;
+const WL=[]; for(let l=400;l<=700;l+=6) WL.push(l);
+const WSUM=WL.reduce((s,l)=>{ const c=wl2rgb(l); return [s[0]+c[0],s[1]+c[1],s[2]+c[2]]; },[0,0,0]);
+// luz blanca: f(λ) da la intensidad relativa (1 = sin interferencia); devuelve el color que se ve
+function whiteRGB(f,k=1){ const s=[0,0,0]; WL.forEach(l=>{ const c=wl2rgb(l), v=f(l); s[0]+=c[0]*v; s[1]+=c[1]*v; s[2]+=c[2]*v; }); return [s[0]/WSUM[0]*k,s[1]/WSUM[1]*k,s[2]/WSUM[2]*k]; }
+// --- lámina delgada (Airy, sin absorción). n1 | n2 (espesor d) | n3, incidencia th1 desde n1 ---
+function film(n1,n2,n3,d,lam,th1=0,pol='s'){ const s1=Math.sin(th1), c1=Math.cos(th1), c2=Math.sqrt(1-(n1*s1/n2)**2), s3=n1*s1/n3; if(s3>=1) return {R:1,T:0,r:[1,0]};
+  const c3=Math.sqrt(1-s3*s3); let r12,r23; if(pol==='s'){ r12=(n1*c1-n2*c2)/(n1*c1+n2*c2); r23=(n2*c2-n3*c3)/(n2*c2+n3*c3); } else { r12=(n2*c1-n1*c2)/(n2*c1+n1*c2); r23=(n3*c2-n2*c3)/(n3*c2+n2*c3); }
+  const e=Z.ex(4*PI*n2*d*c2/lam), r=Z.div(Z.add([r12,0],Z.sc(e,r23)),Z.add([1,0],Z.sc(e,r12*r23))), R=Z.ab2(r); return {R,T:1-R,r,r12,r23,c2}; }
+const filmU=(n1,n2,n3,d,lam,th1=0)=>{ if(th1<1e-9) return film(n1,n2,n3,d,lam,0,'s'); const a=film(n1,n2,n3,d,lam,th1,'s'), b=film(n1,n2,n3,d,lam,th1,'p'); return {R:(a.R+b.R)/2,T:(a.T+b.T)/2}; };
+// --- dibujo ---
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function txt(c,s,x,y,col,al='left',bl='bottom',sz=12){ c.font=`600 ${sz}px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+function dot(c,x,y,r,col){ c.fillStyle=col; c.beginPath(); c.arc(x,y,r,0,2*PI); c.fill(); }
+function axes(c,W,H,o){ const L0=o.L||50,R=16,T_=26,B=30,pw=W-L0-R,ph=H-T_-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T_+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); }); c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T_+ph+4));
+  if(o.xl){ c.textAlign='right'; c.fillText(o.xl,L0+pw,T_+ph+16); } if(o.yl){ c.textAlign='left'; c.textBaseline='bottom'; c.fillText(o.yl,L0,T_-6); } return {X,Y,L0,T:T_,pw,ph}; }
+const ticks=(a,b,n=5)=>{ const st=Math.pow(10,Math.floor(Math.log10((b-a)/n))), m=[1,2,2.5,5,10].map(k=>k*st).find(s=>(b-a)/s<=n+1)||st*10, out=[]; for(let v=Math.ceil(a/m-1e-9)*m;v<=b+1e-9;v+=m) out.push(+v.toFixed(10)); return out; };
+// franja de color (perfil de intensidad a lo largo de un eje)
+function strip(c,x,y,w,h,vertical,colAt,n=240){ for(let i=0;i<n;i++){ const u=(i+0.5)/n; c.fillStyle=colAt(u); if(vertical) c.fillRect(x,y+i*h/n,w,h/n+0.6); else c.fillRect(x+i*w/n,y,w/n+0.6,h); } }
+// --- interfaz común ---
+function mkParams(DEF,P,onSet){ const box=$('params'); DEF.forEach(d=>{ const el=document.createElement('div'); el.className='param'; el.dataset.id=d.id;
+  el.innerHTML=`<label for="r-${d.id}"><b id="lab-${d.id}">${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit||''}</span></span>`;
+  box.appendChild(el); const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value)); });
+  return (show)=>DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+(+P[d.id]).toFixed(d.dec??3); if(show) document.querySelector(`.param[data-id="${d.id}"]`).hidden=!show(d.id); }); }
+function chips(sel,attr,fn){ document.querySelectorAll(sel+' .chip').forEach(b=>b.onclick=()=>fn(b.dataset[attr])); }
+const press=(sel,attr,val)=>document.querySelectorAll(sel+' .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset[attr]===String(val)));
+function bindViews(S,draw){ const setView=vw=>{ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }; document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view)); return setView; }
+function bindTabs(){ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b)); document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab); if(b.dataset.tab==='cuentas') renderCuentas(true); }); }
+function bindPred(right,go){ let ans=null; document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ ans=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+  $('pred-go').onclick=()=>{ const html=go(ans===right); document.querySelector(`#pred-opts [data-ans="${right}"]`).classList.add('right'); const el=$('pred-reveal'); el.hidden=false; el.innerHTML=(ans===right?'<b>Así es.</b> ':'<b>Mirá la simulación.</b> ')+html; $('pred-go').hidden=true; }; }
+let __ct=null;
+function typesetSteps(now,build){ if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{ const {steps,fin,title}=build(); if(title) $('cu-title').textContent=title; const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`; $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{}); }, now?0:250); }
+function chal(id,done,okTxt,nowTxt){ $(id).textContent=done?okTxt:nowTxt; $(id).classList.toggle('done',!!done); }
+// ===== fin del motor común =====
+
+// ===== agregados de la Guía 7 (difracción) =====
+const sinc=x=>Math.abs(x)<1e-9?1-x*x/6:Math.sin(x)/x;
+function J1(x){ const ax=Math.abs(x); let ans; if(ax<8){ const y=x*x; const a1=x*(72362614232.0+y*(-7895059235.0+y*(242396853.1+y*(-2972611.439+y*(15704.48260+y*(-30.16036606)))))), a2=144725228442.0+y*(2300535178.0+y*(18583304.74+y*(99447.43394+y*(376.9991397+y)))); ans=a1/a2; }
+  else { const z=8/ax, y=z*z, xx=ax-2.356194491; const a1=1+y*(0.183105e-2+y*(-0.3516396496e-4+y*(0.2457520174e-5+y*(-0.240337019e-6)))), a2=0.04687499995+y*(-0.2002690873e-3+y*(0.8449199096e-5+y*(-0.88228987e-6+y*0.105787412e-6))); ans=Math.sqrt(0.636619772/ax)*(Math.cos(xx)*a1-z*Math.sin(xx)*a2); if(x<0) ans=-ans; } return ans; }
+const airy=x=>Math.abs(x)<1e-6?1:(2*J1(x)/x)**2;
+// factor de red normalizado: [sin(Nγ)/(N sin γ)]²
+function gridN(g,N){ const s=Math.sin(g); if(Math.abs(s)<1e-12) return 1; const v=Math.sin(N*g)/(N*s); return v*v; }
+// colores de líneas para varias λ (fuera del visible usa colores fijos)
+const lamCol=(l,i=0)=>l>=400&&l<=700?rgbStr(wl2rgb(l)):[C.sys,C.sob,C.v,C.a][i%4];
+// ===== fin de los agregados =====
+
+// ===== agregados de los complementos de óptica =====
+const Zx={ sub:(a,b)=>[a[0]-b[0],a[1]-b[1]], abs:a=>Math.hypot(a[0],a[1]), inv:a=>{ const d=a[0]*a[0]+a[1]*a[1]; return [a[0]/d,-a[1]/d]; },
+  sqrt:a=>{ const r=Math.hypot(a[0],a[1]); let re=Math.sqrt((r+a[0])/2), im=Math.sqrt(Math.max(0,(r-a[0])/2)); if(a[1]<0) im=-im; return [re,im]; },
+  exp:a=>{ const e=Math.exp(a[0]); return [e*Math.cos(a[1]),e*Math.sin(a[1])]; } };
+// integrales de Fresnel C(x), S(x) con x en la convención ∫₀ˣ cos(πt²/2) dt (Numerical Recipes)
+function fresnelCS(x){ const ax=Math.abs(x); let c=0,s=0;
+  if(ax<3){ const z=PI/2*ax*ax; let tc=ax, ts=ax*z/3; c=tc; s=ts; // términos (−1)ⁿ zⁿ… armados por recurrencia
+    let pc=ax, ps=ax*z; for(let n=1;n<60;n++){ pc*=-z*z/((2*n-1)*(2*n)); ps*=-z*z/((2*n)*(2*n+1)); const dc=pc/(4*n+1), ds=ps/(4*n+3); c+=dc; s+=ds; if(Math.abs(dc)+Math.abs(ds)<1e-17) break; } }
+  else { const u=PI*ax*ax, u2=1/(u*u); const f=(1-3*u2+105*u2*u2-10395*u2*u2*u2)/(PI*ax), g=(1-15*u2+945*u2*u2-135135*u2*u2*u2)/(PI*PI*ax*ax*ax), ph=PI/2*ax*ax;
+    c=0.5+f*Math.sin(ph)-g*Math.cos(ph); s=0.5-f*Math.cos(ph)-g*Math.sin(ph); }
+  if(x<0){ c=-c; s=-s; } return [c,s]; }
+// FFT radix 2 in situ (re, im de largo potencia de 2)
+function fft(re,im,inv=false){ const n=re.length; for(let i=1,j=0;i<n;i++){ let bit=n>>1; for(;j&bit;bit>>=1) j^=bit; j^=bit; if(i<j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; } }
+  for(let len=2;len<=n;len<<=1){ const ang=2*PI/len*(inv?1:-1), wr=Math.cos(ang), wi=Math.sin(ang); for(let i=0;i<n;i+=len){ let cr=1, ci=0; for(let j=0;j<len/2;j++){ const a=i+j, b=a+len/2, xr=re[b]*cr-im[b]*ci, xi=re[b]*ci+im[b]*cr; re[b]=re[a]-xr; im[b]=im[a]-xi; re[a]+=xr; im[a]+=xi; const t=cr*wr-ci*wi; ci=cr*wi+ci*wr; cr=t; } } }
+  if(inv) for(let i=0;i<n;i++){ re[i]/=n; im[i]/=n; } }
+function fft2(re,im,N,inv=false){ const r=new Float64Array(N), i2=new Float64Array(N); for(let y=0;y<N;y++){ for(let x=0;x<N;x++){ r[x]=re[y*N+x]; i2[x]=im[y*N+x]; } fft(r,i2,inv); for(let x=0;x<N;x++){ re[y*N+x]=r[x]; im[y*N+x]=i2[x]; } }
+  for(let x=0;x<N;x++){ for(let y=0;y<N;y++){ r[y]=re[y*N+x]; i2[y]=im[y*N+x]; } fft(r,i2,inv); for(let y=0;y<N;y++){ re[y*N+x]=r[y]; im[y*N+x]=i2[y]; } } }
+// CIE 1931 (ajuste analítico de Wyman, Sloan y Shirley 2013)
+const g3=(l,m,s1,s2)=>{ const t=(l-m)/(l<m?s1:s2); return Math.exp(-0.5*t*t); };
+const cieX=l=>1.056*g3(l,599.8,37.9,31.0)+0.362*g3(l,442.0,16.0,26.7)-0.065*g3(l,501.1,20.4,26.2);
+const cieY=l=>0.821*g3(l,568.8,46.9,40.5)+0.286*g3(l,530.9,16.3,31.1);
+const cieZ=l=>1.217*g3(l,437.0,11.8,36.0)+0.681*g3(l,459.0,26.0,13.8);
+function spec2XYZ(f){ let X=0,Y=0,Zz=0; for(let l=380;l<=780;l+=2){ const v=f(l); X+=v*cieX(l); Y+=v*cieY(l); Zz+=v*cieZ(l); } return [X*2,Y*2,Zz*2]; }
+function XYZ2rgb([X,Y,Zz]){ const r=3.2406*X-1.5372*Y-0.4986*Zz, g=-0.9689*X+1.8758*Y+0.0415*Zz, b=0.0557*X-0.2040*Y+1.0570*Zz; const gm=v=>{ v=Math.max(0,v); return v<=0.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-0.055; }; return [gm(r),gm(g),gm(b)]; }
+// color percibido de un espectro (normalizado a que el blanco plano tenga Y = 1)
+const YW=spec2XYZ(()=>1)[1];
+function specColor(f,k=1){ const c=spec2XYZ(f).map(v=>v/YW*k); return rgbStr(XYZ2rgb(c)); }
+// ===== fin de los agregados =====
+
+const P={b:0.86, lam:589, nv:1.5};
+const S={pre:'prim', view:'a', ks:[1], water:true, fan:true};
+const DEF=[{id:'b',lab:'b · parámetro de impacto (en radios de la gota)',unit:'',min:0,max:0.999,step:0.0005,dec:4},{id:'lam',lab:'λ',unit:'nm',min:400,max:700,step:1,dec:0},{id:'nv',lab:'n de las esferitas (a 589 nm)',unit:'',min:1.2,max:2,step:0.001,dec:3}];
+const PRE={prim:{b:0.86,lam:589,ks:[1],water:true},sec:{b:0.95,lam:589,ks:[2],water:true},ambos:{b:0.86,lam:650,ks:[1,2],water:true},vidrio:{b:0.6,lam:589,ks:[1],water:false,nv:1.5}};
+const nOf=(l=P.lam)=>S.water?1.3235+3300/(l*l):P.nv+3300*(1/(l*l)-1/(589*589));
+const D=(b,k,l=P.lam)=>{ const ti=Math.asin(b), tt=Math.asin(b/nOf(l)); return 2*(ti-tt)+k*(PI-2*tt); };
+const bMin=(k,l=P.lam)=>{ const n=nOf(l), c2=(n*n-1)/(k*(k+2)); return c2<1?Math.sin(Math.acos(Math.sqrt(c2))):NaN; };
+const arcAng=(k,l=P.lam)=>{ const d=D(bMin(k,l),k,l)/DEG; return k%2? 180-d : d-180; }; // radio angular respecto del antisolar
+const sync=mkParams(DEF,P,()=>{ syncAll(); refresh(); });
+const syncAll=()=>sync(id=>id!=='nv'||!S.water);
+function setPre(k){ S.pre=k; const p=PRE[k]; Object.assign(P,p); S.ks=p.ks; S.water=p.water; press('#pre','pre',k); syncAll(); refresh(); }
+chips('#pre','pre',setPre); $('t-fan').onchange=e=>{ S.fan=e.target.checked; draw(); };
+const setView=bindViews(S,()=>draw()); bindTabs();
+function refresh(){ const k=S.ks[0];
+  $('readout').innerHTML=`<span><span class="k">n(λ)</span> ${fcj(nOf(),4)}</span><span><span class="k">D(b) del rayo</span> ${S.ks.map(k=>fcj(D(P.b,k)/DEG,2)+'°').join(' / ')}</span><span><span class="k">b de D mínima</span> ${S.ks.map(k=>fcj(bMin(k),4)).join(' / ')}</span><span><span class="k">arco</span> ${S.ks.map(k=>fcj(arcAng(k),2)+'°').join(' / ')}</span>`+(S.water?`<span><span class="k">ancho del primario</span> ${fcj(arcAng(1,700)-arcAng(1,400),2)}°</span>`:'');
+  $('formula').innerHTML=`<span class="k">D = 2(θᵢ − θₜ) + k(π − 2θₜ) · sen θᵢ = b, sen θᵢ = n sen θₜ · mínimo: cos²θᵢ = (n² − 1)/(k(k + 2))</span>`;
+  draw(); renderCuentas(false); updateChal(); }
+bindPred('afuera',()=>{ setPre('prim'); setView('b'); return `El violeta tiene mayor índice, se desvía más y su desviación mínima es mayor: su arco queda a ${fcj(arcAng(1,400),1)}° del punto antisolar, y el rojo a ${fcj(arcAng(1,700),1)}°. Rojo afuera, violeta adentro. En el secundario es al revés.`; });
+function updateChal(){ if(S.water&&S.ks[0]===1&&P.lam===589&&Math.abs(P.b-bMin(1))<0.005) S.d1=true; chal('c1',S.d1,`Logrado: cos²θᵢ = (n² − 1)/3 ⇒ b = ${fcj(bMin(1),3)}; el arco queda a ${fcj(arcAng(1),1)}°.`,`ahora b = ${fcj(P.b,4)} (mínimo en ${fcj(bMin(1),4)})`);
+  if(!S.water&&Math.abs(arcAng(1,589)-30)<0.2&&P.lam===589) S.d2=true; chal('c2',S.d2,`Logrado: n = ${fcj(P.nv,3)}. Con más índice el arco se cierra: con n = 1,5 queda a ${fcj((()=>{ const s=P.nv; P.nv=1.5; const v=arcAng(1,589); P.nv=s; return v; })(),1)}°.`,S.water?'Elegí las esferitas de vidrio':`ahora ${fcj(arcAng(1,589),2)}°`);
+  if(S.water&&S.ks.includes(2)&&Math.abs(P.b-bMin(2))<0.005) S.d3=true; chal('c3',S.d3,`Logrado: cos²θᵢ = (n² − 1)/8 ⇒ b = ${fcj(bMin(2),3)}.`,`ahora b = ${fcj(P.b,4)} (mínimo en ${fcj(bMin(2),4)})`); }
+function renderCuentas(now){ typesetSteps(now,()=>({steps:[
+  ['Entrada a la gota con parámetro de impacto b (radio 1)',`\\[\\operatorname{sen}\\theta_i=b,\\qquad \\operatorname{sen}\\theta_i=n\\operatorname{sen}\\theta_t\\]`],
+  ['Cada refracción desvía θᵢ − θₜ; cada reflexión interna, π − 2θₜ',`\\[D_k=2(\\theta_i-\\theta_t)+k(\\pi-2\\theta_t)\\]`],
+  ['Desviación mínima: dD/dθᵢ = 0',`\\[\\frac{d\\theta_t}{d\\theta_i}=\\frac{2}{2+2k}\\ \\Rightarrow\\ \\cos^2\\theta_i=\\frac{n^2-1}{k(k+2)}\\]`],
+  ['Agua a 589 nm (n = 1,333): primario y secundario',`\\[k=1:\\ 180^\\circ-D_{\\min}\\approx42{,}1^\\circ,\\qquad k=2:\\ D_{\\min}-180^\\circ\\approx50{,}8^\\circ\\]`]],
+  fin:`\\[\\theta_{\\text{arco}}=${f3(arcAng(S.ks[0]),2)}^\\circ\\]`})); }
+new ResizeObserver(()=>draw()).observe(document.body);
+function trace(b,k,l){ // devuelve la poligonal del rayo en la gota (radio 1, Sol a la izquierda, rayo entrando con y = b)
+  const n=nOf(l), ti=Math.asin(b), tt=Math.asin(b/n); let ang=PI-ti; const pts=[[-2.2,b],[Math.cos(ang),Math.sin(ang)]]; let phi=ang, dirAng=-(ti-tt);
+  for(let j=0;j<=k;j++){ phi=phi-(PI-2*tt); pts.push([Math.cos(phi),Math.sin(phi)]); }
+  const D0=D(b,k,l); const last=pts[pts.length-1]; pts.push([last[0]+2.2*Math.cos(-D0),last[1]+2.2*Math.sin(-D0)]); return pts; }
+function drawScene(){ const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H); const narrow=W<640, R=Math.min(H*0.36,(narrow?W*0.3:W*0.2)), cx=narrow?W*0.42:W*0.32, cy=H/2, X=x=>cx+x*R, Y=y=>cy-y*R;
+  c.fillStyle=C.sys; c.globalAlpha=0.1; c.beginPath(); c.arc(cx,cy,R,0,2*PI); c.fill(); c.globalAlpha=1; c.strokeStyle=C.sys; c.lineWidth=1.4; c.beginPath(); c.arc(cx,cy,R,0,2*PI); c.stroke();
+  const draw1=(b,k,col,wd,al)=>{ const p=trace(b,k,P.lam); line(c,p.map(q=>[X(q[0]),Y(q[1])]),col,wd,null,al); };
+  if(S.fan) for(let i=1;i<14;i++){ S.ks.forEach(k=>draw1(i/14,k,C.faint,1,0.5)); }
+  S.ks.forEach(k=>draw1(P.b,k,rgbStr(wl2rgb(P.lam)),2.4,1)); txt(c,'luz del Sol →',8,Y(1.15),C.v,'left','bottom');
+  // cielo: arcos a sus ángulos, vistos desde el observador con el Sol a la espalda
+  if(!narrow){ const ox=W*0.78, oy=H*0.86, rr=Math.min(W*0.2,H*0.75)/55; c.save(); c.beginPath(); c.rect(W*0.56,8,W*0.44-8,H-16); c.clip();
+    S.ks.forEach(k=>{ for(let l=400;l<=700;l+=4){ c.strokeStyle=rgbStr(wl2rgb(l)); c.lineWidth=rr*0.6; c.globalAlpha=0.8; c.beginPath(); c.arc(ox,oy,arcAng(k,l)*rr,PI,2*PI); c.stroke(); } }); c.globalAlpha=1; c.restore();
+    line(c,[[W*0.57,oy],[W-10,oy]],C.line,1.4); dot(c,ox,oy,3,C.fg); txt(c,'punto antisolar',ox,oy+4,C.muted,'center','top'); txt(c,'el cielo visto por el observador',W*0.57,14,C.muted,'left','top'); }
+  $('clock').textContent=''; }
+function drawA(){ const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const g=axes(c,W,H,{x0:0,x1:1,y0:120,y1:360,yt:[120,180,240,300,360],yf:v=>v+'°',xt:[0,0.2,0.4,0.6,0.8,1],xf:v=>fcj(v,1),xl:'b'});
+  [[1,C.sys],[2,C.sob]].forEach(([k,col])=>{ const pts=[]; for(let i=0;i<=500;i++){ const b=0.999*i/500; pts.push([g.X(b),g.Y(D(b,k)/DEG)]); } line(c,pts,col,S.ks.includes(k)?2.2:1,S.ks.includes(k)?null:[3,3]); const bm=bMin(k); dot(c,g.X(bm),g.Y(D(bm,k)/DEG),4,col); });
+  S.ks.forEach(k=>dot(c,g.X(P.b),g.Y(D(P.b,k)/DEG),5,C.ok)); txt(c,'una reflexión',g.X(0.05),g.Y(D(0.05,1)/DEG)+14,C.sys,'left','top',11); txt(c,'dos reflexiones',g.X(0.45),g.Y(D(0.45,2)/DEG)-6,C.sob,'left','bottom',11); }
+function drawB(){ const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H); const v=[1,2].flatMap(k=>[arcAng(k,400),arcAng(k,700)]), lo=Math.floor(Math.min(...v))-1, hi=Math.ceil(Math.max(...v))+1, g=axes(c,W,H,{x0:400,x1:700,y0:lo,y1:hi,yt:ticks(lo,hi,6),yf:q=>q+'°',xt:[400,450,500,550,600,650,700],xf:q=>q,xl:'λ (nm)'});
+  for(let l=400;l<700;l+=3){ c.fillStyle=rgbStr(wl2rgb(l)); c.fillRect(g.X(l),g.T+g.ph-6,g.X(l+3)-g.X(l)+0.5,6); }
+  [[1,C.sys],[2,C.sob]].forEach(([k,col])=>{ const pts=[]; for(let l=400;l<=700;l+=2) pts.push([g.X(l),g.Y(arcAng(k,l))]); line(c,pts,col,2.2); txt(c,k===1?'primario':'secundario',g.X(690),g.Y(arcAng(k,690))-6,col,'right','bottom',11); });
+  if(S.water){ c.fillStyle=C.faint; c.globalAlpha=0.15; c.fillRect(g.L0,g.Y(arcAng(2,700)),g.pw,g.Y(arcAng(1,700))-g.Y(arcAng(2,700))); c.globalAlpha=1; txt(c,'banda de Alexander',g.X(470),(g.Y(arcAng(2,700))+g.Y(arcAng(1,700)))/2,C.muted,'left','middle',11); } }
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+setPre('prim');
+
+</script>
+</body>
+</html>

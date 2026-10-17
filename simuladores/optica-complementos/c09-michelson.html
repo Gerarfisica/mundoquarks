@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Interferómetro de Michelson F2C-09</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+/* Versión liviana del formato: una escena, un gráfico protagonista, la condición inicial como protagonista. */
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+/* control protagonista: régimen */
+.zeta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.zeta .track{position:relative;height:34px}
+.zeta .zones{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;overflow:hidden;display:flex}
+.zeta .zones span{display:block;height:100%}
+.zeta input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+.zeta input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px}
+.zeta input[type=range]::-moz-range-track{background:transparent}
+.zeta input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:26px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);margin-top:4px;cursor:pointer}
+.zeta input[type=range]::-moz-range-thumb{width:14px;height:24px;border-radius:5px;background:var(--fg);border:2px solid var(--bg);cursor:pointer}
+.zeta .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--font-num);position:relative;height:14px}
+.zeta .ticks b{position:absolute;transform:translateX(-50%);font-weight:500}
+.zeta .names{position:relative;height:16px;font-size:11.5px}
+.zeta .names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.zeta .names em{font-style:normal}
+@media (max-width:600px){.zeta{grid-template-columns:minmax(0,1fr)}.zeta .names span{font-size:0}.zeta .names em.lg,.zeta .names span:nth-child(2){font-size:11px}}
+.gbox{display:flex;align-items:center;gap:6px}
+.gbox input{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--sys);color:var(--fg);background:rgba(54,212,255,.08)}
+#scene{height:340px}
+.formula{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--font-num);font-size:13px;color:var(--fg);overflow-x:auto;white-space:nowrap}
+.formula .k{color:var(--muted)}
+.tog{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+.params .param{grid-template-columns:1fr 118px}.params .param label{grid-column:1/-1}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 2 · Óptica · Complementos</span>
+  <h1>Interferómetro de Michelson <i>· medir con longitudes de onda</i></h1>
+  <a class="mq-back" href="../../simuladores-optica.html">← Óptica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Complementos">
+    <h2>Complementos</h2>
+    <ol>
+      <li><a href="c22-huygens.html"><b class="code">F2C-22</b>Construcción de Huygens</a></li>
+      <li><a href="c16-arcoiris.html"><b class="code">F2C-16</b>Arcoíris</a></li>
+      <li><a href="c15-coherencia.html"><b class="code">F2C-15</b>Coherencia</a></li>
+      <li><a href="c11-multicapas.html"><b class="code">F2C-11</b>Películas y multicapas</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">F2C-09</b>Michelson</a></li>
+      <li><a href="c10-fabry-perot.html"><b class="code">F2C-10</b>Fabry-Pérot</a></li>
+      <li><a href="c13-fresnel-fraunhofer.html"><b class="code">F2C-13</b>De Fresnel a Fraunhofer</a></li>
+      <li><a href="c14-fourier.html"><b class="code">F2C-14</b>Óptica de Fourier</a></li>
+      <li><a href="c23-ojo.html"><b class="code">F2C-23</b>El ojo humano</a></li>
+      <li><a href="c24-cie.html"><b class="code">F2C-24</b>Colorimetría CIE</a></li>
+      <li><a href="c25-pinzas.html"><b class="code">F2C-25</b>Pinzas ópticas</a></li>
+      <li><a href="c26-plasmones.html"><b class="code">F2C-26</b>Plasmones</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" aria-label="Esquema del interferómetro con el divisor, los dos espejos y lo que se ve en la pantalla"></canvas>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div><div class="lbl" style="margin-bottom:6px">Fuente y montaje</div>
+        <div class="chips" id="pre"><button class="chip" data-pre="mono" aria-pressed="true">láser, anillos</button><button class="chip" data-pre="incl">espejo inclinado: franjas rectas</button><button class="chip" data-pre="na">doblete del sodio</button><button class="chip" data-pre="blanca">luz blanca</button></div></div>
+      
+      <div class="params" id="params"></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista"><button data-view="a" aria-pressed="true">Interferograma</button><button data-view="b" aria-pressed="false">Perfil de la pantalla</button></div>
+      </div>
+      <div data-vpanel="a">
+        <div class="plot"><canvas id="pa" style="height:240px"></canvas><div class="tag" id="tag-a">Intensidad en el centro según la posición del espejo d</div></div>
+        <div class="pcap" id="cap-a">Al mover el espejo λ/2, la diferencia de caminos cambia en λ y pasa una franja. Con dos líneas (sodio) el contraste late; con luz blanca las franjas existen solo cerca de d = 0.</div>
+      </div>
+      <div data-vpanel="b" hidden>
+        <div class="plot"><canvas id="pb" style="height:230px"></canvas><div class="tag" id="tag-b">I a lo largo de un radio (anillos) o de un lado al otro (franjas rectas)</div></div>
+        <div class="pcap" id="cap-b">Anillos de igual inclinación: 2d cos θ = mλ. Al acercar los espejos (d → 0) los anillos se meten en el centro y desaparecen.</div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>La idea · F2C-09</summary>
+      <p>El divisor de haz parte la amplitud en dos brazos; cada haz se refleja en su espejo y vuelve. En la pantalla interfieren con una diferencia de caminos 2d, donde d es la diferencia de largo de los brazos. Con los espejos perpendiculares se ven anillos (franjas de igual inclinación); si uno se inclina, franjas rectas, como en el Twyman-Green.</p><p>Relacionado con la Guía 6, P18 y P31. Inspirado en JOptics.</p>
+      <p class="src">Complemento de Física 2, sin guía.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p>Corrés el espejo móvil 275 nm con luz de 550 nm. En el centro de los anillos pasa…</p>
+        <div class="opts" id="pred-opts"><button class="opt" data-ans="una">una franja entera</button><button class="opt" data-ans="media">media franja</button><button class="opt" data-ans="dos">dos franjas</button></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title">Paso a paso</h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl">Resultado</span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal"><div class="item"><b>1.</b> Con el láser de 550 nm, mové el espejo para contar exactamente 100 franjas desde d = 0.<div class="state" id="c1">—</div></div><div class="item"><b>2.</b> Con el doblete del sodio, ubicá la primera posición donde las franjas desaparecen (±2 µm).<div class="state" id="c2">—</div></div><div class="item"><b>3.</b> Con luz blanca, encontrá la franja de orden cero (|d| < 0,03 µm).<div class="state" id="c3">—</div></div></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Diferencia de caminos 2d cos θ (espejos paralelos, θ: ángulo del rayo, pantalla en el foco de una lente de 30 mm) o 2d + 2εx con un espejo inclinado ε. Las dos ondas tienen la misma amplitud. Espectros: línea única, doblete 589,0/589,6 nm, o luz blanca de 400 a 700 nm sumada color por color.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ===== motor común de la Guía 6 (interferencia) =====
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const PI=Math.PI, DEG=PI/180;
+const fcj=(v,d=2)=>(+v).toFixed(d).replace('-','−').replace('.',',');      // número con coma
+const f3=(v,d=3)=>(+v).toFixed(d).replace('.','{,}');                     // número con coma para TeX
+const C={}; function loadColors(list){ list.forEach(k=>C[k.replace('--','')]=css(k)); }
+loadColors(['--bg','--panel','--line','--line-2','--fg','--muted','--faint','--sys','--ok','--crit','--sob','--lin','--x','--v','--a']);
+// --- complejos mínimos ---
+const Z={ add:(a,b)=>[a[0]+b[0],a[1]+b[1]], mul:(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]], div:(a,b)=>{ const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; }, sc:(a,s)=>[a[0]*s,a[1]*s], ab2:a=>a[0]*a[0]+a[1]*a[1], ex:t=>[Math.cos(t),Math.sin(t)] };
+// --- color de una longitud de onda (nm), 0..1 por canal ---
+function wl2rgb(l){ let r=0,g=0,b=0; if(l>=380&&l<440){ r=-(l-440)/60; b=1; } else if(l<490){ g=(l-440)/50; b=1; } else if(l<510){ g=1; b=-(l-510)/20; } else if(l<580){ r=(l-510)/70; g=1; } else if(l<645){ r=1; g=-(l-645)/65; } else if(l<=780){ r=1; }
+  let f= l<380||l>780?0: l<420?0.3+0.7*(l-380)/40 : l>700?0.3+0.7*(780-l)/80 : 1; return [r*f,g*f,b*f]; }
+const rgbStr=(c,k=1)=>`rgb(${c.map(v=>Math.round(255*Math.max(0,Math.min(1,v*k)))).join(',')})`;
+const WL=[]; for(let l=400;l<=700;l+=6) WL.push(l);
+const WSUM=WL.reduce((s,l)=>{ const c=wl2rgb(l); return [s[0]+c[0],s[1]+c[1],s[2]+c[2]]; },[0,0,0]);
+// luz blanca: f(λ) da la intensidad relativa (1 = sin interferencia); devuelve el color que se ve
+function whiteRGB(f,k=1){ const s=[0,0,0]; WL.forEach(l=>{ const c=wl2rgb(l), v=f(l); s[0]+=c[0]*v; s[1]+=c[1]*v; s[2]+=c[2]*v; }); return [s[0]/WSUM[0]*k,s[1]/WSUM[1]*k,s[2]/WSUM[2]*k]; }
+// --- lámina delgada (Airy, sin absorción). n1 | n2 (espesor d) | n3, incidencia th1 desde n1 ---
+function film(n1,n2,n3,d,lam,th1=0,pol='s'){ const s1=Math.sin(th1), c1=Math.cos(th1), c2=Math.sqrt(1-(n1*s1/n2)**2), s3=n1*s1/n3; if(s3>=1) return {R:1,T:0,r:[1,0]};
+  const c3=Math.sqrt(1-s3*s3); let r12,r23; if(pol==='s'){ r12=(n1*c1-n2*c2)/(n1*c1+n2*c2); r23=(n2*c2-n3*c3)/(n2*c2+n3*c3); } else { r12=(n2*c1-n1*c2)/(n2*c1+n1*c2); r23=(n3*c2-n2*c3)/(n3*c2+n2*c3); }
+  const e=Z.ex(4*PI*n2*d*c2/lam), r=Z.div(Z.add([r12,0],Z.sc(e,r23)),Z.add([1,0],Z.sc(e,r12*r23))), R=Z.ab2(r); return {R,T:1-R,r,r12,r23,c2}; }
+const filmU=(n1,n2,n3,d,lam,th1=0)=>{ if(th1<1e-9) return film(n1,n2,n3,d,lam,0,'s'); const a=film(n1,n2,n3,d,lam,th1,'s'), b=film(n1,n2,n3,d,lam,th1,'p'); return {R:(a.R+b.R)/2,T:(a.T+b.T)/2}; };
+// --- dibujo ---
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const W=Math.max(1,Math.round(r.width*dpr)), H=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function line(ctx,pts,col,wd=1.8,dash,alpha=1){ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function txt(c,s,x,y,col,al='left',bl='bottom',sz=12){ c.font=`600 ${sz}px ${css('--font-num')}`; c.fillStyle=col; c.textAlign=al; c.textBaseline=bl; c.fillText(s,x,y); }
+function dot(c,x,y,r,col){ c.fillStyle=col; c.beginPath(); c.arc(x,y,r,0,2*PI); c.fill(); }
+function axes(c,W,H,o){ const L0=o.L||50,R=16,T_=26,B=30,pw=W-L0-R,ph=H-T_-B, X=x=>L0+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>T_+ph*(o.y1-y)/(o.y1-o.y0);
+  c.font=`11px ${css('--font-num')}`; c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.faint; c.textAlign='right'; c.textBaseline='middle';
+  o.yt.forEach(v=>{ c.beginPath(); c.moveTo(L0,Y(v)); c.lineTo(L0+pw,Y(v)); c.stroke(); c.fillText(o.yf(v),L0-6,Y(v)); }); c.textAlign='center'; c.textBaseline='top'; o.xt.forEach(v=>c.fillText(o.xf(v),X(v),T_+ph+4));
+  if(o.xl){ c.textAlign='right'; c.fillText(o.xl,L0+pw,T_+ph+16); } if(o.yl){ c.textAlign='left'; c.textBaseline='bottom'; c.fillText(o.yl,L0,T_-6); } return {X,Y,L0,T:T_,pw,ph}; }
+const ticks=(a,b,n=5)=>{ const st=Math.pow(10,Math.floor(Math.log10((b-a)/n))), m=[1,2,2.5,5,10].map(k=>k*st).find(s=>(b-a)/s<=n+1)||st*10, out=[]; for(let v=Math.ceil(a/m-1e-9)*m;v<=b+1e-9;v+=m) out.push(+v.toFixed(10)); return out; };
+// franja de color (perfil de intensidad a lo largo de un eje)
+function strip(c,x,y,w,h,vertical,colAt,n=240){ for(let i=0;i<n;i++){ const u=(i+0.5)/n; c.fillStyle=colAt(u); if(vertical) c.fillRect(x,y+i*h/n,w,h/n+0.6); else c.fillRect(x+i*w/n,y,w/n+0.6,h); } }
+// --- interfaz común ---
+function mkParams(DEF,P,onSet){ const box=$('params'); DEF.forEach(d=>{ const el=document.createElement('div'); el.className='param'; el.dataset.id=d.id;
+  el.innerHTML=`<label for="r-${d.id}"><b id="lab-${d.id}">${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.id}"> <span class="unit">${d.unit||''}</span></span>`;
+  box.appendChild(el); const r=el.querySelector('input[type=range]'), n=el.querySelector('input[type=number]');
+  const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+  r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value)); });
+  return (show)=>DEF.forEach(d=>{ $('r-'+d.id).value=P[d.id]; if(document.activeElement!==$('n-'+d.id)) $('n-'+d.id).value=+(+P[d.id]).toFixed(d.dec??3); if(show) document.querySelector(`.param[data-id="${d.id}"]`).hidden=!show(d.id); }); }
+function chips(sel,attr,fn){ document.querySelectorAll(sel+' .chip').forEach(b=>b.onclick=()=>fn(b.dataset[attr])); }
+const press=(sel,attr,val)=>document.querySelectorAll(sel+' .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset[attr]===String(val)));
+function bindViews(S,draw){ const setView=vw=>{ S.view=vw; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===vw)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==vw); draw(); }; document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view)); return setView; }
+function bindTabs(){ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b)); document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab); if(b.dataset.tab==='cuentas') renderCuentas(true); }); }
+function bindPred(right,go){ let ans=null; document.querySelectorAll('#pred-opts .opt').forEach(b=>b.onclick=()=>{ ans=b.dataset.ans; document.querySelectorAll('#pred-opts .opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; });
+  $('pred-go').onclick=()=>{ const html=go(ans===right); document.querySelector(`#pred-opts [data-ans="${right}"]`).classList.add('right'); const el=$('pred-reveal'); el.hidden=false; el.innerHTML=(ans===right?'<b>Así es.</b> ':'<b>Mirá la simulación.</b> ')+html; $('pred-go').hidden=true; }; }
+let __ct=null;
+function typesetSteps(now,build){ if(!window.__mjReady) return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{ const {steps,fin,title}=build(); if(title) $('cu-title').textContent=title; const li=s=>`<li><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${s[1]}</div></div></li>`; $('steps').innerHTML=steps.map(li).join(''); $('final').innerHTML=fin;
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{}); }, now?0:250); }
+function chal(id,done,okTxt,nowTxt){ $(id).textContent=done?okTxt:nowTxt; $(id).classList.toggle('done',!!done); }
+// ===== fin del motor común =====
+
+// ===== agregados de la Guía 7 (difracción) =====
+const sinc=x=>Math.abs(x)<1e-9?1-x*x/6:Math.sin(x)/x;
+function J1(x){ const ax=Math.abs(x); let ans; if(ax<8){ const y=x*x; const a1=x*(72362614232.0+y*(-7895059235.0+y*(242396853.1+y*(-2972611.439+y*(15704.48260+y*(-30.16036606)))))), a2=144725228442.0+y*(2300535178.0+y*(18583304.74+y*(99447.43394+y*(376.9991397+y)))); ans=a1/a2; }
+  else { const z=8/ax, y=z*z, xx=ax-2.356194491; const a1=1+y*(0.183105e-2+y*(-0.3516396496e-4+y*(0.2457520174e-5+y*(-0.240337019e-6)))), a2=0.04687499995+y*(-0.2002690873e-3+y*(0.8449199096e-5+y*(-0.88228987e-6+y*0.105787412e-6))); ans=Math.sqrt(0.636619772/ax)*(Math.cos(xx)*a1-z*Math.sin(xx)*a2); if(x<0) ans=-ans; } return ans; }
+const airy=x=>Math.abs(x)<1e-6?1:(2*J1(x)/x)**2;
+// factor de red normalizado: [sin(Nγ)/(N sin γ)]²
+function gridN(g,N){ const s=Math.sin(g); if(Math.abs(s)<1e-12) return 1; const v=Math.sin(N*g)/(N*s); return v*v; }
+// colores de líneas para varias λ (fuera del visible usa colores fijos)
+const lamCol=(l,i=0)=>l>=400&&l<=700?rgbStr(wl2rgb(l)):[C.sys,C.sob,C.v,C.a][i%4];
+// ===== fin de los agregados =====
+
+// ===== agregados de los complementos de óptica =====
+const Zx={ sub:(a,b)=>[a[0]-b[0],a[1]-b[1]], abs:a=>Math.hypot(a[0],a[1]), inv:a=>{ const d=a[0]*a[0]+a[1]*a[1]; return [a[0]/d,-a[1]/d]; },
+  sqrt:a=>{ const r=Math.hypot(a[0],a[1]); let re=Math.sqrt((r+a[0])/2), im=Math.sqrt(Math.max(0,(r-a[0])/2)); if(a[1]<0) im=-im; return [re,im]; },
+  exp:a=>{ const e=Math.exp(a[0]); return [e*Math.cos(a[1]),e*Math.sin(a[1])]; } };
+// integrales de Fresnel C(x), S(x) con x en la convención ∫₀ˣ cos(πt²/2) dt (Numerical Recipes)
+function fresnelCS(x){ const ax=Math.abs(x); let c=0,s=0;
+  if(ax<3){ const z=PI/2*ax*ax; let tc=ax, ts=ax*z/3; c=tc; s=ts; // términos (−1)ⁿ zⁿ… armados por recurrencia
+    let pc=ax, ps=ax*z; for(let n=1;n<60;n++){ pc*=-z*z/((2*n-1)*(2*n)); ps*=-z*z/((2*n)*(2*n+1)); const dc=pc/(4*n+1), ds=ps/(4*n+3); c+=dc; s+=ds; if(Math.abs(dc)+Math.abs(ds)<1e-17) break; } }
+  else { const u=PI*ax*ax, u2=1/(u*u); const f=(1-3*u2+105*u2*u2-10395*u2*u2*u2)/(PI*ax), g=(1-15*u2+945*u2*u2-135135*u2*u2*u2)/(PI*PI*ax*ax*ax), ph=PI/2*ax*ax;
+    c=0.5+f*Math.sin(ph)-g*Math.cos(ph); s=0.5-f*Math.cos(ph)-g*Math.sin(ph); }
+  if(x<0){ c=-c; s=-s; } return [c,s]; }
+// FFT radix 2 in situ (re, im de largo potencia de 2)
+function fft(re,im,inv=false){ const n=re.length; for(let i=1,j=0;i<n;i++){ let bit=n>>1; for(;j&bit;bit>>=1) j^=bit; j^=bit; if(i<j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; } }
+  for(let len=2;len<=n;len<<=1){ const ang=2*PI/len*(inv?1:-1), wr=Math.cos(ang), wi=Math.sin(ang); for(let i=0;i<n;i+=len){ let cr=1, ci=0; for(let j=0;j<len/2;j++){ const a=i+j, b=a+len/2, xr=re[b]*cr-im[b]*ci, xi=re[b]*ci+im[b]*cr; re[b]=re[a]-xr; im[b]=im[a]-xi; re[a]+=xr; im[a]+=xi; const t=cr*wr-ci*wi; ci=cr*wi+ci*wr; cr=t; } } }
+  if(inv) for(let i=0;i<n;i++){ re[i]/=n; im[i]/=n; } }
+function fft2(re,im,N,inv=false){ const r=new Float64Array(N), i2=new Float64Array(N); for(let y=0;y<N;y++){ for(let x=0;x<N;x++){ r[x]=re[y*N+x]; i2[x]=im[y*N+x]; } fft(r,i2,inv); for(let x=0;x<N;x++){ re[y*N+x]=r[x]; im[y*N+x]=i2[x]; } }
+  for(let x=0;x<N;x++){ for(let y=0;y<N;y++){ r[y]=re[y*N+x]; i2[y]=im[y*N+x]; } fft(r,i2,inv); for(let y=0;y<N;y++){ re[y*N+x]=r[y]; im[y*N+x]=i2[y]; } } }
+// CIE 1931, observador de 2°: tabla oficial cada 5 nm de 380 a 780 nm (x̄, ȳ, z̄), interpolación lineal
+const CMF=[0.001368,3.9e-05,0.00645,0.002236,6.4e-05,0.01055,0.004243,0.00012,0.02005,0.00765,0.000217,0.03621,0.01431,0.000396,0.06785,0.02319,0.00064,0.1102,0.04351,0.00121,0.2074,0.07763,0.00218,0.3713,0.13438,0.004,0.6456,0.21477,0.0073,1.03905,0.2839,0.0116,1.3856,0.3285,0.01684,1.62296,0.34828,0.023,1.74706,0.34806,0.0298,1.7826,0.3362,0.038,1.77211,0.3187,0.048,1.7441,0.2908,0.06,1.6692,0.2511,0.0739,1.5281,0.19536,0.09098,1.28764,0.1421,0.1126,1.0419,0.09564,0.13902,0.81295,0.05795,0.1693,0.6162,0.03201,0.20802,0.46518,0.0147,0.2586,0.3533,0.0049,0.323,0.272,0.0024,0.4073,0.2123,0.0093,0.503,0.1582,0.0291,0.6082,0.1117,0.06327,0.71,0.07825,0.1096,0.7932,0.05725,0.1655,0.862,0.04216,0.22575,0.91485,0.02984,0.2904,0.954,0.0203,0.3597,0.9803,0.0134,0.43345,0.99495,0.00875,0.51205,1,0.00575,0.5945,0.995,0.0039,0.6784,0.9786,0.00275,0.7621,0.952,0.0021,0.8425,0.9154,0.0018,0.9163,0.87,0.00165,0.9786,0.8163,0.0014,1.0263,0.757,0.0011,1.0567,0.6949,0.001,1.0622,0.631,0.0008,1.0456,0.5668,0.0006,1.0026,0.503,0.00034,0.9384,0.4412,0.00024,0.85445,0.381,0.00019,0.7514,0.321,0.0001,0.6424,0.265,5e-05,0.5419,0.217,3e-05,0.4479,0.175,2e-05,0.3608,0.1382,1e-05,0.2835,0.107,2.11758e-22,0.2187,0.0816,0,0.1649,0.061,0,0.1212,0.04458,0,0.0874,0.032,0,0.0636,0.0232,0,0.04677,0.017,0,0.0329,0.01192,0,0.0227,0.00821,0,0.01584,0.005723,0,0.0113592,0.004102,0,0.00811092,0.002929,0,0.00579035,0.002091,0,0.00410946,0.001484,0,0.00289933,0.001047,0,0.00204919,0.00074,0,0.00143997,0.00052,0,0.000999949,0.0003611,0,0.000690079,0.0002492,0,0.000476021,0.0001719,0,0.000332301,0.00012,0,0.000234826,8.48e-05,0,0.000166151,6e-05,0,0.000117413,4.24e-05,0,8.30753e-05,3e-05,0,5.87065e-05,2.12e-05,0,4.15099e-05,1.499e-05,0];
+const cmf=(l,k)=>{ if(l<380||l>780) return 0; const u=(l-380)/5, i=Math.min(79,Math.floor(u)), f=u-i; return CMF[3*i+k]*(1-f)+CMF[3*i+3+k]*f; };
+const cieX=l=>cmf(l,0), cieY=l=>cmf(l,1), cieZ=l=>cmf(l,2);
+function spec2XYZ(f){ let X=0,Y=0,Zz=0; for(let l=380;l<=780;l+=2){ const v=f(l); X+=v*cieX(l); Y+=v*cieY(l); Zz+=v*cieZ(l); } return [X*2,Y*2,Zz*2]; }
+function XYZ2rgb([X,Y,Zz]){ const r=3.2406*X-1.5372*Y-0.4986*Zz, g=-0.9689*X+1.8758*Y+0.0415*Zz, b=0.0557*X-0.2040*Y+1.0570*Zz; const gm=v=>{ v=Math.max(0,v); return v<=0.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-0.055; }; return [gm(r),gm(g),gm(b)]; }
+// color percibido de un espectro (normalizado a que el blanco plano tenga Y = 1)
+const YW=spec2XYZ(()=>1)[1];
+function specColor(f,k=1){ const c=spec2XYZ(f).map(v=>v/YW*k); return rgbStr(XYZ2rgb(c)); }
+// ===== fin de los agregados =====
+
+const P={d:30, eps:0, lam:550};
+const S={pre:'mono', view:'a', src:'mono'};
+const DEF=[{id:'d',lab:'d · diferencia de largo de los brazos',unit:'µm',min:-300,max:300,step:0.001,dec:3},{id:'eps',lab:'ε · inclinación del espejo fijo',unit:'″',min:0,max:120,step:0.1,dec:1},{id:'lam',lab:'λ del láser',unit:'nm',min:400,max:700,step:0.1,dec:1}];
+const PRE={mono:{d:30,eps:0,lam:550,src:'mono'},incl:{d:0.5,eps:30,lam:550,src:'mono'},na:{d:20,eps:0,src:'na'},blanca:{d:3.7,eps:0,src:'blanca'}};
+const sync=mkParams(DEF,P,()=>{ syncAll(); refresh(); });
+const syncAll=()=>sync(id=>id!=='lam'||S.src==='mono');
+function setPre(k){ S.pre=k; Object.assign(P,PRE[k]); S.src=PRE[k].src; press('#pre','pre',k); syncAll(); refresh(); }
+chips('#pre','pre',setPre); const setView=bindViews(S,()=>draw()); bindTabs();
+const spec=()=>S.src==='mono'?[[P.lam,1]]:S.src==='na'?[[589.0,1],[589.6,1]]:WL.map(l=>[l,1]);
+const Ilam=(D,l)=>1+Math.cos(2*PI*D/l);                      // D en nm
+const Isum=D=>{ const sp=spec(); let s=0,w=0; sp.forEach(([l,a])=>{ s+=a*Ilam(D,l); w+=a; }); return s/w; };
+const f=30;                                                  // mm
+const Dring=r=>{ const th=Math.atan(r/f); return 2*P.d*1000*Math.cos(th); };
+const Dline=x=>2*P.d*1000+2*(P.eps/206265)*x*1e6;            // x en mm sobre el espejo (ε en segundos de arco)
+const colAt=D=>S.src==='blanca'?specColor(l=>Ilam(D,l)/2,1):rgbStr(wl2rgb(S.src==='na'?589:P.lam),Isum(D)/2);
+const count=()=>2*P.d*1000/(S.src==='mono'?P.lam:589.3);
+function refresh(){ const V=(()=>{ let mx=0,mn=9; for(let k=0;k<=200;k++){ const D=2*P.d*1000+k*5; const v=Isum(D); mx=Math.max(mx,v); mn=Math.min(mn,v); } return (mx-mn)/(mx+mn); })();
+  $('readout').innerHTML=`<span><span class="k">diferencia de caminos 2d</span> ${fcj(2*P.d,3)} µm</span><span><span class="k">franjas desde d = 0</span> ${fcj(count(),2)}</span><span><span class="k">contraste local</span> ${fcj(V,3)}</span>`+(P.eps>0?`<span><span class="k">franjas rectas cada</span> ${fcj((S.src==='mono'?P.lam:589)*1e-6/(2*P.eps/206265),3)} mm</span>`:'');
+  $('formula').innerHTML=`<span class="k">I = I₀[1 + cos(2π·2d cos θ/λ)] · una franja cada Δd = λ/2 · doblete: contraste nulo en 2d = λ²/(2Δλ)(m + ½)</span>`;
+  draw(); renderCuentas(false); updateChal(); }
+bindPred('una',()=>{ setPre('mono'); return 'La luz recorre dos veces el brazo: correr el espejo 275 nm = λ/2 cambia la diferencia de caminos en 550 nm = λ. La fase en el centro gira 2π y pasa exactamente una franja. Por eso contando franjas se mide d en medias longitudes de onda.'; });
+function updateChal(){ if(S.src==='mono'&&P.lam===550&&Math.abs(count()-100)<0.05) S.d1=true; chal('c1',S.d1,'Logrado: d = 100·λ/2 = 27,5 µm.',`ahora ${fcj(count(),2)} franjas`);
+  const d0=589*589/(4*0.6)/1000; if(S.src==='na'&&Math.abs(Math.abs(P.d)-d0)<2) S.d2=true; chal('c2',S.d2,`Logrado: las dos líneas quedan en contrafase cuando 2d = λ²/(2Δλ): d = ${fcj(d0,1)} µm.`,S.src==='na'?`ahora d = ${fcj(P.d,1)} µm`:'Elegí el sodio');
+  if(S.src==='blanca'&&Math.abs(P.d)<0.03) S.d3=true; chal('c3',S.d3,'Logrado: en d = 0 todas las λ están en fase y el centro es blanco; un poco más allá aparecen los colores.',S.src==='blanca'?`ahora d = ${fcj(P.d,3)} µm`:'Elegí la luz blanca'); }
+function renderCuentas(now){ typesetSteps(now,()=>({steps:[
+  ['Diferencia de caminos entre los dos brazos (ida y vuelta), para un rayo que sale a θ',`\\[\\Delta=2d\\cos\\theta\\]`],
+  ['Las dos ondas tienen la misma amplitud: contraste 1 con luz monocromática',`\\[I=2I_0\\Big[1+\\cos\\frac{2\\pi\\Delta}{\\lambda}\\Big]\\]`],
+  ['Anillos brillantes y conteo de franjas al mover el espejo',`\\[2d\\cos\\theta_m=m\\lambda,\\qquad N=\\frac{2\\,\\delta d}{\\lambda}\\]`],
+  ['Doblete λ, λ + Δλ: batido en el contraste',`\\[V=\\Big|\\cos\\frac{\\pi\\Delta\\,\\Delta\\lambda}{\\lambda^2}\\Big|\\ \\Rightarrow\\ V=0\\ \\text{en}\\ 2d=\\frac{\\lambda^2}{2\\Delta\\lambda}=289\\ \\mu\\text{m}\\]`],
+  ['Espejo inclinado ε: franjas rectas (Twyman-Green, Fizeau)',`\\[\\Delta(x)=2d+2\\varepsilon x\\ \\Rightarrow\\ \\text{interfranja}=\\frac{\\lambda}{2\\varepsilon}\\]`]],
+  fin:`\\[N=${f3(count(),2)}\\]`})); }
+new ResizeObserver(()=>draw()).observe(document.body);
+function drawScene(){ const {ctx:c,w:W,h:H}=fit($('scene')); c.clearRect(0,0,W,H); const narrow=W<640, sx=narrow?W*0.06:W*0.06, bs=[narrow?W*0.3:W*0.24,H*0.55], col=S.src==='blanca'?C.fg:rgbStr(wl2rgb(S.src==='na'?589:P.lam));
+  // esquema
+  const m1=[bs[0]+(narrow?W*0.22:W*0.18)+P.d*0.05,bs[1]], m2=[bs[0],H*0.12]; line(c,[[sx,bs[1]],[m1[0],bs[1]]],col,2,null,0.7); line(c,[[bs[0],bs[1]],[bs[0],m2[1]]],col,2,null,0.7); line(c,[[bs[0],bs[1]],[bs[0],H-14]],col,2,null,0.7);
+  line(c,[[bs[0]-16,bs[1]+16],[bs[0]+16,bs[1]-16]],C.fg,2); txt(c,'divisor',bs[0]+18,bs[1]+14,C.muted,'left','top',11);
+  line(c,[[m1[0],bs[1]-22],[m1[0],bs[1]+22]],C.sys,4); txt(c,'M₁ (móvil)',m1[0]+6,bs[1]-24,C.sys,'left','bottom',11); const e=P.eps/120*0.25; line(c,[[bs[0]-22,m2[1]+22*Math.sin(e)],[bs[0]+22,m2[1]-22*Math.sin(e)]],C.sys,4); txt(c,'M₂',bs[0]+26,m2[1],C.sys,'left','middle',11);
+  dot(c,sx,bs[1],5,col); txt(c,'fuente',sx,bs[1]-10,C.muted,'left','bottom',11); txt(c,'pantalla ↓',bs[0]+6,H-16,C.muted,'left','bottom',11);
+  // pantalla
+  const sz=Math.min(H-44,W-(narrow?W*0.56:W*0.5)-16), ox=W-sz-12, oy=(H-sz)/2+8, n=Math.max(60,Math.round(sz*0.8)), img=c.createImageData(n,n), R=12; // mm de radio en el plano focal
+  const cache=new Map(); for(let j=0;j<n;j++) for(let i=0;i<n;i++){ const x=(i/(n-1)-0.5)*2*R, y=(j/(n-1)-0.5)*2*R; let D; if(P.eps>0) D=Dline(x)+2*P.d*1000*(Math.cos(Math.atan(Math.hypot(x,y)/f))-1); else D=Dring(Math.hypot(x,y)); const key=Math.round(D); let cs=cache.get(key); if(!cs){ cs=colAt(D).match(/\d+/g).map(Number); cache.set(key,cs); } const o=4*(j*n+i); img.data[o]=cs[0]; img.data[o+1]=cs[1]; img.data[o+2]=cs[2]; img.data[o+3]=255; }
+  const tmp=document.createElement('canvas'); tmp.width=n; tmp.height=n; tmp.getContext('2d').putImageData(img,0,0); c.drawImage(tmp,ox,oy,sz,sz); c.strokeStyle=C.line; c.strokeRect(ox,oy,sz,sz); txt(c,'lo que se ve',ox,oy-4,C.muted,'left','bottom',11);
+  $('clock').textContent=''; }
+function drawA(){ const {ctx:c,w:W,h:H}=fit($('pa')); c.clearRect(0,0,W,H); const span=S.src==='na'?Math.max(400,Math.abs(P.d)*1.3):S.src==='blanca'?4:Math.max(2,Math.min(8,Math.abs(P.d)*0.1)), d0=S.src==='na'?0:P.d, a=S.src==='na'?-span:d0-span, b=S.src==='na'?span:d0+span;
+  const g=axes(c,W,H,{x0:a,x1:b,y0:0,y1:2.15,yt:[0,0.5,1,1.5,2],yf:v=>fcj(v,1),xt:ticks(a,b,7),xf:v=>fcj(v,Math.abs(b-a)<10?1:0),xl:'d (µm)'}); const n=S.src==='na'?20000:3000, pts=[]; for(let i=0;i<=n;i++){ const d=a+(b-a)*i/n; pts.push([g.X(d),g.Y(Isum(2*d*1000))]); } line(c,pts,S.src==='blanca'?C.fg:rgbStr(wl2rgb(S.src==='na'?589:P.lam)),S.src==='na'?0.6:1.6);
+  line(c,[[g.X(P.d),g.T],[g.X(P.d),g.T+g.ph]],C.ok,1.4,[4,3]); }
+function drawB(){ const {ctx:c,w:W,h:H}=fit($('pb')); c.clearRect(0,0,W,H); const R=12, g=axes(c,W,H,{x0:P.eps>0?-R:0,x1:R,y0:0,y1:2.15,yt:[0,0.5,1,1.5,2],yf:v=>fcj(v,1),xt:ticks(P.eps>0?-R:0,R,8),xf:v=>fcj(v,0),xl:P.eps>0?'x (mm)':'r en el plano focal (mm)'});
+  const pts=[]; for(let i=0;i<=1500;i++){ const x=(P.eps>0?-R:0)+(P.eps>0?2*R:R)*i/1500; const D=P.eps>0?Dline(x):Dring(x); pts.push([g.X(x),g.Y(Isum(D))]); } line(c,pts,C.sys,1.6); }
+function draw(){ drawScene(); if(S.view==='a') drawA(); else drawB(); }
+setPre('mono');
+
+</script>
+</body>
+</html>

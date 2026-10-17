@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Tren y andén G13-P6 y P10</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a la Guía 13: chips de sistema, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 13 · Relatividad especial</span>
+  <h1>Tren y andén <i>· quién va primero depende de quién mira</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 13">
+    <h2>Guía 13</h2>
+    <ol>
+      <li><a href="p1-relojes-reglas.html"><b class="code">P1–4, 8</b>Relojes y reglas</a></li>
+      <li><a href="p5-minkowski.html"><b class="code">P5</b>Diagrama de Minkowski</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6, 10</b>Tren y andén</a></li>
+      <li><a href="p7-garaje.html"><b class="code">P7</b>Paradoja del garaje</a></li>
+      <li><a href="p9-doppler.html"><b class="code">P9</b>Doppler relativista</a></li>
+      <li><a href="p10-velocidades.html"><b class="code">P10–11</b>Suma de velocidades</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:250px" aria-label="Un tren pasa frente a un andén. Arriba, visto desde el andén; abajo, visto desde el tren. Se ven los haces de luz o los pasajeros de cada caso."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p6a" aria-pressed="true">P6 a · haces desde el tren</button>
+        <button data-sy="p6b" aria-pressed="false">P6 b · haces desde el andén</button>
+        <button data-sy="p10a" aria-pressed="false">P10 a · hacia los extremos</button>
+        <button data-sy="p10c" aria-pressed="false">P10 c · hacia el centro</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="seq" aria-pressed="true">Orden de los eventos</button>
+          <button data-view="mink" aria-pressed="false">Diagrama ct–x</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="seq">
+        <div class="plot"><canvas id="ps" style="height:230px"></canvas><div class="tag" style="color:var(--fg)">Cuándo ocurre cada evento en cada sistema</div><div class="legend" id="leg-s"></div></div>
+        <div class="pcap" id="cap-s"></div>
+      </div>
+      <div data-vpanel="mink" hidden>
+        <div class="plot"><canvas id="pm" style="height:320px"></canvas><div class="tag" style="color:var(--fg)">Líneas de universo en el sistema del andén</div><div class="legend" id="leg-m"></div></div>
+        <div class="pcap" id="cap-m"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G13-P6 y P10</summary>
+      <p><b>6.</b> Un tren pasa frente a un andén de longitud L moviéndose a velocidad V. Suponga que la longitud del tren vista por el observador fijo al andén también es L (diga cuál es la longitud propia del tren). Considere las siguientes situaciones:</p>
+      <p>a) En el instante en que el punto medio del tren pasa por el punto medio del andén, dos haces de luz que fueron emitidos desde los dos extremos del tren llegan a dicho punto medio. Determine cuál de los dos haces fue emitido primero (responda a esta pregunta tanto desde el punto de vista del observador fijo al tren como del observador fijo al andén y discuta las diferencias).<br>b) En el instante en que el punto medio del tren pasa por el punto medio del andén, dos haces de luz son emitidos desde los dos extremos del andén en dirección a su centro. i) Diga cuál de los dos haces llega primero al punto medio del tren. ii) Calcule el tiempo de llegada de cada pulso en el sistema de referencia fijo al tren y en el sistema de referencia fijo al andén. iii) Encuentre el orden cronológico de los eventos relevantes del problema (emisión de ambos pulsos, etc.) desde el sistema de referencia fijo al tren y al andén.</p>
+      <p><b>10.</b> Un tren de longitud propia L se mueve con velocidad V respecto de un observador fijo a un andén.</p>
+      <p>a) En un dado instante, dos pasajeros comienzan a caminar en direcciones contrarias desde el centro del tren hacia sus extremos. El módulo de la velocidad de cada pasajero respecto del tren es v′ = c/2. ¿Cuál es la velocidad de cada pasajero respecto del andén? ¿En qué instante llega cada pasajero al extremo del tren? (diga si la llegada de ambos es simultánea respecto del tren y del andén).<br>b) Calcule la velocidad del pasajero que viaja hacia un extremo respecto del pasajero que se mueve en la dirección contraria.<br>c) En un dado instante (t′ = 0 respecto del observador fijo al tren) dos pasajeros parten desde ambos extremos del tren en dirección hacia el centro. Ambos se mueven respecto del tren con una velocidad v′ cuyo módulo es c/2. Diga cuál es la velocidad de ambos pasajeros respecto del andén. Diga en qué instante llegan ambos pasajeros al centro del tren (tanto para un observador fijo al tren como para otro fijo al andén).<br>d) Calcule la velocidad del pasajero que parte desde un extremo respecto del pasajero que parte desde el otro.</p>
+      <p class="src">Física 1, Guía 13 (Relatividad especial). Enunciado textual de la guía. En la página, las distancias se miden en L y los tiempos en L/c (en el P6, L es la longitud del andén; en el P10, la longitud propia del tren). «Delantero» es el extremo hacia el que avanza el tren. Los puntos b y d del P10 están en Suma de velocidades.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Transformación de Lorentz exacta con c = 1: las distancias se miden en L y los tiempos en L/c. La escena muestra en cada franja el tiempo propio de ese sistema. Colores: celeste, el tren; gris, el andén; amarillo, los haces de luz; verde, lo que pasa en el extremo delantero (o el pasajero que va hacia adelante); rosa, lo del extremo trasero; blanco, el evento central; celeste de trazos, líneas de simultaneidad del tren.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de la Guía 13 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G13-P6 y P10 · Tren y andén =================
+const P={b:0.6};
+const DEF=[
+  {id:'b', lab:'β', unit:'V/c', min:0.05, max:0.9, step:0.005, dec:3},
+];
+let SY='p6a';
+const g=()=>gam(P.b);
+// Lorentz con c = 1: distancias en L, tiempos en L/c. S es el andén y S′ el tren (va hacia +x)
+const toS=(xp,tp)=>{ const b=P.b, G=gam(b); return [G*(xp+b*tp), G*(tp+b*xp)]; };
+const toSp=(x,t)=>{ const b=P.b, G=gam(b); return [G*(x-b*t), G*(t-b*x)]; };
+function ev(n,col,sys,x,t,txt){ const o={n,col,txt}; if(sys==='S'){ o.x=x; o.t=t; [o.xp,o.tp]=toSp(x,t); } else { o.xp=x; o.tp=t; [o.x,o.t]=toS(x,t); } return o; }
+const up=()=>(0.5+P.b)/(1+0.5*P.b), um=()=>(P.b-0.5)/(1-0.5*P.b);   // pasajeros a ±c/2 vistos desde el andén
+// cada caso: longitudes propias del tren y del andén (0: sin andén), eventos y móviles (luz o pasajero) entre dos eventos
+function M(){
+  const b=P.b, G=g();
+  if(SY==='p6a'){
+    const E={ Et:ev('Et',C.sob,'Sp',-G/2,-G/2,'sale el haz del extremo trasero del tren'),
+              Ed:ev('Ed',C.x,'Sp',G/2,-G/2,'sale el haz del extremo delantero del tren'),
+              O:ev('O',C.fg,'S',0,0,'llegan los dos al centro, justo cuando los centros coinciden') };
+    return {Ltr:G, Lan:1, E, mov:[{a:'Ed',b:'O',luz:true,col:C.v},{a:'Et',b:'O',luz:true,col:C.v}]};
+  }
+  if(SY==='p6b'){ const td=1/(2*(1+b)), tt=1/(2*(1-b));
+    const E={ O:ev('O',C.fg,'S',0,0,'los centros coinciden'),
+              Ed:ev('Ed',C.x,'S',0.5,0,'sale el haz del extremo delantero del andén'),
+              Et:ev('Et',C.sob,'S',-0.5,0,'sale el haz del extremo trasero del andén'),
+              Ld:ev('Ld',C.x,'S',b*td,td,'el haz delantero llega al centro del tren'),
+              Lt:ev('Lt',C.sob,'S',b*tt,tt,'el haz trasero llega al centro del tren') };
+    return {Ltr:G, Lan:1, E, mov:[{a:'Ed',b:'Ld',luz:true,col:C.v},{a:'Et',b:'Lt',luz:true,col:C.v}]};
+  }
+  if(SY==='p10a'){
+    const E={ O:ev('O',C.fg,'Sp',0,0,'salen los dos del centro del tren'),
+              Ld:ev('Ld',C.x,'Sp',0.5,1,'llega al extremo delantero el que va hacia adelante'),
+              Lt:ev('Lt',C.sob,'Sp',-0.5,1,'llega al extremo trasero el que va hacia atrás') };
+    return {Ltr:1, Lan:0, E, mov:[{a:'O',b:'Ld',col:C.x,x0:0,x1:0.5},{a:'O',b:'Lt',col:C.sob,x0:0,x1:-0.5}]};
+  }
+  const E={ St:ev('St',C.sob,'Sp',-0.5,0,'sale el pasajero del extremo trasero'),
+            Sd:ev('Sd',C.x,'Sp',0.5,0,'sale el pasajero del extremo delantero'),
+            L:ev('L',C.fg,'Sp',0,1,'llegan los dos al centro del tren') };
+  return {Ltr:1, Lan:0, E, mov:[{a:'Sd',b:'L',col:C.x,x0:0.5,x1:0},{a:'St',b:'L',col:C.sob,x0:-0.5,x1:0}]};
+}
+const evs=()=>Object.values(M().E);
+function win(){ const ts=[]; evs().forEach(e=>ts.push(e.t,e.tp)); const a=Math.min(...ts), z=Math.max(...ts), pad=0.25*(z-a)+0.25; return {t0:a-pad,t1:z+pad}; }
+function xr(){ const m=M(), xs=[0.6,m.Ltr/2+0.05,m.Lan/2+0.05]; evs().forEach(e=>xs.push(Math.abs(e.x),Math.abs(e.xp))); return 1.08*Math.max(...xs); }
+// posición de un móvil en el sistema F ('S' o 'Sp') al tiempo tau de ese sistema; los pasajeros van con el tren antes y después
+function mpos(mv,F,tau){ const m=M(), A=m.E[mv.a], B=m.E[mv.b], G=g(), b=P.b;
+  const ta=F==='S'?A.t:A.tp, tb=F==='S'?B.t:B.tp, xa=F==='S'?A.x:A.xp, xb=F==='S'?B.x:B.xp;
+  const onTrain=xp=>F==='S'? xp/G+b*tau : xp;
+  if(tau<ta) return mv.luz?null:onTrain(mv.x0);
+  if(tau>tb) return mv.luz?null:onTrain(mv.x1);
+  return xa+(xb-xa)*(tau-ta)/Math.max(tb-ta,1e-12); }
+// nombre de evento con subíndice: «Ed» se dibuja E con d chica
+function elab(ctx,n,x,y,col,align='center'){ const a=n[0], s=n.slice(1); ctx.font=`600 12px ${UI}`; const wa=ctx.measureText(a).width; ctx.font=`600 9px ${UI}`; const ws=s?ctx.measureText(s).width:0;
+  const x0=align==='right'?x-wa-ws:align==='left'?x:x-(wa+ws)/2; txt(ctx,a,x0,y,col,{size:12,weight:600,font:UI,base:'middle'}); if(s) txt(ctx,s,x0+wa+0.5,y+4,col,{size:9,weight:600,font:UI,base:'middle'}); }
+const etx=n=>n.length>1?`${n[0]}_{${n.slice(1)}}`:n;
+function order(F,tex){ const L=evs().map(e=>({n:e.n,t:F==='S'?e.t:e.tp})).sort((a,b)=>a.t-b.t); return L.map((e,i)=>(i?(Math.abs(e.t-L[i-1].t)<1e-6?' = ':' < '):'')+(tex?etx(e.n):e.n)).join(''); }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=win().t0; }
+function step(dt){ const w=win(); S.t+=dt*(w.t1-w.t0)/7; if(S.t>w.t1) S.t=w.t0; }
+function trainBox(ctx,x0,x1,y,col){ const h=18; ctx.fillStyle=C['panel-2']; ctx.fillRect(x0,y-h,x1-x0,h); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.strokeRect(x0,y-h,x1-x0,h);
+  const n=Math.max(1,Math.floor((x1-x0)/18)); ctx.fillStyle=col; ctx.globalAlpha=.3; for(let i=0;i<n;i++){ const wx=x0+4+i*(x1-x0-8)/n; ctx.fillRect(wx,y-h+4,Math.max(2,(x1-x0-8)/n-4),6); } ctx.globalAlpha=1;
+  line(ctx,[[(x0+x1)/2,y-h-4],[(x0+x1)/2,y+3]],col,1.2,[2,2]); }
+function platform(ctx,x0,x1,y){ ctx.fillStyle=C.line; ctx.globalAlpha=.8; ctx.fillRect(x0,y,x1-x0,7); ctx.globalAlpha=1; ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; ctx.strokeRect(x0,y,x1-x0,7);
+  line(ctx,[[(x0+x1)/2,y-3],[(x0+x1)/2,y+11]],C.muted,1.2,[2,2]); }
+function strip(ctx,F,y1,w,X){
+  const m=M(), b=P.b, G=g(), tau=S.t, W=win(), near=t=>Math.abs(t-tau)<0.03*(W.t1-W.t0), yT=y1-14;
+  line(ctx,[[0,yT+9],[w,yT+9]],C['line-2'],1);
+  if(m.Lan){ const c=F==='S'?0:-b*tau, h=F==='S'?m.Lan/2:m.Lan/(2*G); platform(ctx,X(c-h),X(c+h),yT+2); }
+  const c=F==='S'?b*tau:0, h=F==='S'?m.Ltr/(2*G):m.Ltr/2; trainBox(ctx,X(c-h),X(c+h),yT,C.sys);
+  if(F==='S') arrow(ctx,X(c+h)+6,yT-9,X(c+h)+20+16*b,yT-9,C.sys,1.4,5);
+  m.mov.forEach(mv=>{ const x=mpos(mv,F,tau); if(x===null) return; if(mv.luz) dot(ctx,X(x),yT-27,4.5,mv.col); else dot(ctx,X(x),yT-9,5,mv.col); });
+  evs().forEach(e=>{ const te=F==='S'?e.t:e.tp, xe=F==='S'?e.x:e.xp; if(near(te)){ dot(ctx,X(xe),yT-18,13,e.col,true); elab(ctx,e.n,X(xe),yT-40,e.col); } });
+}
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const H2=h/2, R=xr(), X=x=>w/2+x/R*(w/2-14);
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,H2); ctx.lineTo(w,H2); ctx.stroke();
+  strip(ctx,'S',H2,w,X); strip(ctx,'Sp',h,w,X);
+  txt(ctx,'Sistema del andén · S',12,17,C.fg,{size:12,font:UI,weight:600});
+  txt(ctx,w<560?'Sistema del tren · S′':'Sistema del tren · S′ (el andén va hacia −x)',12,H2+17,C.sys,{size:12,font:UI,weight:600});
+  txt(ctx,`t = ${cm(S.t,2)} L/c`,w-12,17,C.muted,{align:'right'}); txt(ctx,`t′ = ${cm(S.t,2)} L/c`,w-12,H2+17,C.muted,{align:'right'});
+  readout(RO()); $('formula').innerHTML=FO();
+}
+function RO(){ const E=M().E, G=g(), b=P.b, o=[['γ',cm(G,3)]];
+  if(SY==='p6a') o.push(['tren: longitud propia',cm(G,3)+' L',C.sys],['en el andén, el trasero sale antes por',cm(E.Ed.t-E.Et.t,3)+' L/c',C.sob],['en el tren','salen a la vez']);
+  else if(SY==='p6b') o.push(['llega primero','el haz delantero',C.x],['llegadas en S (L/c)',`${cm(E.Ld.t,3)} y ${cm(E.Lt.t,3)}`],['en S′',`${cm(E.Ld.tp,3)} y ${cm(E.Lt.tp,3)}`]);
+  else if(SY==='p10a') o.push(['velocidades en S',`${cm(up(),3)}c y ${cm(um(),3)}c`],['llegadas en S′ (L/c)','las dos en 1,000'],['en S',`${cm(E.Ld.t,3)} y ${cm(E.Lt.t,3)}`]);
+  else o.push(['velocidades en S',`${cm(up(),3)}c y ${cm(um(),3)}c`],['salidas en S (L/c)',`${cm(E.St.t,3)} y ${cm(E.Sd.t,3)}`],['llegada',`S: ${cm(E.L.t,3)} · S′: 1,000`]);
+  return o; }
+function FO(){ const G=g(), b=P.b;
+  if(SY==='p6a') return `<b>t = γ(t′ + βx′)</b> con t′ = −γ/2 y x′ = ±γ/2 · diferencia en el andén: βγ² = ${cm(b*G*G,3)} L/c`;
+  if(SY==='p6b') return `<b>andén:</b> t = 1/(2(1 ± β)) · <b>tren:</b> llegadas t′ = t/γ, emisiones t′ = ∓γβ/2 = ∓${cm(G*b/2,3)} L/c`;
+  if(SY==='p10a') return `<b>u = (u′ + V)/(1 + u′V/c²)</b> con u′ = ±c/2 · llegadas en el andén: t = γ(1 ± β/2) L/c`;
+  return `salidas en el andén: t = ±γβ/2 = ±${cm(G*b/2,3)} L/c · llegada: t = γ = ${cm(G,3)} L/c, un solo evento`; }
+
+// ================= Gráficos =================
+const SENT={
+  p6a:'En el tren los dos haces recorren γL/2 y salen a la vez. En el andén el tren avanza hacia su extremo delantero: el haz trasero persigue al centro y tiene que salir antes.',
+  p6b:'Las emisiones son simultáneas en el andén pero no en el tren: allí sale antes el haz delantero. Las dos llegadas ocurren en el mismo punto del tren y su orden es el mismo para los dos.',
+  p10a:'Las llegadas son simultáneas en el tren y no en el andén: allí llega antes el pasajero que va hacia atrás, porque el extremo trasero viene a su encuentro.',
+  p10c:'Las salidas son simultáneas en el tren y no en el andén. La llegada al centro es un único evento: es simultánea para todos.'};
+function drawSeq(){
+  const W=win(), E=evs();
+  const F=frame($('ps'),{x0:W.t0,x1:W.t1,y0:0,y1:3,yt:[],xlab:'tiempo de cada sistema (L/c)',L:70}); const {ctx,X,Y,L}=F;
+  [[2,'en S','S',C.fg],[1,'en S′','Sp',C.sys]].forEach(([y,lab,Fr,col])=>{
+    line(ctx,[[X(W.t0),Y(y)],[X(W.t1),Y(y)]],C['line-2'],1.5);
+    txt(ctx,lab,L-8,Y(y),col,{align:'right',base:'middle',size:12,font:UI,weight:600});
+    const pts=E.map(e=>({e,t:Fr==='S'?e.t:e.tp})).sort((a,b)=>a.t-b.t), groups=[];
+    pts.forEach(p=>{ const gr=groups[groups.length-1]; if(gr&&Math.abs(p.t-gr.t)<1e-6) gr.e.push(p.e); else groups.push({t:p.t,e:[p.e]}); });
+    groups.forEach((gr,i)=>{ gr.e.forEach(e=>line(ctx,[[X(gr.t),Y(y)-10],[X(gr.t),Y(y)+10]],e.col,2.5));
+      const yy=Y(y)+(i%2?19:-19); let off=-(gr.e.length-1)*10; gr.e.forEach(e=>{ elab(ctx,e.n,X(gr.t)+off,yy,e.col); off+=20; }); });
+  });
+  line(ctx,[[X(S.t),Y(2.6)],[X(S.t),Y(0.4)]],C.fg,1,[3,3],.6);
+  legend('leg-s',E.map(e=>[e.col,e.n]));
+  $('cap-s').textContent=`${E.map(e=>`${e.n}: ${e.txt}`).join('; ')}. Orden en el andén: ${order('S')}. Orden en el tren: ${order('Sp')}. ${SENT[SY]}`;
+}
+function drawMink(){
+  const m=M(), W=win(), b=P.b, G=g(), E=evs();
+  // misma escala en x y en ct, para que la luz quede a 45°
+  const rc=$('pm').getBoundingClientRect(), Tm=rc.width<560?60:28, pw=Math.max(10,rc.width-62), ph=Math.max(10,rc.height-Tm-24);
+  const sc=Math.min(pw/(2*xr()), ph/(W.t1-W.t0)), R=pw/sc/2, tc=(W.t0+W.t1)/2, t0=tc-ph/sc/2, t1=tc+ph/sc/2;
+  const F=frame($('pm'),{x0:-R,x1:R,y0:t0,y1:t1,T:Tm,xlab:'x (L)'}); const {ctx,X,Y}=F;
+  F.clip();
+  [-1,1].forEach(s=>line(ctx,[[X(s*m.Ltr/(2*G)+b*t0),Y(t0)],[X(s*m.Ltr/(2*G)+b*t1),Y(t1)]],C.sys,2));
+  line(ctx,[[X(b*t0),Y(t0)],[X(b*t1),Y(t1)]],C.sys,1,[2,3],.6);
+  if(m.Lan) [-1,1].forEach(s=>line(ctx,[[X(s*m.Lan/2),Y(t0)],[X(s*m.Lan/2),Y(t1)]],C.muted,2));
+  const tps=[]; E.forEach(e=>{ if(!tps.some(v=>Math.abs(v-e.tp)<1e-6)) tps.push(e.tp); });
+  tps.forEach(tp=>line(ctx,[[X(-R),Y(tp/G-b*R)],[X(R),Y(tp/G+b*R)]],C.sys,1.1,[6,4],.55));   // t′ constante: t = t′/γ + βx
+  m.mov.forEach(mv=>{ const A=m.E[mv.a], B=m.E[mv.b]; line(ctx,[[X(A.x),Y(A.t)],[X(B.x),Y(B.t)]],mv.col,mv.luz?1.8:2.2); });
+  line(ctx,[[X(-R),Y(S.t)],[X(R),Y(S.t)]],C.fg,1,[2,4],.5);
+  F.unclip();
+  E.forEach(e=>{ dot(ctx,X(e.x),Y(e.t),5,e.col); const r=e.x>=0; elab(ctx,e.n,X(e.x)+(r?10:-10),Y(e.t)-9,e.col,r?'left':'right'); });
+  legend('leg-m',m.Lan?[[C.sys,'tren'],[C.muted,'andén'],[C.sys,'simultáneos para el tren','dashed']]:[[C.sys,'tren'],[C.sys,'simultáneos para el tren','dashed']]);
+  $('cap-m').textContent=`Eje vertical: ct en L. Las rectas de trazos tienen pendiente β y unen los eventos que el tren considera simultáneos; las horizontales, los que considera simultáneos el andén. ${SY.startsWith('p6')?'La luz viaja a 45°.':'Los pasajeros caminan a c/2 respecto del tren.'}`;
+}
+function draw(){ drawScene(); if(S.view==='seq') drawSeq(); else drawMink(); }
+
+// ================= Predecí =================
+const PRED={
+  p6a:{ q:'Dos haces salidos de los extremos del tren llegan juntos al centro justo cuando los centros del tren y del andén coinciden. Para el andén, ¿cuál salió primero?',
+    opts:[['d','el del extremo delantero'],['t','el del extremo trasero'],['juntos','salieron a la vez']], right:'t', go:'Probalo: β = 0,6',
+    run(){ P.b=0.6; restart(); setView('seq'); refresh(); const E=M().E;
+      return `Para el tren salieron a la vez, en t′ = <span class="num">${cm(E.Ed.tp,3)} L/c</span>: los dos recorren γL/2. Para el andén el trasero salió en t = ${cm(E.Et.t,3)} y el delantero en t = ${cm(E.Ed.t,3)} L/c, es decir βγ² = <span class="num">${cm(P.b*g()**2,3)} L/c</span> antes. El haz trasero persigue al centro del tren, que se le escapa; el delantero va a su encuentro.`; } },
+  p6b:{ q:'Cuando los centros coinciden salen, a la vez para el andén, dos haces desde los extremos del andén. ¿Cuál llega primero al centro del tren?',
+    opts:[['d','el que sale del extremo delantero'],['t','el que sale del extremo trasero'],['juntos','llegan a la vez']], right:'d', go:'Probalo: β = 0,6',
+    run(){ P.b=0.6; restart(); setView('seq'); refresh(); const E=M().E;
+      return `El centro del tren va al encuentro del haz delantero: llega en t = <span class="num">${cm(E.Ld.t,3)} L/c</span> y el trasero en t = ${cm(E.Lt.t,3)} L/c. En el tren el orden es el mismo (t′ = ${cm(E.Ld.tp,3)} y ${cm(E.Lt.tp,3)}), porque las dos llegadas ocurren en el mismo lugar del tren. Lo que cambia en el tren es que las emisiones ya no son simultáneas: el haz delantero sale ${cm(E.Et.tp-E.Ed.tp,3)} L/c antes.`; } },
+  p10a:{ q:'Dos pasajeros salen del centro hacia los extremos a c/2 respecto del tren y llegan a la vez para el tren. Para el andén…',
+    opts:[['juntos','también llegan a la vez'],['ad','llega primero el que va hacia adelante'],['at','llega primero el que va hacia atrás']], right:'at', go:'Probalo: β = 0,6',
+    run(){ P.b=0.6; restart(); setView('seq'); refresh(); const E=M().E;
+      return `En el tren llegan los dos en t′ = L/c. En el andén el de atrás llega en <span class="num">${cm(E.Lt.t,3)}</span> y el de adelante en <span class="num">${cm(E.Ld.t,3)} L/c</span>: γβ = ${cm(g()*P.b,3)} L/c de diferencia. Desde el andén, el extremo trasero viene al encuentro de su pasajero y el delantero se le escapa al otro.`; } },
+  p10c:{ q:'Ahora dos pasajeros salen a la vez, para el tren, desde los dos extremos hacia el centro, a c/2. Para el andén, ¿llegan juntos al centro?',
+    opts:[['si','sí, llegan juntos'],['at','no, llega primero el que salió de atrás'],['ad','no, llega primero el que salió de adelante']], right:'si', go:'Probalo: β = 0,6',
+    run(){ P.b=0.6; restart(); setView('seq'); refresh(); const E=M().E;
+      return `Llegan juntos para todos: «los dos están en el centro al mismo tiempo» es un único evento, y un evento no se puede partir en dos. Lo que no es simultáneo en el andén son las salidas: el de atrás sale en t = <span class="num">${cm(E.St.t,3)}</span> y el de adelante en t = <span class="num">${cm(E.Sd.t,3)} L/c</span>.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p6a:[
+    {txt:'Encontrá β para que, en el andén, el haz trasero salga L/c antes que el delantero (±1 %).',
+     chk(){ const d=P.b*g()**2; return Math.abs(d-1)<0.01?[true,`Logrado: β = ${cm(P.b,3)}. De βγ² = 1 sale β² + β − 1 = 0, o sea β = (√5 − 1)/2 ≈ 0,618.`]:[false,`Ahora la diferencia es ${cm(d,3)} L/c`]; }},
+    {txt:'Para el andén el tren mide L y los haces salen en instantes distintos. ¿Por qué el observador del tren dice que su tren mide γL? Explicalo con las rectas de simultaneidad del diagrama ct–x.'},
+  ],
+  p6b:[
+    {txt:'Encontrá β para que, en el andén, el haz trasero tarde el triple que el delantero en llegar al centro del tren (±1 %).',
+     chk(){ const E=M().E, q=E.Lt.t/E.Ld.t; return Math.abs(q-3)/3<0.01?[true,`Logrado: β = ${cm(P.b,3)}. De (1 + β)/(1 − β) = 3 sale β = 1/2.`]:[false,`Ahora el cociente es ${cm(q,3)}`]; }},
+    {txt:'Conseguí que, para el tren, el haz trasero salga después de que el delantero ya llegó a su centro.',
+     chk(){ const E=M().E; return E.Et.tp>E.Ld.tp?[true,`Logrado: β = ${cm(P.b,3)}. Pasa para β > 1/2: esos dos eventos están separados tipo espacio, así que su orden depende del sistema.`]:[false,`Ahora en el tren el trasero sale en t′ = ${cm(E.Et.tp,3)} y el delantero llega en t′ = ${cm(E.Ld.tp,3)}`]; }},
+  ],
+  p10a:[
+    {txt:'Encontrá β para que, en el andén, el pasajero de atrás llegue a su extremo en la mitad del tiempo que el de adelante (±1 %).',
+     chk(){ const E=M().E, q=E.Lt.t/E.Ld.t; return Math.abs(q-0.5)/0.5<0.01?[true,`Logrado: β = ${cm(P.b,3)}. De (1 − β/2)/(1 + β/2) = 1/2 sale β = 2/3.`]:[false,`Ahora el cociente es ${cm(q,3)}`]; }},
+    {txt:'Encontrá β para que el pasajero que camina hacia atrás quede quieto respecto del andén (|u| &lt; 0,005c).',
+     chk(){ const u=um(); return Math.abs(u)<0.005?[true,`Logrado: β = ${cm(P.b,3)}. Hace falta V = c/2, igual que con Galileo: la suma da cero.`]:[false,`Ahora u = ${cm(u,3)}c`]; }},
+  ],
+  p10c:[
+    {txt:'Encontrá β para que, en el andén, el pasajero de atrás salga L/c antes que el de adelante (±1 %).',
+     chk(){ const E=M().E, d=E.Sd.t-E.St.t; return Math.abs(d-1)<0.01?[true,`Logrado: β = ${cm(P.b,3)}. De γβ = 1 sale β = 1/√2 ≈ 0,707.`]:[false,`Ahora la diferencia es ${cm(d,3)} L/c`]; }},
+    {txt:'¿Por qué la llegada al centro es simultánea para todos los observadores y las salidas no? ¿Qué tendría que pasar para que alguien viera llegar primero a uno de los dos?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  const E=M().E, G=g(), b=P.b, gl=`\\[\\gamma=\\frac{1}{\\sqrt{1-${tx(b,3)}^2}}=${tx(G,4)}\\]`;
+  if(SY==='p6a') return {title:'Haces que salen del tren', finLbl:'Quién salió primero', steps:[
+    ['Factor de Lorentz', gl],
+    ['El andén mide L y el tren, medido desde el andén, también: su longitud propia es mayor', `\\[L_{\\text{tren}}=\\gamma L=${tx(G,3)}\\,L\\]`],
+    ['En el tren los extremos están a γL/2 del centro: los dos haces tardan lo mismo y salen a la vez', `\\[t'_{E_d}=t'_{E_t}=-\\frac{\\gamma L}{2c}=${tx(-G/2,3)}\\,\\frac{L}{c}\\]`],
+    ['Al andén con Lorentz, t = γ(t′ + Vx′/c²) y x′ = ±γL/2', `\\[t_{E_d}=-\\frac{L}{2c(1+\\beta)}=${tx(E.Ed.t,3)}\\,\\frac{L}{c}\\qquad t_{E_t}=-\\frac{L}{2c(1-\\beta)}=${tx(E.Et.t,3)}\\,\\frac{L}{c}\\]`],
+    ['Diferencia en el andén', `\\[t_{E_d}-t_{E_t}=\\beta\\gamma^2\\,\\frac{L}{c}=${tx(b*G*G,3)}\\,\\frac{L}{c}\\]`,true],
+  ], fin:`\\[\\text{Tren: a la vez.}\\qquad\\text{Andén: primero el trasero.}\\]`};
+  if(SY==='p6b') return {title:'Haces que salen del andén', finLbl:'Quién llega primero', steps:[
+    ['Factor de Lorentz', gl],
+    ['En el andén los haces salen en t = 0 desde ±L/2 y el centro del tren está en x = Vt', `\\[\\frac{L}{2}-ct=Vt\\ \\Rightarrow\\ t_{L_d}=\\frac{L}{2c(1+\\beta)}=${tx(E.Ld.t,3)}\\,\\frac{L}{c}\\qquad -\\frac{L}{2}+ct=Vt\\ \\Rightarrow\\ t_{L_t}=\\frac{L}{2c(1-\\beta)}=${tx(E.Lt.t,3)}\\,\\frac{L}{c}\\]`],
+    ['Las llegadas ocurren en el centro del tren (x′ = 0): en el tren, t′ = t/γ', `\\[t'_{L_d}=${tx(E.Ld.tp,3)}\\,\\frac{L}{c}\\qquad t'_{L_t}=${tx(E.Lt.tp,3)}\\,\\frac{L}{c}\\]`],
+    ['Las emisiones, simultáneas en el andén, no lo son en el tren', `\\[t'=\\gamma\\left(0-\\frac{V}{c^2}\\cdot\\left(\\pm\\frac{L}{2}\\right)\\right)=\\mp\\frac{\\gamma\\beta L}{2c}\\qquad t'_{E_d}=${tx(E.Ed.tp,3)}\\,\\frac{L}{c},\\quad t'_{E_t}=${tx(E.Et.tp,3)}\\,\\frac{L}{c}\\]`],
+    ['Orden cronológico en el tren', `\\[${order('Sp',true)}\\]`,true],
+  ], fin:`\\[\\text{Llega primero el haz delantero, para los dos.}\\]`};
+  if(SY==='p10a') return {title:'Pasajeros hacia los extremos', finLbl:'Llegadas', steps:[
+    ['Factor de Lorentz', gl],
+    ['En el tren los dos caminan L/2 a c/2: llegan juntos', `\\[t'=\\frac{L/2}{c/2}=\\frac{L}{c}\\]`],
+    ['Velocidades respecto del andén (suma relativista)', `\\[u_{\\pm}=\\frac{V\\pm c/2}{1\\pm V/2c}\\qquad u_+=${tx(up(),4)}\\,c,\\quad u_-=${tx(um(),4)}\\,c\\]`],
+    ['Llegadas en el andén, con t = γ(t′ + Vx′/c²) y x′ = ±L/2', `\\[t_{L_d}=\\gamma\\frac{L}{c}\\left(1+\\frac{\\beta}{2}\\right)=${tx(E.Ld.t,3)}\\,\\frac{L}{c}\\qquad t_{L_t}=\\gamma\\frac{L}{c}\\left(1-\\frac{\\beta}{2}\\right)=${tx(E.Lt.t,3)}\\,\\frac{L}{c}\\]`],
+    ['Diferencia en el andén', `\\[\\Delta t=\\gamma\\beta\\,\\frac{L}{c}=${tx(G*b,3)}\\,\\frac{L}{c}\\]`,true],
+  ], fin:`\\[\\text{Tren: a la vez.}\\qquad\\text{Andén: primero el de atrás.}\\]`};
+  return {title:'Pasajeros hacia el centro', finLbl:'Llegada', steps:[
+    ['Factor de Lorentz', gl],
+    ['En el tren salen juntos de ±L/2 y caminan L/2 a c/2: llegan juntos al centro', `\\[t'_L=\\frac{L}{c}\\]`],
+    ['Velocidades respecto del andén', `\\[u_{\\text{de atrás}}=\\frac{V+c/2}{1+V/2c}=${tx(up(),4)}\\,c\\qquad u_{\\text{de adelante}}=\\frac{V-c/2}{1-V/2c}=${tx(um(),4)}\\,c\\]`],
+    ['Salidas en el andén: simultáneas en el tren, no en el andén', `\\[t=\\gamma\\,\\frac{V}{c^2}\\left(\\pm\\frac{L}{2}\\right)=\\pm\\frac{\\gamma\\beta L}{2c}=\\pm${tx(G*b/2,3)}\\,\\frac{L}{c}\\]`],
+    ['La llegada es un solo evento (x′ = 0, t′ = L/c)', `\\[t_L=\\gamma\\,\\frac{L}{c}=${tx(G,3)}\\,\\frac{L}{c}\\]`,true],
+  ], fin:`\\[\\text{Llegan juntos para todos; salen a la vez solo para el tren.}\\]`};
+}
+
+// ================= Arranque =================
+const NOTE={
+  p6a:'El tren mide L visto desde el andén, así que su longitud propia es γL. Los centros coinciden en t = t′ = 0. Distancias en L y tiempos en L/c.',
+  p6b:'Los haces salen de los extremos del andén cuando los centros coinciden (t = 0 en el andén). Distancias en L y tiempos en L/c.',
+  p10a:'El tren tiene longitud propia L. Los pasajeros salen del centro en t = t′ = 0 y caminan a c/2 respecto del tren.',
+  p10c:'Los pasajeros salen de los extremos en t′ = 0 y caminan a c/2 hacia el centro. En el andén, el tren mide L/γ.'};
+function setMode(sy){ SY=sy; $('note').textContent=NOTE[SY]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+$('guia').hidden=true;
+buildParams(DEF,P,()=>{ restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p6a');
+startLoop(step,draw);
+
+</script>
+</body>
+</html>

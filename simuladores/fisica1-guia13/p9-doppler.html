@@ -133,6 +133,7 @@ footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
 .chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
 .formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
 .formula b{color:var(--fg);font-weight:500}
 .sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
@@ -155,7 +156,8 @@ footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
     <h2>Guía 13</h2>
     <ol>
       <li><a href="p1-relojes-reglas.html"><b class="code">P1–4, 8</b>Relojes y reglas</a></li>
-      <li><a href="p5-minkowski.html"><b class="code">P5–6, 10</b>Diagrama de Minkowski</a></li>
+      <li><a href="p5-minkowski.html"><b class="code">P5</b>Diagrama de Minkowski</a></li>
+      <li><a href="p6-tren-anden.html"><b class="code">P6, 10</b>Tren y andén</a></li>
       <li><a href="p7-garaje.html"><b class="code">P7</b>Paradoja del garaje</a></li>
       <li><a class="active" href="#" aria-current="page"><b class="code">P9</b>Doppler relativista</a></li>
       <li><a href="p10-velocidades.html"><b class="code">P10–11</b>Suma de velocidades</a></li>
@@ -178,6 +180,7 @@ footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
         <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
       </div>
 
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
       <div class="params" id="params"></div>
       <div class="note">Unidades: segundos y segundos luz, así c = 1. β &gt; 0: la nave se aleja de O₁ y se acerca a O₂. El cuadrado junto a cada observador muestra el color que recibe si la nave emite luz de longitud de onda λ₀.</div>
     </section>
@@ -209,8 +212,8 @@ footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
   <aside class="side">
     <details class="card enun">
       <summary>Enunciado · G13-P9</summary>
-      <p><b>P9.</b> Una nave se aleja de la Tierra con velocidad V y emite pulsos de luz con período propio T₀ (medido con el reloj de la nave). Calcule el período con que se reciben en la Tierra, teniendo en cuenta la dilatación del tiempo y el retardo por la distancia creciente. Repita para una nave que se acerca. Compare con el resultado sin relatividad y discuta el corrimiento al rojo y al azul de una fuente de longitud de onda λ₀.</p>
-      <p class="src">Física 1, Guía 13 (Relatividad especial). Resumen del problema a partir del catálogo de simuladores; conviene reemplazarlo por el enunciado textual de la guía.</p>
+      <p><b>9.</b> Desde un cohete que se aleja de la tierra a velocidad c/2 se emiten pulsos de luz con un período de un año. ¿Cuál es el tiempo que transcurre en la tierra entre el arribo de dos pulsos sucesivos? ¿Qué sucede si la nave se acerca a la tierra en lugar de alejarse?</p>
+      <p class="src">Física 1, Guía 13 (Relatividad especial). Enunciado textual de la guía. En la página, O₁ es la tierra: con β &gt; 0 la nave se aleja y con β &lt; 0 se acerca. Con T₀ = 1, los períodos recibidos se leen en años.</p>
     </details>
 
     <section class="card" aria-label="Análisis">
@@ -480,7 +483,15 @@ function cuentas(){
 
 // ================= Arranque =================
 function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
-buildParams(DEF,P,id=>{ if(id!=='lam0') restart(); refresh(); if(!S.running) togglePlay(true); });
+// Datos de la guía: cada botón carga los valores de un enunciado
+function guia(list){ const el=$('guia'); list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+guia([
+  ['P9 · se aleja a c/2, T₀ = 1 año', ()=>{ P.b=0.5; P.T0=1; restart(); setView('pul'); }],
+  ['P9 · se acerca a c/2', ()=>{ P.b=-0.5; P.T0=1; restart(); setView('pul'); }],
+]);
+buildParams(DEF,P,id=>{ guiaOff(); if(id!=='lam0') restart(); refresh(); if(!S.running) togglePlay(true); });
 $('clock').hidden=true; $('hint').hidden=true;
 wireCommon(restart);
 restart(); refresh();

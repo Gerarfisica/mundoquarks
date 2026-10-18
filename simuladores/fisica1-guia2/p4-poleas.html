@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Poleas y vínculos G2-P4, P5 y P15</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 2 · Dinámica</span>
+  <h1>Poleas móviles y condiciones de vínculo <i>· la soga decide cuánto se mueve cada uno</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-bloques-hilos.html"><b class="code">P1–3</b>Bloques e hilos</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P4, 5, 15</b>Poleas y vínculos</a></li>
+      <li><a href="p6-planos.html"><b class="code">P6–8</b>Planos inclinados</a></li>
+      <li><a href="p9-curvas-barras.html"><b class="code">P9–11</b>Curvas y barras</a></li>
+      <li><a href="p12-tubo-cono-avion.html"><b class="code">P12–14</b>Tubo, cono y avión</a></li>
+      <li><a href="p16-cargas-campos.html"><b class="code">P16–18</b>Cargas en campos</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="Sistemas de poleas en movimiento: dos poleas con tres masas colgantes, un bloque sobre una mesa tirado con una polea móvil, o un carro que sube por un riel semicircular arrastrado por un contrapeso en un plano inclinado."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p4" aria-pressed="true">P4 · dos poleas, tres masas</button>
+        <button data-sy="p5" aria-pressed="false">P5 · mesa con polea móvil</button>
+        <button data-sy="p15" aria-pressed="false">P15 · carro en el riel</button>
+      </div>
+      <div class="chips" id="vinc" role="group" aria-label="Cómo se une la soga al contrapeso" hidden>
+        <span class="lbl">Contrapeso:</span>
+        <button data-k="0.5" aria-pressed="true">con polea móvil (recorre la mitad)</button>
+        <button data-k="1" aria-pressed="false">atado a la soga (recorre lo mismo)</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Aceleraciones</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">En el tiempo</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P4, P5 y P15</summary>
+      <p><b>4.</b> El sistema de la figura está inicialmente en reposo, las poleas y los hilos tienen masas despreciables y los hilos son inextensibles. (En la figura, la polea B cuelga del techo; por ella pasa un hilo que sostiene a m₃ de un lado y a la polea móvil A del otro; por A pasa un hilo con m₁ y m₂.)</p>
+      <p>a) Escriba las ecuaciones de Newton para las masas y la condición de vínculo que relaciona sus posiciones.<br>b) Halle la aceleración de cada cuerpo y las tensiones en los hilos en función de las masas y de g.</p>
+      <p><b>5.</b> Como se muestra en la figura, un cuerpo de masa m₁ está ubicado sobre una mesa plana sin fricción. Considere que las sogas son inextensibles, y que sogas y poleas tienen masas despreciables. El sistema está inicialmente en reposo y la polea A es móvil. (En la figura, m₁ está atado al eje de A; la soga que rodea a A tiene un extremo fijo a la mesa y el otro pasa por la polea B del borde y sostiene a m₂.)</p>
+      <p>a) Escriba las ecuaciones de Newton para ambas masas y la condición de vínculo que relaciona sus posiciones.<br>b) Cuando el sistema comienza a moverse, diga cuál es la relación que debe existir entre las distancias d₁ y d₂ recorridas por m₁ y m₂ (condición de vínculo).<br>c) Encuentre la aceleración de cada masa y las tensiones en los hilos en función de m₁, m₂ y g.</p>
+      <p><b>15.</b> Un juego de un parque de diversiones consiste en un carro de masa m₁ que se desplaza sobre un riel semicircular de radio R carente de rozamiento. El carro es arrastrado mediante una soga que se desliza a lo largo del riel que está enganchada a un sistema de poleas del cual cuelga un contrapeso de masa m₂. Este contrapeso se mueve sobre un plano inclinado que forma un ángulo α con la horizontal. Considere que las sogas son inextensibles, y que las sogas y las poleas tienen masas despreciables.</p>
+      <p>a) Escriba las ecuaciones de Newton y de vínculo para ambas masas.<br>b) Diga para qué valor de φ el carro podrá permanecer en reposo.<br>c) Encuentre la velocidad del carro como función de φ.<br>*d) Resuelva numéricamente la ecuación de movimiento y encuentre el tiempo que tarda el carrito en subir hasta φ = π/2, suponiendo que sen α = 1/2, m₁ = m₂, φ(0) = 0, φ̇(0) = 0.</p>
+      <p class="src">Física 1, Guía 2 (Dinámica). Enunciado textual de la guía; entre paréntesis, lo que muestran las figuras. En el P15 la figura no deja claro si el contrapeso cuelga de una polea móvil o va atado a la soga: la página muestra las dos lecturas, y con ninguna de ellas el carro llega a φ = π/2 con los datos del inciso d (ver Cuentas). La guía no da R: se toma 10 m.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>P4 y P5: soluciones analíticas exactas, aceleraciones constantes desde el reposo; la animación se detiene cuando un cuerpo llega a una polea o al piso. P15: integración numérica (Runge–Kutta de orden 4, paso 2 ms), comparada con la velocidad que da la energía. g = 9,8 m/s². Colores: celeste, m₁; rosa, m₂; verde, m₃ y la polea móvil; amarillo, las sogas y las tensiones; naranja, los pesos.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G2-P4, P5 y P15 · Poleas móviles y vínculos =================
+const G0=9.8;
+const DEF=[
+  {id:'m1',lab:'m₁',unit:'kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'m2',lab:'m₂',unit:'kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'m3',lab:'m₃',unit:'kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'al',lab:'α',unit:'°',min:15,max:75,step:0.5,dec:1},
+  {id:'R',lab:'R',unit:'m',min:1,max:20,step:0.5,dec:1},
+];
+const PS={p4:{m1:1,m2:2,m3:2}, p5:{m1:2,m2:1}, p15:{m1:1,m2:1,al:30,R:10}};
+const SHOW={p4:['m1','m2','m3'],p5:['m1','m2'],p15:['m1','m2','al','R']};
+const P={m1:1,m2:2,m3:2,al:30,R:10}; let SY='p4', K=0.5;
+
+// ---- P4: y hacia abajo. Vínculos: yA + y3 = cte; (y1 − yA) + (y2 − yA) = cte ----
+function sol4(){ const {m1,m2,m3}=P, T2=4*G0/(1/m1+1/m2+4/m3), T1=2*T2, a3=G0-T1/m3;
+  return {T1,T2,a1:G0-T2/m1,a2:G0-T2/m2,a3,aA:-a3}; }
+const G4={yB:0.5,rB:0.45,rA:0.28,A:1.6,y3:1.5,y1:2.4,y2:2.1,piso:3.0};
+function pos4(t){ const s=sol4(), q=t*t/2; return {A:G4.A+s.aA*q, y3:G4.y3+s.a3*q, y1:G4.y1+s.a1*q, y2:G4.y2+s.a2*q}; }
+let _e4={};
+function end4(k){ const key=[P.m1,P.m2,P.m3,k].join(); if(_e4.key===key) return _e4.t; const s=sol4(); let t=0;
+  if(Math.max(Math.abs(s.a1),Math.abs(s.a2),Math.abs(s.a3))<1e-9) t=3;
+  else { const hb=m=>bs(m)/k; for(;t<10;t+=0.002){ const y=pos4(t+0.002);
+    if(y.A-G4.yB<G4.rB+G4.rA+0.03 || y.y3-G4.yB<0.12 || y.y1-y.A<0.3 || y.y2-y.A<0.3 || y.y1+hb(P.m1)>G4.piso || y.y2+hb(P.m2)>G4.piso || y.y3+hb(P.m3)>G4.piso || y.A+G4.rA>G4.piso) break; } }
+  _e4={key,t}; return t; }
+// ---- P5: d₂ = 2 d₁ ----
+function sol5(){ const {m1,m2}=P, a1=2*m2*G0/(4*m2+m1), T2=m1*m2*G0/(4*m2+m1); return {a1,a2:2*a1,T1:2*T2,T2}; }
+const G5={xA:0.9,xF:1.75,xB:2.4,r:0.08,yc:-0.15,y2:0.25,piso:1.9};
+function end5(k){ const s=sol5(); let t=0; for(;t<10;t+=0.002){ const q=(t+0.002)**2/2; if(G5.xA+s.a1*q+G5.r>G5.xF-0.03 || G5.y2+s.a2*q+bs(P.m2)/k>G5.piso) break; } return t; }
+// ---- P15: el contrapeso recorre λRφ (λ = K). (m₁ + λ²m₂) R φ¨ = g (λ m₂ sen α − m₁ sen φ) ----
+const sa=()=>Math.sin(rad(P.al));
+const acc15=ph=>G0*(K*P.m2*sa()-P.m1*Math.sin(ph))/(P.R*(P.m1+K*K*P.m2));
+const v15=ph=>Math.sqrt(Math.max(0,2*G0*P.R*(K*P.m2*sa()*ph-P.m1*(1-Math.cos(ph)))/(P.m1+K*K*P.m2)));
+const f15=ph=>K*P.m2*sa()*ph-P.m1*(1-Math.cos(ph));
+function phMax(){ if(f15(Math.PI/2)>=0) return null; let a=1e-4,b=Math.PI/2; for(let i=0;i<80;i++){ const c=(a+b)/2; f15(c)>0?a=c:b=c; } return (a+b)/2; }
+const phEq=()=>{ const s=K*P.m2*sa()/P.m1; return s<=1?Math.asin(s):null; };
+let _tr={};
+function traj(){ const key=[P.m1,P.m2,P.al,P.R,K].join(); if(_tr.key===key) return _tr; const h=0.002, pts=[[0,0,0]]; let t=0,ph=0,om=0,reach=null,per=null;
+  const F=(p,o)=>[o,acc15(p)];
+  while(t<60){ const k1=F(ph,om), k2=F(ph+h/2*k1[0],om+h/2*k1[1]), k3=F(ph+h/2*k2[0],om+h/2*k2[1]), k4=F(ph+h*k3[0],om+h*k3[1]);
+    const np=ph+h/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]), no=om+h/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1]);
+    if(np>=Math.PI/2){ const f=(Math.PI/2-ph)/(np-ph); reach=t+f*h; pts.push([reach,Math.PI/2,om+f*(no-om)]); break; }
+    if(t>0.05&&om<0&&no>=0){ const f=-om/(no-om); per=t+f*h; pts.push([per,ph+f*(np-ph),0]); break; }
+    t+=h; ph=np; om=no; pts.push([t,ph,om]); }
+  _tr={key,pts,reach,per,end:reach??per??t}; return _tr; }
+function at15(t){ const tr=traj(), p=tr.pts; if(t>=tr.end) return p[p.length-1]; const i=Math.min(p.length-2,Math.floor(t/0.002)); const f=(t-p[i][0])/(p[i+1][0]-p[i][0]||1); return [t,p[i][1]+f*(p[i+1][1]-p[i][1]),p[i][2]+f*(p[i+1][2]-p[i][2])]; }
+
+// ================= Escena =================
+const scene=$('scene'); let KPX=100;
+function restart(){ S.t=0; }
+function tEnd(){ return SY==='p4'?end4(KPX):SY==='p5'?end5(KPX):traj().end; }
+const LENTO=()=>SY==="p15"?1:0.4;
+function step(dt){ S.t+=dt*LENTO(); if(S.t>tEnd()+1.2*LENTO()) S.t=0; }
+function block(ctx,x,y,w,h,n,col,lab){ ctx.save(); ctx.translate(x,y); ctx.transform(-n[1],n[0],-n[0],-n[1],0,0); ctx.fillStyle=C['panel-2']; ctx.fillRect(-w/2,-h,w,h); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.strokeRect(-w/2,-h,w,h); ctx.restore();
+  if(lab) txt(ctx,lab,x+n[0]*h/2,y+n[1]*h/2+1,col,{align:'center',base:'middle',size:12,weight:600,font:UI}); }
+const UP=[0,-1], bs=m=>18+10*Math.cbrt(m);
+function farrow(ctx,x,y,dx,dy,col,lab,side){ if(Math.hypot(dx,dy)<3) return; arrow(ctx,x,y,x+dx,y+dy,col,2,6); if(!lab) return; const r=side?side==='r':dx>=0;
+  txt(ctx,lab,x+dx+(r?6:-6),y+dy,col,{align:r?'left':'right',base:'middle',size:11}); }
+function pulley(ctx,x,y,r,lab,col=C.muted){ ctx.fillStyle=C.panel; ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill(); ctx.stroke(); dot(ctx,x,y,2.5,col); if(lab) txt(ctx,lab,x,y-5,col,{align:'center',size:11,font:UI,weight:600}); }
+function rope(ctx,pts){ line(ctx,pts,C.v,1.5); }
+function arcRope(ctx,x,y,r,a0,a1,ccw){ ctx.strokeStyle=C.v; ctx.lineWidth=1.5; ctx.setLineDash([]); ctx.beginPath(); ctx.arc(x,y,r,a0,a1,!!ccw); ctx.stroke(); }
+
+function drawP4(ctx,w,h){ const s=sol4(), k=(h-22)/3.1; KPX=k; const te=end4(k), t=Math.min(S.t,te), y=pos4(t), cx=w*0.42, Y=v=>12+v*k;
+  ctx.fillStyle=C.line; ctx.fillRect(cx-130,4,260,6); line(ctx,[[cx,10],[cx,Y(G4.yB)]],C.muted,2); ctx.fillStyle=C.line; ctx.fillRect(cx-130,Y(G4.piso),260,4);
+  const rB=G4.rB*k, rA=G4.rA*k, xA=cx-rB, x1=xA-rA, x2=xA+rA, x3=cx+rB, yb=Y(G4.yB), ya=Y(y.A);
+  arcRope(ctx,cx,yb,rB,Math.PI,2*Math.PI); rope(ctx,[[xA,yb],[xA,ya]]); rope(ctx,[[x3,yb],[x3,Y(y.y3)]]);
+  arcRope(ctx,xA,ya,rA,Math.PI,2*Math.PI); rope(ctx,[[x1,ya],[x1,Y(y.y1)]]); rope(ctx,[[x2,ya],[x2,Y(y.y2)]]);
+  pulley(ctx,cx,yb,rB,'B'); pulley(ctx,xA,ya,rA,'A',C.ok);
+  const b1=bs(P.m1), b2=bs(P.m2), b3=bs(P.m3);
+  block(ctx,x1,Y(y.y1)+b1,b1*1.05,b1,UP,C.sys,'m₁'); block(ctx,x2,Y(y.y2)+b2,b2*1.05,b2,UP,C.sob,'m₂'); block(ctx,x3,Y(y.y3)+b3,b3*1.05,b3,UP,C.ok,'m₃');
+  const fs=55/(Math.max(P.m1,P.m2,P.m3)*G0);
+  farrow(ctx,x1-b1*0.55-4,Y(y.y1)+b1/2,0,P.m1*G0*fs,C.a,'P₁','l'); farrow(ctx,x1-b1*0.55-4,Y(y.y1)+b1/2,0,-s.T2*fs,C.v,'T₂','l');
+  farrow(ctx,x3+b3*0.55+4,Y(y.y3)+b3/2,0,P.m3*G0*fs,C.a,'P₃','r'); farrow(ctx,x3+b3*0.55+4,Y(y.y3)+b3/2,0,-s.T1*fs,C.v,'T₁','r');
+  const sg=a=>Math.abs(a)<1e-9?'quieta':(a>0?'baja ':'sube ')+cm(Math.abs(a),3)+' m/s²';
+  const lx=w*0.7; [['m₁',s.a1,C.sys],['m₂',s.a2,C.sob],['m₃',s.a3,C.ok],['polea A',s.aA,C.ok]].forEach(([l,a,c],i)=>{ txt(ctx,l,lx,40+i*20,c,{size:12,font:UI,weight:600}); txt(ctx,sg(a),lx+62,40+i*20,C.fg,{size:11.5}); });
+  txt(ctx,`T₁ = ${cm(s.T1,2)} N   T₂ = ${cm(s.T2,2)} N`,lx,40+4*20+6,C.v,{size:11.5}); txt(ctx,`t = ${cm(t,2)} s (cámara lenta)`,12,22,C.muted,{size:11.5});
+  readout([['a₁',cm(s.a1,3)+' m/s²',C.sys],['a₂',cm(s.a2,3)+' m/s²',C.sob],['a₃',cm(s.a3,3)+' m/s²',C.ok],['T₁ = 2T₂',cm(s.T1,2)+' N',C.v]]);
+  $('formula').innerHTML=`<b>vínculos</b> (y hacia abajo): y_A + y₃ = cte · (y₁ − y_A) + (y₂ − y_A) = cte → a₁ + a₂ = 2a_A = −2a₃ · <b>polea A sin masa:</b> T₁ = 2T₂`;
+}
+function drawP5(ctx,w,h){ const s=sol5(), k=Math.min((w-30)/3.1,(h-20)/2.6); KPX=k; const te=end5(k), t=Math.min(S.t,te), d1=s.a1*t*t/2, d2=2*d1;
+  const ox=(w-3.1*k)/2+0.3*k, oy=10+0.6*k, X=v=>ox+v*k, Y=v=>oy+v*k, r=G5.r*k, xA=X(G5.xA+d1), yc=Y(G5.yc), xB=X(G5.xB), xF=X(G5.xF);
+  ctx.fillStyle=C.line; ctx.fillRect(X(-0.3),Y(0),xB-X(-0.3),5); ctx.fillRect(X(-0.2),Y(0),5,Y(G5.piso)-Y(0)); ctx.fillRect(xB-8,Y(0),5,Y(G5.piso)-Y(0)); ctx.fillRect(X(-0.3),Y(G5.piso),3.4*k,3);
+  line(ctx,[[xF,yc+r],[xF,Y(0)]],C.muted,2); dot(ctx,xF,yc+r,3,C.muted); txt(ctx,'extremo fijo',xF,Y(0)+16,C.muted,{align:'center',size:10.5});
+  const b1=bs(P.m1), x1=xA-0.45*k;
+  rope(ctx,[[x1,yc],[xA,yc]]); rope(ctx,[[xA,yc+r],[xF,yc+r]]); arcRope(ctx,xA,yc,r,Math.PI/2,1.5*Math.PI); rope(ctx,[[xA,yc-r],[xB,yc-r]]);
+  arcRope(ctx,xB,yc,r,1.5*Math.PI,2*Math.PI); const y2=Y(G5.y2+d2), b2=bs(P.m2); rope(ctx,[[xB+r,yc],[xB+r,y2]]);
+  pulley(ctx,xA,yc,r,'',C.ok); pulley(ctx,xB,yc,r,''); txt(ctx,'A',xA,yc-r-5,C.ok,{align:'center',size:11,font:UI,weight:600}); txt(ctx,'B',xB,yc-r-5,C.muted,{align:'center',size:11,font:UI,weight:600});
+  block(ctx,x1-b1*0.65,Y(0),b1*1.3,b1,UP,C.sys,'m₁'); block(ctx,xB+r,y2+b2,b2,b2,UP,C.sob,'m₂');
+  const fs=50/(Math.max(P.m1,P.m2)*G0); farrow(ctx,x1+2,yc-b1*0.15,s.T1*fs,0,C.v,'');
+  farrow(ctx,xB+r+b2/2+6,y2+b2/2,0,P.m2*G0*fs,C.a,'P₂','r'); farrow(ctx,xB+r+b2/2+6,y2+b2/2,0,-s.T2*fs,C.v,'T₂','r');
+  // marcas de recorrido
+  line(ctx,[[X(G5.xA-0.45),Y(0)+26],[x1,Y(0)+26]],C.sys,2); txt(ctx,`d₁ = ${cm(d1*100,1)} cm`,X(G5.xA-0.45),Y(0)+40,C.sys,{size:11});
+  line(ctx,[[xB+r+b2*0.9,Y(G5.y2)],[xB+r+b2*0.9,y2]],C.sob,2); txt(ctx,`d₂ = ${cm(d2*100,1)} cm`,xB+r+b2*0.9+6,Y(G5.y2)+10,C.sob,{size:11});
+  txt(ctx,`t = ${cm(t,2)} s (cámara lenta)`,12,22,C.muted,{size:11.5});
+  readout([['a₁',cm(s.a1,3)+' m/s²',C.sys],['a₂ = 2a₁',cm(s.a2,3)+' m/s²',C.sob],['T₁ = 2T₂',cm(s.T1,2)+' N',C.v],['T₂',cm(s.T2,2)+' N',C.v]]);
+  $('formula').innerHTML=`<b>vínculo:</b> si A avanza d₁, las dos ramas que la rodean se acortan d₁ cada una → d₂ = 2d₁ · <b>m₁:</b> m₁a₁ = T₁ = 2T₂ · <b>m₂:</b> m₂a₂ = m₂g − T₂`;
+}
+function drawP15(ctx,w,h){ const an=rad(P.al), ca=Math.cos(an), sn=Math.sin(an), n=[sn,-ca], d=[ca,sn], rp=0.05, hr=0.12, rq=0.04;
+  const Pc=[0.97+rp,-rp], S0=[Pc[0]+rp*n[0],Pc[1]+rp*n[1]], I0=[S0[0]-hr*n[0],S0[1]-hr*n[1]], tg=(1-I0[1])/d[1], Gp=[I0[0]+tg*d[0],1];
+  const kk=Math.min((w-24)/(Gp[0]+1.25),(h-26)/1.35), ox=12+1.15*kk+((w-24)-(Gp[0]+1.25)*kk)/2, oy=14+0.25*kk, U=p=>[ox+p[0]*kk,oy+p[1]*kk];
+  const [t,ph,om]=at15(S.t), tr=traj();
+  ctx.fillStyle=C.line; ctx.globalAlpha=.45; ctx.beginPath(); ctx.moveTo(...U(I0)); ctx.lineTo(...U(Gp)); ctx.lineTo(...U([I0[0],1])); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+  line(ctx,[U(I0),U(Gp)],C.muted,2.5); line(ctx,[U([-1.15,1]),U([Gp[0]+0.1,1])],C.muted,1.5);
+  ctx.strokeStyle=C.muted; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(ox,oy,kk,0,Math.PI); ctx.stroke();
+  line(ctx,[U([0,0]),U([0,1])],C.faint,1,[3,4]); const cp=[Math.sin(ph),Math.cos(ph)]; line(ctx,[U([0,0]),U([cp[0]*0.9,cp[1]*0.9])],C.faint,1,[3,4]);
+  if(ph>0.03){ ctx.strokeStyle=C.faint; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(ox,oy,0.18*kk,Math.PI/2-ph,Math.PI/2); ctx.stroke(); } txt(ctx,'φ',ox+0.05*kk,oy+0.3*kk,C.fg,{size:12,font:UI});
+  const eq=phEq(); if(eq!==null&&eq<Math.PI/2){ const e=U([Math.sin(eq),Math.cos(eq)]), el=U([Math.sin(eq)*0.72,Math.cos(eq)*0.72]); dot(ctx,e[0],e[1],3.5,C.ok,true); line(ctx,[e,el],C.ok,1,[2,3]); txt(ctx,'equilibrio',el[0]-4,el[1]-4,C.ok,{size:10.5,align:'right'}); }
+  // soga por el riel, polea fija y contrapeso
+  const rr=0.97*kk; arcRope(ctx,ox,oy,rr,Math.PI/2-ph,0,true); rope(ctx,[U([0.97,0]),U([0.97,-rp])]);
+  const pc=U(Pc); arcRope(ctx,pc[0],pc[1],rp*kk,Math.PI,2*Math.PI+Math.atan2(n[1],n[0]));
+  const bw=0.17, bh=Math.max(bs(P.m2),hr*kk+6)/kk; let D=0.15+K*ph; const Dmax=tg-bw-0.06-(K<1?rq+0.05:0); const clipped=D>Dmax; D=Math.min(D,Dmax);
+  if(K<1){ const Q=[S0[0]+D*d[0]-rq*n[0],S0[1]+D*d[1]-rq*n[1]], A0=[S0[0]-2*rq*n[0],S0[1]-2*rq*n[1]];
+    rope(ctx,[U(S0),U([S0[0]+D*d[0],S0[1]+D*d[1]])]); rope(ctx,[U(A0),U([Q[0]-rq*n[0],Q[1]-rq*n[1]])]); const q=U(Q), th=Math.atan2(n[1],n[0]); arcRope(ctx,q[0],q[1],rq*kk,th,th+Math.PI);
+    line(ctx,[pc,U(A0)],C.muted,2); dot(ctx,...U(A0),2.5,C.muted);
+    const Bc=[I0[0]+(D+rq+0.05+bw/2)*d[0],I0[1]+(D+rq+0.05+bw/2)*d[1]]; line(ctx,[q,U([Bc[0]-bw/2*d[0]+(hr-rq)*n[0],Bc[1]-bw/2*d[1]+(hr-rq)*n[1]])],C.muted,2.5);
+    pulley(ctx,q[0],q[1],rq*kk,'',C.sob); block(ctx,...U(Bc),bw*kk,bh*kk,n,C.sob,'m₂'); }
+  else { const Bc=[I0[0]+(D+bw/2)*d[0],I0[1]+(D+bw/2)*d[1]]; rope(ctx,[U(S0),U([S0[0]+D*d[0],S0[1]+D*d[1]])]); block(ctx,...U(Bc),bw*kk,bh*kk,n,C.sob,'m₂'); }
+  pulley(ctx,pc[0],pc[1],rp*kk,''); line(ctx,[pc,U([Pc[0],0.02])],C.muted,2);
+  // carro
+  const cw=0.16, ch=0.08, cr=U(cp); block(ctx,cr[0],cr[1],cw*kk,ch*kk,[-cp[0],-cp[1]],C.sys,''); txt(ctx,'m₁',cr[0]-0.14*kk*cp[0]+8,cr[1]-0.14*kk*cp[1],C.sys,{size:12,font:UI,weight:600});
+  const T=P.m1*(P.R*acc15(ph)+G0*Math.sin(ph)), fs=0.3*kk/(P.m1*G0), tv=[Math.cos(ph),-Math.sin(ph)], cc=[cr[0]-cp[0]*ch*kk/2,cr[1]-cp[1]*ch*kk/2];
+  farrow(ctx,cc[0],cc[1],0,P.m1*G0*fs,C.a,'P₁','l'); farrow(ctx,cc[0],cc[1],tv[0]*T*fs,tv[1]*T*fs,C.v,'T','r');
+  txt(ctx,`t = ${cm(t,2)} s`,12,22,C.muted,{size:11.5}); if(clipped) txt(ctx,'el contrapeso ya no entra en el dibujo',12,38,C.a,{size:11});
+  const pm=phMax(); readout([['φ',cm(deg(ph),1)+'°',C.sys],['v',cm(P.R*om,2)+' m/s',C.sys],['T',cm(T,2)+' N',C.v],tr.reach!==null?['llega a 90° en',cm(tr.reach,3)+' s',C.ok]:['no llega: sube hasta',cm(deg(pm),2)+'°',C.a]]);
+  $('formula').innerHTML=`<b>vínculo:</b> el contrapeso recorre λRφ (λ = ${K<1?'1/2':'1'}) · (m₁ + λ²m₂) R φ̈ = g (λm₂ sen α − m₁ sen φ)`;
+}
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); if(SY==='p4') drawP4(ctx,w,h); else if(SY==='p5') drawP5(ctx,w,h); else drawP15(ctx,w,h); }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,yt:o.yt,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash])=>line(ctx,pts.map(p=>[X(p[0]),Y(p[1])]),col,2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const samp=(f,a,b,N=200)=>Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; });
+function bars(id,items,unit){ const vs=items.map(i=>i[1]), m=Math.max(1,...vs.map(Math.abs))*1.15; const F=frame($(id),{x0:0,x1:items.length,y0:-m,y1:m,xt:[],xlab:''}); const {ctx,X,Y}=F;
+  items.forEach(([l,v,c],i)=>{ const x=X(i+0.5); ctx.fillStyle=c; ctx.fillRect(x-16,Math.min(Y(0),Y(v)),32,Math.abs(Y(v)-Y(0))); txt(ctx,l,x,Y(-m)+2,c,{align:'center',base:'top',size:12,font:UI,weight:600}); txt(ctx,cm(v,2),x,v>=0?Y(v)-6:Y(v)+14,C.fg,{align:'center',size:11}); });
+  line(ctx,[[X(0),Y(0)],[X(items.length),Y(0)]],C.muted,1.2); }
+function drawV1(){
+  if(SY==='p4'){ const s=sol4(); bars('p1c',[['m₁',s.a1,C.sys],['m₂',s.a2,C.sob],['m₃',s.a3,C.ok],['polea A',s.aA,C.ok]]);
+    $('tag1').textContent='Aceleraciones (m/s², positivo hacia abajo)'; legend('leg1',[]);
+    $('cap1').textContent=`Se cumplen los dos vínculos: a₁ + a₂ = ${cm(s.a1+s.a2,3)} = 2a_A = ${cm(2*s.aA,3)}, y a_A = −a₃. Con m₁ = m₂ = m y m₃ = 2m todo queda en equilibrio.`; return; }
+  if(SY==='p5'){ const f1=m=>2*m*G0/(4*m+P.m1); plot('p1c',0,10,[[samp(f1,0,10),C.sys],[samp(m=>2*f1(m),0,10),C.sob],[samp(()=>G0,0,10),C.faint,[4,4]]],'m₂ (kg)',{y1:G0*1.08,mark:(ctx,X,Y)=>{ const s=sol5(); dot(ctx,X(P.m2),Y(s.a1),4.5,C.sys); dot(ctx,X(P.m2),Y(s.a2),4.5,C.sob); }});
+    $('tag1').textContent='Aceleraciones según m₂ (m/s²)'; legend('leg1',[[C.sys,'a₁'],[C.sob,'a₂ = 2a₁'],[C.faint,'g','dashed']]);
+    $('cap1').textContent=`Aunque m₂ sea enorme, m₁ no supera g/2 = 4,9 m/s²: m₂ cae libre como mucho, y m₁ recorre la mitad.`; return; }
+  const tr=traj(), pm=phMax(), eq=phEq(); plot('p1c',0,tr.end,[[tr.pts.filter((_,i)=>i%5===0).map(p=>[p[0],deg(p[1])]),C.sys]],'t (s)',{y0:0,y1:95,yt:[0,30,60,90],mark:(ctx,X,Y)=>{ line(ctx,[[X(0),Y(90)],[X(tr.end),Y(90)]],C.ok,1.2,[4,4]); if(eq!==null) line(ctx,[[X(0),Y(deg(eq))],[X(tr.end),Y(deg(eq))]],C.faint,1,[2,4]); const p=at15(S.t); dot(ctx,X(p[0]),Y(deg(p[1])),4.5,C.sys); }});
+  $('tag1').textContent='Ángulo del carro φ(t) (°), integración numérica'; legend('leg1',[[C.sys,'φ'],[C.ok,'90°','dashed'],[C.faint,'equilibrio','dotted']]);
+  $('cap1').textContent=tr.reach!==null?`El carro llega a φ = 90° en t = ${cm(tr.reach,3)} s.`:`El carro no llega a 90°: sube hasta ${cm(deg(pm),2)}°, se detiene y vuelve; oscila alrededor del equilibrio${eq!==null?` (${cm(deg(eq),2)}°)`:''} con período ${cm(tr.per,3)} s.`;
+}
+function drawV2(){
+  if(SY==='p4'){ const s=sol4(), te=end4(KPX)||1, q=t=>t*t/2; plot('p2c',0,te,[[samp(t=>s.a1*q(t),0,te),C.sys],[samp(t=>s.a2*q(t),0,te),C.sob],[samp(t=>s.a3*q(t),0,te),C.ok],[samp(t=>s.aA*q(t),0,te),C.ok,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>{ const t=Math.min(S.t,te); line(ctx,[[X(t),Y(-9)],[X(t),Y(9)]],C.faint,1,[2,3]); }});
+    $('tag2').textContent='Desplazamientos desde el reposo (m, positivo hacia abajo)'; legend('leg2',[[C.sys,'m₁'],[C.sob,'m₂'],[C.ok,'m₃'],[C.ok,'polea A','dashed']]);
+    $('cap2').textContent='La polea A y m₃ se mueven siempre en sentidos opuestos y lo mismo. El promedio de los desplazamientos de m₁ y m₂ es el de la polea A.'; return; }
+  if(SY==='p5'){ const s=sol5(), te=end5(KPX)||1; plot('p2c',0,te,[[samp(t=>s.a1*t*t/2*100,0,te),C.sys],[samp(t=>s.a2*t*t/2*100,0,te),C.sob]],'t (s)',{mark:(ctx,X,Y)=>{ const t=Math.min(S.t,te); dot(ctx,X(t),Y(s.a1*t*t/2*100),4.5,C.sys); dot(ctx,X(t),Y(s.a2*t*t/2*100),4.5,C.sob); }});
+    $('tag2').textContent='Distancias recorridas (cm)'; legend('leg2',[[C.sys,'d₁ (m₁)'],[C.sob,'d₂ (m₂)']]); $('cap2').textContent='En todo momento d₂ = 2d₁: es la condición de vínculo del inciso b.'; return; }
+  const tr=traj(), top=tr.reach!==null?Math.PI/2:phMax(), num=tr.pts.filter((_,i)=>i%40===0&&tr.pts[i][2]>=0).map(p=>[deg(p[1]),P.R*p[2]]);
+  plot('p2c',0,deg(top)*1.02,[[samp(ph=>v15(rad(ph)),0,deg(top)),C.v]],'φ (°)',{mark:(ctx,X,Y)=>{ num.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),3,C.sys)); }});
+  $('tag2').textContent='Velocidad del carro según φ (m/s)'; legend('leg2',[[C.v,'energía (inciso c)'],[C.sys,'integración numérica']]);
+  $('cap2').textContent='La curva sale de igualar la energía cinética de los dos cuerpos al trabajo del peso del contrapeso menos el que gana el carro al subir; los puntos, de integrar la ecuación de Newton. Coinciden.';
+}
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p4:{ q:'Con m₁ = m₂ = 1 kg y m₃ = 2 kg, ¿qué pasa al soltar el sistema?',
+    opts:[['baja3','m₃ baja'],['quieto','nada se mueve'],['sube3','m₃ sube']], right:'quieto', go:'Probalo',
+    run(){ Object.assign(P,{m1:1,m2:1,m3:2}); restart(); refresh(); return `Nada se mueve: con m₁ = m₂, el hilo de A tiene tensión T₂ = mg, la polea A tira de B con 2mg y eso equilibra exactamente a m₃ = 2m. Las aceleraciones son ${cm(sol4().a3,3)}.`; } },
+  p5:{ q:'Si m₁ avanza 10 cm sobre la mesa, ¿cuánto baja m₂?',
+    opts:[['5','5 cm'],['10','10 cm'],['20','20 cm']], right:'20', go:'Probalo: mirá las marcas d₁ y d₂',
+    run(){ restart(); setView('v2'); return 'Baja 20 cm. Cuando la polea A avanza 10 cm, las dos ramas de soga que la rodean se acortan 10 cm cada una, y esos 20 cm salen del lado de m₂. Por eso a₂ = 2a₁ y, a cambio, la soga tira de m₁ con el doble de fuerza: T₁ = 2T₂.'; } },
+  p15:{ q:'Con los datos del inciso d (sen α = 1/2, m₁ = m₂), el carro, que parte del fondo…',
+    opts:[['llega','llega a φ = 90°'],['vuelve','sube hasta cierto ángulo y vuelve'],['quieto','no se mueve']], right:'vuelve', go:'Probalo: datos de la guía',
+    run(){ Object.assign(P,{m1:1,m2:1,al:30,R:10}); restart(); setView('v1'); refresh(); const a=deg(phMax());
+      return `Sube hasta ${cm(a,1)}° y vuelve. Para llegar a 90° el carro tiene que ganar m₁gR de energía potencial, y el contrapeso baja λRπ/2, entregando λ m₂ g R π/4 &lt; m₁gR (con λ = 1 o 1/2). Con estos datos el carro nunca alcanza φ = π/2: oscila.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p4:[
+    {txt:'Con m₁ = 1 kg y m₂ = 3 kg, elegí m₃ para que m₃ quede quieta.',
+     chk(){ if(Math.abs(P.m1-1)>0.01||Math.abs(P.m2-3)>0.01) return [false,'Primero poné m₁ = 1 kg y m₂ = 3 kg']; const a=sol4().a3; return Math.abs(a)<0.02?[true,`Logrado: m₃ = ${cm(P.m3,1)} kg. En general m₃ = 4m₁m₂/(m₁ + m₂). Aun así m₁ y m₂ se mueven.`]:[false,`Ahora a₃ = ${cm(a,3)} m/s²`]; }},
+    {txt:'Si m₃ es muy chica, ¿con qué aceleración baja la polea A? ¿Y m₁ y m₂?'},
+  ],
+  p5:[
+    {txt:'Con m₁ = 4 kg, elegí m₂ para que m₁ acelere a 2 m/s² (±2 %).',
+     chk(){ if(Math.abs(P.m1-4)>0.01) return [false,'Primero poné m₁ = 4 kg']; const a=sol5().a1; return Math.abs(a-2)/2<0.02?[true,`Logrado: m₂ = ${cm(P.m2,1)} kg. Exacto: m₂ = 8/11,6 ≈ 0,69 kg.`]:[false,`Ahora a₁ = ${cm(a,3)} m/s²`]; }},
+    {txt:'¿Cuál es la aceleración máxima que puede tener m₁, por más grande que sea m₂? Explicá por qué.'},
+  ],
+  p15:[
+    {txt:'Con α = 30°, elegí m₂/m₁ para que el carro llegue justo a 90° (hasta un 3 % de más).',
+     chk(){ if(Math.abs(P.al-30)>0.01) return [false,'Primero poné α = 30°']; const r=P.m2/P.m1, rs=1/(K*0.5*Math.PI/2); return r>=rs*0.999&&r<=rs*1.03?[true,`Logrado: m₂/m₁ = ${cm(r,3)}. El mínimo es m₂/m₁ = 1/(λ sen α · π/2) = ${cm(rs,3)}.`]:[false,`Ahora m₂/m₁ = ${cm(r,3)}`]; }},
+    {txt:'Hacé que el carro pueda quedar en reposo en φ = 45° (±0,5°).',
+     chk(){ const e=phEq(); return e!==null&&Math.abs(deg(e)-45)<0.5?[true,`Logrado: sen φ = λ m₂ sen α / m₁ = ${cm(Math.sin(e),3)}.`]:[false,e===null?'Ahora no hay equilibrio: el contrapeso siempre gana':`Ahora el equilibrio está en ${cm(deg(e),2)}°`]; }},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p4'){ const s=sol4(); return {title:'Newton y vínculos (y hacia abajo)', finLbl:'Tensión del hilo de A', steps:[
+    ['Newton para cada masa', `\\[m_1a_1=m_1g-T_2,\\quad m_2a_2=m_2g-T_2,\\quad m_3a_3=m_3g-T_1\\]`],
+    ['La polea A no tiene masa: la fuerza neta sobre ella es cero', `\\[T_1=2T_2\\]`],
+    ['Vínculos: los dos hilos son inextensibles', `\\[y_A+y_3=\\text{cte},\\quad (y_1-y_A)+(y_2-y_A)=\\text{cte}\\ \\Rightarrow\\ a_1+a_2=-2a_3\\]`],
+    ['Reemplazando las aceleraciones en el vínculo', `\\[T_2\\left(\\frac1{m_1}+\\frac1{m_2}+\\frac4{m_3}\\right)=4g\\]`,true],
+    ['Con los valores actuales', `\\[T_2=${tx(s.T2,3)}\\ \\text{N},\\ T_1=${tx(s.T1,3)}\\ \\text{N};\\ a_1=${tx(s.a1,3)},\\ a_2=${tx(s.a2,3)},\\ a_3=${tx(s.a3,3)}\\ \\text{m/s}^2\\]`],
+  ], fin:`\\[T_2=\\frac{4\\,g\\,m_1m_2m_3}{m_2m_3+m_1m_3+4m_1m_2},\\qquad a_i=g-\\frac{T}{m_i}\\]`}; }
+  if(SY==='p5'){ const s=sol5(); return {title:'Polea móvil sobre la mesa', finLbl:'Aceleraciones', steps:[
+    ['Vínculo: m₁ va atado al eje de A, y la soga de A da una vuelta', `\\[d_2=2d_1\\ \\Rightarrow\\ a_2=2a_1\\]`],
+    ['m₁ (horizontal) y la polea A sin masa', `\\[m_1a_1=T_1=2T_2\\]`],
+    ['m₂ (vertical, hacia abajo)', `\\[m_2a_2=m_2g-T_2\\]`],
+    ['Eliminando T₂', `\\[2m_2a_1=m_2g-\\tfrac12m_1a_1\\ \\Rightarrow\\ a_1=\\frac{2m_2}{4m_2+m_1}\\,g=${tx(s.a1,3)}\\ \\text{m/s}^2\\]`,true],
+    ['Tensiones', `\\[T_2=\\frac{m_1m_2}{4m_2+m_1}\\,g=${tx(s.T2,3)}\\ \\text{N},\\quad T_1=2T_2=${tx(s.T1,3)}\\ \\text{N}\\]`],
+  ], fin:`\\[a_1=\\frac{2m_2\\,g}{4m_2+m_1},\\qquad a_2=\\frac{4m_2\\,g}{4m_2+m_1}\\]`}; }
+  const tr=traj(), pm=phMax(), eq=phEq(), L=K<1?'\\tfrac12':'1';
+  return {title:'Carro en el riel', finLbl:'Velocidad del carro', steps:[
+    ['Vínculo: si el carro sube un arco Rφ, el contrapeso baja λRφ por el plano (λ = 1/2 con polea móvil, λ = 1 atado a la soga)', `\\[s_2=\\lambda R\\varphi,\\qquad \\lambda=${L}\\]`],
+    ['Newton tangencial para el carro y a lo largo del plano para el contrapeso (sobre él la soga tira con T/λ)', `\\[m_1R\\ddot\\varphi=T-m_1g\\sin\\varphi,\\qquad m_2\\lambda R\\ddot\\varphi=m_2g\\sin\\alpha-\\frac{T}{\\lambda}\\]`],
+    ['Eliminando T', `\\[(m_1+\\lambda^2m_2)\\,R\\,\\ddot\\varphi=g\\,(\\lambda m_2\\sin\\alpha-m_1\\sin\\varphi)\\]`],
+    ['Equilibrio (inciso b)', `\\[\\sin\\varphi_{eq}=\\frac{\\lambda m_2\\sin\\alpha}{m_1}${eq!==null?`\\ \\Rightarrow\\ \\varphi_{eq}=${tx(deg(eq),2)}^\\circ`:'>1\\ \\text{(no hay)}'}\\]`],
+    ['Multiplicando por φ̇ e integrando desde el reposo (inciso c)', `\\[\\tfrac12(m_1+\\lambda^2m_2)R^2\\dot\\varphi^2=gR\\,[\\lambda m_2\\sin\\alpha\\,\\varphi-m_1(1-\\cos\\varphi)]\\]`,true],
+    ['Inciso d: el carro llega a π/2 solo si el corchete es positivo ahí, o sea si λ m₂ sen α · π/2 > m₁. Con sen α = 1/2 y m₁ = m₂ queda π/8 o π/4, menor que 1', tr.reach!==null?`\\[t\\left(\\tfrac{\\pi}2\\right)=${tx(tr.reach,3)}\\ \\text{s}\\]`:`\\[\\text{no llega: }\\varphi_{\\max}=${tx(deg(pm),2)}^\\circ,\\quad \\text{período}=${tx(tr.per,3)}\\ \\text{s}\\]`],
+  ], fin:`\\[v=R\\dot\\varphi=\\sqrt{\\frac{2gR\\,[\\lambda m_2\\sin\\alpha\\,\\varphi-m_1(1-\\cos\\varphi)]}{m_1+\\lambda^2m_2}}\\]`};
+}
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+guia([['P15 d · sen α = 1/2, m₁ = m₂', ()=>{ Object.assign(P,{m1:1,m2:1,al:30,R:10}); restart(); setView('v1'); }]]);
+document.querySelectorAll('#vinc button').forEach(b=>b.onclick=()=>{ K=+b.dataset.k; document.querySelectorAll('#vinc button').forEach(x=>x.setAttribute('aria-pressed',x===b)); restart(); refresh(); });
+const NOTE={p4:'La polea B cuelga del techo; la polea A es móvil. Todo parte del reposo.', p5:'La polea A es móvil; la soga que la rodea tiene un extremo fijo a la mesa. Sin rozamiento.',
+  p15:'R = 10 m (la guía no lo da). El carro parte del fondo del riel, en reposo.'};
+const VB={p4:['Aceleraciones','Desplazamientos'],p5:['Aceleraciones según m₂','Distancias'],p15:['φ en el tiempo','Velocidad según φ']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); $('vinc').hidden=SY!=='p15'; $('guia').hidden=SY!=='p15'; guiaOff();
+  $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p4',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

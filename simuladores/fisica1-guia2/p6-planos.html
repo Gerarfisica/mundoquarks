@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Planos inclinados G2-P6 a P8</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 2 · Dinámica</span>
+  <h1>Planos inclinados: rampa, cuña móvil y tiro sobre el plano <i>· la gravedad a lo largo del plano es g sen α</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-bloques-hilos.html"><b class="code">P1–3</b>Bloques e hilos</a></li>
+      <li><a href="p4-poleas.html"><b class="code">P4, 5, 15</b>Poleas y vínculos</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6–8</b>Planos inclinados</a></li>
+      <li><a href="p9-curvas-barras.html"><b class="code">P9–11</b>Curvas y barras</a></li>
+      <li><a href="p12-tubo-cono-avion.html"><b class="code">P12–14</b>Tubo, cono y avión</a></li>
+      <li><a href="p16-cargas-campos.html"><b class="code">P16–18</b>Cargas en campos</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:320px" aria-label="Un bloque que sube por una rampa, un bloque que baja por una cuña que puede moverse, o una varilla que cae por un plano inclinado mientras un proyectil lanzado sobre el plano intenta alcanzarla."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p6" aria-pressed="true">P6 · subir la rampa</button>
+        <button data-sy="p7" aria-pressed="false">P7 · cuña móvil</button>
+        <button data-sy="p8" aria-pressed="false">P8 · varilla y proyectil</button>
+      </div>
+      <div class="chips" id="cuna" role="group" aria-label="La cuña" hidden>
+        <span class="lbl">La cuña:</span>
+        <button data-fija="1" aria-pressed="false">fija (inciso i)</button>
+        <button data-fija="0" aria-pressed="true">libre (inciso ii)</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Altura</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Según α</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G2-P6 a P8</summary>
+      <p><b>6.</b> Considere un cuerpo de masa m que puede desplazarse sin fricción en la superficie que se indica en la figura. Usando solamente argumentos de cinemática y dinámica, halle la altura máxima a la cual el objeto se detendrá sobre el plano inclinado. ¿Cómo cambia el resultado si el ángulo del plano inclinado se reduce a la mitad? (En la figura, el cuerpo avanza con velocidad v₀ por el piso hacia un plano inclinado un ángulo α.)</p>
+      <p><b>7.</b> Un bloque de masa m₁ está colocado sobre un plano inclinado de masa m₂ como muestra la figura. El plano inclinado descansa sobre una superficie horizontal. Ambas superficies son sin fricción y ambas, el bloque y el plano, pueden moverse (ver figura). (En la figura, el plano sube hacia la derecha con ángulo φ; x horizontal, y vertical.)</p>
+      <p>i) Si el plano inclinado está fijo, halle las componentes x e y de la aceleración del bloque.<br>ii) Si el plano inclinado es libre de moverse:<br>a) Muestre que la componente x de la aceleración del bloque es: a₁ₓ = −m₂ g tan φ / (m₂ sec² φ + m₁ tan² φ).<br>b) Muestre que la componente x de la aceleración del plano inclinado (y su única componente) es: a₂ₓ = m₁ g tan φ / (m₂ sec² φ + m₁ tan² φ).<br>c) Muestre que a₁ᵧ es: a₁ᵧ = −(m₁ + m₂) g tan² φ / (m₂ sec² φ + m₁ tan² φ).</p>
+      <p><b>8.</b> Una varilla de longitud d se deja caer sobre un plano inclinado sin rozamiento como se ve en la figura, con H, L y α como datos. Un segundo después se dispara un proyectil sobre el plano con una velocidad inicial v₀ formando un ángulo de 45º con respecto a la base del plano. (En la figura, la varilla está apoyada sobre el borde izquierdo del plano, junto al borde superior; el proyectil sale del vértice inferior derecho, hacia arriba y a la izquierda.)</p>
+      <p>a) Escriba las ecuaciones de Newton para el proyectil y la varilla utilizando un sistema de referencia fijo a la superficie del plano. Interprete. ¿Qué relación encuentra con el tiro oblicuo?<br>b) Calcule las aceleraciones de ambos cuerpos. Diga para qué valores de v₀ el proyectil alcanza la varilla.</p>
+      <p class="src">Física 1, Guía 2 (Dinámica). Enunciado textual de la guía; entre paréntesis, lo que muestran las figuras. El P8 da solo símbolos: la página arranca con H = 10 m, L = 5 m, α = 15° y d = 1 m, valores con los que el impacto es posible; si la varilla llega a la base, se queda ahí. g = 9,8 m/s².</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Soluciones analíticas exactas: aceleraciones constantes en los tres problemas, desde el reposo en el P7. P8: en el sistema del plano, la varilla y el proyectil tienen la misma aceleración g sen α hacia abajo del plano. Colores: celeste, el cuerpo que sube o el bloque; rosa, la cuña; amarillo, el proyectil; lila, la aceleración relativa y la trayectoria vista desde la varilla; naranja, la varilla y los pesos.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G2-P6 a P8 · Planos inclinados =================
+const G0=9.8;
+const DEF=[
+  {id:'v0',lab:'v₀',unit:'m/s',min:0.5,max:15,step:0.05,dec:2},
+  {id:'al',lab:'α',unit:'°',min:5,max:80,step:0.5,dec:1},
+  {id:'m1',lab:'m₁ (bloque)',unit:'kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'m2',lab:'m₂ (cuña)',unit:'kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'phi',lab:'φ',unit:'°',min:10,max:70,step:0.5,dec:1},
+  {id:'H',lab:'H',unit:'m',min:2,max:20,step:0.5,dec:1},
+  {id:'L',lab:'L',unit:'m',min:1,max:15,step:0.5,dec:1},
+  {id:'d',lab:'d',unit:'m',min:0.2,max:3,step:0.1,dec:1},
+];
+const PS={p6:{v0:5,al:30}, p7:{m1:1,m2:3,phi:30}, p8:{H:10,L:5,al:15,d:1,v0:5.5}};
+const SHOW={p6:['v0','al'],p7:['m1','m2','phi'],p8:['H','L','al','d','v0']};
+const P={v0:5,al:30,m1:1,m2:3,phi:30,H:10,L:5,d:1}; let SY='p6', FIJA=false;
+
+// ---- P6: piso y rampa; el cuerpo vuelve al punto de partida ----
+const XI=1.5, Hmax=()=>P.v0*P.v0/(2*G0);
+function m6(t,al){ const a=G0*Math.sin(al), t1=XI/P.v0, ts=P.v0/a, tau=t-t1;
+  if(t<t1) return {x:P.v0*t,s:null,h:0}; if(tau<2*ts){ const s=P.v0*tau-a*tau*tau/2; return {s,h:s*Math.sin(al)}; } return {x:Math.max(0,XI-P.v0*(tau-2*ts)),s:null,h:0}; }
+const T6=al=>2*XI/P.v0+2*P.v0/(G0*Math.sin(al));
+// ---- P7: cuña; den = m₂ sec²φ + m₁ tan²φ ----
+function sol7(){ const f=rad(P.phi), t=Math.tan(f), s=Math.sin(f), c=Math.cos(f);
+  if(FIJA) return {a1x:-G0*s*c,a1y:-G0*s*s,a2x:0,arel:G0*s,N:P.m1*G0*c};
+  const den=P.m2/(c*c)+P.m1*t*t; return {a1x:-P.m2*G0*t/den,a2x:P.m1*G0*t/den,a1y:-(P.m1+P.m2)*G0*t*t/den,arel:(P.m1+P.m2)*G0*s/(P.m2+P.m1*s*s),N:P.m1*P.m2*G0*c/(P.m2+P.m1*s*s)}; }
+const LW=2, SLOPE=()=>LW/Math.cos(rad(P.phi)), U0=0.12, U1=0.9;
+const T7=()=>Math.sqrt(2*(U1-U0)*SLOPE()/sol7().arel);
+// ---- P8: en el plano, todo cae con a = g sen α; el proyectil sale en t = 1 s ----
+const S2=Math.SQRT1_2, A8=()=>G0*Math.sin(rad(P.al));
+function rod(t){ const a=A8(), yt=P.H-a*t*t/2; return yt-P.d<0?[0,P.d,true]:[yt-P.d,yt,false]; }
+function hit8(v0){ const a=A8(), ts=P.L/(v0*S2), yp=P.L-a*ts*ts/2; if(yp<0) return {hit:false,land:true,ts,yp}; const [yb,yt]=rod(1+ts); return {hit:yp>=yb&&yp<=yt,land:false,ts,yp,yb,yt}; }
+function win8(){ const iv=[]; let on=null, prev=null; for(let v=0.2;v<=60;v+=0.005){ const h=hit8(v).hit; if(h&&!on) on=v; if(!h&&on){ iv.push([on,prev]); on=null; } prev=v; } if(on) iv.push([on,prev]); return iv; }
+let _w8={}; function W8(){ const k=[P.H,P.L,P.al,P.d].join(); if(_w8.k!==k) _w8={k,iv:win8()}; return _w8.iv; }
+function T8(){ const h=hit8(P.v0), a=A8(); let te; if(h.hit) te=1+h.ts; else if(h.land) te=1+2*P.v0*S2/a; else te=1+h.ts*1.15; return Math.max(te,1.2); }
+function proj(t){ const tau=t-1; if(tau<0) return null; const a=A8(); return [P.L-P.v0*S2*tau, P.v0*S2*tau-a*tau*tau/2]; }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return SY==='p6'?T6(rad(P.al/2)):SY==='p7'?T7():T8(); }
+function step(dt){ S.t+=dt; if(S.t>tEnd()+1.2) S.t=0; }
+function block(ctx,x,y,w,h,n,col,lab,alpha=1){ ctx.save(); ctx.globalAlpha=alpha; ctx.translate(x,y); ctx.transform(-n[1],n[0],-n[0],-n[1],0,0); ctx.fillStyle=C['panel-2']; ctx.fillRect(-w/2,-h,w,h); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.strokeRect(-w/2,-h,w,h); ctx.restore();
+  if(lab) txt(ctx,lab,x+n[0]*h/2,y+n[1]*h/2+1,col,{align:'center',base:'middle',size:12,weight:600,font:UI,alpha}); }
+const UP=[0,-1];
+function drawP6(ctx,w,h){ const al=rad(P.al), a2=al/2, Hm=Hmax(), top=Hm*1.35, xr=XI+top/Math.tan(a2)+0.4, k=Math.min((w-40)/(xr+0.3),(h-60)/top), ox=20+0.3*k, oy=h-34, X=v=>ox+v*k, Y=v=>oy-v*k;
+  ctx.fillStyle=C.line; ctx.globalAlpha=.4; ctx.beginPath(); ctx.moveTo(X(XI),Y(0)); ctx.lineTo(X(XI+top/Math.tan(al)),Y(top)); ctx.lineTo(X(XI+top/Math.tan(al)),Y(0)); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+  line(ctx,[[X(-0.3),Y(0)],[X(xr),Y(0)]],C.muted,2.5); line(ctx,[[X(XI),Y(0)],[X(XI+top/Math.tan(al)),Y(top)]],C.muted,2.5); line(ctx,[[X(XI),Y(0)],[X(XI+top/Math.tan(a2)),Y(top)]],C.faint,1.5,[5,4]);
+  line(ctx,[[X(XI),Y(Hm)],[X(xr),Y(Hm)]],C.ok,1.2,[4,4]); txt(ctx,`H_máx = v₀²/2g = ${cm(Hm,3)} m`,X(xr)-4,Y(Hm)-6,C.ok,{align:'right',size:11.5});
+  txt(ctx,'α',X(XI)+28,Y(0)-6,C.fg,{size:12,font:UI}); txt(ctx,'α/2',X(XI)+44,Y(0)+16,C.faint,{size:11,font:UI});
+  const bw=0.35*Math.min(1,Hm)*k+16, bh=bw*0.7;
+  [[a2,C.sys,0.38,'α/2'],[al,C.sys,1,'']].forEach(([an,col,alpha])=>{ const m=m6(S.t,an); if(m.s===null) block(ctx,X(m.x)-bw/2,Y(0),bw,bh,UP,col,alpha===1?'m':'',alpha);
+    else { const c=Math.cos(an), s=Math.sin(an); block(ctx,X(XI+m.s*c),Y(m.s*s),bw,bh,[-s,-c],col,alpha===1?'m':'',alpha); } });
+  const m=m6(S.t,al); txt(ctx,`t = ${cm(S.t,2)} s`,12,20,C.muted,{size:11.5});
+  readout([['altura',cm(m.h,3)+' m',C.sys],['H_máx',cm(Hm,3)+' m',C.ok],['recorrido en la rampa',cm(Hm/Math.sin(al),3)+' m'],['con α/2',cm(Hm/Math.sin(a2),3)+' m',C.faint]]);
+  $('formula').innerHTML=`<b>en la rampa:</b> a = −g sen α · se detiene tras recorrer s = v₀²/(2g sen α) · H = s sen α = v₀²/2g, que no depende de α`;
+}
+function drawP7(ctx,w,h){ const s=sol7(), f=rad(P.phi), c=Math.cos(f), sn=Math.sin(f), Hw=LW*Math.tan(f), Ls=SLOPE(), te=T7(), t=Math.min(S.t,te), q=t*t/2;
+  const x2=s.a2x*q, u=U0*Ls+s.arel*q, top=[LW,Hw], p1=[top[0]+x2-u*c,top[1]-u*sn], p10=[LW-U0*Ls*c,Hw-U0*Ls*sn];
+  const xmin=Math.min(-0.2,p10[0]+s.a1x*te*te/2-0.4), xmax=LW+s.a2x*te*te/2+0.3, k=Math.min((w-40)/(xmax-xmin),(h-50)/(Hw+0.35)), X=v=>20+(v-xmin)*k, Y=v=>h-26-v*k;
+  ctx.fillStyle=C.line; ctx.fillRect(X(xmin),Y(0),(xmax-xmin)*k,4);
+  ctx.fillStyle=C['panel-2']; ctx.strokeStyle=C.sob; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(x2),Y(0)); ctx.lineTo(X(x2+LW),Y(0)); ctx.lineTo(X(x2+LW),Y(Hw)); ctx.closePath(); ctx.fill(); ctx.stroke();
+  txt(ctx,'m₂',X(x2+LW*0.72),Y(Hw*0.22),C.sob,{align:'center',size:12,font:UI,weight:600}); txt(ctx,'φ',X(x2)+30,Y(0)-6,C.fg,{size:12,font:UI});
+  if(FIJA){ for(let i=0;i<6;i++) line(ctx,[[X(LW*(i+0.5)/6),Y(0)+4],[X(LW*(i+0.5)/6)-6,Y(0)+12]],C.faint,1); }
+  line(ctx,[[X(p10[0]),Y(p10[1])],[X(p10[0]+s.a1x*te*te/2),Y(p10[1]+s.a1y*te*te/2)]],C.sys,1.2,[4,4]);
+  const bw=bsz(P.m1); block(ctx,X(p1[0]),Y(p1[1]),bw*1.3,bw,[-sn,-c],C.sys,'m₁');
+  const ga=50/G0, cc=[X(p1[0])-sn*bw/2,Y(p1[1])-c*bw/2];
+  arrow(ctx,cc[0],cc[1],cc[0]+s.a1x*ga,cc[1]-s.a1y*ga,C.sys,2.2,7); txt(ctx,'a₁',cc[0]+s.a1x*ga-6,cc[1]-s.a1y*ga+4,C.sys,{align:'right',size:11.5});
+  if(!FIJA){ const bx=X(x2+LW*0.5), by=Y(Hw*0.12); arrow(ctx,bx,by,bx+s.a2x*ga,by,C.sob,2.2,7); txt(ctx,'a₂',bx+s.a2x*ga+6,by+4,C.sob,{size:11.5}); }
+  txt(ctx,`t = ${cm(t,2)} s`,12,20,C.muted,{size:11.5});
+  readout([['a₁ₓ',cm(s.a1x,3)+' m/s²',C.sys],['a₁ᵧ',cm(s.a1y,3)+' m/s²',C.sys],['a₂ₓ',cm(s.a2x,3)+' m/s²',C.sob],['m₁a₁ₓ + m₂a₂ₓ',cm(P.m1*s.a1x+P.m2*s.a2x,3)+' N',C.ok]]);
+  $('formula').innerHTML=FIJA?`<b>cuña fija:</b> a₁ = g sen φ a lo largo del plano → a₁ₓ = −g sen φ cos φ, a₁ᵧ = −g sen² φ`:`<b>cuña libre:</b> la normal empuja a m₁ y m₂ en sentidos opuestos (m₁a₁ₓ + m₂a₂ₓ = 0); el vínculo es que la aceleración relativa sea paralela al plano`;
+}
+const bsz=m=>18+10*Math.cbrt(m);
+function drawP8(ctx,w,h){ const a=A8(), iw=Math.min(150,w*0.24), k=Math.min((w-iw-70)/P.L,(h-56)/P.H), ox=Math.max(30,(w-iw-P.L*k)/2), oy=h-32, X=v=>ox+v*k, Y=v=>oy-v*k;
+  ctx.fillStyle=C['panel-2']; ctx.fillRect(X(0),Y(P.H),P.L*k,P.H*k); ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; ctx.strokeRect(X(0),Y(P.H),P.L*k,P.H*k);
+  txt(ctx,'L',X(P.L/2),Y(0)+16,C.muted,{align:'center',size:12,font:UI}); txt(ctx,'H',X(0)-8,Y(P.H/2),C.muted,{align:'right',size:12,font:UI}); arrow(ctx,X(P.L)+14,Y(P.H*0.7),X(P.L)+14,Y(P.H*0.45),C.faint,1.5,6); txt(ctx,'baja',X(P.L)+20,Y(P.H*0.58),C.faint,{size:10.5});
+  const [yb,yt]=rod(S.t); ctx.strokeStyle=C.a; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(X(0)+3,Y(yb)); ctx.lineTo(X(0)+3,Y(yt)); ctx.stroke(); txt(ctx,'varilla',X(0)+10,Y(yt)+4,C.a,{size:11});
+  const hh=hit8(P.v0), te=T8(), t=Math.min(S.t,te), tr=[]; for(let i=0;i<=80;i++){ const tt=1+(t-1)*i/80; const p=proj(tt); if(p) tr.push([X(p[0]),Y(p[1])]); } if(tr.length>1) line(ctx,tr,C.v,1.4,[4,3]);
+  arrow(ctx,X(P.L),Y(0),X(P.L)-34,Y(0)-34,C.v,1.8,6); txt(ctx,'45°',X(P.L)-38,Y(0)-6,C.v,{align:'right',size:11});
+  const p=proj(t); if(p) dot(ctx,X(p[0]),Y(p[1]),5,C.v); if(hh.hit&&S.t>=te-1e-9){ dot(ctx,X(0)+3,Y(hh.yp),10,C.ok,true); txt(ctx,'impacto',X(0)+16,Y(hh.yp)-8,C.ok,{size:11.5,font:UI,weight:600}); }
+  // vista lateral
+  const ix=w-iw-10, iy=h-30, il=iw-10, an=rad(P.al); ctx.fillStyle=C.line; ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(ix,iy); ctx.lineTo(ix+il,iy); ctx.lineTo(ix+il,iy-il*Math.tan(an)); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+  txt(ctx,'vista de costado',ix,iy-il*Math.tan(an)-8,C.faint,{size:10.5}); txt(ctx,'α',ix+26,iy-5,C.fg,{size:12,font:UI});
+  txt(ctx,`t = ${cm(t,2)} s`,12,20,C.muted,{size:11.5});
+  const iv=W8(), ws=iv.length?iv.map(([u,v])=>`${cm(u,2)} a ${cm(v,2)}`).join(' y '):'ninguno';
+  readout([['g sen α',cm(a,3)+' m/s²'],['resultado',hh.hit?'le pega':hh.land?'cae antes al plano':'pasa '+(hh.yp>hh.yt?'por arriba':'por debajo'),hh.hit?C.ok:C.a],['v₀ que le pegan (m/s)',ws,C.ok]]);
+  $('formula').innerHTML=`<b>en el plano:</b> varilla ÿ = −g sen α · proyectil ẍ = 0, ÿ = −g sen α: es un tiro oblicuo con g reemplazada por g sen α`;
+}
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); if(SY==='p6') drawP6(ctx,w,h); else if(SY==='p7') drawP7(ctx,w,h); else drawP8(ctx,w,h); }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const samp=(f,a,b,N=240)=>Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; });
+function drawVec(id){ const {ctx,w,h}=fit($(id)); ctx.clearRect(0,0,w,h); const s=sol7(), sc=Math.min(w*0.4,h*0.7)/G0, ox=w*0.55, oy=h*0.32, f=rad(P.phi);
+  line(ctx,[[ox-w*0.4,oy],[ox+w*0.35,oy]],C['line-2'],1); line(ctx,[[ox,oy-h*0.25],[ox,oy+h*0.6]],C['line-2'],1);
+  const A1=[ox+s.a1x*sc,oy-s.a1y*sc], A2=[ox+s.a2x*sc,oy];
+  arrow(ctx,ox,oy,ox,oy+G0*sc*0.999,C.faint,1.5,6,[4,4]); txt(ctx,'g',ox+6,oy+G0*sc-4,C.faint,{size:12,font:UI});
+  arrow(ctx,ox,oy,A1[0],A1[1],C.sys,2.4,8); txt(ctx,'a₁',A1[0]-6,A1[1]+12,C.sys,{align:'right',size:12,font:UI,weight:600});
+  if(!FIJA){ arrow(ctx,ox,oy,A2[0],A2[1],C.sob,2.4,8); txt(ctx,'a₂',A2[0]+6,A2[1]-6,C.sob,{size:12,font:UI,weight:600}); arrow(ctx,A2[0],A2[1],A1[0],A1[1],C.lin,2,7,[5,4]); txt(ctx,'a₁ − a₂ (paralela al plano)',Math.max(A1[0],A2[0])+14,(A1[1]+A2[1])/2+18,C.lin,{size:11}); }
+  txt(ctx,'x',ox+w*0.35-10,oy-6,C.faint,{size:11}); txt(ctx,'y',ox+6,oy-h*0.25+10,C.faint,{size:11});
+  $('tag1').textContent='Aceleraciones (misma escala que g)'; legend('leg1',[]);
+  $('cap1').textContent=FIJA?`Con la cuña fija, a₁ es paralela al plano y vale g sen φ = ${cm(G0*Math.sin(f),3)} m/s².`:`a₁ es más empinada que el plano: lo que es paralelo al plano es la aceleración relativa a₁ − a₂, de módulo ${cm(s.arel,3)} m/s², mayor que g sen φ = ${cm(G0*Math.sin(f),3)} m/s². Por eso el bloque llega abajo antes que con la cuña fija.`; }
+function drawV1(){
+  if(SY==='p6'){ const al=rad(P.al), a2=al/2, T=T6(a2); plot('p1c',0,T,[[samp(t=>m6(t,al).h,0,T),C.sys],[samp(t=>m6(t,a2).h,0,T),C.sys,[5,4]],[samp(()=>Hmax(),0,T),C.ok,[3,4]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(S.t),Y(m6(S.t,al).h),4.5,C.sys); dot(ctx,X(S.t),Y(m6(S.t,a2).h),4,C.sys,true); }});
+    $('tag1').textContent='Altura del cuerpo (m)'; legend('leg1',[[C.sys,'α'],[C.sys,'α/2','dashed'],[C.ok,'H_máx','dotted']]);
+    $('cap1').textContent=`Con la mitad del ángulo tarda más en detenerse (${cm(P.v0/(G0*Math.sin(a2)),2)} s contra ${cm(P.v0/(G0*Math.sin(al)),2)} s) y recorre más rampa, pero llega a la misma altura.`; return; }
+  if(SY==='p7'){ drawVec('p1c'); return; }
+  const a=A8(), te=T8(), t=Math.min(S.t,te); const par=[], rel=[]; for(let i=0;i<=120;i++){ const tt=1+(te-1)*i/120, p=proj(tt); if(!p) continue; par.push(p); rel.push([p[0],p[1]+a*tt*tt/2]); }
+  const F=frame($('p1c'),{x0:0,x1:P.L,y0:0,y1:P.H+a/2+1,xlab:'x (m)'}); const {ctx,X,Y}=F; F.clip();
+  line(ctx,par.map(p=>[X(p[0]),Y(p[1])]),C.v,2.2); line(ctx,rel.map(p=>[X(p[0]),Y(p[1])]),C.lin,2.2,[6,4]);
+  ctx.strokeStyle=C.a; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(X(0)+3,Y(P.H-P.d)); ctx.lineTo(X(0)+3,Y(P.H)); ctx.stroke(); F.unclip();
+  $('tag1').textContent='Trayectoria del proyectil (en el plano)'; legend('leg1',[[C.v,'vista desde el plano'],[C.lin,'vista desde la varilla','dashed'],[C.a,'varilla al soltarla']]);
+  $('cap1').textContent='Vista desde la varilla, que cae con la misma aceleración, la trayectoria es una recta: el proyectil le pega si esa recta apunta a la posición inicial de la varilla. Si la varilla llega a la base antes, la recta deja de valer.'; }
+function drawV2(){
+  if(SY==='p6'){ plot('p2c',5,80,[[samp(a=>Hmax()/Math.sin(rad(a)),5,80),C.sys],[samp(()=>Hmax(),5,80),C.ok]],'α (°)',{y1:Math.min(Hmax()/Math.sin(rad(5)),Hmax()*6),mark:(ctx,X,Y)=>{ dot(ctx,X(P.al),Y(Hmax()/Math.sin(rad(P.al))),4.5,C.sys); if(P.al/2>=5) dot(ctx,X(P.al/2),Y(Hmax()/Math.sin(rad(P.al/2))),4,C.sys,true); }});
+    $('tag2').textContent='Recorrido sobre la rampa y altura máxima (m)'; legend('leg2',[[C.sys,'recorrido s'],[C.ok,'H_máx']]);
+    $('cap2').textContent='El recorrido sobre la rampa depende de α; la altura máxima, no. Es lo que la guía pide mostrar «solo con cinemática y dinámica», sin usar energía.'; return; }
+  if(SY==='p7'){ const m1=P.m1, m2=P.m2, fx=(ph,i)=>{ const t=Math.tan(rad(ph)), c=Math.cos(rad(ph)), s=Math.sin(rad(ph)); if(FIJA) return [-G0*s*c,0,-G0*s*s][i]; const den=m2/(c*c)+m1*t*t; return [-m2*G0*t/den,m1*G0*t/den,-(m1+m2)*G0*t*t/den][i]; };
+    plot('p2c',0,80,[[samp(p=>fx(p,0),0,80),C.sys],[samp(p=>fx(p,2),0,80),C.sys,[5,4]],[samp(p=>fx(p,1),0,80),C.sob]],'φ (°)',{y0:-G0,y1:G0*0.6,mark:(ctx,X,Y)=>{ const s=sol7(); dot(ctx,X(P.phi),Y(s.a1x),4.5,C.sys); dot(ctx,X(P.phi),Y(s.a1y),4.5,C.sys,true); dot(ctx,X(P.phi),Y(s.a2x),4.5,C.sob); }});
+    $('tag2').textContent='Componentes de las aceleraciones según φ (m/s²)'; legend('leg2',[[C.sys,'a₁ₓ'],[C.sys,'a₁ᵧ','dashed'],[C.sob,'a₂ₓ']]);
+    $('cap2').textContent='Con φ → 90° el bloque cae libre (a₁ᵧ → −g) y la cuña no se mueve: la normal es horizontal y se anula.'; return; }
+  const iv=W8(), lo=Math.max(0.5,(iv.length?iv[0][0]:P.v0)*0.5), hi=Math.max(P.v0*1.3,(iv.length?iv[iv.length-1][1]:P.v0)*1.6);
+  const yp=v=>{ const h=hit8(v); return h.land?NaN:h.yp; }, yr=(v,i)=>{ const h=hit8(v); return rod(1+h.ts)[i]; };
+  plot('p2c',lo,hi,[[samp(v=>yr(v,1),lo,hi),C.a],[samp(v=>yr(v,0),lo,hi),C.a,[4,3]],[samp(yp,lo,hi),C.v]],'v₀ (m/s)',{y0:0,y1:P.H*1.05,mark:(ctx,X,Y)=>{ iv.forEach(([u,v])=>{ ctx.fillStyle=C.ok; ctx.globalAlpha=.15; ctx.fillRect(X(u),Y(P.H*1.05),X(v)-X(u),Y(0)-Y(P.H*1.05)); ctx.globalAlpha=1; }); const y=yp(P.v0); if(isFinite(y)) dot(ctx,X(P.v0),Y(y),4.5,C.v); }});
+  $('tag2').textContent='Altura al llegar al borde izquierdo (m)'; legend('leg2',[[C.v,'proyectil'],[C.a,'extremos de la varilla']]);
+  $('cap2').textContent=iv.length?`Le pega cuando la curva amarilla queda entre los extremos de la varilla (franja verde): v₀ entre ${iv.map(([u,v])=>cm(u,2)+' y '+cm(v,2)).join(', o entre ')} m/s. Sin curva amarilla, el proyectil cae al plano antes de llegar.`:'Con estos datos no hay ningún v₀ que le pegue: probá con una varilla más larga, un plano menos empinado o una H mayor.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p6:{ q:'Si el ángulo de la rampa se reduce a la mitad, la altura máxima…',
+    opts:[['mitad','se reduce a la mitad'],['igual','no cambia'],['doble','se duplica']], right:'igual', go:'Probalo: mirá el cuerpo tenue en la rampa de α/2',
+    run(){ restart(); setView('v1'); return `No cambia: H = v₀²/2g = ${cm(Hmax(),3)} m. Con menos ángulo la desaceleración g sen α es menor y el cuerpo recorre más rampa, en la misma proporción en que cada metro de rampa sube menos.`; } },
+  p7:{ q:'Si la cuña puede moverse, el bloque llega a la base…',
+    opts:[['antes','antes que con la cuña fija'],['igual','al mismo tiempo'],['despues','después']], right:'antes', go:'Probalo: compará fija y libre',
+    run(){ const t0=FIJA; FIJA=true; const tf=T7(); FIJA=false; const tl=T7(); FIJA=t0; setCuna(false);
+      return `Antes: ${cm(tl,3)} s contra ${cm(tf,3)} s con la cuña fija. La cuña retrocede, la normal es menor y la aceleración relativa al plano crece de g sen φ a (m₁ + m₂) g sen φ / (m₂ + m₁ sen² φ).`; } },
+  p8:{ q:'Visto desde la varilla, que también cae, el proyectil se mueve…',
+    opts:[['parab','en una parábola'],['recta','en línea recta, con velocidad constante'],['quieto','casi no se mueve']], right:'recta', go:'Probalo: mirá la línea lila',
+    run(){ setView('v1'); restart(); return 'En línea recta: los dos tienen la misma aceleración g sen α, así que la aceleración relativa es cero. Es el «tiro al mono» sobre un plano inclinado, con la diferencia de que la varilla empezó a caer un segundo antes.'; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p6:[
+    {txt:'Con v₀ = 5 m/s, elegí α para que el cuerpo tarde 2 s en detenerse sobre la rampa (±2 %).',
+     chk(){ if(Math.abs(P.v0-5)>0.01) return [false,'Primero poné v₀ = 5 m/s']; const ts=P.v0/(G0*Math.sin(rad(P.al))); return Math.abs(ts-2)/2<0.02?[true,`Logrado: α = ${cm(P.al,1)}°. Exacto: sen α = 5/19,6, α = 14,78°.`]:[false,`Ahora tarda ${cm(ts,3)} s`]; }},
+    {txt:'Sin usar energía: ¿por qué la altura máxima no depende de α? Escribilo con s = v₀²/(2a) y a = g sen α.'},
+  ],
+  p7:[
+    {txt:'Con la cuña libre, m₁ = 1 kg y φ = 30°, elegí m₂ para que la cuña acelere a 1 m/s² (±2 %).',
+     chk(){ if(FIJA) return [false,'Primero soltá la cuña']; if(Math.abs(P.m1-1)>0.01||Math.abs(P.phi-30)>0.01) return [false,'Primero poné m₁ = 1 kg y φ = 30°']; const a=sol7().a2x; return Math.abs(a-1)<0.02?[true,`Logrado: m₂ = ${cm(P.m2,1)} kg (exacto: 3,99 kg).`]:[false,`Ahora a₂ₓ = ${cm(a,3)} m/s²`]; }},
+    {txt:'Verificá con las fórmulas que m₁a₁ₓ + m₂a₂ₓ = 0. ¿Qué dice eso del centro de masa en la dirección x?'},
+  ],
+  p8:[
+    {txt:'Encontrá un v₀ con el que el proyectil le pegue a la varilla.',
+     chk(){ const h=hit8(P.v0); return h.hit?[true,`Logrado: v₀ = ${cm(P.v0,2)} m/s; le pega a ${cm(h.yp,2)} m de la base.`]:[false,h.land?'Ahora cae antes al plano':`Ahora pasa ${h.yp>h.yt?'por arriba':'por debajo'}`]; }},
+    {txt:'Con los datos iniciales, ¿le seguiría pegando con el mismo v₀ si el plano fuera más empinado? Pensalo desde el sistema de la varilla.'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p6'){ const al=rad(P.al), a=G0*Math.sin(al); return {title:'Rampa sin rozamiento', finLbl:'Altura máxima', steps:[
+    ['Sobre la rampa, la única fuerza a lo largo del plano es la componente del peso', `\\[m\\,a=-m\\,g\\sin\\alpha\\ \\Rightarrow\\ a=-g\\sin\\alpha=${tx(-a,3)}\\ \\text{m/s}^2\\]`],
+    ['Movimiento uniformemente variado hasta detenerse', `\\[0=v_0^2-2\\,g\\sin\\alpha\\ s\\ \\Rightarrow\\ s=\\frac{v_0^2}{2g\\sin\\alpha}=${tx(Hmax()/Math.sin(al),3)}\\ \\text{m}\\]`],
+    ['La altura es la proyección vertical del recorrido', `\\[H=s\\sin\\alpha=\\frac{v_0^2}{2g}\\]`,true],
+    ['Con α/2 el recorrido cambia, pero la altura no', `\\[s'=\\frac{v_0^2}{2g\\sin(\\alpha/2)}=${tx(Hmax()/Math.sin(al/2),3)}\\ \\text{m},\\quad H'=H\\]`],
+  ], fin:`\\[H_{\\max}=\\frac{v_0^2}{2g}=${tx(Hmax(),3)}\\ \\text{m}\\]`}; }
+  if(SY==='p7'){ const s=sol7(); if(FIJA) return {title:'Cuña fija', finLbl:'Aceleración del bloque', steps:[
+    ['Sobre el bloque: el peso y la normal, perpendicular al plano', `\\[m_1\\vec a_1=\\vec N+m_1\\vec g\\]`],
+    ['A lo largo del plano (hacia abajo) solo actúa la componente del peso', `\\[a_1=g\\sin\\varphi\\]`],
+    ['El plano sube hacia la derecha: el bloque baja hacia la izquierda', `\\[a_{1x}=-g\\sin\\varphi\\cos\\varphi=${tx(s.a1x,3)},\\quad a_{1y}=-g\\sin^2\\varphi=${tx(s.a1y,3)}\\ \\text{m/s}^2\\]`,true],
+  ], fin:`\\[\\vec a_1=-g\\sin\\varphi\\,(\\cos\\varphi,\\ \\sin\\varphi)\\]`};
+    return {title:'Cuña libre', finLbl:'Las tres componentes', steps:[
+    ['Normal sobre el bloque, perpendicular al plano: N(−sen φ, cos φ). Sobre la cuña actúa −N', `\\[m_1a_{1x}=-N\\sin\\varphi,\\quad m_1a_{1y}=N\\cos\\varphi-m_1g,\\quad m_2a_{2x}=N\\sin\\varphi\\]`],
+    ['Vínculo: respecto de la cuña, el bloque se mueve a lo largo del plano', `\\[a_{1y}=(a_{1x}-a_{2x})\\tan\\varphi\\]`],
+    ['De las ecuaciones x: la cantidad de movimiento horizontal se conserva', `\\[m_1a_{1x}+m_2a_{2x}=0\\]`],
+    ['Resolviendo el sistema', `\\[N=\\frac{m_1m_2\\,g\\cos\\varphi}{m_2+m_1\\sin^2\\varphi}=${tx(s.N,3)}\\ \\text{N}\\]`,true],
+    ['Con los valores actuales', `\\[a_{1x}=${tx(s.a1x,3)},\\ a_{2x}=${tx(s.a2x,3)},\\ a_{1y}=${tx(s.a1y,3)}\\ \\text{m/s}^2\\]`],
+  ], fin:`\\[a_{1x}=\\frac{-m_2g\\tan\\varphi}{m_2\\sec^2\\varphi+m_1\\tan^2\\varphi},\\ a_{2x}=\\frac{m_1g\\tan\\varphi}{m_2\\sec^2\\varphi+m_1\\tan^2\\varphi},\\ a_{1y}=\\frac{-(m_1+m_2)g\\tan^2\\varphi}{m_2\\sec^2\\varphi+m_1\\tan^2\\varphi}\\]`}; }
+  const a=A8(), iv=W8(), D=P.H-a/2-P.L;
+  return {title:'Varilla y proyectil en el plano', finLbl:'Velocidades que le pegan', steps:[
+    ['Ejes en el plano: x a lo largo de la base, y hacia arriba del plano. La normal no tiene componentes en el plano', `\\[\\ddot x=0,\\qquad \\ddot y=-g\\sin\\alpha=${tx(-a,3)}\\ \\text{m/s}^2\\]`],
+    ['La varilla cae desde H y el proyectil sale de (L, 0) un segundo después: es un tiro oblicuo con g sen α', `\\[y_{\\text{sup}}=H-\\tfrac12 g\\sin\\alpha\\,t^2,\\quad x_p=L-\\tfrac{v_0}{\\sqrt2}\\tau,\\quad y_p=\\tfrac{v_0}{\\sqrt2}\\tau-\\tfrac12 g\\sin\\alpha\\,\\tau^2,\\quad \\tau=t-1\\]`],
+    ['Restando, la aceleración se cancela: desde la varilla el movimiento es rectilíneo y uniforme', `\\[y_p-y_{\\text{sup}}=L-H+g\\sin\\alpha\\,\\left(\\tau+\\tfrac12\\right)\\ \\text{ al llegar a } x=0\\]`],
+    ['Le pega si en x = 0 queda entre los extremos de la varilla (−d ≤ y_p − y_sup ≤ 0), con τ = √2 L / v₀', `\\[\\frac{\\sqrt2\\,g\\sin\\alpha\\,L}{H-L-\\tfrac12 g\\sin\\alpha}\\ \\le\\ v_0\\ \\le\\ \\frac{\\sqrt2\\,g\\sin\\alpha\\,L}{H-L-d-\\tfrac12 g\\sin\\alpha}\\]`,true],
+    ['Además el proyectil no tiene que caer antes al plano y la varilla no tiene que haber llegado a la base: la página lo controla y da el intervalo final', iv.length?`\\[v_0\\in ${iv.map(([u,v])=>`[${tx(u,2)};\\ ${tx(v,2)}]`).join('\\cup')}\\ \\text{m/s}\\]`:`\\[\\text{ningún }v_0\\]`],
+  ], fin:D-P.d>0?`\\[${tx(Math.SQRT2*a*P.L/D,3)}\\ \\text{m/s}\\le v_0\\le ${tx(Math.SQRT2*a*P.L/(D-P.d),3)}\\ \\text{m/s}\\ \\ (\\text{sin las otras condiciones})\\]`:`\\[H-L-d-\\tfrac12g\\sin\\alpha\\le0:\\ \\text{la fórmula no da un intervalo}\\]`};
+}
+
+// ================= Arranque =================
+function setCuna(f){ FIJA=f; document.querySelectorAll('#cuna button').forEach(x=>x.setAttribute('aria-pressed',(x.dataset.fija==='1')===f)); restart(); refresh(); }
+document.querySelectorAll('#cuna button').forEach(b=>b.onclick=()=>setCuna(b.dataset.fija==='1'));
+const NOTE={p6:'El cuerpo tenue sube por una rampa con la mitad del ángulo. Sin rozamiento.', p7:'El bloque parte del reposo cerca del extremo superior. La línea de trazos es su recorrido respecto del piso.',
+  p8:'Vista perpendicular al plano inclinado. La varilla se suelta en t = 0 y el proyectil sale en t = 1 s.'};
+const VB={p6:['Altura en el tiempo','Según α'],p7:['Vectores','Según φ'],p8:['Trayectorias','¿Le pega?']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); $('cuna').hidden=SY!=='p7'; $('guia').hidden=true;
+  $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p6',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

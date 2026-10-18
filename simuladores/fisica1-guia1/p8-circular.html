@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Movimiento circular G1-P8 a P10</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a la Guía 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 1 · Cinemática</span>
+  <h1>Movimiento circular <i>· aceleración angular que cambia, agujas y una carrera</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 1">
+    <h2>Guía 1</h2>
+    <ol>
+      <li><a href="p1-cinematica-1d.html"><b class="code">P1–3</b>Cinemática 1D</a></li>
+      <li><a href="p4-blanco-movil.html"><b class="code">P4–6</b>Blanco en movimiento</a></li>
+      <li><a href="p7-tribuna-catapulta.html"><b class="code">P7, 12</b>Tribuna y catapulta</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P8–10</b>Movimiento circular</a></li>
+      <li><a href="p11-faro.html"><b class="code">P11</b>El faro</a></li>
+      <li><a href="p13-nadador-rio.html"><b class="code">P13</b>Nadador en un río</a></li>
+      <li><a href="p14-rampa-acelerada.html"><b class="code">P14</b>Rampa acelerada</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:300px" aria-label="Una partícula en una circunferencia, dos agujas de reloj o un auto en una pista circular y otro en línea recta."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p8" aria-pressed="true">P8 · γ(t) de la guía</button>
+        <button data-sy="p9a" aria-pressed="false">P9 a · agujas horarias</button>
+        <button data-sy="p9b" aria-pressed="false">P9 b · A antihoraria</button>
+        <button data-sy="p10" aria-pressed="false">P10 · auto azul y rojo</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Ángulos en el tiempo</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Aceleración</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G1-P8 a P10</summary>
+      <p><b>8.</b> Un cuerpo inicialmente en reposo (θ(t = 0) = 0, ω(t = 0) = 0) es acelerado en una trayectoria circular de 1,3 m de radio, de acuerdo a la ley γ = 120 s⁻⁴ t² − 48 s⁻³ t + 16 s⁻², donde γ es la aceleración angular medida en seg⁻². Halle:</p>
+      <p>a) θ = θ(t)<br>b) ω = ω(t)<br>c) el vector aceleración (utilice la descomposición polar).<br>d) ¿cuánto vale v⃗ en t = 2 seg?</p>
+      <p><b>9.</b> Un mecanismo de relojería utilizado para controlar cierta maquinaria consiste de dos agujas A y B que se mueven ambas en sentido horario. La aguja A se mueve con velocidad angular constante ω₀ partiendo de φ_A(t = 0) = 0, la aguja B se mueve con una aceleración angular constante γ partiendo con velocidad angular ω_B(t = 0) = 2ω₀ de la posición φ_B(t = 0) = 0.</p>
+      <p>a) Calcule en qué instantes ambas agujas coinciden.<br>b) Ídem en el caso en que la aguja A se mueva en sentido antihorario.</p>
+      <p><b>10.</b> Un auto azul parte del reposo desde el punto O en el instante t = 0, y describe una trayectoria circular de radio R = 90 m con una aceleración angular Γₐ = kt (k = π/6 s⁻³). Pasado un tiempo de 3 s desde la partida del auto azul, parte del reposo desde O un auto rojo que se mueve en línea recta hacia el punto P con una aceleración constante a⃗ᵣ = −a₀ x̂.</p>
+      <p>a) ¿Cuánto tiempo tarda el auto azul en llegar al punto P?<br>b) ¿Cuál debe ser el valor de a₀ para que el auto rojo pueda alcanzar al auto azul en el punto P?</p>
+      <p class="src">Física 1, Guía 1 (Cinemática). Enunciado textual de la guía. En el P10, O y P son extremos de un diámetro (en la figura el eje x apunta hacia la izquierda, así que −a₀ x̂ apunta de O hacia P). En el P9, la página arranca con ω₀ = 1 rad/s y γ = 0,5 rad/s², y los ángulos se miden en sentido horario desde las 12.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Soluciones analíticas exactas. En el P9 los instantes de coincidencia salen de resolver γt²/2 + ω₀t = 2πn (o 3ω₀t en el caso b) para cada n entero. Colores: celeste, la partícula, la aguja A o el auto azul; rosa, la aguja B o el auto rojo; verde, la aceleración tangencial y los instantes de coincidencia; naranja, la aceleración centrípeta; amarillo, la velocidad.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G1-P8 a P10 · Movimiento circular =================
+const DEF=[
+  {id:'R', lab:'R', unit:'m', min:0.5, max:3, step:0.05, dec:2},
+  {id:'tq',lab:'instante analizado', unit:'s', min:0, max:2.2, step:0.01, dec:2},
+  {id:'w0',lab:'ω₀', unit:'rad/s', min:0.1, max:3, step:0.01, dec:2},
+  {id:'ga',lab:'γ', unit:'rad/s²', min:-2, max:2, step:0.005, dec:3},
+  {id:'Rp',lab:'R', unit:'m', min:10, max:200, step:1, dec:0},
+  {id:'k', lab:'k', unit:'1/s³', min:0.1, max:2, step:0.001, dec:3},
+  {id:'td',lab:'demora del rojo', unit:'s', min:0, max:3.25, step:0.01, dec:2},
+  {id:'a0',lab:'a₀', unit:'m/s²', min:10, max:6000, step:1, dec:0},
+];
+const P={R:1.3,tq:2,w0:1,ga:0.5,Rp:90,k:Math.PI/6,td:3,a0:3949}; let SY='p8';
+const SHOW={p8:['R','tq'],p9a:['w0','ga'],p9b:['w0','ga'],p10:['Rp','k','td','a0']};
+const TAU=2*Math.PI;
+// P8: γ = 120t² − 48t + 16, desde el reposo
+const g8=t=>120*t*t-48*t+16, w8=t=>40*t**3-24*t*t+16*t, th8=t=>10*t**4-8*t**3+8*t*t;
+// P9: ángulos medidos en sentido horario
+const isB=()=>SY==='p9b';
+const phA=t=>(isB()?-1:1)*P.w0*t, phB=t=>2*P.w0*t+P.ga*t*t/2, dif9=t=>phB(t)-phA(t);
+const T9=12;
+function coinc(){ const c1=isB()?3*P.w0:P.w0, a=P.ga/2, out=[]; let lo=Infinity, hi=-Infinity; for(let i=0;i<=600;i++){ const d=dif9(T9*i/600); lo=Math.min(lo,d); hi=Math.max(hi,d); }
+  for(let n=Math.ceil(lo/TAU); n<=Math.floor(hi/TAU); n++){ if(n===0&&Math.abs(a)<1e-12) continue; let r=[];
+    if(Math.abs(a)<1e-12) r=[TAU*n/c1]; else { const D=c1*c1+4*a*TAU*n; if(D<0) continue; r=[(-c1+Math.sqrt(D))/(2*a),(-c1-Math.sqrt(D))/(2*a)]; }
+    r.forEach(t=>{ if(t>1e-9&&t<=T9) out.push({t,n}); }); }
+  return out.sort((p,q)=>p.t-q.t); }
+// P10: auto azul con Γ = kt; auto rojo con aceleración a₀ desde t = demora
+const thBl=t=>P.k*Math.max(t,0)**3/6, tP10=()=>Math.cbrt(6*Math.PI/P.k);
+const xRed=t=>t<P.td?-P.Rp:Math.min(P.Rp,-P.Rp+P.a0*(t-P.td)**2/2);
+const tRed=()=>P.td+Math.sqrt(4*P.Rp/P.a0);
+const a0need=()=>{ const d=tP10()-P.td; return d>0? 4*P.Rp/(d*d) : Infinity; };
+const alcanza=()=>Math.abs(tRed()-tP10())<0.002;
+function win(){ if(SY==='p8') return [0,2.2]; if(SY==='p10') return [0,Math.max(tP10(),tRed())+0.4]; return [0,T9]; }
+const wrap=a=>{ a%=TAU; return a<0?a+TAU:a; };
+const sup=n=>String(n).replace(/-/g,'⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=win()[0]; }
+function step(dt){ const [a,b]=win(); S.t+=dt*(b-a)/(SY==='p8'?14:SY==='p10'?7:12); if(S.t>b) S.t=a; }
+function drawScene(){
+  const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const t=S.t, cx=w/2, cy=h/2+6, r=Math.min(h*0.38,w*0.3);
+  txt(ctx,`t = ${cm(t,SY==='p8'?3:2)} s`,12,18,C.muted,{size:11.5});
+  if(SY==='p8'){ const th=th8(t), om=w8(t), ga=g8(t), at=P.R*ga, ac=P.R*om*om, a=Math.hypot(at,ac)||1;
+    ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.stroke(); dot(ctx,cx,cy,3,C.faint);
+    const x=cx+r*Math.cos(th), y=cy-r*Math.sin(th), ux=-Math.sin(th), uy=-Math.cos(th);   // ê_θ en pantalla (antihorario)
+    line(ctx,[[cx,cy],[x,y]],C.faint,1,[3,3]);
+    if(om>1e-6) arrow(ctx,x,y,x+50*ux,y+50*uy,C.v,2.4,8);
+    const Lt=70*at/a, Lc=70*ac/a; if(Math.abs(Lt)>2) arrow(ctx,x,y,x+Lt*ux,y+Lt*uy,C.ok,2.2,7); if(Lc>2) arrow(ctx,x,y,x+Lc*(cx-x)/r,y+Lc*(cy-y)/r,C.a,2.2,7);
+    dot(ctx,x,y,7,C.sys);
+    readout([['θ',cm(th,2)+' rad'],['ω',cm(om,2)+' rad/s',C.v],['γ',cm(ga,1)+' rad/s²'],['a tangencial',cm(at,1)+' m/s²',C.ok],['a centrípeta',cm(ac,1)+' m/s²',C.a],['|v|',cm(P.R*om,2)+' m/s',C.v]]);
+    $('formula').innerHTML=`<b>ω = 40t³ − 24t² + 16t, θ = 10t⁴ − 8t³ + 8t²</b> · a = −Rω² ê_r + Rγ ê_θ · en t = 2 s: |v| = Rω = ${cm(P.R*w8(2),1)} m/s`;
+  } else if(SY!=='p10'){ ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.stroke();
+    for(let i=0;i<12;i++){ const a=TAU*i/12; line(ctx,[[cx+(r-8)*Math.sin(a),cy-(r-8)*Math.cos(a)],[cx+r*Math.sin(a),cy-r*Math.cos(a)]],C.muted,i%3?1:2.5); }
+    const A=phA(t), B=phB(t), co=Math.abs(Math.atan2(Math.sin(B-A),Math.cos(B-A)))<0.04;
+    ctx.lineCap='round'; line(ctx,[[cx,cy],[cx+0.9*r*Math.sin(A),cy-0.9*r*Math.cos(A)]],C.sys,5); line(ctx,[[cx,cy],[cx+0.72*r*Math.sin(B),cy-0.72*r*Math.cos(B)]],C.sob,4); ctx.lineCap='butt';
+    txt(ctx,'A',cx+(0.9*r+12)*Math.sin(A),cy-(0.9*r+12)*Math.cos(A),C.sys,{align:'center',base:'middle',size:12,weight:600,font:UI});
+    txt(ctx,'B',cx+(0.72*r+12)*Math.sin(B),cy-(0.72*r+12)*Math.cos(B),C.sob,{align:'center',base:'middle',size:12,weight:600,font:UI});
+    dot(ctx,cx,cy,5,C.fg); if(co){ ctx.strokeStyle=C.ok; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(cx,cy,r+8,0,7); ctx.stroke(); }
+    const L=coinc(), nx=L.find(c=>c.t>t+1e-6);
+    readout([['φ_A',cm(deg(wrap(A)),1)+'°',C.sys],['φ_B',cm(deg(wrap(B)),1)+'°',C.sob],['ω_B',cm(2*P.w0+P.ga*t,3)+' rad/s'],['próxima coincidencia',nx?cm(nx.t,3)+' s':'no hay más hasta 12 s',C.ok],['coincidencias hasta 12 s',String(L.length)]]);
+    $('formula').innerHTML=`<b>φ_A = ${isB()?'−':''}ω₀t, φ_B = 2ω₀t + γt²/2</b> · coinciden cuando φ_B − φ_A = ${isB()?'3ω₀t':'ω₀t'} + γt²/2 = 2πn`;
+  } else { const R=P.Rp, s=r/R, X=x=>cx+x*s, Y=y=>cy-y*s, th=Math.min(Math.PI,thBl(t));
+    ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.stroke(); line(ctx,[[X(-R),Y(0)],[X(R),Y(0)]],C['line-2'],1.5,[4,4]);
+    dot(ctx,X(-R),Y(0),4,C.fg); dot(ctx,X(R),Y(0),4,C.fg); txt(ctx,'O',X(-R)-14,Y(0)+4,C.fg,{size:12,weight:600,font:UI}); txt(ctx,'P',X(R)+8,Y(0)+4,C.fg,{size:12,weight:600,font:UI});
+    dot(ctx,X(-R*Math.cos(th)),Y(R*Math.sin(th)),7,C.sys); dot(ctx,X(xRed(t)),Y(0),6,C.sob);
+    if(alcanza()&&Math.abs(t-tP10())<0.03) { ctx.strokeStyle=C.ok; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(X(R),Y(0),16,0,7); ctx.stroke(); }
+    readout([['θ azul',cm(deg(th),1)+'°',C.sys],['rojo en x',cm(xRed(t),1)+' m',C.sob],['azul llega a P en',cm(tP10(),4)+' s'],['a₀ necesaria',cm(a0need(),0)+' m/s²',C.v],['rojo llega en',cm(tRed(),4)+' s',alcanza()?C.ok:C.a]]);
+    $('formula').innerHTML=`<b>θ = kt³/6</b> → llega a P (θ = π) en t = ∛(6π/k) = ${cm(tP10(),4)} s · rojo: 2R = a₀(t − ${cm(P.td,2)})²/2 → a₀ = 4R/(t_P − t_d)²`;
+  }
+}
+
+// ================= Gráficos =================
+function drawV1(){ const t=S.t;
+  if(SY==='p8'){ const T=2.2, pts={th:[],w:[],g:[]}; let mx=0; for(let i=0;i<=300;i++){ const tt=T*i/300; pts.th.push([tt,th8(tt)]); pts.w.push([tt,w8(tt)]); pts.g.push([tt,g8(tt)]); mx=Math.max(mx,th8(tt),w8(tt),g8(tt)); }
+    const F=frame($('p1c'),{x0:0,x1:T,y0:0,y1:mx*1.06,xlab:'t (s)'}); const {ctx,X,Y}=F; F.clip();
+    [[pts.th,C.sys],[pts.w,C.v],[pts.g,C.ok]].forEach(([p,c])=>line(ctx,p.map(q=>[X(q[0]),Y(q[1])]),c,2.2)); line(ctx,[[X(t),Y(0)],[X(t),Y(mx)]],C.fg,1,[2,3],.5); line(ctx,[[X(P.tq),Y(0)],[X(P.tq),Y(mx)]],C.v,1,[4,4],.6); F.unclip();
+    $('tag1').textContent='θ (rad), ω (rad/s) y γ (rad/s²)'; legend('leg1',[[C.sys,'θ'],[C.v,'ω'],[C.ok,'γ']]);
+    $('cap1').textContent=`Integrando γ dos veces desde el reposo: ω = 40t³ − 24t² + 16t y θ = 10t⁴ − 8t³ + 8t². γ es mínima (${cm(g8(0.2),1)} rad/s²) en t = 0,2 s pero nunca se anula, así que ω crece siempre. En t = 2 s, ω = ${cm(w8(2),0)} rad/s y θ = ${cm(th8(2),0)} rad (unas ${cm(th8(2)/TAU,1)} vueltas).`; return; }
+  if(SY==='p10'){ const T=win()[1], pb=[], pr=[]; for(let i=0;i<=300;i++){ const tt=T*i/300; pb.push([tt,Math.min(1,thBl(tt)/Math.PI)]); pr.push([tt,(xRed(tt)+P.Rp)/(2*P.Rp)]); }
+    const F=frame($('p1c'),{x0:0,x1:T,y0:0,y1:1.08,yt:[0,0.25,0.5,0.75,1],xlab:'t (s)'}); const {ctx,X,Y}=F; F.clip();
+    line(ctx,pb.map(q=>[X(q[0]),Y(q[1])]),C.sys,2.2); line(ctx,pr.map(q=>[X(q[0]),Y(q[1])]),C.sob,2.2); line(ctx,[[X(tP10()),Y(0)],[X(tP10()),Y(1.08)]],C.ok,1.2,[4,4]); line(ctx,[[X(t),Y(0)],[X(t),Y(1.08)]],C.fg,1,[2,3],.5); F.unclip();
+    $('tag1').textContent='Fracción del camino hacia P'; legend('leg1',[[C.sys,'azul: θ/π'],[C.sob,'rojo: avance/2R'],[C.ok,'azul en P']]);
+    $('cap1').textContent=`El azul tarda ${cm(tP10(),4)} s en llegar a P. El rojo sale a los ${cm(P.td,2)} s y tiene apenas ${cm(Math.max(0,tP10()-P.td),3)} s para recorrer 2R = ${cm(2*P.Rp,0)} m: necesita a₀ = ${cm(a0need(),0)} m/s². ${alcanza()?'Con la a₀ elegida, llegan juntos.':'Con la a₀ elegida no llegan juntos.'}`; return; }
+  const L=coinc(), pts=[]; let lo=Infinity, hi=-Infinity; for(let i=0;i<=400;i++){ const tt=T9*i/400, d=dif9(tt); pts.push([tt,d]); lo=Math.min(lo,d); hi=Math.max(hi,d); }
+  lo=Math.min(lo,-0.5); hi=Math.max(hi,TAU*1.1);
+  const F=frame($('p1c'),{x0:0,x1:T9,y0:lo,y1:hi,xlab:'t (s)',yt:ticks(lo/TAU,hi/TAU,6).map(v=>Math.round(v)).filter((v,i,a)=>a.indexOf(v)===i).map(v=>v*TAU),yf:v=>{ const n=2*Math.round(v/TAU); return n===0?'0':(n===1?'':n===-1?'−':String(n).replace('-','−'))+'π'; }}); const {ctx,X,Y}=F; F.clip();
+  line(ctx,pts.map(q=>[X(q[0]),Y(q[1])]),C.sob,2.2); L.forEach(c=>dot(ctx,X(c.t),Y(c.n*TAU),4.5,C.ok)); line(ctx,[[X(t),Y(lo)],[X(t),Y(hi)]],C.fg,1,[2,3],.5); F.unclip();
+  $('tag1').textContent='φ_B − φ_A (rad)'; legend('leg1',[[C.sob,'diferencia de ángulos'],[C.ok,'coincidencias']]);
+  $('cap1').textContent= L.length? `Las agujas coinciden cada vez que la diferencia pasa por un múltiplo de 2π. Primeras coincidencias: ${L.slice(0,4).map(c=>cm(c.t,3)+' s').join(', ')}${L.length>4?'…':''}.` : 'En los primeros 12 s la diferencia no llega a una vuelta completa: no vuelven a coincidir.';
+}
+function drawV2(){ const t=S.t;
+  if(SY==='p8'){ const T=2.2, pt=[], pc=[]; for(let i=1;i<=300;i++){ const tt=T*i/300; pt.push([tt,Math.log10(Math.max(1e-3,P.R*g8(tt)))]); pc.push([tt,Math.log10(Math.max(1e-3,P.R*w8(tt)**2))]); }
+    const y0=-1, y1=Math.ceil(Math.max(...pc.map(q=>q[1])))+0.2; const yt=[]; for(let k=y0;k<=y1;k++) yt.push(k);
+    const F=frame($('p2c'),{x0:0,x1:T,y0,y1,yt,yf:v=>`10${sup(v)}`,xlab:'t (s)'}); const {ctx,X,Y}=F; F.clip();
+    line(ctx,pt.map(q=>[X(q[0]),Y(q[1])]),C.ok,2.2); line(ctx,pc.map(q=>[X(q[0]),Y(q[1])]),C.a,2.2); line(ctx,[[X(t),Y(y0)],[X(t),Y(y1)]],C.fg,1,[2,3],.5); F.unclip();
+    $('tag2').textContent='Componentes de la aceleración (m/s², escala logarítmica)'; legend('leg2',[[C.ok,'tangencial Rγ'],[C.a,'centrípeta Rω²']]);
+    const tc=(()=>{ for(let i=1;i<=2200;i++){ const tt=i/1000; if(w8(tt)**2>g8(tt)) return tt; } return NaN; })();
+    $('cap2').textContent=`Al principio domina la aceleración tangencial, pero la centrípeta crece como ω², y ω como t³: a partir de t ≈ ${cm(tc,2)} s es la mayor, y en t = 2 s ya es ${cm(w8(2)**2/g8(2),0)} veces la tangencial. La escala es logarítmica: cada línea es un factor 10.`; return; }
+  if(SY==='p10'){ const T=win()[1], pb=[], pr=[]; let mx=0; for(let i=0;i<=300;i++){ const tt=T*i/300, vb=P.Rp*P.k*tt*tt/2*(thBl(tt)<=Math.PI?1:NaN), vr=tt<P.td||xRed(tt)>=P.Rp?NaN:P.a0*(tt-P.td); pb.push([tt,vb]); pr.push([tt,vr]); mx=Math.max(mx,isFinite(vb)?vb:0,isFinite(vr)?vr:0); }
+    const F=frame($('p2c'),{x0:0,x1:T,y0:0,y1:mx*1.08||1,xlab:'t (s)'}); const {ctx,X,Y}=F; F.clip();
+    line(ctx,pb.filter(q=>isFinite(q[1])).map(q=>[X(q[0]),Y(q[1])]),C.sys,2.2); line(ctx,pr.filter(q=>isFinite(q[1])).map(q=>[X(q[0]),Y(q[1])]),C.sob,2.2); F.unclip();
+    $('tag2').textContent='Rapidez de cada auto (m/s)'; legend('leg2',[[C.sys,'azul: Rω = Rkt²/2'],[C.sob,'rojo: a₀(t − t_d)']]);
+    $('cap2').textContent=`El azul llega a P a ${cm(P.Rp*P.k*tP10()**2/2,1)} m/s. Para cubrir 180 m en ${cm(Math.max(0,tP10()-P.td),3)} s, el rojo terminaría a ${cm(2*2*P.Rp/Math.max(1e-9,tP10()-P.td),0)} m/s: un dato que muestra lo exigente que es la condición del problema.`; return; }
+  const pa=[], pb=[]; let lo=0, hi=0; for(let i=0;i<=400;i++){ const tt=T9*i/400; pa.push([tt,phA(tt)]); pb.push([tt,phB(tt)]); lo=Math.min(lo,phA(tt),phB(tt)); hi=Math.max(hi,phA(tt),phB(tt)); }
+  const F=frame($('p2c'),{x0:0,x1:T9,y0:lo,y1:hi*1.05||1,xlab:'t (s)'}); const {ctx,X,Y}=F; F.clip();
+  line(ctx,pa.map(q=>[X(q[0]),Y(q[1])]),C.sys,2.2); line(ctx,pb.map(q=>[X(q[0]),Y(q[1])]),C.sob,2.2); coinc().forEach(c=>dot(ctx,X(c.t),Y(phA(c.t)),3.5,C.ok)); line(ctx,[[X(t),Y(lo)],[X(t),Y(hi)]],C.fg,1,[2,3],.5); F.unclip();
+  $('tag2').textContent='Ángulo girado por cada aguja (rad, sin descontar vueltas)'; legend('leg2',[[C.sys,'φ_A'],[C.sob,'φ_B'],[C.ok,'coinciden']]);
+  $('cap2').textContent=`Las curvas no se cortan (salvo en t = 0) porque B le saca vueltas a A: coinciden en el reloj cuando la diferencia es un múltiplo de 2π, que es lo que muestra la otra vista.`;
+}
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p8:{ q:'En t = 2 s, ¿qué componente de la aceleración es mayor?',
+    opts:[['t','la tangencial, porque γ es grande'],['c','la centrípeta'],['igual','son parecidas']], right:'c', go:'Probalo: t = 2 s',
+    run(){ Object.assign(P,{R:1.3,tq:2}); S.t=2; togglePlay(false); setView('v2'); refresh();
+      return `En t = 2 s, γ = 400 rad/s² y la tangencial vale Rγ = ${cm(1.3*400,0)} m/s². Pero ω = ${cm(w8(2),0)} rad/s y la centrípeta es Rω² = <span class="num">${cm(1.3*w8(2)**2,0)} m/s²</span>, unas ${cm(w8(2)**2/400,0)} veces más. La rapidez es Rω = ${cm(1.3*w8(2),1)} m/s.`; } },
+  p9a:{ q:'B arranca al doble de velocidad que A y además acelera. ¿Vuelven a coincidir alguna vez?',
+    opts:[['nunca','nunca: B va siempre adelante'],['vuelta','sí, cada vez que B le saca una vuelta entera'],['una','solo una vez más']], right:'vuelta', go:'Probalo: ω₀ = 1, γ = 0,5',
+    run(){ Object.assign(P,{w0:1,ga:0.5}); restart(); setView('v1'); refresh(); const L=coinc();
+      return `En el reloj coinciden cuando φ_B − φ_A = 2π, 4π, …: B dio una vuelta más que A. Con ω₀ = 1 rad/s y γ = 0,5 rad/s² eso pasa en t = ${L.slice(0,3).map(c=>cm(c.t,3)).join(', ')} s… Cada vez más seguido, porque B acelera.`; } },
+  p9b:{ q:'Ahora A gira en sentido antihorario. Comparadas con el caso a, las coincidencias…',
+    opts:[['mas','son más frecuentes'],['menos','son menos frecuentes'],['igual','ocurren en los mismos instantes']], right:'mas', go:'Probalo: ω₀ = 1, γ = 0,5',
+    run(){ Object.assign(P,{w0:1,ga:0.5}); restart(); setView('v1'); refresh(); const L=coinc();
+      return `Ahora se acercan desde lados opuestos: la diferencia crece como 3ω₀t + γt²/2 en lugar de ω₀t + γt²/2. La primera coincidencia es en t = <span class="num">${cm(L[0].t,3)} s</span>, contra ${cm((-1+Math.sqrt(1+4*0.25*TAU))/0.5,3)} s del caso a.`; } },
+  p10:{ q:'El auto rojo sale 3 s después y tiene que llegar a P junto con el azul. ¿Qué aceleración necesita?',
+    opts:[['40','unos 40 m/s²'],['400','unos 400 m/s²'],['4000','unos 4000 m/s²']], right:'4000', go:'Probalo: datos de la guía',
+    run(){ Object.assign(P,{Rp:90,k:Math.PI/6,td:3}); P.a0=Math.round(a0need()); restart(); setView('v1'); refresh();
+      return `El azul llega a P en t = ∛36 = ${cm(tP10(),4)} s. El rojo tiene solo ${cm(tP10()-3,4)} s para recorrer 180 m: a₀ = 4R/(t_P − 3)² = <span class="num">${cm(a0need(),0)} m/s²</span>, unas 400 g. Es el número que pide la guía, aunque ningún auto real podría hacerlo.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p8:[
+    {txt:'Mové el instante analizado hasta donde la aceleración angular es mínima (±0,01 s).',
+     chk(){ return Math.abs(P.tq-0.2)<0.01?[true,`Logrado: t = ${cm(P.tq,2)} s. De dγ/dt = 240t − 48 = 0 sale t = 0,2 s, con γ = ${cm(g8(0.2),1)} rad/s².`]:[false,`Ahora t = ${cm(P.tq,2)} s, con γ = ${cm(g8(P.tq),2)} rad/s²`]; }},
+    {txt:'Si duplicás el radio, ¿cambian θ(t) y ω(t)? ¿Y la velocidad y las aceleraciones? Comprobalo con los controles.'},
+  ],
+  p9a:[
+    {txt:'Con ω₀ = 1 rad/s, elegí γ para que la primera coincidencia sea en t = 4 s (±1 %).',
+     chk(){ if(Math.abs(P.w0-1)>0.001) return [false,'Primero poné ω₀ = 1 rad/s']; const c=coinc()[0]; return c&&Math.abs(c.t-4)/4<0.01?[true,`Logrado: γ = ${cm(P.ga,3)} rad/s². De 4 + 8γ = 2π sale γ = (2π − 4)/8 ≈ 0,285.`]:[false,c?`Ahora la primera es en t = ${cm(c.t,3)} s`:'Ahora no coinciden en los primeros 12 s']; }},
+    {txt:'Con γ negativo, B frena. ¿Cuántas veces pueden coincidir? Probá con γ = −0,1 rad/s² y explicá la forma de la curva de diferencia.'},
+  ],
+  p9b:[
+    {txt:'Con A antihoraria y ω₀ = 1 rad/s, elegí γ para que la primera coincidencia sea en t = 1,5 s (±1 %).',
+     chk(){ if(Math.abs(P.w0-1)>0.001) return [false,'Primero poné ω₀ = 1 rad/s']; const c=coinc()[0]; return c&&Math.abs(c.t-1.5)/1.5<0.01?[true,`Logrado: γ = ${cm(P.ga,3)} rad/s². De 4,5 + 1,125γ = 2π sale γ ≈ 1,585.`]:[false,c?`Ahora la primera es en t = ${cm(c.t,3)} s`:'Ahora no coinciden']; }},
+    {txt:'¿Hay algún valor de γ con el que las agujas no vuelvan a coincidir nunca? Pensalo para el caso a y para el caso b.'},
+  ],
+  p10:[
+    {txt:'Con los datos de la guía, poné la a₀ justa para que el rojo alcance al azul en P (±1 %).',
+     chk(){ if(Math.abs(P.Rp-90)>0.5||Math.abs(P.k-Math.PI/6)>0.001||Math.abs(P.td-3)>0.005) return [false,'Primero usá R = 90 m, k = π/6 y demora de 3 s (botón Probalo)']; return Math.abs(P.a0-a0need())/a0need()<0.01?[true,`Logrado: a₀ = ${cm(P.a0,0)} m/s². La exacta es 4R/(∛36 − 3)² = ${cm(a0need(),1)} m/s².`]:[false,`Ahora a₀ = ${cm(P.a0,0)} m/s²`]; }},
+    {txt:'Con a₀ = 100 m/s², ¿cuánto antes tendría que salir el rojo? Elegí la demora para que lleguen juntos (±0,01 s).',
+     chk(){ if(Math.abs(P.a0-100)>0.5) return [false,'Primero poné a₀ = 100 m/s²']; const td=tP10()-Math.sqrt(4*P.Rp/100); return Math.abs(P.td-td)<0.01?[true,`Logrado: demora de ${cm(P.td,2)} s. Sale de t_d = t_P − √(4R/a₀) = ${cm(td,3)} s.`]:[false,`Ahora la demora es ${cm(P.td,2)} s`]; }},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p8'){ const t=P.tq, om=w8(t), ga=g8(t);
+    return {title:'Integrar γ(t) y descomponer la aceleración', finLbl:'Velocidad en t = 2 s', steps:[
+      ['b) Integramos γ con ω(0) = 0', `\\[\\omega=\\int_0^t\\gamma\\,dt'=40t^3-24t^2+16t\\]`],
+      ['a) Integramos ω con θ(0) = 0', `\\[\\theta=10t^4-8t^3+8t^2\\]`],
+      ['c) En coordenadas polares, con r = R constante', `\\[\\vec a=-R\\omega^2\\,\\hat r+R\\gamma\\,\\hat\\theta\\]`],
+      [`En t = ${cm(t,2)} s`, `\\[\\omega=${tx(om,2)}\\ \\text{rad/s},\\quad \\gamma=${tx(ga,2)}\\ \\text{rad/s}^2\\qquad a_r=-R\\omega^2=${tx(-P.R*om*om,1)}\\ \\text{m/s}^2,\\quad a_\\theta=R\\gamma=${tx(P.R*ga,1)}\\ \\text{m/s}^2\\]`],
+      ['d) La velocidad es tangente, de módulo Rω', `\\[\\omega(2)=320-96+32=256\\ \\text{rad/s},\\qquad \\theta(2)=128\\ \\text{rad}\\]`,true],
+    ], fin:`\\[\\vec v(2)=R\\,\\omega(2)\\,\\hat\\theta=${tx(P.R*w8(2),1)}\\ \\text{m/s}\\ \\hat\\theta\\]`}; }
+  if(SY==='p10'){ const tp=tP10();
+    return {title:'Una carrera hasta P', finLbl:'Aceleración del rojo', steps:[
+      ['Integramos Γ = kt dos veces desde el reposo', `\\[\\theta=\\frac{kt^3}{6}\\]`],
+      ['a) P está del otro lado del diámetro: θ = π', `\\[t_P=\\sqrt[3]{\\frac{6\\pi}{k}}=${tx(tp,4)}\\ \\text{s}\\]`],
+      ['El rojo sale de O en t_d y recorre el diámetro 2R desde el reposo', `\\[2R=\\frac{a_0}{2}(t-t_d)^2\\]`],
+      ['b) Tiene que llegar en t_P', `\\[a_0=\\frac{4R}{(t_P-t_d)^2}=\\frac{${tx(4*P.Rp,0)}}{(${tx(tp,4)}-${tx(P.td,2)})^2}\\]`,true],
+    ], fin: isFinite(a0need())?`\\[a_0=${tx(a0need(),1)}\\ \\text{m/s}^2\\]`:`\\[t_d\\ge t_P:\\ \\text{no puede alcanzarlo}\\]`}; }
+  const L=coinc(), c1=isB()?'3\\omega_0':'\\omega_0';
+  return {title:'Cuándo coinciden las agujas', finLbl:'Primeros instantes', steps:[
+    ['Ángulos, medidos en sentido horario', `\\[\\varphi_A=${isB()?'-':''}\\omega_0t,\\qquad \\varphi_B=2\\omega_0t+\\frac{\\gamma t^2}{2}\\]`],
+    ['Coinciden cuando difieren en un número entero de vueltas', `\\[\\varphi_B-\\varphi_A=${c1}\\,t+\\frac{\\gamma t^2}{2}=2\\pi n\\]`],
+    ['Ecuación de segundo grado en t para cada n', `\\[t_n=\\frac{-${c1}+\\sqrt{(${c1})^2+4\\pi n\\gamma}}{\\gamma}\\]`],
+    ['Con los valores actuales', `\\[\\omega_0=${tx(P.w0,2)}\\ \\text{rad/s},\\qquad \\gamma=${tx(P.ga,3)}\\ \\text{rad/s}^2\\]`],
+  ], fin: L.length?`\\[${L.slice(0,3).map(c=>`t_{${c.n}}=${tx(c.t,3)}\\ \\text{s}`).join(',\\quad ')}\\]`:`\\[\\text{no coinciden en los primeros 12 s}\\]`};
+}
+
+// ================= Arranque =================
+const NOTE={
+  p8:'R = 1,3 m como en la guía. El «instante analizado» fija el tiempo de las cuentas. La escena muestra la velocidad (amarillo) y las dos componentes de la aceleración en proporción.',
+  p9a:'Las dos agujas giran en sentido horario desde las 12. Un anillo verde marca cada coincidencia.',
+  p9b:'La aguja A gira en sentido antihorario y la B en sentido horario. Un anillo verde marca cada coincidencia.',
+  p10:'Datos de la guía: R = 90 m, k = π/6 s⁻³ y una demora de 3 s. O y P son los extremos del diámetro.'};
+const VB={p8:['θ, ω y γ','Aceleración'],p9a:['Diferencia de ángulos','Ángulos'],p9b:['Diferencia de ángulos','Ángulos'],p10:['Avance hacia P','Rapidez']};
+function setMode(sy){ SY=sy; DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+$('guia').hidden=true;
+buildParams(DEF,P,()=>{ refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p8');
+startLoop(step,draw);
+</script>
+</body>
+</html>

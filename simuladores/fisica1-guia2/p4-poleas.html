@@ -185,11 +185,6 @@ footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
         <button data-sy="p5" aria-pressed="false">P5 · mesa con polea móvil</button>
         <button data-sy="p15" aria-pressed="false">P15 · carro en el riel</button>
       </div>
-      <div class="chips" id="vinc" role="group" aria-label="Cómo se une la soga al contrapeso" hidden>
-        <span class="lbl">Contrapeso:</span>
-        <button data-k="0.5" aria-pressed="true">con polea móvil (recorre la mitad)</button>
-        <button data-k="1" aria-pressed="false">atado a la soga (recorre lo mismo)</button>
-      </div>
       <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
       <div class="params" id="params"></div>
       <div class="note"><span id="note"></span></div>
@@ -223,7 +218,7 @@ footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
       <p>a) Escriba las ecuaciones de Newton para ambas masas y la condición de vínculo que relaciona sus posiciones.<br>b) Cuando el sistema comienza a moverse, diga cuál es la relación que debe existir entre las distancias d₁ y d₂ recorridas por m₁ y m₂ (condición de vínculo).<br>c) Encuentre la aceleración de cada masa y las tensiones en los hilos en función de m₁, m₂ y g.</p>
       <p><b>15.</b> Un juego de un parque de diversiones consiste en un carro de masa m₁ que se desplaza sobre un riel semicircular de radio R carente de rozamiento. El carro es arrastrado mediante una soga que se desliza a lo largo del riel que está enganchada a un sistema de poleas del cual cuelga un contrapeso de masa m₂. Este contrapeso se mueve sobre un plano inclinado que forma un ángulo α con la horizontal. Considere que las sogas son inextensibles, y que las sogas y las poleas tienen masas despreciables.</p>
       <p>a) Escriba las ecuaciones de Newton y de vínculo para ambas masas.<br>b) Diga para qué valor de φ el carro podrá permanecer en reposo.<br>c) Encuentre la velocidad del carro como función de φ.<br>*d) Resuelva numéricamente la ecuación de movimiento y encuentre el tiempo que tarda el carrito en subir hasta φ = π/2, suponiendo que sen α = 1/2, m₁ = m₂, φ(0) = 0, φ̇(0) = 0.</p>
-      <p class="src">Física 1, Guía 2 (Dinámica). Enunciado textual de la guía; entre paréntesis, lo que muestran las figuras. En el P15 la figura no deja claro si el contrapeso cuelga de una polea móvil o va atado a la soga: la página muestra las dos lecturas, y con ninguna de ellas el carro llega a φ = π/2 con los datos del inciso d (ver Cuentas). La guía no da R: se toma 10 m.</p>
+      <p class="src">Física 1, Guía 2 (Dinámica). Enunciado textual de la guía; entre paréntesis, lo que muestran las figuras. En el P15 el contrapeso cuelga de una polea móvil («un sistema de poleas del cual cuelga»): recorre la mitad que el carro. Con los datos del inciso d (sen α = 1/2, m₁ = m₂) el carro no llega a φ = π/2: sube hasta 29,3° y oscila; el segundo botón usa m₂ = 3m₁, con el que sí llega (ver Cuentas). La guía no da R: se toma 10 m.</p>
     </details>
 
     <section class="card" aria-label="Análisis">
@@ -384,7 +379,7 @@ const DEF=[
 ];
 const PS={p4:{m1:1,m2:2,m3:2}, p5:{m1:2,m2:1}, p15:{m1:1,m2:1,al:30,R:10}};
 const SHOW={p4:['m1','m2','m3'],p5:['m1','m2'],p15:['m1','m2','al','R']};
-const P={m1:1,m2:2,m3:2,al:30,R:10}; let SY='p4', K=0.5;
+const P={m1:1,m2:2,m3:2,al:30,R:10}; let SY="p4"; const K=0.5;   // el contrapeso cuelga de una polea móvil: recorre la mitad que el carro
 
 // ---- P4: y hacia abajo. Vínculos: yA + y3 = cte; (y1 − yA) + (y2 − yA) = cte ----
 function sol4(){ const {m1,m2,m3}=P, T2=4*G0/(1/m1+1/m2+4/m3), T1=2*T2, a3=G0-T1/m3;
@@ -401,7 +396,7 @@ function end4(k){ const key=[P.m1,P.m2,P.m3,k].join(); if(_e4.key===key) return 
 function sol5(){ const {m1,m2}=P, a1=2*m2*G0/(4*m2+m1), T2=m1*m2*G0/(4*m2+m1); return {a1,a2:2*a1,T1:2*T2,T2}; }
 const G5={xA:0.9,xF:1.75,xB:2.4,r:0.08,yc:-0.15,y2:0.25,piso:1.9};
 function end5(k){ const s=sol5(); let t=0; for(;t<10;t+=0.002){ const q=(t+0.002)**2/2; if(G5.xA+s.a1*q+G5.r>G5.xF-0.03 || G5.y2+s.a2*q+bs(P.m2)/k>G5.piso) break; } return t; }
-// ---- P15: el contrapeso recorre λRφ (λ = K). (m₁ + λ²m₂) R φ¨ = g (λ m₂ sen α − m₁ sen φ) ----
+// ---- P15: el contrapeso recorre λRφ con λ = 1/2 (polea móvil). (m₁ + λ²m₂) R φ¨ = g (λ m₂ sen α − m₁ sen φ) ----
 const sa=()=>Math.sin(rad(P.al));
 const acc15=ph=>G0*(K*P.m2*sa()-P.m1*Math.sin(ph))/(P.R*(P.m1+K*K*P.m2));
 const v15=ph=>Math.sqrt(Math.max(0,2*G0*P.R*(K*P.m2*sa()*ph-P.m1*(1-Math.cos(ph)))/(P.m1+K*K*P.m2)));
@@ -496,7 +491,7 @@ function drawP15(ctx,w,h){ const an=rad(P.al), ca=Math.cos(an), sn=Math.sin(an),
   farrow(ctx,cc[0],cc[1],0,P.m1*G0*fs,C.a,'P₁','l'); farrow(ctx,cc[0],cc[1],tv[0]*T*fs,tv[1]*T*fs,C.v,'T','r');
   txt(ctx,`t = ${cm(t,2)} s`,12,22,C.muted,{size:11.5}); if(clipped) txt(ctx,'el contrapeso ya no entra en el dibujo',12,38,C.a,{size:11});
   const pm=phMax(); readout([['φ',cm(deg(ph),1)+'°',C.sys],['v',cm(P.R*om,2)+' m/s',C.sys],['T',cm(T,2)+' N',C.v],tr.reach!==null?['llega a 90° en',cm(tr.reach,3)+' s',C.ok]:['no llega: sube hasta',cm(deg(pm),2)+'°',C.a]]);
-  $('formula').innerHTML=`<b>vínculo:</b> el contrapeso recorre λRφ (λ = ${K<1?'1/2':'1'}) · (m₁ + λ²m₂) R φ̈ = g (λm₂ sen α − m₁ sen φ)`;
+  $('formula').innerHTML=`<b>vínculo:</b> el contrapeso recorre λRφ (λ = 1/2, polea móvil) · (m₁ + λ²m₂) R φ̈ = g (λm₂ sen α − m₁ sen φ)`;
 }
 function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); if(SY==='p4') drawP4(ctx,w,h); else if(SY==='p5') drawP5(ctx,w,h); else drawP15(ctx,w,h); }
 
@@ -543,7 +538,7 @@ const PRED={
   p15:{ q:'Con los datos del inciso d (sen α = 1/2, m₁ = m₂), el carro, que parte del fondo…',
     opts:[['llega','llega a φ = 90°'],['vuelve','sube hasta cierto ángulo y vuelve'],['quieto','no se mueve']], right:'vuelve', go:'Probalo: datos de la guía',
     run(){ Object.assign(P,{m1:1,m2:1,al:30,R:10}); restart(); setView('v1'); refresh(); const a=deg(phMax());
-      return `Sube hasta ${cm(a,1)}° y vuelve. Para llegar a 90° el carro tiene que ganar m₁gR de energía potencial, y el contrapeso baja λRπ/2, entregando λ m₂ g R π/4 &lt; m₁gR (con λ = 1 o 1/2). Con estos datos el carro nunca alcanza φ = π/2: oscila.`; } },
+      return `Sube hasta ${cm(a,1)}° y vuelve. Para llegar a 90° el carro tiene que ganar m₁gR de energía potencial, y el contrapeso baja λRπ/2, entregando m₂ g sen α · Rπ/4 = m₁gR · π/8, menos de la mitad. Con estos datos el carro nunca alcanza φ = π/2: oscila. Probá el segundo botón, con m₂ = 3m₁.`; } },
 };
 
 // ================= Desafíos =================
@@ -584,12 +579,12 @@ function cuentas(){
   ], fin:`\\[a_1=\\frac{2m_2\\,g}{4m_2+m_1},\\qquad a_2=\\frac{4m_2\\,g}{4m_2+m_1}\\]`}; }
   const tr=traj(), pm=phMax(), eq=phEq(), L=K<1?'\\tfrac12':'1';
   return {title:'Carro en el riel', finLbl:'Velocidad del carro', steps:[
-    ['Vínculo: si el carro sube un arco Rφ, el contrapeso baja λRφ por el plano (λ = 1/2 con polea móvil, λ = 1 atado a la soga)', `\\[s_2=\\lambda R\\varphi,\\qquad \\lambda=${L}\\]`],
+    ['Vínculo: si el carro sube un arco Rφ, el contrapeso, que cuelga de una polea móvil, baja la mitad: λRφ con λ = 1/2', `\\[s_2=\\lambda R\\varphi,\\qquad \\lambda=${L}\\]`],
     ['Newton tangencial para el carro y a lo largo del plano para el contrapeso (sobre él la soga tira con T/λ)', `\\[m_1R\\ddot\\varphi=T-m_1g\\sin\\varphi,\\qquad m_2\\lambda R\\ddot\\varphi=m_2g\\sin\\alpha-\\frac{T}{\\lambda}\\]`],
     ['Eliminando T', `\\[(m_1+\\lambda^2m_2)\\,R\\,\\ddot\\varphi=g\\,(\\lambda m_2\\sin\\alpha-m_1\\sin\\varphi)\\]`],
     ['Equilibrio (inciso b)', `\\[\\sin\\varphi_{eq}=\\frac{\\lambda m_2\\sin\\alpha}{m_1}${eq!==null?`\\ \\Rightarrow\\ \\varphi_{eq}=${tx(deg(eq),2)}^\\circ`:'>1\\ \\text{(no hay)}'}\\]`],
     ['Multiplicando por φ̇ e integrando desde el reposo (inciso c)', `\\[\\tfrac12(m_1+\\lambda^2m_2)R^2\\dot\\varphi^2=gR\\,[\\lambda m_2\\sin\\alpha\\,\\varphi-m_1(1-\\cos\\varphi)]\\]`,true],
-    ['Inciso d: el carro llega a π/2 solo si el corchete es positivo ahí, o sea si λ m₂ sen α · π/2 > m₁. Con sen α = 1/2 y m₁ = m₂ queda π/8 o π/4, menor que 1', tr.reach!==null?`\\[t\\left(\\tfrac{\\pi}2\\right)=${tx(tr.reach,3)}\\ \\text{s}\\]`:`\\[\\text{no llega: }\\varphi_{\\max}=${tx(deg(pm),2)}^\\circ,\\quad \\text{período}=${tx(tr.per,3)}\\ \\text{s}\\]`],
+    ['Inciso d: el carro llega a π/2 solo si el corchete es positivo ahí, o sea si λ m₂ sen α · π/2 > m₁. Con sen α = 1/2 y m₁ = m₂ queda π/8, menor que 1: no llega. Con m₂ = 3m₁ queda 3π/8 > 1: llega', tr.reach!==null?`\\[t\\left(\\tfrac{\\pi}2\\right)=${tx(tr.reach,3)}\\ \\text{s}\\]`:`\\[\\text{no llega: }\\varphi_{\\max}=${tx(deg(pm),2)}^\\circ,\\quad \\text{período}=${tx(tr.per,3)}\\ \\text{s}\\]`],
   ], fin:`\\[v=R\\dot\\varphi=\\sqrt{\\frac{2gR\\,[\\lambda m_2\\sin\\alpha\\,\\varphi-m_1(1-\\cos\\varphi)]}{m_1+\\lambda^2m_2}}\\]`};
 }
 
@@ -597,13 +592,12 @@ function cuentas(){
 function guia(list){ const el=$('guia'); list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
   b.onclick=()=>{ fn(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
 function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
-guia([['P15 d · sen α = 1/2, m₁ = m₂', ()=>{ Object.assign(P,{m1:1,m2:1,al:30,R:10}); restart(); setView('v1'); }]]);
-document.querySelectorAll('#vinc button').forEach(b=>b.onclick=()=>{ K=+b.dataset.k; document.querySelectorAll('#vinc button').forEach(x=>x.setAttribute('aria-pressed',x===b)); restart(); refresh(); });
+guia([["P15 d · sen α = 1/2, m₁ = m₂ (no llega)", ()=>{ Object.assign(P,{m1:1,m2:1,al:30,R:10}); restart(); setView("v1"); }], ["P15 d · con m₂ = 3m₁ (llega)", ()=>{ Object.assign(P,{m1:1,m2:3,al:30,R:10}); restart(); setView("v1"); }]]);
 const NOTE={p4:'La polea B cuelga del techo; la polea A es móvil. Todo parte del reposo.', p5:'La polea A es móvil; la soga que la rodea tiene un extremo fijo a la mesa. Sin rozamiento.',
-  p15:'R = 10 m (la guía no lo da). El carro parte del fondo del riel, en reposo.'};
+  p15:'El contrapeso cuelga de una polea móvil. R = 10 m (la guía no lo da). El carro parte del fondo del riel, en reposo.'};
 const VB={p4:['Aceleraciones','Desplazamientos'],p5:['Aceleraciones según m₂','Distancias'],p15:['φ en el tiempo','Velocidad según φ']};
 function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
-  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); $('vinc').hidden=SY!=='p15'; $('guia').hidden=SY!=='p15'; guiaOff();
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); $('guia').hidden=SY!=='p15'; guiaOff();
   $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
 function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
 buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });

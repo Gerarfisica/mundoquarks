@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Péndulo, amortiguado y forzado G4-P6, P10 a P12</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 4 · Oscilaciones</span>
+  <h1>Péndulo, amortiguamiento y oscilaciones forzadas <i>· cómo se pierde y cómo se entrega la energía</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 4">
+    <h2>Guía 4</h2>
+    <ol>
+      <li><a href="p1-resorte-dos-masas.html"><b class="code">P1, 2</b>Resorte y dos masas</a></li>
+      <li><a href="p3-resortes-combinados.html"><b class="code">P3–5</b>Resortes combinados</a></li>
+      <li><a href="p7-aro-resorte.html"><b class="code">P7–9</b>Aro con resorte</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6, 10–12</b>Péndulo, amortiguado y forzado</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:300px" aria-label="Un péndulo simple, un péndulo que se amortigua en un medio con rozamiento, una masa unida por un resorte a una pared que oscila, o una masa con resorte que se frena por rozamiento seco con el piso."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p6" aria-pressed="true">P6 · péndulo</button>
+        <button data-sy="p10" aria-pressed="false">P10 · péndulo amortiguado</button>
+        <button data-sy="p11" aria-pressed="false">P11 · pared que oscila</button>
+        <button data-sy="p12" aria-pressed="false">P12 · rozamiento seco</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">En el tiempo</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Vista 2</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G4-P6, P10 a P12</summary>
+      <p><b>6.</b> Un cuerpo suspendido de un hilo inextensible de longitud 80 cm realiza un movimiento oscilatorio en un plano siendo θ = θ(t) el ángulo entre la vertical y el hilo.</p>
+      <p>a) Plantee las ecuaciones de Newton para el cuerpo.<br>b) ¿Bajo qué aproximación el movimiento es armónico? ¿Qué período tiene?<br>c) Si en t = 0 es θ = 0, θ̇ = 0,2 seg⁻¹, ¿se satisface la aproximación de b) ∀t?<br>d) Usando las ecuaciones planteadas en a) halle la posición de equilibrio y diga si es estable o inestable y por qué.</p>
+      <p><b>10.</b> Un péndulo simple de 10 g de masa tiene inicialmente un período de 2 seg y una amplitud de 2º. Luego se lo sumerge en un medio con rozamiento y después de dos oscilaciones completas la amplitud se reduce a 1,5º. Encuentre la constante de amortiguamiento r.</p>
+      <p><b>11.</b> Una partícula de masa m está unida al extremo de un resorte de constante elástica k y longitud natural l₀. El otro extremo del resorte está unido a una pared que se mueve de acuerdo a la ley x_p(t) = L cos(ωt). La partícula también está sometida a la acción de una fuerza viscosa tal que F_v = −r ẋ x̂.</p>
+      <p>a) Escriba la ecuación de Newton para la partícula. Indique claramente cuáles son las fuerzas que actúan sobre ella.<br>b) Para el caso k/m &gt; (r/2m)², diga cuál es la solución de la ecuación de movimiento x(t). Para tiempos largos (βt &gt;&gt; 1, con β = r/2m), diga en qué dirección se mueve la partícula cuando la pared se mueve hacia la derecha, si ω = √(k/m).</p>
+      <p><b>12.</b> Considere una partícula de masa m que se mueve sobre una recta (x). La partícula está unida a un resorte de constante elástica k y longitud natural l₀ (tal como indica la figura). Hay rozamiento entre la partícula y el plano con coeficientes µₑ y µ_d. En el instante t = 0 la partícula se encuentra en la posición x₀ &gt; l₀ con velocidad nula.</p>
+      <p>a) Describa cualitativamente el movimiento analizando cuidadosamente el efecto del rozamiento. Obtenga la ecuación diferencial que gobierna el movimiento. Demuestre que, tal como ocurre en ausencia de rozamiento, el cuerpo tiene velocidad nula en todos los instantes tₙ = nT/2, donde T = 2π√(m/k) y n es un número entero. Demuestre que la distancia recorrida entre dos detenciones sucesivas (separadas por un intervalo T/2) disminuye cada vez en una cantidad 2µ_d mg/k. Diga en qué momento se detiene definitivamente el movimiento del cuerpo.<br>b) Si se considera x₀ = Nµ_d mg/k (donde N es un número entero), diga cuántas veces cambia el sentido de la velocidad del cuerpo antes de detenerse definitivamente (considere el caso µₑ &lt; 2µ_d). Analice en particular los casos N = 4 y N = 7, grafique la función x(t) y diga en qué lugar y en qué instante se detiene definitivamente el cuerpo.<br>c) Compare el movimiento del cuerpo con el caso en el que el rozamiento se origina en la fricción del cuerpo con el aire (que produce una fuerza proporcional a la velocidad).</p>
+      <p class="src">Física 1, Guía 4 (Movimiento oscilatorio). Enunciado textual de la guía. En el P12, x se mide desde la longitud natural (x₀ es el estiramiento inicial). En el P11, a la frecuencia natural la posición de la partícula queda 90° atrasada respecto de la de la pared y su velocidad, en fase con ella: la página lo muestra en el gráfico. Donde la guía da solo símbolos, la página elige valores. g = 9,8 m/s².</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>P6 y P11: integración numérica (Runge–Kutta de orden 4), comparada con la solución armónica y con la amplitud del régimen permanente. P10: solución exacta del oscilador amortiguado. P12: solución exacta por tramos de medio período. Colores: celeste, la masa; verde, el resorte; amarillo, la pared o la aproximación armónica; lila, la envolvente; rosa, el caso con rozamiento viscoso para comparar.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G4-P6, P10 a P12 · Péndulo, amortiguado y forzado =================
+const G0=9.8, sq=Math.sqrt;
+const DEF=[
+  {id:'L',lab:'L (hilo)',unit:'m',min:0.1,max:3,step:0.01,dec:2},
+  {id:'wd0',lab:'θ̇₀',unit:'1/s',min:0,max:8,step:0.01,dec:2},
+  {id:'mp',lab:'m',unit:'kg',min:0.001,max:1,step:0.001,dec:3},
+  {id:'T0',lab:'período',unit:'s',min:0.5,max:5,step:0.01,dec:2},
+  {id:'rp',lab:'r',unit:'kg/s',min:0,max:0.02,step:0.00001,dec:5},
+  {id:'A0',lab:'amplitud inicial',unit:'°',min:0.5,max:20,step:0.1,dec:1},
+  {id:'m',lab:'m',unit:'kg',min:0.1,max:5,step:0.01,dec:2},
+  {id:'k',lab:'k',unit:'N/m',min:1,max:100,step:0.1,dec:1},
+  {id:'r',lab:'r',unit:'kg/s',min:0.01,max:5,step:0.001,dec:3},
+  {id:'Lw',lab:'L (pared)',unit:'m',min:0.005,max:0.2,step:0.001,dec:3},
+  {id:'wr',lab:'ω/ω₀',unit:'',min:0.1,max:3,step:0.005,dec:3},
+  {id:'mue',lab:'µₑ',unit:'',min:0.01,max:1,step:0.01,dec:2},
+  {id:'mud',lab:'µ_d',unit:'',min:0.01,max:1,step:0.01,dec:2},
+  {id:'x0',lab:'x₀ (estiramiento)',unit:'m',min:0,max:3,step:0.001,dec:3},
+];
+const PS={p6:{L:0.8,wd0:0.2}, p10:{mp:0.01,T0:2,rp:0.001438,A0:2}, p11:{m:1,k:10,r:0.5,Lw:0.05,wr:1}, p12:{m:1,k:10,mue:0.3,mud:0.2,x0:0.784}};
+const SHOW={p6:['L','wd0'],p10:['mp','T0','rp','A0'],p11:['m','k','r','Lw','wr'],p12:['m','k','mue','mud','x0']};
+const P={L:0.8,wd0:0.2,mp:0.01,T0:2,rp:0.001438,A0:2,m:1,k:10,r:0.5,Lw:0.05,wr:1,mue:0.3,mud:0.2,x0:0.784}; let SY='p6';
+function rk4(f,y0,h,N){ const out=[y0.slice()]; let y=y0.slice(); for(let i=0;i<N;i++){ const k1=f(y),k2=f(y.map((v,j)=>v+h/2*k1[j])),k3=f(y.map((v,j)=>v+h/2*k2[j])),k4=f(y.map((v,j)=>v+h*k3[j])); y=y.map((v,j)=>v+h/6*(k1[j]+2*k2[j]+2*k3[j]+k4[j])); out.push(y.slice()); } return out; }
+// ---- P6: θ¨ = −(g/L) sen θ, contra el armónico θ = (θ̇₀/ω) sen ωt ----
+const w6=()=>sq(G0/P.L), amp6=()=>{ const c=1-P.wd0*P.wd0*P.L/(2*G0); return c>=-1?Math.acos(c):null; };
+let _t6={}; function tr6(){ const key=[P.L,P.wd0].join(); if(_t6.key===key) return _t6; const h=0.001, T=Math.max(3*2*Math.PI/w6(),2), N=Math.ceil(T/h); _t6={key,h,T:N*h,pts:rk4(([q,w])=>[w,-G0/P.L*Math.sin(q)],[0,P.wd0],h,N)}; return _t6; }
+// ---- P10: θ = A e^{−βt} cos(ω_d t) ----
+function s10(){ const w0=2*Math.PI/P.T0, b=P.rp/(2*P.mp), wd=sq(Math.max(0,w0*w0-b*b)); return {w0,b,wd}; }
+const th10=t=>{ const s=s10(); return P.A0*Math.exp(-s.b*t)*Math.cos(s.wd*t); };
+// ---- P11: m ü + r u̇ + k u = k L cos ωt (u: desplazamiento desde l₀); parte con u = L, u̇ = 0 ----
+function s11(){ const w0=sq(P.k/P.m), w=P.wr*w0, A=P.k*P.Lw/sq((P.k-P.m*w*w)**2+(P.r*w)**2), d=Math.atan2(P.r*w,P.k-P.m*w*w); return {w0,w,A,d,b:P.r/(2*P.m)}; }
+let _t11={}; function tr11(){ const key=[P.m,P.k,P.r,P.Lw,P.wr].join(); if(_t11.key===key) return _t11; const s=s11(), h=0.002, T=Math.min(80,Math.max(30,6/s.b)), N=Math.ceil(T/h);
+  let t=0; const pts=rk4(y=>{ const [u,v,tt]=y; return [v,(P.k*P.Lw*Math.cos(s.w*tt)-P.r*v-P.k*u)/P.m,1]; },[P.Lw,0,0],h,N); _t11={key,h,T:N*h,pts}; return _t11; }
+// ---- P12: rozamiento seco, tramos de medio período alrededor de ±δ, δ = µ_d mg/k ----
+function s12(){ const w=sq(P.k/P.m), d=Math.min(P.mud,P.mue)*P.m*G0/P.k, es=P.mue*P.m*G0/P.k, segs=[]; let e=P.x0, t=0, n=0;
+  while(Math.abs(e)>es+1e-12&&n<200){ const c=Math.sign(e)*d, e2=2*c-e; segs.push({t0:t,e0:e,c}); t+=Math.PI/w; e=e2; n++; if(Math.sign(e)===Math.sign(segs[segs.length-1].e0)) break; }
+  let ch=0; for(let i=1;i<segs.length;i++) if(Math.sign(segs[i].e0)!==Math.sign(segs[i-1].e0)) ch++; return {w,d,es,segs,tStop:t,eStop:e,changes:ch}; }
+function e12(t){ const s=s12(); for(let i=s.segs.length-1;i>=0;i--){ const g=s.segs[i]; if(t>=g.t0){ if(t-g.t0<=Math.PI/s.w) return g.c+(g.e0-g.c)*Math.cos(s.w*(t-g.t0)); return s.eStop; } } return P.x0; }
+// caso viscoso con la misma pérdida en la primera media oscilación (para comparar)
+function visc12(t){ const s=s12(), w=s.w; if(!s.segs.length) return P.x0; const ratio=Math.abs(2*s.d-P.x0)/P.x0; if(!(ratio>0&&ratio<1)) return NaN; const b=-Math.log(ratio)*w/Math.PI; return P.x0*Math.exp(-b*t)*Math.cos(sq(Math.max(0,w*w-b*b))*t); }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return SY==='p6'?tr6().T:SY==='p10'?Math.min(60,Math.max(16,3/s10().b)):SY==='p11'?tr11().T:s12().tStop+1.5; }
+function step(dt){ S.t+=dt; if(S.t>tEnd()) S.t=0; }
+function spring(ctx,x0,y0,x1,y1,n,wd,col){ const L=Math.hypot(x1-x0,y1-y0); if(L<3) return; const ux=(x1-x0)/L, uy=(y1-y0)/L, e=Math.min(8,L*0.1), pts=[[x0,y0],[x0+ux*e,y0+uy*e]]; for(let i=1;i<2*n;i++){ const s=e+(L-2*e)*i/(2*n), o=i%2?wd:-wd; pts.push([x0+ux*s-uy*o,y0+uy*s+ux*o]); } pts.push([x1-ux*e,y1-uy*e],[x1,y1]); line(ctx,pts,col,1.6); }
+function pend(ctx,cx,cy,Lp,q,col,alpha=1){ const bx=cx+Lp*Math.sin(q), by=cy+Lp*Math.cos(q); ctx.globalAlpha=alpha; line(ctx,[[cx,cy],[bx,by]],C.muted,1.6); dot(ctx,bx,by,10,col); ctx.globalAlpha=1; }
+const idx=(tr,t)=>Math.min(tr.pts.length-1,Math.max(0,Math.round(t/tr.h)));
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const t=Math.min(S.t,tEnd());
+  if(SY==='p6'){ const tr=tr6(), q=tr.pts[idx(tr,t)][0], qa=P.wd0/w6()*Math.sin(w6()*t), cx=w*0.4, cy=30, Lp=h-80, mag=Math.min(10,Math.PI/3/Math.max(amp6()??1,1e-3));
+    ctx.fillStyle=C.line; ctx.fillRect(cx-60,cy-8,120,8); line(ctx,[[cx,cy],[cx,cy+Lp+20]],C.faint,1,[3,4]); pend(ctx,cx,cy,Lp,qa*mag,C.v,0.45); pend(ctx,cx,cy,Lp,q*mag,C.sys);
+    if(mag>1.01) txt(ctx,`ángulo dibujado ×${cm(mag,1)}`,12,h-10,C.faint,{size:10.5}); const a=amp6();
+    readout([['θ',cm(deg(q),3)+'°',C.sys],['armónico',cm(deg(qa),3)+'°',C.v],['amplitud',a!==null?cm(deg(a),3)+'°':'da vueltas'],['período armónico 2π√(L/g)',cm(2*Math.PI/w6(),4)+' s']]);
+    $('formula').innerHTML=`<b>tangencial:</b> mLθ̈ = −mg sen θ · <b>radial:</b> T − mg cos θ = mLθ̇² · ángulos chicos: sen θ ≈ θ → θ̈ = −(g/L)θ`; }
+  else if(SY==='p10'){ const q=rad(th10(t)), cx=w*0.4, cy=30, Lp=h-80, mag=Math.min(12,Math.PI/4/rad(P.A0)); ctx.fillStyle=C.sys; ctx.globalAlpha=.07; ctx.fillRect(cx-Lp*0.6,cy+Lp*0.35,Lp*1.2,Lp*0.75); ctx.globalAlpha=1;
+    ctx.fillStyle=C.line; ctx.fillRect(cx-60,cy-8,120,8); line(ctx,[[cx,cy],[cx,cy+Lp+20]],C.faint,1,[3,4]); pend(ctx,cx,cy,Lp,q*mag,C.sys); txt(ctx,`ángulo dibujado ×${cm(mag,1)} · medio viscoso`,12,h-10,C.faint,{size:10.5});
+    const s=s10(); readout([['θ',cm(th10(t),3)+'°',C.sys],['amplitud',cm(P.A0*Math.exp(-s.b*t),3)+'°',C.lin],['β = r/2m',cm(s.b,5)+' 1/s'],['tras dos oscilaciones',cm(P.A0*Math.exp(-s.b*2*P.T0),3)+'°',C.ok]]);
+    $('formula').innerHTML=`<b>con rozamiento viscoso:</b> mLθ̈ = −mgθ − rLθ̇ → θ = θ₀ e^(−βt) cos(ω_d t), β = r/2m · tras dos períodos: e^(−2βT) = 1,5/2`; }
+  else if(SY==='p11'){ const tr=tr11(), u=tr.pts[idx(tr,t)][0], s=s11(), xp=P.Lw*Math.cos(s.w*t), sc=Math.min(1,0.25/Math.max(s.A,P.Lw)), k=(w*0.6)/0.6, mid=h*0.55, X0=w*0.2, l0=0.3;
+    const wx=X0+xp*sc*k, mx=X0+(l0+u*sc)*k; ctx.fillStyle=C.line; ctx.fillRect(10,mid+22,w-20,4); ctx.fillStyle=C.v; ctx.fillRect(wx-10,mid-40,10,64); spring(ctx,wx,mid,mx-22,mid,10,7,C.ok);
+    ctx.fillStyle=C['panel-2']; ctx.fillRect(mx-22,mid-22,44,44); ctx.strokeStyle=C.sys; ctx.lineWidth=2; ctx.strokeRect(mx-22,mid-22,44,44); txt(ctx,'m',mx,mid+4,C.sys,{align:'center',size:12,font:UI,weight:600});
+    line(ctx,[[X0,mid+34],[X0,mid+44]],C.v,1.5); line(ctx,[[X0+l0*k,mid+34],[X0+l0*k,mid+44]],C.sys,1.5); if(sc<0.999) txt(ctx,`desplazamientos dibujados ×${cm(sc,2)}`,12,h-10,C.faint,{size:10.5});
+    readout([['amplitud permanente',cm(s.A*100,2)+' cm',C.sys],['A/L',cm(s.A/P.Lw,2)],['atraso de fase',cm(deg(s.d),1)+'°',C.v],['β = r/2m',cm(s.b,3)+' 1/s']]);
+    $('formula').innerHTML=`<b>Newton:</b> m ẍ = −k(x − x_p − l₀) − r ẋ → m ü + r u̇ + k u = kL cos ωt · permanente: u = A cos(ωt − δ), A = kL/√((k − mω²)² + r²ω²)`; }
+  else { const s=s12(), e=e12(t), l0=Math.max(0.3,Math.abs(P.x0)+0.25), k=(w-140)/(l0+Math.abs(P.x0)+0.15), mid=h*0.55, X0=40, mx=X0+(l0+e)*k;
+    ctx.fillStyle=C.line; ctx.fillRect(X0-8,mid-50,8,72); ctx.fillRect(X0,mid+22,w-60,4); for(let x=X0;x<w-20;x+=14) line(ctx,[[x,mid+26],[x-6,mid+34]],C.faint,1);
+    spring(ctx,X0,mid,mx-22,mid,12,7,C.ok); ctx.fillStyle=C['panel-2']; ctx.fillRect(mx-22,mid-22,44,44); ctx.strokeStyle=C.sys; ctx.lineWidth=2; ctx.strokeRect(mx-22,mid-22,44,44); txt(ctx,'m',mx,mid+4,C.sys,{align:'center',size:12,font:UI,weight:600});
+    line(ctx,[[X0+l0*k,mid+40],[X0+l0*k,mid+50]],C.muted,1.5); txt(ctx,'l₀',X0+l0*k,mid+64,C.muted,{align:'center',size:11}); [-1,1].forEach(sg=>{ const xe=X0+(l0+sg*s.es)*k; line(ctx,[[xe,mid-36],[xe,mid-28]],C.a,1.5); }); txt(ctx,'zona donde se queda quieto (±µₑmg/k)',X0+l0*k,mid-42,C.a,{align:'center',size:10.5});
+    readout([['x (estiramiento)',cm(e*100,2)+' cm',C.sys],['δ = µ_d mg/k',cm(s.d*100,2)+' cm'],['se detiene en',`t = ${cm(s.tStop,3)} s, x = ${cm(s.eStop*100,2)} cm`,C.ok],['cambios de sentido',String(s.changes)]]);
+    $('formula').innerHTML=`<b>Newton:</b> m ẍ = −k x ∓ µ_d mg (el rozamiento, contra la velocidad) → medias oscilaciones de período T/2 alrededor de ±µ_d mg/k`; }
+  txt(ctx,`t = ${cm(t,2)} s`,12,20,C.muted,{size:11.5});
+}
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(...all,0), y1=o.y1??Math.max(...all,0); const pad=(y1-y0)*0.08||1; if(o.y0===undefined) y0-=pad; if(o.y1===undefined) y1+=pad;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,wd||2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const samp=(f,a,b,N=600)=>Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; });
+function drawV1(){ const te=tEnd(), t=Math.min(S.t,te);
+  if(SY==='p6'){ const tr=tr6(); plot('p1c',0,tr.T,[[tr.pts.filter((_,i)=>i%5===0).map((p,i)=>[i*5*tr.h,deg(p[0])]),C.sys],[samp(x=>deg(P.wd0/w6()*Math.sin(w6()*x)),0,tr.T),C.v,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>dot(ctx,X(t),Y(deg(tr.pts[idx(tr,t)][0])),4.5,C.sys)});
+    $('tag1').textContent='θ(t) (°)'; legend('leg1',[[C.sys,'exacto (sen θ)'],[C.v,'armónico (θ)','dashed']]);
+    const a=amp6(); $('cap1').textContent=a!==null?`Amplitud ${cm(deg(a),2)}°: sen θ y θ difieren en ${cm((1-Math.sin(a)/a)*100,3)} % en el extremo, así que la aproximación vale para todo t.`:'Con este θ̇₀ el péndulo da vueltas: la aproximación armónica no sirve.'; return; }
+  if(SY==='p10'){ const s=s10(); plot('p1c',0,te,[[samp(th10,0,te,1500),C.sys,null,1.4],[samp(x=>P.A0*Math.exp(-s.b*x),0,te),C.lin,[5,4]],[samp(x=>-P.A0*Math.exp(-s.b*x),0,te),C.lin,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(2*P.T0),Y(P.A0*Math.exp(-s.b*2*P.T0)),4.5,C.ok); dot(ctx,X(t),Y(th10(t)),4,C.sys); }});
+    $('tag1').textContent='θ(t) (°)'; legend('leg1',[[C.sys,'θ'],[C.lin,'envolvente θ₀e^(−βt)','dashed']]); $('cap1').textContent=`La amplitud cae a ${cm(P.A0*Math.exp(-s.b*2*P.T0),3)}° tras dos oscilaciones (punto verde). Con los datos de la guía, r = 2m ln(4/3)/(2T) = 1,44·10⁻³ kg/s.`; return; }
+  if(SY==='p11'){ const tr=tr11(), s=s11(); plot('p1c',0,tr.T,[[tr.pts.filter((_,i)=>i%5===0).map(p=>[p[2],p[0]*100]),C.sys,null,1.6],[samp(x=>P.Lw*Math.cos(s.w*x)*100,0,tr.T,1500),C.v,[4,3],1.2]],'t (s)',{mark:(ctx,X,Y)=>dot(ctx,X(t),Y(tr.pts[idx(tr,t)][0]*100),4,C.sys)});
+    $('tag1').textContent='Posiciones (cm): partícula (respecto de l₀) y pared'; legend('leg1',[[C.sys,'partícula u(t)'],[C.v,'pared x_p(t)','dashed']]);
+    $('cap1').textContent=`Al principio hay un transitorio que se apaga como e^(−βt); después queda el régimen permanente, con la frecuencia de la pared. ${Math.abs(P.wr-1)<0.01?'En resonancia la partícula queda 90° atrasada: su velocidad está en fase con la posición de la pared, así que la pared le entrega energía todo el tiempo.':`Atraso de fase: ${cm(deg(s.d),1)}°.`}`; return; }
+  const s=s12(), T2=Math.PI/s.w; plot('p1c',0,te,[[samp(e12,0,te,1200),C.sys],[samp(visc12,0,te,1200),C.sob,[5,4],1.4],[samp(()=>s.es,0,te),C.a,[2,4],1],[samp(()=>-s.es,0,te),C.a,[2,4],1]],'t (s)',{mark:(ctx,X,Y)=>{ s.segs.forEach(g=>dot(ctx,X(g.t0),Y(g.e0),3.5,C.lin)); dot(ctx,X(s.tStop),Y(s.eStop),5,C.ok); dot(ctx,X(t),Y(e12(t)),4,C.sys); }});
+  $('tag1').textContent='Estiramiento x(t) (m)'; legend('leg1',[[C.sys,'rozamiento seco'],[C.sob,'viscoso (comparación)','dashed'],[C.a,'±µₑmg/k','dotted']]);
+  $('cap1').textContent=`Se detiene cada T/2 = ${cm(T2,3)} s y la amplitud baja ${cm(2*s.d*100,1)} cm cada vez: decae en línea recta. Se queda quieto en t = ${cm(s.tStop,3)} s, en x = ${cm(s.eStop*100,1)} cm, tras ${s.changes} cambios de sentido. Con rozamiento viscoso la amplitud decae exponencialmente y nunca llega a cero.`; }
+function drawV2(){
+  if(SY==='p6'){ const F=frame($('p2c'),{x0:-200,x1:200,y0:-2.5*w6(),y1:2.5*w6(),xlab:'θ (°)',xt:[-180,-90,0,90,180]}); const {X,Y}=F; F.clip();
+    [0.3,0.8,1.4,2,2.5].forEach(Em=>{ const pts=[], E=Em*Em*w6()*w6(); [1,-1].forEach(sg=>{ const seg=[]; for(let d=-200;d<=200;d+=0.5){ const q=rad(d), v2=E-2*w6()*w6()*(1-Math.cos(q)); seg.push([X(d),v2>=0?Y(sg*sq(v2)):NaN]); } F.ctx.strokeStyle=C.line; line(F.ctx,seg.filter(p=>isFinite(p[1])),C['line-2'],1); }); });
+    const sep=[]; [1,-1].forEach(sg=>{ const seg=[]; for(let d=-180;d<=180;d+=0.5){ const q=rad(d); seg.push([X(d),Y(sg*2*w6()*Math.cos(q/2))]); } line(F.ctx,seg,C.a,1.4,[4,3]); });
+    const tr=tr6(); line(F.ctx,tr.pts.filter((_,i)=>i%5===0).map(p=>[X(deg(p[0])),Y(p[1])]),C.sys,2); dot(F.ctx,X(0),Y(0),5,C.ok); dot(F.ctx,X(180),Y(0),5,C.a,true); dot(F.ctx,X(-180),Y(0),5,C.a,true); F.unclip();
+    $('tag2').textContent='Retrato de fase: θ̇ (1/s) según θ'; legend('leg2',[[C.sys,'este movimiento'],[C.a,'separatriz','dashed']]);
+    $('cap2').textContent='θ = 0 es estable: cerca de él las órbitas son curvas cerradas alrededor del punto. θ = π es inestable: por ahí pasa la separatriz, y cualquier apartamiento crece. Es el inciso d.'; return; }
+  if(SY==='p10'){ const s=s10(), n=Math.floor(tEnd()/P.T0); const pts=Array.from({length:n+1},(_,i)=>[i,P.A0*Math.exp(-s.b*i*P.T0)]); plot('p2c',0,n,[[pts,C.lin]],'oscilaciones completas',{y0:0,y1:P.A0*1.05,mark:(ctx,X,Y)=>pts.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),3.5,p[0]===2?C.ok:C.lin))});
+    $('tag2').textContent='Amplitud después de cada oscilación (°)'; legend('leg2',[[C.lin,'θ₀ e^(−βnT)']]); $('cap2').textContent='Cada oscilación multiplica la amplitud por el mismo factor e^(−βT): disminuye en proporción, no en una cantidad fija (comparalo con el rozamiento seco del P12).'; return; }
+  if(SY==='p11'){ const s=s11(), f=wr=>{ const w=wr*s.w0; return P.k/sq((P.k-P.m*w*w)**2+(P.r*w)**2); }; plot('p2c',0.1,3,[[samp(f,0.1,3),C.sys]],'ω/ω₀',{y0:0,mark:(ctx,X,Y)=>dot(ctx,X(P.wr),Y(s.A/P.Lw),4.5,C.sys)});
+    $('tag2').textContent='Curva de resonancia: A/L según ω/ω₀'; legend('leg2',[[C.sys,'A/L']]); $('cap2').textContent=`El máximo está cerca de ω₀ y vale aproximadamente k/(rω₀) = ${cm(P.k/(P.r*s.w0),2)}. Cuanto menor es r, más alto y angosto es el pico.`; return; }
+  const s=s12(), pts=s.segs.map((g,i)=>[i,Math.abs(g.e0)]).concat([[s.segs.length,Math.abs(s.eStop)]]), ratio=Math.abs(2*s.d-P.x0)/P.x0, vis=pts.map((p,i)=>[i,P.x0*ratio**i]);
+  plot('p2c',0,Math.max(1,pts.length-1),[[pts,C.sys],[vis,C.sob,[5,4]]],'detención n',{y0:0,y1:P.x0*1.05,mark:(ctx,X,Y)=>{ pts.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),3.5,C.sys)); line(ctx,[[X(0),Y(s.es)],[X(pts.length-1),Y(s.es)]],C.a,1,[2,4]); }});
+  $('tag2').textContent='|x| en cada detención (m)'; legend('leg2',[[C.sys,'seco: baja 2µ_d mg/k cada vez'],[C.sob,'viscoso: se multiplica por un factor','dashed']]);
+  $('cap2').textContent=`Si x₀ = Nµ_d mg/k, las detenciones están en N, N − 2, N − 4… veces δ. Con µₑ < 2µ_d se para en la primera que cae dentro de ±µₑmg/k.`; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p6:{ q:'Con L = 80 cm y θ̇₀ = 0,2 s⁻¹, ¿vale la aproximación de ángulos chicos?',
+    opts:[['si','sí: la amplitud es de unos 3°'],['no','no: el péndulo se aparta mucho'],['dep','depende del instante']], right:'si', go:'Probalo: datos de la guía',
+    run(){ Object.assign(P,{L:0.8,wd0:0.2}); restart(); refresh(); return `Sí: la amplitud es θ̇₀/ω = 0,2/${cm(w6(),3)} = ${cm(deg(amp6()),2)}°. Como el ángulo nunca supera ese valor, la aproximación vale para todo t, y el período es 2π√(L/g) = ${cm(2*Math.PI/w6(),3)} s.`; } },
+  p10:{ q:'Si la amplitud baja de 2° a 1,5° en dos oscilaciones, ¿cuánto vale tras cuatro?',
+    opts:[['1','1°'],['1125','1,125°'],['05','0,5°']], right:'1125', go:'Probalo: datos de la guía',
+    run(){ Object.assign(P,{mp:0.01,T0:2,A0:2,rp:2*0.01*Math.log(4/3)/(2*2)}); restart(); refresh(); return 'Vale 1,125°: cada dos oscilaciones la amplitud se multiplica por 0,75, así que tras cuatro queda 2° · 0,75² = 1,125°. No baja en una cantidad fija, sino en una proporción fija.'; } },
+  p11:{ q:'Si la pared oscila justo a la frecuencia natural √(k/m), la amplitud de la partícula…',
+    opts:[['inf','crece sin límite'],['lim','queda limitada por el rozamiento viscoso'],['L','es igual a L']], right:'lim', go:'Probalo: ω = ω₀',
+    run(){ P.wr=1; restart(); refresh(); const s=s11(); return `Queda limitada: A = kL/(rω₀) = ${cm(s.A*100,2)} cm, ${cm(s.A/P.Lw,1)} veces L. Sin rozamiento sí crecería sin límite.`; } },
+  p12:{ q:'Con rozamiento seco, la amplitud de las oscilaciones disminuye…',
+    opts:[['exp','exponencialmente'],['lin','en la misma cantidad cada media oscilación'],['no','no disminuye']], right:'lin', go:'Probalo: N = 7',
+    run(){ Object.assign(P,{m:1,k:10,mue:0.3,mud:0.2}); P.x0=7*0.2*G0/10; restart(); refresh(); return `En la misma cantidad, 2µ_d mg/k, cada media oscilación: el rozamiento seco no depende de la velocidad. Con N = 7 se detiene en t = ${cm(s12().tStop,3)} s, después de ${s12().changes} cambios de sentido.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p6:[
+    {txt:'Con L = 80 cm, elegí θ̇₀ para que la amplitud sea 30° (±0,5°). ¿Cuánto difiere el período del armónico?',
+     chk(){ if(Math.abs(P.L-0.8)>0.005) return [false,'Primero poné L = 80 cm']; const a=amp6(); return a!==null&&Math.abs(deg(a)-30)<0.5?[true,`Logrado: θ̇₀ = √(2g(1 − cos 30°)/L) = ${cm(sq(2*G0*(1-Math.cos(rad(30)))/0.8),3)} s⁻¹. El período real es un 1,7 % mayor.`]:[false,a!==null?`Ahora la amplitud es ${cm(deg(a),2)}°`:'Ahora da vueltas']; }},
+    {txt:'¿Por qué θ = π es un equilibrio inestable aunque la fuerza neta ahí sea nula?'},
+  ],
+  p10:[
+    {txt:'Con m = 10 g y T = 2 s, elegí r para que la amplitud se reduzca a la mitad en cinco oscilaciones (±2 %).',
+     chk(){ if(Math.abs(P.mp-0.01)>1e-4||Math.abs(P.T0-2)>0.005) return [false,'Primero poné m = 10 g y T = 2 s']; const f=Math.exp(-s10().b*5*P.T0); return Math.abs(f-0.5)/0.5<0.02?[true,`Logrado: r = 2m ln 2/(5T) = ${cm(2*0.01*Math.log(2)/10,6)} kg/s.`]:[false,`Ahora queda el ${cm(f*100,1)} %`]; }},
+    {txt:'¿Cambia apreciablemente el período por el amortiguamiento con los datos de la guía? Estimalo con ω_d = √(ω₀² − β²).'},
+  ],
+  p11:[
+    {txt:'Con m = 1 kg, k = 10 N/m y ω = ω₀, elegí r para que la amplitud permanente sea 10 veces L (±2 %).',
+     chk(){ if(Math.abs(P.m-1)>0.005||Math.abs(P.k-10)>0.05||Math.abs(P.wr-1)>0.005) return [false,'Primero poné m = 1 kg, k = 10 N/m y ω/ω₀ = 1']; const q=s11().A/P.Lw; return Math.abs(q-10)/10<0.02?[true,`Logrado: r = √(km)/10 = ${cm(sq(10)/10,4)} kg/s.`]:[false,`Ahora A/L = ${cm(q,2)}`]; }},
+    {txt:'Para ω mucho mayor que ω₀, ¿la partícula se mueve en fase o en contrafase con la pared? ¿Y con qué amplitud?'},
+  ],
+  p12:[
+    {txt:'Con m = 1 kg, k = 10 N/m, µₑ = 0,3 y µ_d = 0,2, elegí x₀ para que se detenga justo en la longitud natural (±1 mm).',
+     chk(){ if(Math.abs(P.m-1)>0.005||Math.abs(P.k-10)>0.05||Math.abs(P.mue-0.3)>0.005||Math.abs(P.mud-0.2)>0.005) return [false,'Primero poné m = 1 kg, k = 10 N/m, µₑ = 0,3 y µ_d = 0,2']; const e=s12().eStop; return Math.abs(e)<0.001?[true,`Logrado: x₀ = ${cm(P.x0,3)} m, un número par de veces δ = ${cm(s12().d,3)} m.`]:[false,`Ahora se detiene en x = ${cm(e*100,2)} cm`]; }},
+    {txt:'¿Por qué hace falta µₑ < 2µ_d para contar los cambios de sentido como pide la guía?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p6'){ const a=amp6(); return {title:'Péndulo simple', finLbl:'Período y equilibrio', steps:[
+    ['a) Newton en polares (θ desde la vertical)', `\\[mL\\ddot\\theta=-mg\\sin\\theta,\\qquad T-mg\\cos\\theta=mL\\dot\\theta^2\\]`],
+    ['b) Si θ es chico, sen θ ≈ θ: oscilador armónico', `\\[\\ddot\\theta=-\\frac gL\\theta,\\qquad T=2\\pi\\sqrt{\\frac Lg}=${tx(2*Math.PI/w6(),4)}\\ \\text{s}\\]`],
+    ['c) Con θ(0) = 0 y θ̇(0) = 0,2 s⁻¹ la amplitud es θ̇₀/ω', `\\[\\theta_{\\max}=\\frac{\\dot\\theta_0}\\omega=${a!==null?tx(deg(a),3)+'^\\circ':'\\text{—}'}\\ \\Rightarrow\\ \\text{vale}\\ \\forall t\\]`,true],
+    ['d) Equilibrios: sen θ = 0', `\\[\\theta=0\\ (\\text{estable}),\\qquad \\theta=\\pi\\ (\\text{inestable: }\\ddot\\theta\\approx+\\tfrac gL(\\theta-\\pi))\\]`],
+  ], fin:`\\[T=2\\pi\\sqrt{L/g}=1{,}795\\ \\text{s}\\ \\ (L=80\\ \\text{cm})\\]`}; }
+  if(SY==='p10'){ const s=s10(); return {title:'Péndulo amortiguado', finLbl:'Constante de amortiguamiento', steps:[
+    ['Con rozamiento viscoso, para ángulos chicos', `\\[\\ddot\\theta+\\frac rm\\dot\\theta+\\omega_0^2\\theta=0\\ \\Rightarrow\\ \\theta=\\theta_0e^{-\\beta t}\\cos\\omega_dt,\\quad \\beta=\\frac r{2m}\\]`],
+    ['Dos oscilaciones completas: t = 2T', `\\[e^{-2\\beta T}=\\frac{1{,}5^\\circ}{2^\\circ}\\ \\Rightarrow\\ \\beta=\\frac{\\ln(4/3)}{2T}=0{,}0719\\ \\text{s}^{-1}\\]`],
+    ['Con m = 10 g', `\\[r=2m\\beta=\\frac{m\\ln(4/3)}T=1{,}44\\cdot10^{-3}\\ \\text{kg/s}\\]`,true],
+    ['Con los valores actuales', `\\[\\beta=${tx(s.b,5)}\\ \\text{s}^{-1},\\quad \\omega_d=${tx(s.wd,5)}\\ \\text{vs}\\ \\omega_0=${tx(s.w0,5)}\\ \\text{s}^{-1}\\]`],
+  ], fin:`\\[r=\\frac{m\\ln(4/3)}{T}=1{,}44\\cdot10^{-3}\\ \\text{kg/s}\\]`}; }
+  if(SY==='p11'){ const s=s11(); return {title:'Resorte unido a una pared que oscila', finLbl:'Régimen permanente', steps:[
+    ['a) Fuerzas: el resorte, −k(x − x_p − l₀), y la viscosa, −rẋ (el peso y la normal se cancelan)', `\\[m\\ddot x=-k\\,(x-L\\cos\\omega t-l_0)-r\\dot x\\]`],
+    ['Con u = x − l₀', `\\[m\\ddot u+r\\dot u+ku=kL\\cos\\omega t\\]`],
+    ['b) Solución: transitorio amortiguado más permanente', `\\[u=e^{-\\beta t}(C_1\\cos\\omega_dt+C_2\\sin\\omega_dt)+A\\cos(\\omega t-\\delta)\\]`],
+    ['Amplitud y fase del permanente', `\\[A=\\frac{kL}{\\sqrt{(k-m\\omega^2)^2+r^2\\omega^2}}=${tx(s.A*100,3)}\\ \\text{cm},\\quad \\tan\\delta=\\frac{r\\omega}{k-m\\omega^2}\\ (\\delta=${tx(deg(s.d),1)}^\\circ)\\]`,true],
+    ['Con ω = ω₀: δ = 90°; la velocidad de la partícula queda en fase con la posición de la pared', `\\[u=\\frac{kL}{r\\omega_0}\\sin\\omega_0t,\\qquad \\dot u\\propto\\cos\\omega_0t\\propto x_p(t)\\]`],
+  ], fin:`\\[A_{\\text{res}}=\\frac{kL}{r\\omega_0}=L\\frac{\\sqrt{km}}r\\]`}; }
+  const s=s12(); return {title:'Resorte con rozamiento seco', finLbl:'Dónde y cuándo se detiene', steps:[
+    ['a) El rozamiento dinámico vale µ_d mg y se opone a la velocidad', `\\[m\\ddot x=-kx-\\mu_dmg\\,\\text{sgn}(\\dot x)\\]`],
+    ['En cada tramo con velocidad de signo fijo es un oscilador centrado en ∓δ, con δ = µ_d mg/k: dura T/2 y termina con velocidad nula', `\\[x_{n+1}=-x_n\\pm2\\delta\\ \\Rightarrow\\ |x_{n+1}|=|x_n|-2\\delta\\]`,true],
+    ['Se detiene en la primera detención con k|x| ≤ µₑmg', `\\[|x_n|\\le\\frac{\\mu_emg}k\\]`],
+    ['b) Con x₀ = Nδ y µₑ < 2µ_d: N = 4 → 4, −2, 0 (se detiene en l₀, t = T); N = 7 → 7, −5, 3, −1 (se detiene en −δ, t = 3T/2)', `\\[\\text{actual: }t=${tx(s.tStop,3)}\\ \\text{s},\\ x=${tx(s.eStop*100,2)}\\ \\text{cm},\\ ${s.changes}\\ \\text{cambios de sentido}\\]`],
+    ['c) Con rozamiento viscoso la amplitud cae en proporción fija y el movimiento no termina nunca', `\\[x_n\\propto e^{-\\beta nT/2}\\]`],
+  ], fin:`\\[\\Delta|x|=2\\mu_d\\frac{mg}k\\ \\text{por cada media oscilación}\\]`};
+}
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Datos de la guía</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const GUIA={p6:[['L = 80 cm, θ̇₀ = 0,2 s⁻¹',()=>Object.assign(P,{L:0.8,wd0:0.2})]], p10:[['m = 10 g, T = 2 s, 2° → 1,5°',()=>Object.assign(P,{mp:0.01,T0:2,A0:2,rp:2*0.01*Math.log(4/3)/(2*2)})]],
+  p11:[['b · ω = √(k/m)',()=>{ P.wr=1; }]], p12:[['b · N = 4',()=>{ Object.assign(P,{mue:0.3,mud:0.2}); P.x0=4*0.2*P.m*G0/P.k; }],['b · N = 7',()=>{ Object.assign(P,{mue:0.3,mud:0.2}); P.x0=7*0.2*P.m*G0/P.k; }]]};
+const NOTE={p6:'El péndulo parte de la vertical con velocidad angular θ̇₀. El tenue es la aproximación armónica.', p10:'El péndulo oscila en un medio viscoso. Ángulos chicos.', p11:'La pared oscila con x_p = L cos ωt. Parte con el resorte sin estirar y la partícula quieta.', p12:'Parte en reposo con el resorte estirado x₀. µₑ < 2µ_d, como pide la guía.'};
+const VB={p6:['θ en el tiempo','Retrato de fase'],p10:['θ en el tiempo','Amplitud por oscilación'],p11:['En el tiempo','Curva de resonancia'],p12:['x en el tiempo','Detenciones']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]);
+  $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p6',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Aceleración lineal G5-P1 a P3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 5 · No inerciales</span>
+  <h1>Sistemas con aceleración lineal <i>· la fuerza de inercia es −m a, y solo existe adentro</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 5">
+    <h2>Guía 5</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P1–3</b>Aceleración lineal</a></li>
+      <li><a href="p4-planos-vagones.html"><b class="code">P4–7</b>Planos, vagones y riel</a></li>
+      <li><a href="p8-marcos-rotantes.html"><b class="code">P8–11</b>Marcos rotantes</a></li>
+      <li><a href="p12-aro-silla.html"><b class="code">P12, 13</b>Aro que gira y silla voladora</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="Un paquete en el piso de un colectivo que arranca, dos masas en una polea dentro de un ascensor, o una masa con resorte sobre una plataforma que acelera, cada uno visto desde afuera y desde adentro."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p1" aria-pressed="true">P1 · paquete en el colectivo</button>
+        <button data-sy="p2" aria-pressed="false">P2 · polea en el ascensor</button>
+        <button data-sy="p3" aria-pressed="false">P3 · plataforma con resorte</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Vista 1</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Vista 2</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G5-P1 a P3</summary>
+      <p><b>1.</b> En el piso de un colectivo está apoyado un paquete de masa m. El colectivo parte del reposo con una aceleración constante, a. Decir cuáles son las fuerzas aplicadas sobre el paquete, cuáles son de interacción y cuáles de inercia y describir el movimiento del paquete visto por un observador en el colectivo y por otro que está en la calle, en los casos:</p>
+      <p>a) El paquete no desliza sobre el piso del colectivo. Para este caso calcule, además, la relación entre la máxima aceleración que puede tener el colectivo y el coeficiente de rozamiento estático entre el paquete y el piso.<br>b) Se reduce a cero el rozamiento entre el paquete y el piso (por ejemplo, apoyando el paquete en un carrito).</p>
+      <p><b>2.</b> Dos masas, m₁ y m₂, penden de los extremos de un hilo inextensible que pasa a través de una polea ideal fija al techo de un ascensor. Halle la aceleración de las masas para un observador que se halla dentro del ascensor y para otro que se halla quieto afuera del ascensor si:</p>
+      <p>a) El ascensor sube con velocidad constante.<br>b) El ascensor sube con aceleración a.<br>c) El ascensor baja con aceleración a.<br>d) Se corta el cable del ascensor.</p>
+      <p><b>3.</b> Una masa m, en reposo sobre una plataforma horizontal exenta de rozamiento, está sujeta al extremo de un resorte de la manera indicada en la figura. La constante elástica del resorte es k. Súbitamente se pone en movimiento la plataforma con una aceleración constante a, en la dirección horizontal. (En la figura, el resorte une la masa con la parte de atrás de la plataforma, y a apunta hacia adelante.)</p>
+      <p>a) Dibuje las fuerzas que actúan sobre la masa en un sistema de referencia unido a la plataforma y luego en otro, exterior a ella, en reposo.<br>b) Describa el movimiento de m respecto de la plataforma.<br>c) Si la plataforma tiene masa M, determinar la fuerza necesaria para mantener constante su aceleración.</p>
+      <p class="src">Física 1, Guía 5 (Sistemas no inerciales). Enunciado textual de la guía; entre paréntesis, lo que muestra la figura. «Baja con aceleración a» se interpreta como acelerando hacia abajo. La guía da solo símbolos: la página elige valores de partida. g = 9,8 m/s².</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Soluciones analíticas exactas. Cada escena se muestra dos veces: arriba desde la calle (sistema inercial) y abajo desde el vehículo (no inercial), donde aparece la fuerza de inercia −m a. Colores: celeste, el paquete o m₁; rosa, m₂; verde, las fuerzas de interacción; lila de trazos, las fuerzas de inercia; amarillo, el hilo y la tensión.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G5-P1 a P3 · Sistemas con aceleración lineal =================
+const G0=9.8, sq=Math.sqrt;
+const DEF=[
+  {id:'a',lab:'a',unit:'m/s²',min:0,max:10,step:0.01,dec:2},
+  {id:'mue',lab:'µₑ',unit:'',min:0,max:1,step:0.01,dec:2},
+  {id:'mud',lab:'µ_d',unit:'',min:0,max:1,step:0.01,dec:2},
+  {id:'m1',lab:'m₁',unit:'kg',min:0.1,max:5,step:0.01,dec:2},
+  {id:'m2',lab:'m₂',unit:'kg',min:0.1,max:5,step:0.01,dec:2},
+  {id:'A',lab:'A (ascensor, + hacia arriba)',unit:'m/s²',min:-9.8,max:10,step:0.01,dec:2},
+  {id:'v0',lab:'v₀ del ascensor',unit:'m/s',min:-3,max:3,step:0.01,dec:2},
+  {id:'m',lab:'m',unit:'kg',min:0.1,max:5,step:0.01,dec:2},
+  {id:'M',lab:'M',unit:'kg',min:0.1,max:20,step:0.1,dec:1},
+  {id:'k',lab:'k',unit:'N/m',min:1,max:200,step:0.1,dec:1},
+];
+const PS={p1:{a:2,mue:0.4,mud:0.3,m:1}, p2:{m1:3,m2:1,A:2,v0:0}, p3:{m:1,M:5,k:20,a:2}};
+const SHOW={p1:['a','mue','mud','m'],p2:['m1','m2','A','v0'],p3:['m','M','k','a']};
+const P={a:2,mue:0.4,mud:0.3,m1:3,m2:1,A:2,v0:0,m:1,M:5,k:20}; let SY='p1';
+// ---- P1 ----
+const LB=4, X0=2.5, HALF=0.3;
+function s1(){ const slip=P.a>P.mue*G0+1e-12, ap=slip?Math.min(P.mud,P.mue)*G0:P.a, ar=ap-P.a, th=slip&&ar<0?sq(2*(X0-HALF)/(-ar)):Infinity; return {slip,ap,ar,th,f:P.m*ap}; }
+function pos1(t){ const s=s1(), xb=P.a*t*t/2; if(!s.slip||t<=s.th) return {xb,xr:X0+s.ar*t*t/2}; return {xb,xr:HALF}; }
+// ---- P2: dentro del ascensor g' = g + A; m₁ baja (respecto del ascensor) con a_rel ----
+function s2(){ const gp=G0+P.A, ar=(P.m1-P.m2)*gp/(P.m1+P.m2), T=2*P.m1*P.m2*gp/(P.m1+P.m2); return {gp,ar,T,a1:P.A-ar,a2:P.A+ar}; }       // a₁, a₂: hacia arriba, vistas desde afuera
+const H2=3, Y10=1.6, Y20=1.6;
+function tEnd2(){ const s=s2(); if(Math.abs(s.ar)<1e-9) return 1.5; return Math.min(1.5,sq(2*1.0/Math.abs(s.ar))); }
+// ---- P3: u = desplazamiento de m respecto de su posición inicial en la plataforma ----
+function s3(){ const w=sq(P.k/P.m), x=P.m*P.a/P.k; return {w,x,T:2*Math.PI/w}; }
+const u3=t=>{ const s=s3(); return -s.x*(1-Math.cos(s.w*t)); };
+const F3=t=>P.M*P.a+P.m*P.a*(1-Math.cos(s3().w*t));
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return SY==='p1'?3:SY==='p2'?tEnd2():Math.max(3*s3().T,2); }
+function step(dt){ S.t+=dt; if(S.t>tEnd()+0.8) S.t=0; }
+function farrow(ctx,x,y,dx,dy,col,lab,side,dash){ if(Math.hypot(dx,dy)<3) return; arrow(ctx,x,y,x+dx,y+dy,col,2.2,7,dash); if(!lab) return; const r=side?side==='r':dx>=0;
+  txt(ctx,lab,x+dx+(r?6:-6),y+dy+(dy>0?10:-2),col,{align:r?'left':'right',size:11.5}); }
+function box(ctx,x,y,w,h,col,lab){ ctx.fillStyle=C['panel-2']; ctx.fillRect(x,y,w,h); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.strokeRect(x,y,w,h); if(lab) txt(ctx,lab,x+w/2,y+h/2+4,col,{align:'center',size:11.5,font:UI,weight:600}); }
+function spring(ctx,x0,y0,x1,y1,n,wd,col){ const L=Math.hypot(x1-x0,y1-y0); if(L<3) return; const ux=(x1-x0)/L, uy=(y1-y0)/L, pts=[[x0,y0]]; for(let i=1;i<2*n;i++){ const s=L*i/(2*n), o=i%2?wd:-wd; pts.push([x0+ux*s-uy*o,y0+uy*s+ux*o]); } pts.push([x1,y1]); line(ctx,pts,col,1.6); }
+function bus(ctx,x,y,len,ht){ ctx.fillStyle=C.panel; ctx.fillRect(x,y-ht,len,ht); ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.strokeRect(x,y-ht,len,ht); [0.2,0.8].forEach(f=>{ ctx.fillStyle=C.line; ctx.beginPath(); ctx.arc(x+len*f,y+8,8,0,7); ctx.fill(); }); }
+function drawP1(ctx,w,h){ const t=Math.min(S.t,tEnd()), s=s1(), p=pos1(t), hh=h/2, T=tEnd(), k1=(w-60)/(LB+P.a*T*T/2+0.5), k2=(w-80)/LB, bh=46, pk=24;
+  txt(ctx,'desde la calle',12,18,C.muted,{size:11.5}); const gy=hh-18; line(ctx,[[10,gy+16],[w-10,gy+16]],C.muted,1.5); for(let i=0;i<30;i++){ const xm=20+i*k1; if(xm<w) line(ctx,[[xm,gy+16],[xm-5,gy+22]],C.faint,1); }
+  const bx=20+p.xb*k1; bus(ctx,bx,gy,LB*k1,bh); box(ctx,bx+(p.xr-HALF)*k1,gy-pk,2*HALF*k1,pk,C.sys,''); if(Math.abs(s.f)>0) farrow(ctx,bx+p.xr*k1,gy-pk/2,Math.min(60,s.f*12),0,C.ok,'f','r');
+  line(ctx,[[10,hh],[w-10,hh]],C.line,1); txt(ctx,'desde el colectivo',12,hh+18,C.muted,{size:11.5}); const gy2=h-20, bx2=40; bus(ctx,bx2,gy2,LB*k2,bh+10);
+  const px=bx2+p.xr*k2; box(ctx,px-HALF*k2,gy2-pk,2*HALF*k2,pk,C.sys,'m'); const fi=P.m*P.a*12; if(s.th>t||!s.slip){ farrow(ctx,px,gy2-pk/2,-Math.min(70,fi),0,C.lin,'−m a (inercia)','l',[5,4]); if(s.f>0) farrow(ctx,px,gy2-pk-6,Math.min(70,s.f*12),0,C.ok,'f (piso)','r'); }
+  txt(ctx,`t = ${cm(t,2)} s · ${s.slip?(t<s.th?'desliza hacia atrás':'chocó con el fondo'):'va con el colectivo'}`,w-12,hh+18,s.slip?C.a:C.ok,{align:'right',size:11.5});
+  readout([['máxima a sin deslizar',cm(P.mue*G0,3)+' m/s²',C.ok],['a del paquete (calle)',cm(s.ap,3)+' m/s²',C.sys],['a relativa',cm(s.ar,3)+' m/s²'],['rozamiento',cm(s.f,3)+' N',C.ok]]);
+  $('formula').innerHTML=`<b>calle:</b> el único empuje horizontal es el rozamiento: m a_p = f ≤ µₑmg → a_máx = µₑg · <b>colectivo:</b> f − m a = m a_rel (−m a es la fuerza de inercia, sin par de interacción)`;
+}
+function drawP2(ctx,w,h){ const t=Math.min(S.t,tEnd2()), s=s2(), half=w/2, q=t*t/2, y1=Y10+s.ar*q, y2=Y20-s.ar*q;
+  // ascensor con escala sc (px/m); (ox, oy): esquina superior izquierda
+  const draw=(ox,oy,sc,lab)=>{ const ew=1.6*sc, eh=H2*sc; ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.strokeRect(ox,oy,ew,eh); const px=ox+ew/2, py=oy+0.25*sc, r=0.18*sc; line(ctx,[[px,oy],[px,py]],C.muted,2); ctx.strokeStyle=C.v; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(px,py,r,Math.PI,2*Math.PI); ctx.stroke();
+    const Y=v=>py+v*sc; line(ctx,[[px-r,py],[px-r,Y(y1)]],C.v,1.5); line(ctx,[[px+r,py],[px+r,Y(y2)]],C.v,1.5); ctx.fillStyle=C.panel; ctx.strokeStyle=C.muted; ctx.beginPath(); ctx.arc(px,py,r,0,7); ctx.fill(); ctx.stroke();
+    const b1=(0.28+0.06*Math.cbrt(P.m1))*sc, b2=(0.28+0.06*Math.cbrt(P.m2))*sc; box(ctx,px-r-b1/2,Y(y1),b1,b1,C.sys,sc>40?'m₁':''); box(ctx,px+r-b2/2,Y(y2),b2,b2,C.sob,sc>40?'m₂':''); txt(ctx,lab,ox+ew/2,oy-6,C.muted,{align:'center',size:11}); };
+  const k=(h-60)/H2; draw(half*0.5-0.8*k,40,k,'dentro del ascensor');
+  line(ctx,[[half,30],[half,h-10]],C.line,1);
+  const Te=tEnd2(), ys=[0,P.v0*Te+P.A*Te*Te/2]; if(P.A!==0){ const tv=-P.v0/P.A; if(tv>0&&tv<Te) ys.push(P.v0*tv+P.A*tv*tv/2); } const lo=Math.min(...ys), hi=Math.max(...ys), sc=Math.min(k*0.6,(h-50)/(H2+hi-lo));
+  const dy=P.v0*t+P.A*q, oy=30+(hi-dy)*sc; line(ctx,[[half+20,h-12],[w-20,h-12]],C.faint,1); draw(half+half*0.5-0.8*sc,oy,sc,'desde afuera');
+  if(Math.abs(P.A)>1e-6) farrow(ctx,half+half*0.5+0.8*sc+20,oy+H2*sc/2,0,-Math.sign(P.A)*40,C.lin,'A','r');
+  txt(ctx,`t = ${cm(t,2)} s`,12,18,C.muted,{size:11.5});
+  readout([['g efectiva g + A',cm(s.gp,3)+' m/s²'],['a de m₁ (dentro, hacia abajo)',cm(s.ar,3)+' m/s²',C.sys],['a de m₁ y m₂ (afuera, hacia arriba)',`${cm(s.a1,3)} · ${cm(s.a2,3)} m/s²`],['tensión',cm(s.T,3)+' N',C.v]]);
+  $('formula').innerHTML=`<b>dentro:</b> la fuerza de inercia −mA se suma al peso: todo pasa como con g' = g + A → a_rel = (m₁ − m₂)g'/(m₁ + m₂) · <b>afuera:</b> a = A ∓ a_rel`;
+}
+function drawP3(ctx,w,h){ const t=Math.min(S.t,tEnd()), s=s3(), u=u3(t), hh=h/2, LP=3, l0=1.6, T=tEnd(), k1=(w-60)/(LP+P.a*T*T/2+0.3), k2=(w-80)/LP, pk=26;
+  const plat=(ox,gy,kk,lab)=>{ ctx.fillStyle=C.panel; ctx.fillRect(ox,gy,LP*kk,10); ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.strokeRect(ox,gy,LP*kk,10); ctx.fillStyle=C.line; ctx.fillRect(ox,gy-50,6,50); [0.15,0.85].forEach(f=>{ ctx.beginPath(); ctx.arc(ox+LP*kk*f,gy+18,7,0,7); ctx.fill(); });
+    const mx=ox+(l0+u)*kk; spring(ctx,ox+6,gy-pk/2,mx-pk/2,gy-pk/2,10,6,C.ok); box(ctx,mx-pk/2,gy-pk,pk,pk,C.sys,'m'); txt(ctx,lab,12,gy-58,C.muted,{size:11.5}); return mx; };
+  const xp=P.a*t*t/2; const g1=hh-26; line(ctx,[[10,g1+26],[w-10,g1+26]],C.muted,1.5); const sp=0.5*k2, off=((xp*k2)%sp+sp)%sp; for(let x=w-10+sp-off;x>10;x-=sp) line(ctx,[[x,g1+26],[x-6,g1+32]],C.faint,1);
+  const mx1=plat(40,g1,k2,'desde afuera (la cámara sigue a la plataforma; el piso corre hacia atrás)'); farrow(ctx,mx1,g1-pk/2,P.k*(-u)>0.01?Math.min(60,P.k*(-u)*6):0,0,C.ok,'resorte','r');
+  line(ctx,[[10,hh],[w-10,hh]],C.line,1); const g2=h-30; const mx2=plat(40,g2,k2,'desde la plataforma'); farrow(ctx,mx2,g2-pk/2-14,-Math.min(60,P.m*P.a*6),0,C.lin,'−m a','l',[5,4]); if(-u>1e-4) farrow(ctx,mx2,g2-pk/2+8,Math.min(60,P.k*(-u)*6),0,C.ok,'resorte','r');
+  line(ctx,[[40+(l0-s.x)*k2,g2+28],[40+(l0-s.x)*k2,g2+36]],C.lin,2); txt(ctx,`t = ${cm(t,2)} s`,w-12,hh+18,C.muted,{align:'right',size:11.5});
+  readout([['u (respecto de la plataforma)',cm(u*100,2)+' cm',C.sys],['centro de la oscilación −ma/k',cm(-s.x*100,2)+' cm',C.lin],['período',cm(s.T,3)+' s'],['F sobre la plataforma',cm(F3(t),3)+' N',C.v]]);
+  $('formula').innerHTML=`<b>plataforma:</b> m ü = −k u − m a → oscila alrededor de −ma/k · <b>afuera:</b> la plataforma necesita F = M a + (fuerza del resorte) = M a + m a(1 − cos ωt)`;
+}
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); ({p1:drawP1,p2:drawP2,p3:drawP3})[SY](ctx,w,h); }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const samp=(f,a,b,N=300)=>Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; });
+function bars(id,items){ const m=Math.max(1,...items.map(i=>Math.abs(i[1])))*1.2, F=frame($(id),{x0:0,x1:items.length,y0:-m,y1:m,xt:[]}); const {ctx,X,Y}=F;
+  items.forEach(([l,v,c],i)=>{ const x=X(i+0.5); ctx.fillStyle=c; ctx.fillRect(x-16,Math.min(Y(0),Y(v)),32,Math.abs(Y(v)-Y(0))); txt(ctx,l,x,Y(-m)+2,c,{align:'center',base:'top',size:11.5,font:UI}); txt(ctx,cm(v,2),x,v>=0?Y(v)-6:Y(v)+14,C.fg,{align:'center',size:11}); }); line(ctx,[[X(0),Y(0)],[X(items.length),Y(0)]],C.muted,1.2); }
+function drawV1(){ const te=tEnd(), t=Math.min(S.t,te);
+  if(SY==='p1'){ plot('p1c',0,te,[[samp(x=>P.a*x*x/2+LB,0,te),C.muted],[samp(x=>{ const p=pos1(x); return p.xb+p.xr; },0,te),C.sys],[samp(x=>P.a*x*x/2,0,te),C.muted,[4,4]]],'t (s)',{mark:(ctx,X,Y)=>{ const p=pos1(t); dot(ctx,X(t),Y(p.xb+p.xr),4.5,C.sys); }});
+    $('tag1').textContent='Posiciones vistas desde la calle (m)'; legend('leg1',[[C.sys,'paquete'],[C.muted,'frente y fondo del colectivo']]);
+    $('cap1').textContent=P.mue===0&&P.mud===0?'Sin rozamiento, desde la calle el paquete no se mueve: nada lo empuja. Desde el colectivo parece ir hacia atrás con aceleración −a, «empujado» por la fuerza de inercia.':(s1().slip?'El paquete acelera menos que el colectivo (solo lo empuja el rozamiento dinámico) y termina chocando con el fondo.':'El paquete acelera junto con el colectivo: el rozamiento estático lo empuja con m a.'); return; }
+  if(SY==='p2'){ const s=s2(); bars('p1c',[['m₁ dentro',-s.ar,C.sys],['m₂ dentro',s.ar,C.sob],['m₁ afuera',s.a1,C.sys],['m₂ afuera',s.a2,C.sob],['ascensor',P.A,C.lin]]);
+    $('tag1').textContent='Aceleraciones (m/s², positivas hacia arriba)'; legend('leg1',[]); $('cap1').textContent=Math.abs(s.gp)<1e-9?'Con el cable cortado, dentro del ascensor no hay gravedad efectiva: las masas no se mueven una respecto de la otra. Afuera, todo cae con g.':'Afuera, cada aceleración es la del ascensor más la relativa: a = A ∓ a_rel.'; return; }
+  plot('p1c',0,te,[[samp(x=>u3(x)*100,0,te),C.sys],[samp(()=>-s3().x*100,0,te),C.lin,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>dot(ctx,X(t),Y(u3(t)*100),4.5,C.sys)});
+  $('tag1').textContent='Desplazamiento de m respecto de la plataforma (cm)'; legend('leg1',[[C.sys,'u(t)'],[C.lin,'−ma/k','dashed']]); $('cap1').textContent='La masa se va hacia atrás y oscila alrededor de −ma/k, con la frecuencia del resorte. Nunca se adelanta a su posición inicial.'; }
+function drawV2(){
+  if(SY==='p1'){ plot('p2c',0,10,[[samp(a=>a<=P.mue*G0?P.m*a:P.m*Math.min(P.mud,P.mue)*G0,0,10),C.ok],[samp(()=>P.mue*P.m*G0,0,10),C.ok,[5,4]]],'a del colectivo (m/s²)',{y0:0,mark:(ctx,X,Y)=>dot(ctx,X(P.a),Y(s1().f),4.5,C.ok)});
+    $('tag2').textContent='Rozamiento sobre el paquete (N)'; legend('leg2',[[C.ok,'f'],[C.ok,'µₑmg','dashed']]); $('cap2').textContent=`Hasta a = µₑg = ${cm(P.mue*G0,2)} m/s² el rozamiento estático vale m a y el paquete acompaña. Más allá desliza y el rozamiento baja a µ_d mg.`; return; }
+  if(SY==='p2'){ plot('p2c',-9.8,10,[[samp(A=>2*P.m1*P.m2*(G0+A)/(P.m1+P.m2),-9.8,10),C.v],[samp(A=>(P.m1-P.m2)*(G0+A)/(P.m1+P.m2),-9.8,10),C.sys,[5,4]]],'A (m/s²)',{mark:(ctx,X,Y)=>{ const s=s2(); dot(ctx,X(P.A),Y(s.T),4.5,C.v); dot(ctx,X(P.A),Y(s.ar),4.5,C.sys); }});
+    $('tag2').textContent='Tensión (N) y aceleración relativa (m/s²) según A'; legend('leg2',[[C.v,'T'],[C.sys,'a_rel','dashed']]); $('cap2').textContent='Las dos rectas se anulan en A = −g: en caída libre no hay tensión ni movimiento relativo.'; return; }
+  const te=tEnd(); plot('p2c',0,te,[[samp(F3,0,te),C.v],[samp(()=>(P.M+P.m)*P.a,0,te),C.faint,[5,4]]],'t (s)',{y0:0,mark:(ctx,X,Y)=>dot(ctx,X(Math.min(S.t,te)),Y(F3(Math.min(S.t,te))),4.5,C.v)});
+  $('tag2').textContent='Fuerza necesaria sobre la plataforma (N)'; legend('leg2',[[C.v,'F(t)'],[C.faint,'(M + m)a','dashed']]); $('cap2').textContent='La fuerza oscila alrededor de (M + m)a: el resorte transmite a la plataforma lo que necesita m para acelerar, y eso cambia mientras m oscila.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p1:{ q:'Si el paquete va sobre un carrito, sin rozamiento, visto desde la calle…',
+    opts:[['atras','va hacia atrás'],['quieto','se queda quieto'],['acom','acelera con el colectivo']], right:'quieto', go:'Probalo: inciso b',
+    run(){ Object.assign(P,{mue:0,mud:0}); restart(); refresh(); return 'Se queda quieto: ninguna fuerza horizontal actúa sobre él. Es el colectivo el que avanza por debajo. El pasajero, en cambio, lo ve ir hacia atrás con aceleración −a, y lo explica con una fuerza de inercia que no tiene par de interacción.'; } },
+  p2:{ q:'Si se corta el cable del ascensor, vistas desde adentro, las masas…',
+    opts:[['igual','se mueven igual que antes'],['quietas','dejan de acelerar una respecto de la otra'],['caen','caen al piso del ascensor']], right:'quietas', go:'Probalo: inciso d',
+    run(){ P.A=-G0; P.v0=0; restart(); refresh(); return 'Dejan de acelerar: en caída libre la fuerza de inercia −m(−g) cancela exactamente el peso, g\' = 0. La tensión se anula y la polea no hace nada.'; } },
+  p3:{ q:'Cuando la plataforma arranca, vista desde la plataforma, la masa…',
+    opts:[['quieta','se queda quieta'],['osc','se va hacia atrás y oscila'],['sigue','se va hacia atrás sin parar']], right:'osc', go:'Probalo',
+    run(){ restart(); setView('v1'); return `Se va hacia atrás y oscila alrededor de −ma/k = ${cm(-s3().x*100,1)} cm, con período 2π√(m/k). Desde afuera, la masa arranca más tarde que la plataforma y la alcanza cuando el resorte la empuja.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p1:[
+    {txt:'Con µₑ = 0,4, encontrá la mayor aceleración del colectivo con la que el paquete no desliza (hasta 1 % por debajo).',
+     chk(){ if(Math.abs(P.mue-0.4)>0.005) return [false,'Primero poné µₑ = 0,4']; const am=0.4*G0; return !s1().slip&&P.a>=0.99*am?[true,`Logrado: a_máx = µₑg = ${cm(am,2)} m/s². No depende de la masa del paquete.`]:[false,s1().slip?'Ahora desliza':`Ahora a = ${cm(P.a,2)} m/s²: se puede más`]; }},
+    {txt:'Para el pasajero, ¿cuál es el par de interacción de la fuerza de inercia? ¿Y el del rozamiento?'},
+  ],
+  p2:[
+    {txt:'Con m₁ = 3 kg y m₂ = 1 kg, elegí A para que, visto desde afuera, m₁ no se mueva (aceleración menor que 0,05 m/s²).',
+     chk(){ if(Math.abs(P.m1-3)>0.005||Math.abs(P.m2-1)>0.005) return [false,'Primero poné m₁ = 3 kg y m₂ = 1 kg']; const a=s2().a1; return Math.abs(a)<0.05?[true,`Logrado: A = ${cm(P.A,2)} m/s². Exacto: A = g = 9,8 m/s²: el ascensor sube tan rápido como m₁ baja respecto de él.`]:[false,`Ahora m₁ acelera ${cm(a,3)} m/s²`]; }},
+    {txt:'¿Qué marca un dinamómetro que sostiene la polea en cada uno de los cuatro casos?'},
+  ],
+  p3:[
+    {txt:'Con m = 1 kg y a = 2 m/s², elegí k para que la masa no se aleje más de 10 cm de su posición inicial (hasta 2 % menos).',
+     chk(){ if(Math.abs(P.m-1)>0.005||Math.abs(P.a-2)>0.005) return [false,'Primero poné m = 1 kg y a = 2 m/s²']; const d=2*s3().x; return d<=0.1&&d>=0.098?[true,`Logrado: k = 2ma/0,1 = 40 N/m. La masa llega hasta 2ma/k, el doble del centro de la oscilación.`]:[false,`Ahora se aleja ${cm(d*100,2)} cm`]; }},
+    {txt:'Si la plataforma frena de golpe hasta quedar quieta, ¿cómo sigue el movimiento de la masa?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p1'){ const s=s1(); return {title:'Paquete en el colectivo', finLbl:'Aceleración máxima sin deslizar', steps:[
+    ['Fuerzas de interacción: peso (Tierra), normal y rozamiento (piso). Desde el colectivo se agrega la de inercia, −ma, que no tiene par', `\\[N=mg,\\qquad f\\le\\mu_eN\\]`],
+    ['a) Sin deslizar, desde la calle el paquete acelera con a: lo empuja el rozamiento', `\\[f=ma\\le\\mu_emg\\ \\Rightarrow\\ a_{\\max}=\\mu_eg=${tx(P.mue*G0,3)}\\ \\text{m/s}^2\\]`,true],
+    ['Desde el colectivo está quieto: el rozamiento equilibra la fuerza de inercia', `\\[f-ma=0\\]`],
+    ['b) Sin rozamiento: desde la calle queda quieto; desde el colectivo acelera hacia atrás', `\\[a_{\\text{calle}}=0,\\qquad a_{\\text{colectivo}}=-a\\]`],
+  ], fin:`\\[a_{\\max}=\\mu_e\\,g\\]`}; }
+  if(SY==='p2'){ const s=s2(); return {title:'Polea en el ascensor', finLbl:'Aceleraciones', steps:[
+    ['Dentro del ascensor, a cada masa se suma la fuerza de inercia −mA: equivale a una gravedad g′ = g + A', `\\[m_1a_r=m_1g'-T,\\qquad m_2a_r=T-m_2g'\\]`],
+    ['Aceleración relativa (m₁ hacia abajo) y tensión', `\\[a_r=\\frac{m_1-m_2}{m_1+m_2}\\,g'=${tx(s.ar,3)},\\qquad T=\\frac{2m_1m_2}{m_1+m_2}\\,g'=${tx(s.T,3)}\\ \\text{N}\\]`,true],
+    ['Desde afuera (positivo hacia arriba)', `\\[a_1=A-a_r=${tx(s.a1,3)},\\qquad a_2=A+a_r=${tx(s.a2,3)}\\ \\text{m/s}^2\\]`],
+    ['Casos: a) A = 0; b) A = +a; c) A = −a; d) A = −g, g′ = 0', `\\[\\text{d)}\\ a_r=0,\\ T=0,\\ a_1=a_2=-g\\]`],
+  ], fin:`\\[a_r=\\frac{m_1-m_2}{m_1+m_2}\\,(g+A)\\]`}; }
+  const s=s3(); return {title:'Plataforma con resorte', finLbl:'Movimiento relativo y fuerza', steps:[
+    ['a) Desde afuera: sobre m actúan el peso, la normal y el resorte. Desde la plataforma, además, −ma', `\\[m\\ddot u=-ku-ma\\]`],
+    ['b) Oscila alrededor de −ma/k; parte de u = 0 en reposo', `\\[u(t)=-\\frac{ma}k\\,(1-\\cos\\omega t),\\qquad \\omega=\\sqrt{\\frac km}=${tx(s.w,3)}\\ \\text{s}^{-1}\\]`,true],
+    ['c) Sobre la plataforma: la fuerza aplicada y la del resorte (−k u hacia atrás, por acción y reacción)', `\\[F=Ma-ku=Ma+ma\\,(1-\\cos\\omega t)\\]`],
+  ], fin:`\\[F(t)=Ma+ma\\,(1-\\cos\\omega t)\\]`};
+}
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Datos de la guía</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const GUIA={p1:[['a · con rozamiento',()=>Object.assign(P,{mue:0.4,mud:0.3,a:2})],['b · sin rozamiento',()=>Object.assign(P,{mue:0,mud:0})]],
+  p2:[['a · sube con v constante',()=>Object.assign(P,{A:0,v0:1})],['b · sube con aceleración a',()=>Object.assign(P,{A:2,v0:0})],['c · baja con aceleración a',()=>Object.assign(P,{A:-2,v0:0})],['d · se corta el cable',()=>Object.assign(P,{A:-G0,v0:0})]], p3:[]};
+const NOTE={p1:'Arriba, desde la calle; abajo, desde el colectivo. El colectivo parte del reposo.', p2:'A la izquierda, desde adentro; a la derecha, desde afuera. Las masas parten en reposo respecto del ascensor.', p3:'Arriba, desde afuera; abajo, desde la plataforma, que arranca de golpe con aceleración a.'};
+const VB={p1:['Posiciones','Rozamiento según a'],p2:['Aceleraciones','Según A'],p3:['Movimiento relativo','Fuerza necesaria']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]); $('guia').hidden=!GUIA[SY].length;
+  $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p1',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

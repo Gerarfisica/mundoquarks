@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simuladores de Biofísica | Mundo Quarks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #03050f;
+    --bg2: #070d1f;
+    --blue: #1a6cf5;
+    --blue-dim: #0d3a8a;
+    --cyan: #00d4ff;
+    --white: #eef2ff;
+    --gray: #8892b0;
+    --accent: #f5a623;
+    --card-bg: rgba(13, 25, 60, 0.6);
+    --border: rgba(26, 108, 245, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  #stars-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 4rem;
+    background: rgba(3, 5, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+  }
+  .nav-logo span { color: var(--cyan); }
+
+  .nav-back {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--cyan); }
+
+  .page-header {
+    position: relative;
+    z-index: 1;
+    padding: 10rem 4rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-label::after {
+    content: '';
+    display: block;
+    flex: 1;
+    max-width: 3rem;
+    height: 1px;
+    background: var(--cyan);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 4rem 8rem;
+  }
+
+  .guia-block { margin-bottom: 3.5rem; }
+
+  .guia-header {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--white);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .guia-src {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--gray);
+    white-space: nowrap;
+  }
+
+  .guia-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    background: rgba(0, 212, 255, 0.08);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    padding: 0.2rem 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .sim-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .sim-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .sim-list li::before {
+    content: '//';
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--blue-dim);
+    flex-shrink: 0;
+  }
+
+  .sim-list li a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    transition: color 0.2s;
+  }
+  .sim-list li a:hover { color: var(--cyan); }
+
+  .badge-disponible {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    color: #4caf82;
+    border: 1px solid rgba(76, 175, 130, 0.35);
+    padding: 0.1rem 0.4rem;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  footer p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gray);
+    letter-spacing: 0.05em;
+  }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .page-header, .content { padding-left: 1.5rem; padding-right: 1.5rem; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+  }
+  .sim-list li .sim-prox {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray);
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    opacity: 0.75;
+  }
+
+  .badge-proximamente {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--accent);
+    border: 1px solid rgba(245, 166, 35, 0.35);
+    padding: 0.1rem 0.4rem;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a>
+  <a href="simuladores.html" class="nav-back">← Simuladores</a>
+</nav>
+
+<div class="page-header fade-in">
+  <div class="section-label">Simuladores interactivos</div>
+  <h2 class="section-title">Simuladores de Biofísica</h2>
+  <p style="font-family:'Crimson Pro',serif; font-size:1.15rem; color:var(--gray); max-width:55ch; line-height:1.8; font-style:italic; font-weight:300;">
+    36 simuladores en preparación, organizados por materia y guía: CBC. Cada uno va a estar atado a los problemas que resuelve.
+  </p>
+</div>
+
+<div class="content">
+
+  <div class="guia-block fade-in">
+    <div class="guia-header">Biomecánica <span class="guia-src">CBC · Biofísica 53 · Unidad 1</span></div>
+    <ul class="sim-list">
+      <li><span class="sim-prox">Del gráfico a la historia (U1 1, 4, 6, 7, 18, 19; EM 3 a 5, 24)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">MRUV: tabla, gráfico y ecuación (U1 8 a 12; EM 1, 21, 25, 27; Adic 1P 8)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Caída libre y tiro vertical (U1 13 a 17; EM 2; Adic 1P 9)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Fuerzas y leyes de Newton (U1 20 a 28; EM 6 a 8, 11, 26; Adic 1P 3)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Plano inclinado contra caída libre (U1 29 a 31)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Energía mecánica: esquiador, patineta y hamaca (U1 32, 35, 38; EM 9, 12, 14, 19, 28)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Trabajo como área bajo F(x) (U1 33, 34, 37; EM 22, 23; Adic 1P 7)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Potencia y rendimiento muscular (U1 36, 39, 40; EM 15 a 18, 20)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+    </ul>
+  </div>
+
+  <div class="guia-block fade-in">
+    <div class="guia-header">Circulación y respiración <span class="guia-src">CBC · Biofísica 53 · Unidad 2</span></div>
+    <ul class="sim-list">
+      <li><span class="sim-prox">Presión hidrostática en el cuerpo (U2 1 a 4, 6 a 10; EM 3)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Continuidad: de la aorta a los capilares (U2 11, 12)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">La circulación como circuito (U2 22 a 24)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Gas ideal (U2 25 a 27)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Mezcla de gases y ley de Dalton (U2 28, 29)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Equilibrio líquido-vapor (U2 30 a 32)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Humedad relativa y punto de rocío (U2 33 a 35; Sel H1 a H10; Adic 2P 3, 9)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Difusión y ley de Fick (Dif/Ósm 1 a 7; Sel T1 a T7)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Ósmosis y presión osmótica (Dif/Ósm 8 a 12, 15; Sel T8, T9, T11, T12, T14 a T21, T23 a T25)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Glóbulo rojo en distintas soluciones (Dif/Ósm 12; Sel T10, T13)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Ósmosis inversa y diálisis (Dif/Ósm 13, 14, 16; Sel T22)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+    </ul>
+  </div>
+
+  <div class="guia-block fade-in">
+    <div class="guia-header">Termodinámica de los seres vivos <span class="guia-src">CBC · Biofísica 53 · Unidad 3</span></div>
+    <ul class="sim-list">
+      <li><span class="sim-prox">Calorimetría con cambio de fase (U3 1 a 10; Adic 2P 2)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Conducción del calor (U3 12, 13, 15; Adic 2P 4)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Radiación térmica (U3 16 a 19; Adic 2P 7)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Tamaño y metabolismo (U3 14, 27, 28)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Equivalente mecánico del calor (U3 21, 23 a 25, 47)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Primer principio en el diagrama pV (U3 11, 26, 29 a 33, 35 a 38; Adic 2P 1, 5)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Trabajo del corazón (U3 34)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Máquinas térmicas y heladeras (U3 39 a 43; Adic 2P 6)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Entropía del universo (U3 44 a 47; Adic 2P 8)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+    </ul>
+  </div>
+
+  <div class="guia-block fade-in">
+    <div class="guia-header">Fenómenos bioeléctricos <span class="guia-src">CBC · Biofísica 53 · Unidad 4</span></div>
+    <ul class="sim-list">
+      <li><span class="sim-prox">Electrón entre placas y Millikan (U4 3 a 6)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Capacitores (U4 7 a 10, 12, 13)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">La membrana celular como capacitor (U4 11, 30)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Resistividad: cobre, axón y goma (U4 16 a 19, 21)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Lamparitas en serie y en paralelo (U4 20, 25, 26, 28, 32 a 34)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Amperímetro y voltímetro (U4 29, 31, 35)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Potencia eléctrica y consumo (U4 24, 27; U1 EM 13)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+      <li><span class="sim-prox">Seguridad eléctrica (U4 22; programa 4.b)</span> <span class="badge-proximamente">PRÓXIMAMENTE</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2025–2026 Gerardo Pozzi — Mundo Quarks · Buenos Aires, Argentina · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <p>Licenciatura en Ciencias Físicas · <a href="index.html">← Volver al inicio</a></p>
+</footer>
+
+<script>
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function createParticles() {
+  particles = [];
+  const count = Math.floor((W * H) / 8000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.15,
+      alpha: Math.random() * 0.6 + 0.2, blue: Math.random() > 0.85
+    });
+  }
+}
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.blue ? `rgba(0,212,255,${p.alpha})` : `rgba(180,195,240,${p.alpha})`;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+  }
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) {
+        ctx.beginPath(); ctx.strokeStyle = `rgba(26,108,245,${0.08*(1-dist/120)})`;
+        ctx.lineWidth = 0.5; ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+resize(); createParticles(); drawParticles();
+window.addEventListener('resize', () => { resize(); createParticles(); });
+
+const faders = document.querySelectorAll('.fade-in');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => { entry.target.classList.add('visible'); }, i * 150);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+faders.forEach(fader => observer.observe(fader));
+</script>
+
+</body>
+</html>

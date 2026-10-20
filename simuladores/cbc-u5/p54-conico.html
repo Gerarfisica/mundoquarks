@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Péndulo cónico U5 54 a 64</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Física 03 · Unidad 5 · Dinámica</span>
+  <h1>Cuerdas que giran <i>· péndulos cónicos, sillas voladoras y cuerpos en fila</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Unidad 5">
+    <h2>Unidad 5</h2>
+    <ol>
+      <li><a href="p1-balde-ascensor.html"><b class="code">1 a 3, 7</b>Balde y ascensor</a></li>
+      <li><a href="p10-contacto.html"><b class="code">10, 11, 14, 32</b>Bloques en contacto</a></li>
+      <li><a href="p12-soga-masa.html"><b class="code">12, 13</b>Soga con masa</a></li>
+      <li><a href="p15-poleas.html"><b class="code">15 a 25</b>Sogas y poleas</a></li>
+      <li><a href="p26-rozamiento.html"><b class="code">26 a 31</b>Rozamiento</a></li>
+      <li><a href="p33-plano.html"><b class="code">5, 33, 34, 42, 43</b>Plano inclinado</a></li>
+      <li><a href="p37-bloque-sobre-bloque.html"><b class="code">37 a 40, 44, 45</b>Bloque sobre bloque</a></li>
+      <li><a href="p46-barra.html"><b class="code">46</b>Bloques con barra</a></li>
+      <li><a href="p48-viscoso.html"><b class="code">48</b>Rozamiento viscoso</a></li>
+      <li><a href="p57-curvas.html"><b class="code">49 a 51, 57 a 59</b>Curvas y peralte</a></li>
+      <li><a href="p52-circulo-vertical.html"><b class="code">52, 53, 56</b>Círculo vertical</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">54, 55, 60 a 64</b>Péndulo cónico</a></li>
+      <li><a href="p65-gira-resorte.html"><b class="code">65, 94, 95</b>Masa que gira</a></li>
+      <li><a href="p67-gravitacion.html"><b class="code">67 a 79</b>Gravitación</a></li>
+      <li><a href="p80-resortes.html"><b class="code">80 a 84, 87 a 93</b>Resortes</a></li>
+      <li><a href="p85-cortar-cuerda.html"><b class="code">85, 86</b>Cortar la cuerda</a></li>
+      <li><a href="p96-mas.html"><b class="code">96 a 103</b>Movimiento armónico</a></li>
+      <li><a href="p104-no-inerciales.html"><b class="code">104 a 115</b>No inerciales</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Según el caso: dos o tres cuerpos que giran en fila sobre una mesa, vistos desde arriba; un bloque sostenido por dos sogas de una varilla que gira; un péndulo cónico, con o sin una superficie cónica debajo; el tambor de un lavarropas; o las sillas voladoras de un parque."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="fila" aria-pressed="true">54 y 55 · en fila</button>
+        <button data-sy="sogas" aria-pressed="false">60 · dos sogas</button>
+        <button data-sy="conico" aria-pressed="false">61 y 62 · péndulo cónico</button>
+        <button data-sy="lava" aria-pressed="false">63 · lavarropas</button>
+        <button data-sy="sillas" aria-pressed="false">64 · sillas voladoras</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Según la velocidad angular</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:250px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U5 · 54, 55 y 60 a 64</summary>
+      <p><b>54.</b> Dos bloques de masas m₁ = 2 kg y m₂ = 3 kg unidos por una cuerda inextensible giran en un plano horizontal con la misma velocidad angular (ω). Los bloques describen dos trayectorias circulares concéntricas de radios r₁ = 30 cm y r₂ = 50 cm, respectivamente. Sabiendo que el módulo de la tensión que ejerce la cuerda que une el centro de las trayectorias con el bloque de masa m₁ es de 40 N, calcular: a) La intensidad de la tensión que ejerce la cuerda que une ambos bloques. b) La velocidad angular.</p>
+      <p><b>55.</b> El sistema de la figura está compuesto por tres cuerpos de igual masa unidos por tres varillas a, b y c de igual longitud y de masa despreciable. En todo instante los tres cuerpos se mantienen alineados girando en un plano horizontal. Se desprecian los rozamientos. Considerar el instante en el que el módulo de la velocidad del cuerpo 3 es |v₀|. Indicar cuáles de las siguientes afirmaciones son correctas: a) Los tres cuerpos tienen la misma velocidad. b) Los tres cuerpos tienen la misma velocidad angular. c) Las fuerzas ejercidas por cada varilla, a, b y c, tienen igual módulo. d) El módulo de la fuerza ejercida por la varilla a es mayor que el de la ejercida por la b. e) La velocidad angular del cuerpo 1 es menor que la del cuerpo 2. f) El módulo de la aceleración centrípeta del cuerpo 1 es menor que el del cuerpo 2. g) El módulo de la aceleración centrípeta del cuerpo 3 es menor que el del cuerpo 2.</p>
+      <p><b>60.</b> El bloque de 4 kg de la figura está unido a una varilla vertical con dos sogas ideales iguales de 1,25 m de longitud. Cuando el sistema gira sobre el eje de la varilla, las sogas se extienden. a) Si la tensión de la soga superior es de 70 N, ¿qué tensión ejerce la soga inferior? ¿con qué frecuencia, en rpm, debería girar el bloque en esas condiciones? b) Si ahora el bloque gira manteniendo el mismo ángulo que en el inciso anterior, ¿qué frecuencia sería necesaria para que la tensión de la soga inferior sea nula? c) Explicar cómo se movería el bloque si la frecuencia fuera menor que la calculada en el ítem anterior. (En la figura, las sogas están atadas a la varilla en puntos separados 2 m.)</p>
+      <p><b>61.</b> Una partícula de masa m, atada a una cuerda ideal de 4,5 m de longitud, gira de modo que la cuerda forma un ángulo θ constante con la vertical (péndulo cónico). Despreciando toda clase de rozamiento: a) ¿Qué tipo de movimiento realiza la partícula? b) Si θ = 30°, ¿cuánto vale la velocidad angular de la partícula? ¿Depende este valor de su masa? c) Si m = 5 kg, calcular la tensión que ejerce la cuerda. d) ¿Cómo variarían el ángulo θ y la tensión de la cuerda si la partícula girara con una velocidad angular mayor que la calculada en b)? e) La partícula, ¿podría permanecer girando con la cuerda horizontal? Justifique.</p>
+      <p><b>62.</b> Un cuerpo de 5 kg, apoyado sobre la superficie cónica ABC, pende de una soga ideal de 4,5 m de longitud. El cuerpo gira alrededor del eje EE′ a 10 rpm. No hay rozamiento entre la superficie y el cuerpo. Calcular: a) La fuerza que ejerce la superficie cónica sobre el cuerpo. b) La tensión en la soga. c) La velocidad angular a la que ha de girar el cuerpo para anular la fuerza de contacto con la superficie cónica. ¿Cuánto vale la tensión de la soga en este caso? Comparar estos resultados con los del ejercicio 61. d) Describir qué sucedería si el cuerpo girase con una velocidad angular mayor que la calculada en c). ¿Y si lo hiciera con una velocidad angular menor? (La superficie cónica tiene una semiapertura de 30°.)</p>
+      <p><b>63.</b> El tambor de eje vertical de una lavadora industrial es un cilindro de 40 cm de diámetro, y la frecuencia máxima de centrifugado es de 1200 rpm. Calcular la fuerza neta a la que está sometida una masa de 2 kg de ropa ubicada en la periferia y que no desliza sobre la pared del lavarropa.</p>
+      <p><b>64.</b> Un juego de un parque de atracciones consta de una plataforma circular de 8 m de diámetro que gira. De la plataforma cuelgan «sillas voladoras» suspendidas de cadenas de 2,5 m de longitud. Cuando la plataforma gira, las cadenas que sostienen los asientos forman un ángulo de 28° con la vertical. a) ¿Cuál es la velocidad angular de las sillas? b) Si un niño ocupa una silla y la masa del conjunto silla-niño es de 50 kg, ¿cuál es la tensión que ejerce la cadena?</p>
+      <p class="src">CBC, Física 03, Unidad 5 (Dinámica). Enunciados textuales de la guía; entre paréntesis, lo que muestran las figuras. g = 10 m/s². En el 55 la página usa m = 1 kg, varillas de 0,5 m y v₀ = 3 m/s.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Cuerpos que giran con la misma ω: el más alejado tiene más velocidad y más aceleración centrípeta. Péndulo cónico: la componente horizontal de la tensión da la fuerza centrípeta y la vertical sostiene el peso: tg θ = ω² r/g. Colores: amarillo, tensiones; rosa, pesos; violeta, la normal de la superficie; verde, la resultante.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+
+// ================= Cinemática (U2) =================
+// ceros de f en [a,b]: muestreo y bisección
+function ceros(f,a,b,N=2000){ const r=[]; let x0=a, f0=f(a); if(Math.abs(f0)<1e-12) r.push(a); for(let i=1;i<=N;i++){ const x1=a+(b-a)*i/N, f1=f(x1); if(Math.abs(f1)<1e-12){ if(!r.length||Math.abs(r[r.length-1]-x1)>1e-9) r.push(x1); } else if(f0*f1<0&&Math.abs(f0)>1e-12){ let lo=x0, hi=x1, flo=f0; for(let k=0;k<60;k++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } } r.push((lo+hi)/2); } x0=x1; f0=f1; } return r; }
+const kmh=v=>v*3.6, ms=v=>v/3.6;
+// motor 1D. M = {cuerpos:[{n,col,x:t=>,v:t=>,a:t=>}], t0,t1, a,b (rango de x), vert, ut, ux, marks:[[x,txt,col]], kv (px por unidad de v)}
+function encuentros1D(M){ const c=M.cuerpos; if(c.length<2) return []; const r=ceros(t=>c[0].x(t)-c[1].x(t),M.t0,M.t1).filter(t=>t>=M.t0-1e-9&&t<=M.t1+1e-9&&(!M.filtro||M.filtro(t))), o=[]; r.forEach(t=>{ if(!o.length||t-o[o.length-1]>(M.t1-M.t0)/100) o.push(t); }); return o; }
+function dibuja1D(cv,M,t){ const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h); const vert=!!M.vert, pad=vert?28:34, L=vert?(h-2*pad):(w-2*pad);
+  const P=x=>vert?h-pad-(x-M.a)/(M.b-M.a)*L:pad+(x-M.a)/(M.b-M.a)*L, c=vert?(M.cx??w*0.28):(M.cy??h*0.55);
+  const seg=(p,q,col,lw,d)=>vert?line(ctx,[[q,p[0]],[q,p[1]]],col,lw,d):line(ctx,[[p[0],q],[p[1],q]],col,lw,d);
+  seg([P(M.a),P(M.b)],c,C.muted,1.5); ticks(M.a,M.b,6).forEach(x=>{ const p=P(x); if(vert){ line(ctx,[[c-4,p],[c+4,p]],C.faint,1); txt(ctx,axf(x),c-8,p+4,C.faint,{size:10,align:'right'}); } else { line(ctx,[[p,c-4],[p,c+4]],C.faint,1); txt(ctx,axf(x),p,c+16,C.faint,{size:10,align:'center'}); } });
+  txt(ctx,M.ux||'',vert?c+8:P(M.b),vert?P(M.b)-8:c-8,C.faint,{size:10.5,align:vert?'left':'right'});
+  (M.marks||[]).forEach(([x,s,col])=>{ const p=P(x); if(vert){ line(ctx,[[c-14,p],[w-10,p]],col||C.faint,1,[3,4]); txt(ctx,s,w-12,p-4,col||C.faint,{size:10.5,align:'right'}); } else { line(ctx,[[p,c-34],[p,c+6]],col||C.faint,1,[3,4]); txt(ctx,s,p,c-38,col||C.faint,{size:10.5,align:'center'}); } });
+  M.cuerpos.forEach((b,i)=>{ const x=b.x(t); if(!isFinite(x)) return; const p=P(Math.max(M.a,Math.min(M.b,x))), off=(i-(M.cuerpos.length-1)/2)*(vert?34:22), q=c+(vert?off+36:-off-14);
+    const X0=vert?q:p, Y0=vert?p:q; ctx.beginPath(); ctx.arc(X0,Y0,7,0,7); ctx.fillStyle=b.col; ctx.fill(); txt(ctx,b.n,X0+(vert?11:0),Y0+(vert?4:-12),b.col,{size:11,align:vert?'left':'center'});
+    const v=b.v?b.v(t):0, k=M.kv??6; if(Math.abs(v)>1e-9){ const d=Math.max(-90,Math.min(90,v*k)); vert?arrow(ctx,X0,Y0,X0,Y0-d,b.col,2,7):arrow(ctx,X0,Y0,X0+d,Y0,b.col,2,7); } });
+  return P; }
+function graf1D(id,M,t,cual,o={}){ const c=M.cuerpos, f=b=>cual==='x'?b.x:cual==='v'?b.v:b.a, ser=c.map((b,i)=>[curva(f(b),M.t0,M.t1,400),b.col,i?[6,4]:null]);
+  let lo=Infinity, hi=-Infinity; ser.forEach(s=>s[0].forEach(p=>{ if(isFinite(p[1])){ lo=Math.min(lo,p[1]); hi=Math.max(hi,p[1]); } })); if(o.y0!==undefined){ lo=o.y0; hi=o.y1; } if(!(hi>lo)){ hi=lo+1; lo-=1; } const pd=(hi-lo)*0.08;
+  const E=cual==='x'?encuentros1D(M):[];
+  plot(id,M.t0,M.t1,lo-pd,hi+pd,ser,`t (${M.ut||'s'})`,{mark:(ctx,X,Y)=>{ line(ctx,[[X(t),Y(lo-pd)],[X(t),Y(hi+pd)]],C.faint,1,[2,3]); c.forEach(b=>{ const y=f(b)(t); if(isFinite(y)) dot(ctx,X(t),Y(y),4.5,b.col); }); E.forEach(te=>dot(ctx,X(te),Y(c[0].x(te)),5,C.ok,true)); (o.extra||(()=>{}))(ctx,X,Y); }}); return E; }
+
+// ================= Dinámica (U5) =================
+// bloque rectangular apoyado: (x, y) es el centro de la base; ang en radianes (antihorario)
+function bloque(ctx,x,y,w,h,col,lab,ang=0){ ctx.save(); ctx.translate(x,y); ctx.rotate(-ang); ctx.fillStyle=C['panel-2']; ctx.fillRect(-w/2,-h,w,h); ctx.strokeStyle=col; ctx.lineWidth=1.6; ctx.strokeRect(-w/2,-h,w,h); if(lab){ ctx.fillStyle=col; ctx.font=`12px ${NUM}`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(lab,0,-h/2); } ctx.restore(); }
+function polea(ctx,x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.6; ctx.stroke(); dot(ctx,x,y,2.5,C.muted); }
+function piso(ctx,x0,x1,y){ line(ctx,[[x0,y],[x1,y]],C.muted,2); for(let x=x0;x<x1;x+=10) line(ctx,[[x,y],[x-6,y+6]],C.faint,1); }
+// plano inclinado: vértice inferior izquierdo (x0, y0), largo horizontal L px, ángulo ang (rad), sube hacia la derecha si dir = 1
+function plano(ctx,x0,y0,L,ang,dir=1){ const x1=x0+L*dir, yt=y0-L*Math.tan(ang); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y0); ctx.lineTo(x1,yt); ctx.closePath(); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.6; ctx.stroke(); return {x1,yt}; }
+// flecha de fuerza (en newtons) con escala k px/N
+function fuerza(ctx,x,y,fx,fy,k,col,lab){ const ex=x+fx*k, ey=y-fy*k; if(Math.hypot(fx,fy)*k<2) return; arrow(ctx,x,y,ex,ey,col,2.2,8); if(lab) txt(ctx,lab,ex+(fx>=0?4:-4),ey+(fy>0?-4:12),col,{size:11,align:fx>=0?'left':'right'}); }
+// diagrama de cuerpo libre: fuerzas [[n, fx, fy, col]] dibujadas desde un punto, con la resultante punteada
+function dcl(ctx,cx,cy,R,F,tit){ const m=Math.max(...F.map(f=>Math.hypot(f[1],f[2])),1e-9), k=R/m; ctx.beginPath(); ctx.arc(cx,cy,R+18,0,7); ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.stroke(); dot(ctx,cx,cy,4,C.fg);
+  F.forEach(([n,fx,fy,col])=>fuerza(ctx,cx,cy,fx,fy,k,col,n)); const rx=F.reduce((s,f)=>s+f[1],0), ry=F.reduce((s,f)=>s+f[2],0); if(Math.hypot(rx,ry)>m*0.02) arrow(ctx,cx,cy,cx+rx*k,cy-ry*k,C.ok,1.6,7,[4,3]); if(tit) txt(ctx,tit,cx,cy-R-24,C.muted,{size:10.5,align:'center'}); return {rx,ry}; }
+// ================= U5 · 54, 55, 60 a 64 · Péndulo cónico y cuerpos que giran =================
+const DEF=[
+  {id:'n',lab:'cantidad de cuerpos (2: el 54; 3: el 55)',unit:'',min:2,max:3,step:1,dec:0},
+  {id:'T1',lab:'tensión de la cuerda interior',unit:'N',min:1,max:200,step:1,dec:0},
+  {id:'v0',lab:'velocidad del cuerpo 3',unit:'m/s',min:0.5,max:10,step:0.1,dec:1},
+  {id:'Ts',lab:'tensión de la soga superior',unit:'N',min:40,max:200,step:1,dec:0},
+  {id:'m',lab:'masa',unit:'kg',min:0.5,max:100,step:0.5,dec:1},
+  {id:'th',lab:'ángulo con la vertical',unit:'°',min:1,max:85,step:0.5,dec:1},
+  {id:'rpm',lab:'frecuencia',unit:'rpm',min:1,max:2000,step:1,dec:0},
+  {id:'cono',lab:'sin superficie (0) o con superficie cónica de 30° (1)',unit:'',min:0,max:1,step:1,dec:0},
+];
+const PS={fila:{n:2,T1:40,v0:3}, sogas:{m:4,Ts:70}, conico:{m:5,th:30,rpm:10,cono:0}, lava:{m:2,rpm:1200}, sillas:{m:50,th:28}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={fila:['n','T1','v0'],sogas:['m','Ts'],conico:['m','th','rpm','cono'],lava:['m','rpm'],sillas:['m','th']};
+const P=Object.assign({},PS.sillas,PS.lava,PS.conico,PS.sogas,PS.fila); let SY='fila';
+const LC=4.5, LS=1.25, RL=0.2, RP=4, LCAD=2.5;
+const omr=()=>P.rpm*2*PI/60;
+function calc(){ switch(SY){
+  case 'fila': { if(P.n===2){ const w2=P.T1/(2*0.3+3*0.5); return {w:sq(w2),T:[P.T1,3*w2*0.5],r:[0.3,0.5],m:[2,3]}; } const L=0.5, w=P.v0/(3*L), c=w*w*3*L, b=c+w*w*2*L, a=b+w*w*L; return {w,T:[a,b,c],r:[L,2*L,3*L],m:[1,1,1]}; }
+  case 'sogas': { const s=0.6, c=0.8, r=0.75, Ti=P.Ts-P.m*G/c, w=sq((P.Ts+Ti)*s/(P.m*r)), w0=sq(P.m*G/c*s/(P.m*r)); return {Ti,w,rpm:w*60/(2*PI),w0,rpm0:w0*60/(2*PI)}; }
+  case 'conico': { const t=rad(P.th), wl=sq(G/(LC*Math.cos(t))); if(!P.cono){ return {w:wl,T:P.m*G/Math.cos(t),N:0}; } const w=omr(), mr=P.m*w*w*LC*Math.sin(t), T=mr*Math.sin(t)+P.m*G*Math.cos(t), N=P.m*G*Math.sin(t)-mr*Math.cos(t); return {w,T,N,wl,Tl:P.m*G/Math.cos(t)}; }
+  case 'lava': { const w=omr(); return {w,F:P.m*w*w*RL}; }
+  case 'sillas': { const t=rad(P.th), r=RP+LCAD*Math.sin(t), w=sq(G*Math.tan(t)/r); return {w,r,T:P.m*G/Math.cos(t)}; } } }
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+
+// ================= Escena =================
+const scene=$('scene');
+function persp(ctx,cx,cy,r,ang,k=0.3){ return [cx+r*Math.cos(ang),cy+r*Math.sin(ang)*k]; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560, c=calc(), cx=nar?w/2:w*0.32, vis=Math.min(c.w||omr(),3), ang=vis*S.t; let fb=null;
+  if(SY==='fila'){ const cy=h/2, k=Math.min(h*0.4,w*0.25)/Math.max(...c.r); dot(ctx,cx,cy,4,C.fg); c.r.forEach(r=>{ ctx.beginPath(); ctx.arc(cx,cy,r*k,0,7); ctx.strokeStyle=C.line; ctx.setLineDash([3,4]); ctx.stroke(); ctx.setLineDash([]); }); const pts=c.r.map(r=>[cx+r*k*Math.cos(ang),cy-r*k*Math.sin(ang)]);
+    line(ctx,[[cx,cy],pts[pts.length-1]],C.v,2); pts.forEach((p,i)=>{ ctx.beginPath(); ctx.arc(p[0],p[1],8,0,7); ctx.fillStyle=C.sys; ctx.fill(); txt(ctx,String(i+1),p[0]+10,p[1]-6,C.sys,{size:11}); }); txt(ctx,'vista desde arriba',10,18,C.muted,{size:11});
+    readout([['ω (la misma para todos)',cm(c.w,3)+' rad/s',C.ok]].concat(c.T.map((T,i)=>[`${P.n===2?(i?'cuerda entre bloques':'cuerda interior'):'varilla '+'abc'[i]}`,cm(T,2)+' N',C.v])).concat([['aceleraciones centrípetas',c.r.map(r=>cm(c.w*c.w*r,2)).join(' · ')+' m/s²']])); }
+  else if(SY==='sogas'){ const top=40, k=(h-80)/2, ax=cx-60; line(ctx,[[ax,top-20],[ax,top+2*k+20]],C.muted,4); const ar=persp(ctx,ax,top+k,0.75*k,ang,0.25); line(ctx,[[ax,top],ar],C.v,2); line(ctx,[[ax,top+2*k],ar],c.Ti>=0?C.v:C.sob,2,c.Ti>=0?null:[4,3]); bloque(ctx,ar[0],ar[1]+10,24,20,C.fg,'');
+    fb=[['T₁',-P.Ts*0.6,P.Ts*0.8,C.v],['T₂',-c.Ti*0.6,-c.Ti*0.8,C.v],['P',0,-P.m*G,C.sob]];
+    readout([['tensión de la soga inferior',cm(c.Ti,2)+' N',C.v],['frecuencia',`${cm(c.w,3)} rad/s = ${cm(c.rpm,1)} rpm`,C.ok],['para T₂ = 0',`${cm(c.w0,3)} rad/s = ${cm(c.rpm0,1)} rpm`],['con menos frecuencia','la soga inferior se afloja y el bloque baja (el ángulo se cierra)']]); }
+  else if(SY==='conico'){ const top=36, k=(h-90)/LC, t=rad(P.th), r=LC*Math.sin(t), hh=LC*Math.cos(t), p=persp(ctx,cx,top+hh*k,r*k,ang,0.25);
+    if(P.cono){ const ca=rad(30), H=LC*Math.cos(ca)+0.6; ctx.beginPath(); ctx.moveTo(cx,top); ctx.lineTo(cx-H*Math.tan(ca)*k,top+H*k); ctx.lineTo(cx+H*Math.tan(ca)*k,top+H*k); ctx.closePath(); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.stroke(); }
+    line(ctx,[[cx,top-14],[cx,top+hh*k+30]],C.faint,1,[4,4]); ctx.save(); ctx.translate(cx,top+hh*k); ctx.scale(1,0.25); ctx.beginPath(); ctx.arc(0,0,r*k,0,7); ctx.restore(); ctx.strokeStyle=C.line; ctx.stroke(); line(ctx,[[cx,top],p],C.v,2); ctx.beginPath(); ctx.arc(p[0],p[1],8,0,7); ctx.fillStyle=C.sys; ctx.fill();
+    const s=Math.sin(t), co=Math.cos(t); fb=[['T',-c.T*s,c.T*co,C.v],['P',0,-P.m*G,C.sob]].concat(P.cono?[['N',c.N*co,c.N*s,C.lin]]:[]);
+    readout(P.cono?[['ω (10 rpm)',cm(c.w,3)+' rad/s'],['fuerza de la superficie',cm(c.N,2)+' N',c.N>=0?C.lin:C.sob],['tensión',cm(c.T,2)+' N',C.v],['ω para N = 0',cm(c.wl,3)+` rad/s (T = ${cm(c.Tl,2)} N, como el 61)`,C.ok]]:[['ω',cm(c.w,3)+' rad/s (no depende de la masa)',C.ok],['tensión',cm(c.T,2)+' N',C.v],['período',cm(2*PI/c.w,2)+' s'],['cuerda horizontal','imposible: la tensión no tendría componente vertical para sostener el peso']]); }
+  else if(SY==='lava'){ const cy=h/2, R=Math.min(h*0.38,w*0.22); ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.strokeStyle=C.muted; ctx.lineWidth=3; ctx.stroke(); const a=Math.min(c.w,4)*S.t, p=[cx+R*Math.cos(a),cy-R*Math.sin(a)]; ctx.fillStyle=C.sys; ctx.fillRect(p[0]-7,p[1]-7,14,14); arrow(ctx,p[0],p[1],p[0]+(cx-p[0])*0.45,p[1]+(cy-p[1])*0.45,C.ok,2.4,8); txt(ctx,'vista desde arriba; la animación va más lenta',10,18,C.muted,{size:11});
+    readout([['ω',cm(c.w,2)+' rad/s'],['fuerza neta (la pared, hacia el eje)',mil(c.F,0)+' N',C.ok],['comparada con el peso',cm(c.F/(P.m*G),0)+' veces']]); }
+  else { const top=30, k=(h-70)/(LCAD+1.5), t=rad(P.th), hy=top+30; ctx.fillStyle=C['panel-2']; ctx.save(); ctx.translate(cx,hy); ctx.scale(1,0.25); ctx.beginPath(); ctx.arc(0,0,RP*k*0.6,0,7); ctx.restore(); ctx.fill(); ctx.strokeStyle=C.muted; ctx.stroke(); line(ctx,[[cx,hy],[cx,h-20]],C.muted,3);
+    const ra=RP*k*0.6, a0=persp(ctx,cx,hy,ra,ang,0.25), p=persp(ctx,cx,hy+LCAD*Math.cos(t)*k,ra+LCAD*Math.sin(t)*k,ang,0.25); line(ctx,[a0,p],C.v,2); ctx.beginPath(); ctx.arc(p[0],p[1],8,0,7); ctx.fillStyle=C.sys; ctx.fill();
+    fb=[['T',-c.T*Math.sin(t),c.T*Math.cos(t),C.v],['P',0,-P.m*G,C.sob]];
+    readout([['radio de giro',cm(c.r,3)+' m'],['ω',cm(c.w,3)+' rad/s',C.ok],['tensión de la cadena',cm(c.T,1)+' N',C.v]]); }
+  if(fb&&!nar) dcl(ctx,w*0.8,h*0.45,Math.min(80,h*0.26),fb,'diagrama de cuerpo libre');
+  $('clock').textContent='';
+  $('formula').innerHTML={fila:'cuerpo de afuera: T_ext = m ω² r · cada cuerda (o varilla) hacia adentro sostiene a todos los de afuera: T_int − T_ext = m ω² r',sogas:'r = √(1,25² − 1²) = 0,75 m; sen = 0,6, cos = 0,8 · vertical: (T₁ − T₂) 0,8 = mg · radial: (T₁ + T₂) 0,6 = m ω² r',conico:'T cos θ = mg (+ N sen θ) · T sen θ (− N cos θ) = m ω² l sen θ · sin superficie: ω² = g/(l cos θ)',lava:'F = m ω² R: la pared del tambor empuja la ropa hacia el eje',sillas:'r = 4 + 2,5 sen 28° · tg 28° = ω² r/g · T = mg/cos 28°'}[SY]; }
+
+// ================= Gráfico =================
+function drawV1(){ const c=calc();
+  if(SY==='conico'){ const f=w=>{ const x=G/(w*w*LC); return x>=1?0:deg(Math.acos(x)); }; plot('p1c',0.1,5,0,90,[[curva(f,0.1,5),C.ok]],'ω (rad/s)',{mark:(ctx,X,Y)=>dot(ctx,X(c.wl||c.w),Y(P.th),4.5,C.ok)}); $('tag1').textContent='Ángulo con la vertical (°) del péndulo cónico'; legend('leg1',[[C.ok,'θ(ω)']]); $('cap1').textContent='Por debajo de √(g/l) cuelga vertical; al crecer ω se abre, pero nunca llega a 90°.'; return; }
+  if(SY==='sillas'){ const f=th=>{ const t=rad(th); return sq(G*Math.tan(t)/(RP+LCAD*Math.sin(t))); }; plot('p1c',1,80,0,4,[[curva(f,1,80),C.ok]],'ángulo de las cadenas (°)',{mark:(ctx,X,Y)=>dot(ctx,X(P.th),Y(c.w),4.5,C.ok)}); $('tag1').textContent='ω necesaria (rad/s)'; legend('leg1',[[C.ok,'ω']]); $('cap1').textContent='Las sillas se abren al girar más rápido; la masa no interviene en el ángulo.'; return; }
+  if(SY==='sogas'){ const f=w=>{ const T1=(P.m*w*w*0.75/0.6+P.m*G/0.8)/2; return T1; }, g2=w=>(P.m*w*w*0.75/0.6-P.m*G/0.8)/2; plot('p1c',0,8,-40,200,[[curva(f,0,8),C.v],[curva(g2,0,8),C.sob,[6,4]]],'ω (rad/s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(c.w),Y(P.Ts),4.5,C.v); dot(ctx,X(c.w0),Y(0),4,C.ok); }}); $('tag1').textContent='Tensiones (N) con el ángulo fijo'; legend('leg1',[[C.v,'superior'],[C.sob,'inferior','dashed']]); $('cap1').textContent='La inferior se anula a 3,16 rad/s (30 rpm); por debajo tendría que empujar, y una soga no puede.'; return; }
+  if(SY==='lava'){ plot('p1c',0,2000,0,P.m*(2000*PI/30)**2*RL*1.05,[[curva(n=>P.m*(n*PI/30)**2*RL,0,2000),C.ok]],'rpm',{mark:(ctx,X,Y)=>dot(ctx,X(P.rpm),Y(c.F),4.5,C.ok)}); $('tag1').textContent='Fuerza neta sobre la ropa (N)'; legend('leg1',[[C.ok,'m ω² R']]); $('cap1').textContent='Crece con el cuadrado de la frecuencia: a 1200 rpm, unas 300 veces el peso.'; return; }
+  const F=frame($('p1c'),{x0:0,x1:c.T.length,y0:0,y1:Math.max(...c.T)*1.2,xt:[],xlab:''}), {ctx,X,Y}=F; c.T.forEach((T,i)=>{ ctx.fillStyle=C.v; ctx.fillRect(X(i+0.25),Y(T),X(i+0.75)-X(i+0.25),Y(0)-Y(T)); txt(ctx,cm(T,1)+' N',X(i+0.5),Y(T)-5,C.fg,{size:11,align:'center'}); txt(ctx,P.n===2?['interior','entre bloques'][i]:'abc'[i],X(i+0.5),Y(0)+14,C.fg,{size:11,align:'center'}); }); $('tag1').textContent='Fuerza de cada cuerda o varilla (N)'; legend('leg1',[]); $('cap1').textContent=P.n===3?'La varilla de adentro hace más fuerza: arrastra a todos los de afuera. Correctas en el 55: b, d y f.':'La cuerda interior sostiene a los dos bloques.'; }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'61: si el péndulo cónico gira más rápido, el ángulo con la vertical…',
+  opts:[['crece','crece'],['igual','no cambia'],['baja','disminuye']], right:'crece', go:'Probalo',
+  run(){ pickChip('conico',setMode); return 'Crece, y también la tensión: cos θ = g/(ω² l). Nunca llega a 90°: la tensión tendría que ser infinita.'; } };
+const CHAL=[{txt:'62: ajustá la frecuencia para que la superficie cónica deje de empujar.',chk(){ if(SY!=='conico'||!P.cono) return [false,'Elegí el péndulo con superficie']; return Math.abs(calc().N)<0.3?[true,'Logrado: unos 15,3 rpm (1,60 rad/s), la ω del 61.']:[false,`N = ${cm(calc().N,2)} N`]; }}];
+function cuentas(){ return {title:'Cuerdas que giran', finLbl:'Respuestas', steps:[
+  ['54) T₂ = m₂ ω² r₂; T₁ − T₂ = m₁ ω² r₁', `\\[40=\\omega^2(0{,}6+1{,}5)\\Rightarrow\\omega=4{,}36\\ \\tfrac{\\text{rad}}{\\text{s}},\\ T_2=28{,}6\\ \\text{N}\\]`,true],
+  ['55) Misma ω; F_a > F_b > F_c; a_c crece con r', `\\[\\text{b, d, f}\\]`,true],
+  ['60) r = 0,75 m', `\\[T_2=70-\\frac{40}{0{,}8}=20\\ \\text{N}\\quad\\omega^2=\\frac{90\\cdot0{,}6}{4\\cdot0{,}75}=18\\Rightarrow40\\ \\text{rpm}\\qquad T_2=0:\\ 30\\ \\text{rpm}\\]`,true],
+  ['61) l = 4,5 m, θ = 30°', `\\[\\omega=\\sqrt{\\frac{g}{l\\cos\\theta}}=1{,}60\\ \\tfrac{\\text{rad}}{\\text{s}}\\qquad T=\\frac{mg}{\\cos\\theta}=57{,}7\\ \\text{N}\\]`,true],
+  ['62) 10 rpm = 1,047 rad/s', `\\[N=mg\\,\\text{sen}\\theta-m\\omega^2l\\,\\text{sen}\\theta\\cos\\theta=14{,}3\\ \\text{N}\\qquad T=49{,}5\\ \\text{N}\\]`,true],
+  ['63) y 64)', `\\[F=2\\,(40\\pi)^2\\,0{,}2\\simeq6317\\ \\text{N}\\qquad\\omega=\\sqrt{\\frac{g\\,\\text{tg}28^\\circ}{5{,}17}}\\simeq1\\ \\tfrac{\\text{rad}}{\\text{s}},\\ T=566\\ \\text{N}\\]`,true],
+], fin:`\\[\\text{tg}\\,\\theta=\\frac{\\omega^2r}{g}\\]`}; }
+
+// ================= Arranque =================
+const PRES={fila:[['54',()=>Object.assign(P,{n:2,T1:40})],['55',()=>Object.assign(P,{n:3,v0:3})]],sogas:[['60 a',()=>Object.assign(P,{m:4,Ts:70})],['60 b · T₂ = 0',()=>Object.assign(P,{m:4,Ts:50})]],conico:[['61',()=>Object.assign(P,{m:5,th:30,cono:0})],['62 · 10 rpm',()=>Object.assign(P,{m:5,th:30,rpm:10,cono:1})]],lava:[['63',()=>Object.assign(P,PS0.lava)]],sillas:[['64',()=>Object.assign(P,PS0.sillas)]]};
+const NOTE={fila:'Cuerpos unidos en fila que giran sobre una mesa sin rozamiento.',sogas:'Bloque de 4 kg sostenido por dos sogas de 1,25 m atadas a 2 m de distancia en la varilla.',conico:'Cuerda de 4,5 m; con la superficie cónica (62) el cuerpo gira a la frecuencia elegida.',lava:'Tambor de 40 cm de diámetro; 2 kg de ropa contra la pared.',sillas:'Plataforma de 8 m de diámetro y cadenas de 2,5 m.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); S.t=0; DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('fila',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

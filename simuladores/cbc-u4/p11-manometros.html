@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Manómetros y barómetro U4 11 a 13</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Física 03 · Unidad 4 · Hidrostática</span>
+  <h1>Medir presiones con columnas de líquido <i>· el desnivel cuenta cuánto más o cuánto menos que la atmósfera</i></h1>
+  <a class="mq-back" href="../../simuladores-hidrostatica.html">← Hidrostática</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Unidad 4">
+    <h2>Unidad 4</h2>
+    <ol>
+      <li><a href="p1-presion.html"><b class="code">1 a 7</b>Presión y paradoja</a></li>
+      <li><a href="p8-tubo-en-u.html"><b class="code">8 a 10</b>Tubo en U</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">11 a 13</b>Manómetros y barómetro</a></li>
+      <li><a href="p14-prensa.html"><b class="code">14</b>Prensa hidráulica</a></li>
+      <li><a href="p15-empuje.html"><b class="code">15 a 17, 19, 23</b>Empuje y peso aparente</a></li>
+      <li><a href="p18-corona.html"><b class="code">18</b>La corona de Arquímedes</a></li>
+      <li><a href="p21-flotacion.html"><b class="code">21, 22, 24</b>Flotación</a></li>
+      <li><a href="p20-globo.html"><b class="code">20</b>Globo aerostático</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Un balón con gas unido a un tubo que se sumerge en mercurio; un manómetro en U con agua conectado a una ampolla; o dos tubos en U con mercurio, uno detrás del otro, que terminan en una ampolla cerrada."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="gas" aria-pressed="true">11 · balón y mercurio</button>
+        <button data-sy="cadena" aria-pressed="false">12 · dos asas de mercurio</button>
+        <button data-sy="man" aria-pressed="false">13 · manómetro de agua</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Presión según el desnivel</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:270px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U4 · 11 a 13</summary>
+      <p><b>11.</b> El sistema que se muestra en la figura contiene mercurio hasta una altura d. Dato: d = 20 cm. Calcular la presión del gas en el balón. (En la figura, el balón está arriba, unido a un tubo vertical cuyo extremo inferior está sumergido en una cubeta de mercurio; el mercurio sube por el tubo una altura d sobre la superficie de la cubeta.)</p>
+      <p><b>12.</b> El tubo de la figura está cerrado por un extremo y abierto por el otro, y tiene mercurio en equilibrio alojado en las dos asas inferiores. Los números indican las alturas en milímetros. Si la presión atmosférica es de 760 mm de mercurio y en el medio gaseoso se desprecia la variación de la presión con la altura, ¿cuánto vale, en esas mismas unidades, la presión en el interior de la ampolla del extremo cerrado? (En la figura, las alturas marcadas son 0, 50, 100 y 200 mm.)</p>
+      <p><b>13.</b> Una ampolla contiene un gas a una presión de 98 kPa. Dicha ampolla está unida a un extremo de un tubo en forma de U que contiene agua en su interior. El otro extremo del tubo está abierto a la atmósfera. La presión atmosférica es normal. Indicar cuál es la única opción correcta respecto a la altura que tiene el agua en las ramas del tubo: a) misma altura; b) 33 cm, más alta en la rama abierta; c) 33 cm, más baja en la rama abierta; d) 13 cm, más alta en la rama abierta; e) 13 cm, más baja en la rama abierta; f) no se puede saber.</p>
+      <p class="src">CBC, Física 03, Unidad 4 (Hidrostática). Enunciados textuales de la guía; entre paréntesis, lo que muestran las figuras. g = 10 m/s²; p₀ = 101 300 Pa = 760 mm Hg; mercurio 13 600 kg/m³. En el 12, la figura muestra dos desniveles de mercurio de 100 mm cada uno; la página deja cambiarlos.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>En cada columna de líquido en equilibrio, la presión aumenta ρ g Δh hacia abajo; en un gas se considera constante. Colores: gris claro, el mercurio; celeste, el agua; amarillo, el gas; violeta, los desniveles.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+// ================= U4 · 11 a 13 · Manómetros y barómetro =================
+const P0=101300, RHG=13600, RAG=1000;
+const DEF=[
+  {id:'d',lab:'d (mercurio en el tubo)',unit:'cm',min:0,max:76,step:0.5,dec:1},
+  {id:'a1',lab:'desnivel del asa 1',unit:'mm',min:-200,max:200,step:5,dec:0},
+  {id:'a2',lab:'desnivel del asa 2',unit:'mm',min:-200,max:200,step:5,dec:0},
+  {id:'pg',lab:'presión del gas',unit:'kPa',min:90,max:112,step:0.1,dec:1},
+];
+const PS={gas:{d:20}, cadena:{a1:100,a2:100}, man:{pg:98}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={gas:['d'],cadena:['a1','a2'],man:['pg']};
+const P=Object.assign({},PS.man,PS.cadena,PS.gas); let SY='gas';
+const pGas11=()=>P0-RHG*G*P.d/100;                 // Pa
+const pAmp12=()=>760-P.a1-P.a2;                    // mm Hg (positivo: el mercurio sube del lado de la ampolla)
+const dh13=()=>(P.pg*1000-P0)/(RAG*G);             // m; positivo: el agua baja del lado del gas
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+
+// ================= Escena =================
+const scene=$('scene');
+function rama(ctx,x,bw,y0,y1,col){ if(y1>=y0) return; ctx.fillStyle=col; ctx.globalAlpha=0.4; ctx.fillRect(x-bw/2,y1,bw,y0-y1); ctx.globalAlpha=1; line(ctx,[[x-bw/2,y1],[x+bw/2,y1]],col,1.5); }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560, HG=C.faint, AG=C.sys, GAS=C.v;
+  if(SY==='gas'){ const cx=w/2, by=h-40, sc=(h-120)/80, bw=16;
+    ctx.fillStyle=HG; ctx.globalAlpha=0.4; ctx.fillRect(cx-90,by-20,180,40); ctx.globalAlpha=1; ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.strokeRect(cx-90,by-20,180,40);
+    const top=by-20-78*sc; line(ctx,[[cx-bw/2,by],[cx-bw/2,top]],C.muted,1.5); line(ctx,[[cx+bw/2,by],[cx+bw/2,top]],C.muted,1.5);
+    rama(ctx,cx,bw,by,by-20-P.d*sc,HG); ctx.beginPath(); ctx.arc(cx,top-24,26,0,7); ctx.fillStyle=GAS; ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.strokeStyle=C.muted; ctx.stroke(); txt(ctx,'gas',cx,top-20,GAS,{size:11.5,align:'center'});
+    line(ctx,[[cx+bw/2+8,by-20],[cx+bw/2+8,by-20-P.d*sc]],C.lin,1.4); txt(ctx,`d = ${cm(P.d,1)} cm`,cx+bw/2+14,by-20-P.d*sc/2,C.lin,{size:11});
+    txt(ctx,P.d>=74.4?'casi vacío: es un barómetro (76 cm)':'el gas está a menos presión que la atmósfera',12,18,C.muted,{size:11.5});
+    readout([['p del gas',mil(pGas11())+' Pa',GAS],['en mm Hg',mil(760-P.d*10,1)+' mm Hg'],['p₀ − ρ g d',`${mil(P0)} − ${mil(RHG*G*P.d/100)} Pa`]]); }
+  else if(SY==='cadena'){ const bw=14, xs=[w*0.18,w*0.38,w*0.58,w*0.78], rr=(xs[1]-xs[0])/2+bw/2, base=h-12-rr, sc=(base-70)/420, Y=mm=>base-Math.max(0,mm)*sc;
+    // asa 1: rama abierta (xs[0]) y rama de gas (xs[1]); asa 2: rama de gas (xs[2]) y rama de la ampolla (xs[3]); desnivel positivo: más alto del lado de la ampolla
+    const l1o=150-P.a1/2, l1g=150+P.a1/2, l2g=100-P.a2/2, l2a=100+P.a2/2;
+    [[xs[0],xs[1],l1o,l1g],[xs[2],xs[3],l2g,l2a]].forEach(([xa,xb,ya,yb])=>{ const yb0=base; ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; [xa,xb].forEach(x=>{ line(ctx,[[x-bw/2,yb0],[x-bw/2,Y(420)]],C.muted,1.2); line(ctx,[[x+bw/2,yb0],[x+bw/2,Y(420)]],C.muted,1.2); });
+      ctx.beginPath(); ctx.arc((xa+xb)/2,yb0,(xb-xa)/2+bw/2,PI,0,true); ctx.stroke(); ctx.beginPath(); ctx.arc((xa+xb)/2,yb0,(xb-xa)/2-bw/2,PI,0,true); ctx.stroke();
+      rama(ctx,xa,bw,yb0,Y(ya),HG); rama(ctx,xb,bw,yb0,Y(yb),HG); ctx.beginPath(); ctx.arc((xa+xb)/2,yb0,(xb-xa)/2,PI,0,true); ctx.strokeStyle=HG; ctx.lineWidth=bw-2; ctx.globalAlpha=0.4; ctx.stroke(); ctx.globalAlpha=1; ctx.lineWidth=1;
+      line(ctx,[[xa,Y(ya)],[xb+bw,Y(ya)]],C.lin,1,[3,3]); });
+    line(ctx,[[xs[1],Y(420)],[xs[2],Y(420)]],C.muted,1.2); ctx.beginPath(); ctx.arc(xs[3],Y(420)-22,22,0,7); ctx.strokeStyle=C.muted; ctx.stroke(); txt(ctx,'ampolla',xs[3],Y(420)-18,GAS,{size:10.5,align:'center'});
+    txt(ctx,'abierto',xs[0],Y(420)-8,C.faint,{size:10.5,align:'center'}); txt(ctx,'gas',(xs[1]+xs[2])/2,Y(420)-8,GAS,{size:10.5,align:'center'});
+    txt(ctx,`Δh₁ = ${P.a1} mm`,xs[0]-bw,Y(Math.max(l1o,l1g))-10,C.lin,{size:11}); txt(ctx,`Δh₂ = ${P.a2} mm`,xs[2]-bw,Y(Math.max(l2g,l2a))-10,C.lin,{size:11});
+    txt(ctx,'cada asa resta (o suma) su desnivel de mercurio',12,18,C.muted,{size:11.5});
+    readout([['entre las asas',`${760-P.a1} mm Hg`,GAS],['en la ampolla',`${pAmp12()} mm Hg`,GAS],['en Pa',mil(pAmp12()/760*P0)+' Pa']]); }
+  else { const cx=w/2, gap=110, bw=18, base=h-60, sc=Math.min(4,(h-160)/70), dh=dh13()*100, L=base-60*sc, xl=cx-gap/2, xr=cx+gap/2;
+    [xl,xr].forEach(x=>{ line(ctx,[[x-bw/2,base],[x-bw/2,L-20]],C.muted,1.4); line(ctx,[[x+bw/2,base],[x+bw/2,L-20]],C.muted,1.4); });
+    ctx.beginPath(); ctx.arc(cx,base,gap/2+bw/2,PI,0,true); ctx.strokeStyle=C.muted; ctx.stroke(); ctx.beginPath(); ctx.arc(cx,base,gap/2-bw/2,PI,0,true); ctx.stroke();
+    const mid=base-40*sc, yl=mid+dh/2*sc, yr=mid-dh/2*sc; rama(ctx,xl,bw,base,yl,AG); rama(ctx,xr,bw,base,yr,AG); ctx.beginPath(); ctx.arc(cx,base,gap/2,PI,0,true); ctx.strokeStyle=AG; ctx.lineWidth=bw-2; ctx.globalAlpha=0.4; ctx.stroke(); ctx.globalAlpha=1; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(xl,L-44,24,0,7); ctx.fillStyle=GAS; ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.strokeStyle=C.muted; ctx.stroke(); txt(ctx,'gas',xl,L-40,GAS,{size:11,align:'center'}); txt(ctx,'abierto',xr,L-26,C.faint,{size:10.5,align:'center'});
+    line(ctx,[[xl-bw,Math.min(yl,yr)],[xr+bw+10,Math.min(yl,yr)]],C.lin,1,[3,3]); line(ctx,[[xr+bw+8,yl],[xr+bw+8,yr]],C.lin,1.4); txt(ctx,`${cm(Math.abs(dh),1)} cm`,xr+bw+14,(yl+yr)/2+4,C.lin,{size:11});
+    txt(ctx,dh<0?'el gas empuja menos que la atmósfera: la rama abierta queda más baja':'el gas empuja más: la rama abierta queda más alta',12,18,C.muted,{size:11.5});
+    readout([['p del gas',mil(P.pg*1000)+' Pa',GAS],['p₀',mil(P0)+' Pa'],['desnivel',cm(Math.abs(dh),2)+' cm',C.lin],['rama abierta',dh<0?'más baja':dh>0?'más alta':'igual']]); }
+  $('clock').textContent='';
+  $('formula').innerHTML=SY==='gas'?'en la superficie de la cubeta la presión es p₀; dentro del tubo, a esa misma altura, también: <b>p_gas + ρ_Hg g d = p₀</b>':SY==='cadena'?'recorriendo desde el extremo abierto: cada asa con un desnivel Δh cambia la presión en ρ_Hg g Δh (en mm Hg, directamente Δh) · <b>p_ampolla = 760 − Δh₁ − Δh₂</b> mm Hg':'<b>p_gas = p₀ + ρ g Δh</b>, con Δh positivo si la rama abierta queda más alta · 98 kPa < 101,3 kPa → Δh = −3300 Pa/(1000 · 10) = −33 cm'; }
+
+// ================= Gráfico =================
+function drawV1(){ const hs=[0,80], ser=[[curva(x=>(P0-RHG*G*x/100)/1000,0,80),C.faint],[curva(x=>(P0-RAG*G*x/100)/1000,0,80),C.sys,[6,4]]];
+  let mark=(ctx,X,Y)=>{}; if(SY==='gas') mark=(ctx,X,Y)=>dot(ctx,X(P.d),Y(pGas11()/1000),4.5,C.v); else if(SY==='man') mark=(ctx,X,Y)=>dot(ctx,X(Math.abs(dh13()*100)),Y(P.pg),4.5,C.v); else mark=(ctx,X,Y)=>dot(ctx,X((P.a1+P.a2)/10),Y(pAmp12()/760*P0/1000),4.5,C.v);
+  plot('p1c',0,80,0,110,ser,'desnivel (cm)',{mark}); $('tag1').textContent='Presión (kPa) de un gas que sostiene un desnivel'; legend('leg1',[[C.faint,'con mercurio'],[C.sys,'con agua','dashed']]);
+  $('cap1').textContent='Con mercurio, 76 cm de desnivel equivalen a toda la atmósfera; con agua, harían falta 10,13 m. Por eso los manómetros de agua sirven para diferencias chicas y los de mercurio para grandes.'; }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'Una ampolla con gas a 98 kPa está conectada a un manómetro de agua abierto. La rama abierta queda…',
+  opts:[['alta','más alta que la del gas'],['igual','igual'],['baja','más baja que la del gas']], right:'baja', go:'Probalo',
+  run(){ pickChip('man',setMode); return 'Más baja: el gas empuja menos que la atmósfera (98 < 101,3 kPa), así que la atmósfera sube el agua del lado del gas. El desnivel es 3300 Pa/(1000 · 10 m/s²) = 33 cm (opción c).'; } };
+const CHAL=[
+  {txt:'En el 11, ¿qué altura d sostendría el mercurio si en el balón hubiera vacío? (Así funciona el barómetro de Torricelli.)',chk(){ if(SY!=='gas') return [false,'Elegí el ejercicio 11']; return Math.abs(pGas11())<0.01*P0?[true,'Logrado: d = p₀/(ρ_Hg g) ≈ 74,5 cm con g = 10 (76 cm con g = 9,8).']:[false,`Todavía queda gas a ${mil(pGas11())} Pa`]; }},
+  {txt:'En el 13, ¿a qué presión tendría que estar el gas para que el desnivel sea de 10 cm con la rama abierta más alta?',chk(){ if(SY!=='man') return [false,'Elegí el ejercicio 13']; const dh=dh13()*100; return Math.abs(dh-10)<0.2?[true,'Logrado: p = 101 300 + 1000 · 10 · 0,1 = 102 300 Pa.']:[false,`Desnivel ${cm(dh,1)} cm`]; }},
+];
+function cuentas(){ return {title:'Manómetros y barómetro', finLbl:'Respuestas', steps:[
+  ['11) En la superficie de la cubeta, dentro y fuera del tubo, la presión es p₀', `\\[p_\\text{gas}=p_0-\\rho_{Hg}\\,g\\,d=101\\,300-13\\,600\\cdot10\\cdot0{,}2=74\\,100\\ \\text{Pa}\\]`,true],
+  ['12) Desde el extremo abierto (760 mm Hg) se restan los desniveles de cada asa; el gas del medio tiene presión uniforme', `\\[p=760-100-100=560\\ \\text{mm Hg}\\]`,true],
+  ['13) El gas está por debajo de la atmósfera', `\\[\\Delta h=\\frac{p_0-p}{\\rho g}=\\frac{3300}{1000\\cdot10}=0{,}33\\ \\text{m}\\]`],
+  ['La atmósfera empuja más: el agua sube del lado del gas y la rama abierta queda 33 cm más baja', `\\[\\text{opción c}\\]`,true],
+], fin:`\\[74\\,100\\ \\text{Pa}\\qquad560\\ \\text{mm Hg}\\qquad\\text{c)}\\]`}; }
+
+// ================= Arranque =================
+const PRES={gas:[['11 · d = 20 cm',()=>Object.assign(P,PS0.gas)],['barómetro',()=>{ P.d=74.5; }]],cadena:[['12 · dos desniveles de 100 mm',()=>Object.assign(P,PS0.cadena)]],man:[['13 · 98 kPa',()=>Object.assign(P,PS0.man)]]};
+const NOTE={gas:'El mercurio sube por el tubo una altura d sobre la cubeta. Con d ≈ 74,5 cm (g = 10) el balón quedaría vacío: un barómetro.',cadena:'Desniveles positivos: el mercurio está más alto del lado que mira a la ampolla. Con los dos de 100 mm sale la respuesta de la guía.',man:'Manómetro de agua abierto. Mové la presión del gas por encima y por debajo de la atmosférica.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('gas',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

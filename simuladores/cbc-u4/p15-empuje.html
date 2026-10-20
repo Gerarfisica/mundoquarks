@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Empuje y peso aparente U4 15 a 23</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Física 03 · Unidad 4 · Hidrostática</span>
+  <h1>Empuje y peso aparente <i>· el líquido empuja hacia arriba con el peso del líquido desalojado</i></h1>
+  <a class="mq-back" href="../../simuladores-hidrostatica.html">← Hidrostática</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Unidad 4">
+    <h2>Unidad 4</h2>
+    <ol>
+      <li><a href="p1-presion.html"><b class="code">1 a 7</b>Presión y paradoja</a></li>
+      <li><a href="p8-tubo-en-u.html"><b class="code">8 a 10</b>Tubo en U</a></li>
+      <li><a href="p11-manometros.html"><b class="code">11 a 13</b>Manómetros y barómetro</a></li>
+      <li><a href="p14-prensa.html"><b class="code">14</b>Prensa hidráulica</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">15 a 17, 19, 23</b>Empuje y peso aparente</a></li>
+      <li><a href="p18-corona.html"><b class="code">18</b>La corona de Arquímedes</a></li>
+      <li><a href="p21-flotacion.html"><b class="code">21, 22, 24</b>Flotación</a></li>
+      <li><a href="p20-globo.html"><b class="code">20</b>Globo aerostático</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Un tanque con líquido y un cubo: colgado de un dinamómetro que lo baja dentro del líquido, o libre, flotando, con una fuerza que puede empujarlo hacia abajo. Se dibujan el peso, el empuje y la fuerza del hilo o la mano."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="colgado" aria-pressed="true">colgado de un hilo (16, 17, 19)</button>
+        <button data-sy="libre" aria-pressed="false">libre o empujado (15, 23)</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Fuerzas según la profundidad</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Peso aparente según el líquido</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:260px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:260px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U4 · 15 a 17, 19 y 23</summary>
+      <p><b>15.</b> ¿Cuál es la masa de un cuerpo que flota en equilibrio sobre un líquido de densidad igual a 0,8 g/cm³, desalojando 20 cm³ de líquido?</p>
+      <p><b>16.</b> Un cuerpo cuelga del techo mediante un hilo. Cuando está suspendido en el aire, la tensión del hilo es 600 N y cuando está sumergido totalmente en agua la tensión en el hilo que lo sostiene es 200 N. Calcular su densidad.</p>
+      <p><b>17.</b> Un objeto cúbico de dimensión L = 0,6 m de lado y cuyo peso de 4450 N está suspendido mediante un alambre en un tanque abierto que contiene un líquido de densidad ρ = 944 kg/m³. (En la figura, la cara superior está a L/2 bajo la superficie.) Encuentre los módulos de: a) La fuerza que recibe el objeto sobre la cara superior. b) La fuerza total hacia arriba en el fondo del objeto. c) La tensión en el alambre. d) El empuje sobre el cuerpo.</p>
+      <p><b>19.</b> Un cuerpo tiene un peso aparente de 800 N sumergido totalmente en agua y de 600 N sumergido totalmente en un líquido de densidad igual a 1,2 g/cm³. Hallar cuál es su peso aparente cuando está sumergido totalmente en alcohol de densidad igual a 0,8 g/cm³.</p>
+      <p><b>23.</b> Un cuerpo cuyo peso tiene una intensidad P se mantiene en equilibrio totalmente sumergido en un líquido cuando se le aplica una fuerza vertical de intensidad |F| hacia abajo tal que |F| = 2P. a) ¿En esa situación, cuánto vale la intensidad del empuje? b) Si se suprime F, cuando el cuerpo queda en equilibrio hallar la intensidad del empuje y la fracción del volumen del cuerpo que emerge sobre la superficie.</p>
+      <p class="src">CBC, Física 03, Unidad 4 (Hidrostática). Enunciados textuales de la guía; entre paréntesis, lo que muestra la figura del 17. g = 10 m/s², p₀ = 101 300 Pa. La página usa siempre un cubo: en el 16 y el 19 con el volumen que sale de los datos, y en el 15 y el 23 con densidades elegidas que reproducen el enunciado.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Principio de Arquímedes: E = ρ_líquido · g · V_sumergido, que es la diferencia entre las fuerzas de presión sobre la cara de abajo y la de arriba. Colores: rosa, el peso; celeste, el empuje; verde, el hilo o la mano; amarillo, las fuerzas de presión sobre las caras.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+// ================= U4 · 15 a 17, 19, 23 · Empuje y peso aparente =================
+const P0=101300;
+const DEF=[
+  {id:'L',lab:'lado del cubo',unit:'m',min:0.02,max:1,step:0.001,dec:3},
+  {id:'W',lab:'peso del cubo',unit:'N',min:0.05,max:6000,step:0.05,dec:2},
+  {id:'rl',lab:'ρ del líquido',unit:'kg/m³',min:500,max:2000,step:1,dec:0},
+  {id:'z',lab:'profundidad de la cara de arriba',unit:'m',min:-1,max:1,step:0.005,dec:3},
+  {id:'rb',lab:'ρ del cubo',unit:'kg/m³',min:50,max:3000,step:1,dec:0},
+  {id:'F',lab:'fuerza hacia abajo (mano)',unit:'N',min:0,max:5000,step:0.01,dec:2},
+];
+const PS={colgado:{L:0.6,W:4450,rl:944,z:0.3}, libre:{L:0.0342,rb:400,rl:800,F:0}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={colgado:['L','W','rl','z'],libre:['L','rb','rl','F']};
+const P=Object.assign({},PS.libre,PS.colgado); let SY='colgado';
+const V=()=>P.L**3;
+// colgado: parte sumergida según la profundidad de la cara de arriba (z < 0: asoma)
+function colgado(){ const zs=Math.max(0,Math.min(P.L,P.z+P.L)), E=P.rl*G*P.L*P.L*zs, T=P.W-E, ftop=P.z>0?(P0+P.rl*G*P.z)*P.L*P.L:P0*P.L*P.L, fbot=(P0+P.rl*G*Math.max(0,P.z+P.L))*P.L*P.L; return {zs,E,T,ftop,fbot}; }
+// libre: equilibrio con la fuerza F hacia abajo
+function libre(){ const W=P.rb*G*V(), Emax=P.rl*G*V(), need=W+P.F, f=Math.min(1,need/Emax), E=f*Emax, N=Math.max(0,need-Emax); return {W,Emax,f,E,N}; }
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+
+// ================= Escena =================
+const scene=$('scene');
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560, cx=w/2, tankW=Math.min(w-40,360), surf=110, bot=h-24;
+  ctx.fillStyle=C.sys; ctx.globalAlpha=0.1+0.2*Math.min(1,P.rl/2000); ctx.fillRect(cx-tankW/2,surf,tankW,bot-surf); ctx.globalAlpha=1; line(ctx,[[cx-tankW/2,surf],[cx+tankW/2,surf]],C.sys,1.5);
+  ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx-tankW/2,60); ctx.lineTo(cx-tankW/2,bot); ctx.lineTo(cx+tankW/2,bot); ctx.lineTo(cx+tankW/2,60); ctx.stroke();
+  const sc=Math.min(150/P.L,(bot-surf-10)/(1.6*P.L)), side=P.L*sc; let yTop, Fv;
+  if(SY==='colgado'){ const c=colgado(); yTop=surf+P.z*sc; Fv={W:P.W,E:c.E,T:c.T};
+    line(ctx,[[cx,26],[cx,yTop]],C.ok,1.4); ctx.fillStyle=C['panel-2']; ctx.fillRect(cx-14,14,28,22); ctx.strokeStyle=C.ok; ctx.strokeRect(cx-14,14,28,22); txt(ctx,'dinamómetro',cx+20,28,C.ok,{size:10.5}); }
+  else { const l=libre(); yTop=surf-(1-l.f)*side; Fv={W:l.W,E:l.E,T:-P.F}; if(l.N>0) yTop=bot-side; }
+  ctx.fillStyle=C['panel-2']; ctx.fillRect(cx-side/2,yTop,side,side); ctx.strokeStyle=C.fg; ctx.lineWidth=1.6; ctx.strokeRect(cx-side/2,yTop,side,side);
+  // fuerzas: escala común
+  const ref=Math.max(Fv.W,Math.abs(Fv.E),Math.abs(Fv.T),1e-9), k=60/ref, mid=yTop+side/2;
+  arrow(ctx,cx-side/4,mid,cx-side/4,mid+Fv.W*k,C.sob,2.2,7); arrow(ctx,cx+side/4,mid,cx+side/4,mid-Fv.E*k,C.sys,2.2,7);
+  if(Math.abs(Fv.T)>1e-9) arrow(ctx,cx,yTop,cx,yTop-Fv.T*k,C.ok,2.2,7);
+  if(!nar){ txt(ctx,'peso',cx-side/4-6,mid+Fv.W*k*0.7,C.sob,{size:11,align:'right'}); txt(ctx,'empuje',cx+side/4+6,mid-Fv.E*k*0.7,C.sys,{size:11}); }
+  if(SY==='colgado'&&P.z>0){ line(ctx,[[cx+side/2+10,surf],[cx+side/2+10,yTop]],C.v,1.2); txt(ctx,`${cm(P.z,2)} m`,cx+side/2+14,(surf+yTop)/2+4,C.v,{size:11}); }
+  $('clock').textContent='';
+  if(SY==='colgado'){ const c=colgado(); txt(ctx,c.T<0?'el empuje supera al peso: el hilo se aflojaría':`peso aparente: ${mil(c.T,1)} N`,12,18,C.muted,{size:11.5});
+    readout([['empuje',mil(c.E,1)+' N',C.sys],['tensión (peso aparente)',mil(c.T,1)+' N',C.ok],['fuerza sobre la cara de arriba',mil(c.ftop,0)+' N',C.v],['sobre la de abajo',mil(c.fbot,0)+' N',C.v],['ρ del cubo',mil(P.W/(G*V()),0)+' kg/m³']]); }
+  else { const l=libre(); txt(ctx,l.N>0?'se hunde: queda apoyado en el fondo':l.f>=0.9999?'totalmente sumergido':`flota: emerge ${cm(100*(1-l.f),1)} %`,12,18,C.muted,{size:11.5});
+    readout([['peso',fN(l.W)+' N',C.sob],['empuje',fN(l.E)+' N',C.sys],['sumergido',cm(100*l.f,1)+' %'],['masa',fN(l.W/G*1000)+' g'],['volumen sumergido',fN(l.f*V()*1e6)+' cm³']]); }
+  $('formula').innerHTML='<b>E = ρ_líq g V_sum</b> (peso del líquido desalojado) = F_abajo − F_arriba sobre las caras · <b>colgado:</b> T = P − E (peso aparente) · <b>flotando:</b> E = P → V_sum/V = ρ_cuerpo/ρ_líq'; }
+
+// ================= Gráficos =================
+function drawV1(){ if(SY==='colgado'){ const A=curva(z=>{ const zs=Math.max(0,Math.min(P.L,z+P.L)); return P.rl*G*P.L*P.L*zs; },-P.L*1.2,P.L), T=A.map(([z,e])=>[z,P.W-e]);
+    plot('p1c',-P.L*1.2,P.L,Math.min(0,...T.map(p=>p[1])),P.W*1.1,[[A,C.sys],[T,C.ok,[6,4]],[[[-P.L*1.2,P.W],[P.L,P.W]],C.sob,[2,3],1.2]],'profundidad de la cara de arriba (m)',{mark:(ctx,X,Y)=>{ const c=colgado(); dot(ctx,X(P.z),Y(c.E),4.5,C.sys); dot(ctx,X(P.z),Y(c.T),4.5,C.ok); }});
+    $('tag1').textContent='Fuerzas (N) según cuánto se baja el cubo'; legend('leg1',[[C.sys,'empuje'],[C.ok,'tensión','dashed'],[C.sob,'peso','dotted']]);
+    $('cap1').textContent='Mientras entra, el empuje crece con el volumen sumergido; una vez adentro deja de cambiar, aunque se lo baje más: depende del volumen, no de la profundidad.'; return; }
+  const W=P.rb*G*V(), Emax=P.rl*G*V(), pts=curva(f=>Math.max(0,f*Emax-W),0,1);
+  plot('p1c',0,1,0,Math.max(Emax-W,W)*1.1,[[pts,C.ok]],'fracción sumergida',{mark:(ctx,X,Y)=>{ const l=libre(); dot(ctx,X(l.f),Y(Math.max(0,l.f*Emax-W)),4.5,C.ok); }});
+  $('tag1').textContent='Fuerza hacia abajo (N) para hundirlo hasta una fracción'; legend('leg1',[[C.ok,'F = E − P']]);
+  $('cap1').textContent=`Sin fuerza flota con ${cm(100*Math.min(1,P.rb/P.rl),1)} % sumergido (ρ_cuerpo/ρ_líq). Para hundirlo entero hace falta F = E_total − P = ${fN(Math.max(0,Emax-W))} N.`; }
+function drawV2(){ const Vv=SY==='colgado'?V():V(), W=SY==='colgado'?P.W:P.rb*G*V(), pts=curva(r=>W-r*G*Vv,500,2000);
+  plot('p2c',500,2000,Math.min(0,...pts.map(p=>p[1])),W*1.1,[[pts,C.ok]],'ρ del líquido (kg/m³)',{mark:(ctx,X,Y)=>{ [800,1000,1200].forEach(r=>dot(ctx,X(r),Y(W-r*G*Vv),4,C.faint)); dot(ctx,X(P.rl),Y(W-P.rl*G*Vv),4.5,C.ok); }});
+  $('tag2').textContent='Peso aparente (N) totalmente sumergido, según el líquido'; legend('leg2',[[C.ok,'P − ρ g V']]);
+  $('cap2').textContent='Es una recta que baja con la densidad del líquido: con dos puntos (agua y otro líquido) se conocen P y V, y con eso cualquier otro. Así se resuelve el 19: alcohol 1000 N, agua 800 N y 1,2 g/cm³ 600 N.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'Un cubo colgado ya está totalmente sumergido. Si se lo baja más profundo, el empuje…',
+  opts:[['crece','crece: hay más presión abajo'],['igual','no cambia'],['baja','disminuye']], right:'igual', go:'Probalo',
+  run(){ pickChip('colgado',setMode); setView('v1'); return 'No cambia: la presión crece igual en la cara de arriba y en la de abajo, así que su diferencia (el empuje) es siempre ρ g V.'; } };
+const CHAL=[
+  {txt:'En el 16, ¿qué densidad tiene un cuerpo cuyo peso aparente en agua es la mitad de su peso?',chk(){ if(SY!=='colgado') return [false,'Elegí colgado']; const c=colgado(); return P.z>=0&&Math.abs(c.T/P.W-0.5)<0.01?[true,`Logrado: ρ = 2 · ρ_agua = ${mil(P.W/(G*V()))} kg/m³.`]:[false,`Peso aparente / peso = ${cm(c.T/P.W,3)}`]; }},
+  {txt:'¿Cuánto emerge un iceberg (ρ = 920 kg/m³) en agua de mar (1025 kg/m³)? Probalo en «libre».'},
+];
+function cuentas(){ return {title:'Empuje y peso aparente', finLbl:'Respuestas', steps:[
+  ['15) Flota: el empuje es igual al peso', `\\[m=\\rho_l\\,V_s=0{,}8\\cdot20=16\\ \\text{g}\\]`],
+  ['16) La diferencia de tensiones es el empuje', `\\[E=600-200=400\\ \\text{N}=\\rho_aVg\\ \\Rightarrow\\ V=0{,}04\\ \\text{m}^3\\qquad\\rho=\\frac{600}{10\\cdot0{,}04}=1500\\ \\tfrac{\\text{kg}}{\\text{m}^3}\\]`,true],
+  ['17) Cara de arriba a 0,3 m, de abajo a 0,9 m (con la atmósfera)', `\\[F_\\uparrow\\!=(101\\,300+944\\cdot10\\cdot0{,}3)\\cdot0{,}36=37\\,488\\ \\text{N}\\qquad F_\\downarrow=39\\,527\\ \\text{N}\\]`],
+  ['Empuje y tensión', `\\[E=944\\cdot10\\cdot0{,}216=2039\\ \\text{N}\\qquad T=4450-2039=2411\\ \\text{N}\\]`,true],
+  ['19) Dos ecuaciones: P − 1000gV = 800 y P − 1200gV = 600', `\\[gV\\cdot200=200\\Rightarrow\\rho_agV=1000\\ \\text{N},\\ P=1800\\ \\text{N}\\qquad P_\\text{alcohol}=1800-800=1000\\ \\text{N}\\]`,true],
+  ['23) Sumergido con F = 2P hacia abajo', `\\[E=P+F=3P\\]`],
+  ['Sin F flota: E = P, un tercio del empuje total', `\\[\\frac{V_s}{V}=\\frac13\\ \\Rightarrow\\ \\text{emergen }\\tfrac23\\]`],
+], fin:`\\[E=\\rho_\\text{líq}\\,g\\,V_\\text{sum}\\]`}; }
+
+// ================= Arranque =================
+const PRES={colgado:[['17 · cubo de 0,6 m',()=>Object.assign(P,PS0.colgado)],['16 · 600 N, ρ = 1500',()=>Object.assign(P,{L:Math.cbrt(0.04),W:600,rl:1000,z:0.1})],['19 · en alcohol',()=>Object.assign(P,{L:Math.cbrt(0.1),W:1800,rl:800,z:0.1})]],
+  libre:[['15 · desaloja 20 cm³',()=>Object.assign(P,PS0.libre)],['23 · con F = 2P',()=>{ Object.assign(P,{L:0.1,rb:1000/3,rl:1000}); P.F=2*P.rb*G*V(); }],['23 · sin F',()=>Object.assign(P,{L:0.1,rb:1000/3,rl:1000,F:0})]]};
+const NOTE={colgado:'El cubo cuelga de un dinamómetro que marca la tensión (el peso aparente). Mové la profundidad: valores negativos dejan el cubo afuera o asomando.',libre:'El cubo flota libre; con la fuerza hacia abajo se lo hunde. Si su densidad supera la del líquido, se va al fondo.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('colgado',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

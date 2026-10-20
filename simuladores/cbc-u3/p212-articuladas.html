@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Barras articuladas U3 2.12 a 2.17</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Física 03 · Unidad 3 · Estática</span>
+  <h1>Barras articuladas, cables y apoyos <i>· momentos respecto de la articulación, y la reacción sale por diferencia</i></h1>
+  <a class="mq-back" href="../../simuladores-cuerpo-rigido.html">← Cuerpo rígido</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Unidad 3">
+    <h2>Unidad 3</h2>
+    <ol>
+      <li><a href="p1-concurrentes.html"><b class="code">1.1 a 1.3, 1.7</b>Fuerzas concurrentes</a></li>
+      <li><a href="p4-dos-cuerdas.html"><b class="code">1.4 a 1.6, 1.8 a 1.10, 2.8</b>Colgado de cuerdas</a></li>
+      <li><a href="p21-momento.html"><b class="code">2.1 a 2.3</b>Momento de una fuerza</a></li>
+      <li><a href="p24-barra-apoyos.html"><b class="code">2.4 a 2.7</b>Barra con apoyos y palanca</a></li>
+      <li><a href="p210-vuelco.html"><b class="code">2.10, 2.11</b>Vuelco: grúa y viga</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">2.12 a 2.17</b>Barras articuladas</a></li>
+      <li><a href="p218-escalera.html"><b class="code">2.18 a 2.20</b>Escalera apoyada</a></li>
+      <li><a href="p29-centro-gravedad.html"><b class="code">2.9, 2.21</b>Centro de gravedad</a></li>
+      <li><a href="p222-equivalentes.html"><b class="code">2.22</b>Sistemas equivalentes</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Seis estructuras: un tablón con un apoyo y un cable, una barra horizontal sostenida por un cable a 45°, un poste con un cable horizontal, una pluma con una carga, una barra quebrada apoyada en una pared y una varilla colgada de una soga. Se dibujan las fuerzas dadas, la fuerza desconocida y la reacción de la articulación."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="t12" aria-pressed="true">2.12</button>
+        <button data-sy="t13" aria-pressed="false">2.13</button>
+        <button data-sy="t14" aria-pressed="false">2.14</button>
+        <button data-sy="t15" aria-pressed="false">2.15</button>
+        <button data-sy="t16" aria-pressed="false">2.16</button>
+        <button data-sy="t17" aria-pressed="false">2.17</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Fuerzas según el ángulo</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:260px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U3 · 2.12 a 2.17</summary>
+      <p><b>2.12.</b> Un cuerpo de peso P está apoyado sobre un tablón de masa despreciable. Calcular: a) La intensidad de la fuerza necesaria para mantener el tablón en equilibrio horizontalmente. b) La intensidad de la fuerza en el apoyo. c) La intensidad de la tensión en el cable OA. P = 60 kgf, α = 30°. (En la figura, el cable OA es horizontal y va de la pared al extremo A; el apoyo está a una distancia a de A, el cuerpo a 2a y la fuerza F, que forma α con la horizontal, en el otro extremo, a 3a.)</p>
+      <p><b>2.13.</b> Hallar la intensidad de la tensión que soporta el cable de la figura, y las componentes (x, y) de la fuerza de vínculo en el punto A, para que la barra de la figura permanezca en equilibrio; la barra tiene una longitud de 8 m, es homogénea y pesa 40 kgf. (En la figura, la barra es horizontal, articulada en A a la pared; del extremo cuelgan 80 kgf y un cable sube a la pared formando 45° con la barra.)</p>
+      <p><b>2.14.</b> Un cuerpo de 90,8 kgf de peso está fijo al extremo superior de un poste, de masa despreciable, articulado en el piso que forma un ángulo de 60° con la horizontal. Un cable horizontal está fijo a dicho extremo. Calcular la tensión del cable y la fuerza ejercida por la articulación (expresar el resultado en coordenadas cartesianas y polares).</p>
+      <p><b>2.15.</b> La figura representa una barra homogénea de peso 50 kgf en equilibrio articulada en el punto A. En el extremo B se ha suspendido una carga de 5 kgf. Dicho extremo B está unido a un punto fijo P mediante un cable de masa despreciable. Calcular: a) La fuerza ejercida por la articulación A sobre la barra. Expresar dicha fuerza tanto vectorialmente como en su notación polar: módulo y ángulo respecto del eje horizontal. Comparar este último con el ángulo de 60 grados que la barra hace con la horizontal. b) La intensidad de la tensión del cable. (En la figura, el cable BP forma 30° con el piso.)</p>
+      <p><b>2.16.</b> La barra rígida de peso despreciable, mostrada en la figura, tiene un extremo C unido al piso por medio de una articulación, y su otro extremo A se apoya en una pared vertical. El segmento BC es perpendicular al piso. Sabiendo que la intensidad de la fuerza vertical F es de 40 kgf y que está aplicada en el punto medio de AB, que BC = 0,7 m; AB = 0,5 m, θ = 37° y que la pared vertical es perfectamente lisa, calcular: a) El vector fuerza de reacción de la pared en el punto A. b) El vector fuerza de reacción en el punto C.</p>
+      <p><b>2.17.</b> Una varilla homogénea de 40 cm de longitud y de peso despreciable, se encuentra en equilibrio sostenida en un extremo (A) por una articulación y en el otro (B) por una soga inextensible y de masa despreciable. Sobre la varilla actúan las fuerzas verticales F₁ y F₂, según muestra la figura. Siendo α = 30°; β = 60°; a = 20 cm y b = 4 cm; |F₁| = 5 kgf y |F₂| = 10 kgf. Calcular, expresándolas vectorialmente: a) La fuerza que ejerce la soga sobre la varilla. b) La fuerza que hace la articulación en A sobre la varilla. (En la figura, la varilla baja desde A, en la pared, formando α con la vertical; F₂ está a a de A y F₁ a b más abajo; la soga, atada en B, sube hacia la izquierda formando β con la vertical, perpendicular a la varilla.)</p>
+      <p class="src">CBC, Física 03, Unidad 3 (Estática). Enunciados textuales de la guía; entre paréntesis, lo que muestran las figuras. 1 kgf = 10 N. Ejes: x a la derecha, y hacia arriba. Las longitudes que la guía no da (el tablón del 2.12, el poste del 2.14 y la barra del 2.15) no cambian los resultados: se simplifican en los momentos.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Método: momentos respecto de la articulación (su reacción no hace momento) para hallar la fuerza desconocida; después, la reacción es menos la suma de todas las demás. Colores: rosa y amarillo, las fuerzas dadas; verde, la fuerza que se calcula; violeta, la reacción.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+// ================= U3 · 2.12 a 2.17 · Barras articuladas con cables =================
+const DEF=[
+  {id:'W',lab:'peso o carga principal',unit:'kgf',min:1,max:200,step:0.1,dec:1},
+  {id:'W2',lab:'segunda carga',unit:'kgf',min:0,max:200,step:0.1,dec:1},
+  {id:'ang',lab:'ángulo',unit:'°',min:1,max:89,step:0.5,dec:1},
+  {id:'b',lab:'b (de F₂ a F₁)',unit:'cm',min:0,max:20,step:0.5,dec:1},
+];
+const PS={t12:{W:60,ang:30}, t13:{W:80,W2:40,ang:45}, t14:{W:90.8,ang:60}, t15:{W:50,W2:5,ang:30}, t16:{W:40,ang:37}, t17:{W:5,W2:10,b:4}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const LAB={t12:{W:'peso del cuerpo P',ang:'α de la fuerza F'},t13:{W:'carga del extremo',W2:'peso de la barra',ang:'ángulo del cable con la barra'},t14:{W:'peso en la punta',ang:'ángulo del poste con el piso'},t15:{W:'peso de la barra',W2:'carga en B',ang:'ángulo del cable con el piso'},t16:{W:'fuerza F',ang:'θ'},t17:{W:'|F₁|',W2:'|F₂|'}};
+const SHOW={t12:['W','ang'],t13:['W','W2','ang'],t14:['W','ang'],t15:['W','W2','ang'],t16:['W','ang'],t17:['W','W2','b']};
+const SWEEP={t12:['ang',5,85],t13:['ang',10,80],t14:['ang',10,85],t15:['ang',5,55],t16:['ang',0,80],t17:['b',0,20]};
+const P=Object.assign({},PS.t17,PS.t16,PS.t15,PS.t14,PS.t13,PS.t12); let SY='t12';
+const dir=a=>[Math.cos(rad(a)),Math.sin(rad(a))];
+// cada caso: barras (segs), articulación (piv), fuerzas dadas, incógnita (punto y dirección) y decorados
+function geo(p=P){ const c=SY;
+  if(c==='t12'){ const u=dir(p.ang); return {segs:[[[0,0],[3,0]]], piv:[1,0], pivKind:'apoyo', known:[{p:[2,0],f:[0,-p.W],n:'P',col:C.sob}], unk:{p:[3,0],u,n:'F'}, rn:'apoyo + cable', deco:{wall:-1, cable:[[-1,0],[0,0]], block:[2,0]}}; }
+  if(c==='t13'){ const u=[-Math.cos(rad(p.ang)),Math.sin(rad(p.ang))]; return {segs:[[[0,0],[8,0]]], piv:[0,0], pivKind:'art', known:[{p:[4,0],f:[0,-p.W2],n:'P_barra',col:C.v},{p:[8,0],f:[0,-p.W],n:'carga',col:C.sob}], unk:{p:[8,0],u,n:'T'}, rn:'F_A', deco:{wall:0, rope:[[8,0],[0,8*Math.tan(rad(p.ang))]], block:[8,-1.2]}}; }
+  if(c==='t14'){ const t=[3*Math.cos(rad(p.ang)),3*Math.sin(rad(p.ang))]; return {segs:[[[0,0],t]], piv:[0,0], pivKind:'art', known:[{p:t,f:[0,-p.W],n:'peso',col:C.sob}], unk:{p:t,u:[-1,0],n:'T'}, rn:'F_A', deco:{floor:0, wall:-1.2, rope:[t,[-1.2,t[1]]]}}; }
+  if(c==='t15'){ const B=[3*Math.cos(rad(60)),3*Math.sin(rad(60))], u=[-Math.cos(rad(p.ang)),-Math.sin(rad(p.ang))], s=B[1]/Math.sin(rad(p.ang)); return {segs:[[[0,0],B]], piv:[0,0], pivKind:'art', known:[{p:[B[0]/2,B[1]/2],f:[0,-p.W],n:'P_barra',col:C.v},{p:B,f:[0,-p.W2],n:'carga',col:C.sob}], unk:{p:B,u,n:'T'}, rn:'F_A', deco:{floor:0, rope:[B,[B[0]+u[0]*s,0]], block:[B[0],B[1]-0.7]}}; }
+  if(c==='t16'){ const B=[0,0.7], A=[0.5*Math.cos(rad(p.ang)),0.7+0.5*Math.sin(rad(p.ang))]; return {segs:[[[0,0],B],[B,A]], piv:[0,0], pivKind:'art', known:[{p:[(B[0]+A[0])/2,(B[1]+A[1])/2],f:[0,-p.W],n:'F',col:C.sob}], unk:{p:A,u:[-1,0],n:'R_A'}, rn:'R_C', deco:{floor:0, wall:A[0]}}; }
+  const s1=(20+p.b)/100, d=[-Math.sin(rad(30)),-Math.cos(rad(30))], at=s=>[d[0]*s,d[1]*s]; const u=[-Math.sin(rad(60)),Math.cos(rad(60))];
+  return {segs:[[[0,0],at(0.4)]], piv:[0,0], pivKind:'art', known:[{p:at(0.2),f:[0,-p.W2],n:'F₂',col:C.v},{p:at(s1),f:[0,-p.W],n:'F₁',col:C.sob}], unk:{p:at(0.4),u,n:'T'}, rn:'R_A', deco:{wall:0, rope:[at(0.4),[at(0.4)[0]+u[0]*0.15,at(0.4)[1]+u[1]*0.15]]}}; }
+const cruz=(r,f)=>r[0]*f[1]-r[1]*f[0];
+function resolver(p=P){ const g=geo(p), rp=q=>[q[0]-g.piv[0],q[1]-g.piv[1]]; const Mk=g.known.reduce((s,k)=>s+cruz(rp(k.p),k.f),0), mu=cruz(rp(g.unk.p),g.unk.u), lam=-Mk/mu;
+  const sx=g.known.reduce((s,k)=>s+k.f[0],0)+lam*g.unk.u[0], sy=g.known.reduce((s,k)=>s+k.f[1],0)+lam*g.unk.u[1]; return {g,lam,R:[-sx,-sy]}; }
+const polar=v=>`${cm(Math.hypot(...v),1)} kgf a ${cm(deg(Math.atan2(v[1],v[0])),1)}°`;
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+
+// ================= Escena =================
+const scene=$('scene');
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560, {g,lam,R}=resolver();
+  const pts=g.segs.flat().concat(g.deco.rope||[],g.deco.cable||[],[g.piv]); if(g.deco.block) pts.push(g.deco.block); const sz=Math.max(...pts.map(p=>p[0]))-Math.min(...pts.map(p=>p[0]))+Math.max(...pts.map(p=>p[1]))-Math.min(...pts.map(p=>p[1])), Fm=Math.max(...g.known.map(q=>Math.hypot(...q.f)),Math.abs(lam),Math.hypot(...R),1e-9), sw=0.22*sz/Fm; g.known.forEach(q=>pts.push([q.p[0]+q.f[0]*sw,q.p[1]+q.f[1]*sw])); pts.push([g.unk.p[0]+g.unk.u[0]*lam*sw,g.unk.p[1]+g.unk.u[1]*lam*sw],[g.piv[0]+R[0]*sw,g.piv[1]+R[1]*sw]); if(g.deco.wall!==undefined) pts.push([g.deco.wall,pts[0][1]]);
+  let x0=Math.min(...pts.map(p=>p[0])), x1=Math.max(...pts.map(p=>p[0])), y0=Math.min(...pts.map(p=>p[1])), y1=Math.max(...pts.map(p=>p[1])); const pad=Math.max(x1-x0,y1-y0)*0.18+0.05; x0-=pad; x1+=pad; y0-=pad; y1+=pad;
+  const k=Math.min((w-30)/(x1-x0),(h-40)/(y1-y0)), ox=(w-(x1-x0)*k)/2-x0*k, oy=h-20-((h-40)-(y1-y0)*k)/2+y0*k, X=x=>ox+x*k, Y=y=>oy-y*k;
+  const d=g.deco; if(d.wall!==undefined){ const wx=X(d.wall); line(ctx,[[wx,Y(y0)],[wx,Y(y1)]],C.muted,2); for(let yy=Y(y1);yy<Y(y0);yy+=10) line(ctx,[[wx,yy],[wx+(d.wall<=x0+pad?-6:6),yy+6]],C.faint,1); }
+  if(d.floor!==undefined){ const fy=Y(d.floor); line(ctx,[[X(x0),fy],[X(x1),fy]],C.muted,2); for(let xx=X(x0);xx<X(x1);xx+=10) line(ctx,[[xx,fy],[xx-6,fy+6]],C.faint,1); }
+  [d.rope,d.cable].forEach(r=>{ if(r) line(ctx,[[X(r[0][0]),Y(r[0][1])],[X(r[1][0]),Y(r[1][1])]],C.faint,1.4,[5,3]); });
+  g.segs.forEach(s=>line(ctx,s.map(q=>[X(q[0]),Y(q[1])]),C.fg,5));
+  if(g.pivKind==='apoyo'){ const px=X(g.piv[0]), py=Y(g.piv[1])+3; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px-11,py+18); ctx.lineTo(px+11,py+18); ctx.closePath(); ctx.strokeStyle=C.lin; ctx.lineWidth=1.6; ctx.stroke(); } else { ctx.beginPath(); ctx.arc(X(g.piv[0]),Y(g.piv[1]),6,0,7); ctx.fillStyle=C.bg||'#000'; ctx.fill(); ctx.strokeStyle=C.lin; ctx.lineWidth=2; ctx.stroke(); }
+  if(d.block){ ctx.fillStyle=C['panel-2']; ctx.fillRect(X(d.block[0])-12,Y(d.block[1])-22,24,20); ctx.strokeStyle=C.sob; ctx.strokeRect(X(d.block[0])-12,Y(d.block[1])-22,24,20); }
+  const all=g.known.map(q=>Math.hypot(...q.f)).concat([Math.abs(lam),Math.hypot(...R)]), fk=sw*k;
+  const flecha=(q,f,col,n,dash)=>{ const ex=X(q[0])+f[0]*fk, ey=Y(q[1])-f[1]*fk; arrow(ctx,X(q[0]),Y(q[1]),ex,ey,col,2.4,8,dash); if(!nar||n.length<4) txt(ctx,n,ex+(f[0]>=0?5:-5),ey+(f[1]>0?-4:12),col,{size:11,align:f[0]>=0?'left':'right'}); };
+  g.known.forEach(q=>flecha(q.p,q.f,q.col,q.n)); flecha(g.unk.p,[g.unk.u[0]*lam,g.unk.u[1]*lam],C.ok,g.unk.n); flecha(g.piv,R,C.lin,g.rn,[6,3]);
+  txt(ctx,lam<0?'la fuerza desconocida tendría que ir al revés: un cable no puede empujar':'en equilibrio',10,18,lam<0?C.sob:C.muted,{size:11.5});
+  const v=(a)=>`(${cm(a[0],1)}; ${cm(a[1],1)}) kgf`, U=[g.unk.u[0]*lam,g.unk.u[1]*lam];
+  const rows=[[g.unk.n,cm(lam,2)+' kgf = '+v(U),C.ok],[g.rn,v(R),C.lin],['polar',polar(R),C.lin]];
+  if(SY==='t12') rows.push(['apoyo (vertical)',cm(R[1],2)+' kgf'],['cable OA (horizontal)',cm(-R[0],2)+' kgf']);
+  if(SY==='t15') rows.push(['ángulo de la barra','60°']);
+  readout(rows); $('clock').textContent='';
+  $('formula').innerHTML=`momentos respecto de ${SY==='t12'?'el apoyo':'la articulación'}: <b>Σ rᵢ × Fᵢ + r × (λ û) = 0</b> → λ = ${g.unk.n} · luego <b>${g.rn} = −(Σ Fᵢ + ${g.unk.n})</b>`; }
+
+// ================= Gráfico =================
+function drawV1(){ const [id,a,b]=SWEEP[SY], f=x=>{ const q=Object.assign({},P,{[id]:x}); return resolver(q); };
+  const L=curva(x=>f(x).lam,a,b,200), Rm=curva(x=>Math.hypot(...f(x).R),a,b,200), ym=Math.min(Math.max(...L.map(p=>p[1]),...Rm.map(p=>p[1]))*1.1,Math.max(Math.abs(resolver().lam),Math.hypot(...resolver().R))*4);
+  plot('p1c',a,b,Math.min(0,...L.map(p=>p[1])),ym,[[L,C.ok],[Rm,C.lin,[6,4]]],(id==='ang'?LAB[SY].ang+' (°)':'b (cm)'),{mark:(ctx,X,Y)=>{ const r=resolver(); dot(ctx,X(P[id]),Y(r.lam),4.5,C.ok); dot(ctx,X(P[id]),Y(Math.hypot(...r.R)),4.5,C.lin); }});
+  const g=geo(); $('tag1').textContent=`${g.unk.n} y |${g.rn}| (kgf) según ${(LAB[SY][id]||id)}`; legend('leg1',[[C.ok,g.unk.n],[C.lin,'|'+g.rn+'|','dashed']]);
+  $('cap1').textContent={t12:'Con F más vertical hace falta menos fuerza total y el cable OA se afloja; la componente vertical de F es siempre P/2.',t13:'Un cable casi paralelo a la barra tendría que tirar muchísimo: su brazo de palanca se achica.',t14:'Con el poste vertical el cable no hace falta; acostado, la tensión crece sin límite.',t15:'La reacción en A no apunta a lo largo de la barra (70° contra 60°): la barra tiene peso propio y cargas que no están en su extremo.',t16:'La pared solo empuja horizontalmente; cuanto más se levanta AB, más cerca de C pasa F y menos empuja la pared.',t17:'Al alejar F₁ de A, crece su momento y la soga debe tirar más.'}[SY]; }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'2.14: la fuerza que la articulación hace sobre el poste (sin masa) apunta…',
+  opts:[['vert','vertical, hacia arriba'],['poste','a lo largo del poste'],['otra','en otra dirección']], right:'poste', go:'Probalo',
+  run(){ pickChip('t14',setMode); return 'A lo largo del poste (60°): una barra sin peso con fuerzas solo en sus dos extremos trabaja a lo largo de su eje. En el 2.15 la barra tiene peso y la reacción ya no la sigue (70°).'; } };
+const CHAL=[
+  {txt:'2.13: ¿con qué ángulo del cable con la barra la tensión llega a 200 kgf?',chk(){ if(SY!=='t13'||P.W!==80||P.W2!==40) return [false,'Elegí el 2.13 con sus datos']; const T=resolver().lam; return Math.abs(T-200)<2?[true,'Logrado: T sen φ · 8 = 800 → sen φ = 0,5 → φ = 30°. F_Ay sigue valiendo 20 kgf: no depende del cable.']:[false,`T = ${cm(T,1)} kgf`]; }},
+  {txt:'2.15: ¿con qué ángulo del cable con el piso la tensión llega a 60 kgf?',chk(){ if(SY!=='t15'||P.W!==50||P.W2!==5) return [false,'Elegí el 2.15 con sus datos']; const T=resolver().lam; return Math.abs(T-60)<1?[true,'Logrado: T = 15/sen(60° − φ) = 60 → φ ≈ 45,5°. Cuanto más se alinea el cable con la barra, menos brazo tiene.']:[false,`T = ${cm(T,1)} kgf`]; }},
+];
+function cuentas(){ return {title:'Barras articuladas', finLbl:'Respuestas', steps:[
+  ['2.12) Momentos respecto del apoyo (a = 1): el cuerpo a a, F a 2a', `\\[60\\,a=F\\,\\text{sen}30^\\circ\\,2a\\Rightarrow F=60\\ \\text{kgf}\\qquad N=60-30=30\\ \\text{kgf}\\qquad T_{OA}=60\\cos30^\\circ=52\\ \\text{kgf}\\]`,true],
+  ['2.13) Momentos respecto de A', `\\[T\\,\\text{sen}45^\\circ\\cdot8=40\\cdot4+80\\cdot8\\Rightarrow T=141\\ \\text{kgf}\\qquad F_{Ax}=100,\\ F_{Ay}=120-100=20\\ \\text{kgf}\\]`,true],
+  ['2.14) Momentos respecto de la articulación', `\\[T\\,L\\,\\text{sen}60^\\circ=90{,}8\\,L\\cos60^\\circ\\Rightarrow T=52{,}4\\ \\text{kgf}\\qquad \\vec F_A=(52{,}4;\\,90{,}8)=104{,}8\\ \\text{kgf a }60^\\circ\\]`,true],
+  ['2.15) Momentos respecto de A, con el cable a 30° del piso', `\\[T\\,L\\,\\text{sen}(60^\\circ-30^\\circ)=50\\,\\tfrac L2\\cos60^\\circ+5\\,L\\cos60^\\circ\\Rightarrow T=30\\ \\text{kgf}\\]`],
+  ['Reacción en A', `\\[\\vec F_A=(30\\cos30^\\circ;\\,55+30\\,\\text{sen}30^\\circ)=(26;\\,70)\\ \\text{kgf}\\simeq75\\ \\text{kgf a }70^\\circ\\]`,true],
+  ['2.16) Momentos respecto de C; A está a 1 m de altura y F a 0,2 m de la vertical de C', `\\[R\\cdot1=40\\cdot0{,}2\\Rightarrow\\vec R_A=(-8;0)\\ \\text{kgf}\\qquad\\vec R_C=(8;\\,40)\\ \\text{kgf}\\]`,true],
+  ['2.17) Momentos respecto de A: F₂ a 20 cm y F₁ a 24 cm (brazos 10 y 12 cm); la soga es perpendicular a la varilla (brazo 40 cm)', `\\[T\\cdot40=10\\cdot10+5\\cdot12=160\\Rightarrow T=4\\ \\text{kgf}:\\ \\vec T=(-3{,}46;\\,2)\\qquad\\vec R_A=(3{,}46;\\,13)\\ \\text{kgf}\\]`,true],
+], fin:`\\[\\sum M_\\text{art}=0\\ \\Rightarrow\\ \\text{incógnita};\\qquad\\vec R=-\\sum\\vec F\\]`}; }
+
+// ================= Arranque =================
+const PRES={t12:[['2.12 · 60 kgf, 30°',()=>Object.assign(P,PS0.t12)]],t13:[['2.13 · datos de la guía',()=>Object.assign(P,PS0.t13)]],t14:[['2.14 · 90,8 kgf, 60°',()=>Object.assign(P,PS0.t14)]],t15:[['2.15 · datos de la guía',()=>Object.assign(P,PS0.t15)]],t16:[['2.16 · 40 kgf, 37°',()=>Object.assign(P,PS0.t16)]],t17:[['2.17 · datos de la guía',()=>Object.assign(P,PS0.t17)]]};
+const NOTE={t12:'Tablón sin masa: cable OA horizontal en A, apoyo a a de A, cuerpo a 2a y F en el extremo, a 3a.',t13:'Barra de 8 m y 40 kgf, articulada en la pared; carga en el extremo y cable a la pared.',t14:'Poste sin masa articulado en el piso, con el peso arriba y un cable horizontal.',t15:'Barra de 50 kgf a 60° del piso, articulada en A; carga en B y cable de B al piso.',t16:'Barra quebrada sin masa: BC vertical de 0,7 m y AB de 0,5 m a θ; A apoyada en una pared lisa.',t17:'Varilla de 40 cm sin peso, a 30° de la vertical desde la articulación A; soga en B.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>{ showParam(d.id,SHOW[SY].includes(d.id)); const l=LAB[SY][d.id]; const el=document.querySelector(`label[for="r-${d.id}"] b`); if(l&&el) el.textContent=l; });
+  presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('t12',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

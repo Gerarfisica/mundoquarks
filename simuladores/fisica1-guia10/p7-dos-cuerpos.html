@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Dos y tres cuerpos G10-P7</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 10 · Gravitación</span>
+  <h1>Dos cuerpos que se atraen <i>· el centro de masa quieto, y qué cambia con un tercero</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 10">
+    <h2>Guía 10</h2>
+    <ol>
+      <li><a href="p1-tierra-luna.html"><b class="code">P1, 2</b>Viaje Tierra-Luna</a></li>
+      <li><a href="p3-mediatriz-tunel.html"><b class="code">P3, 4</b>Mediatriz y túnel</a></li>
+      <li><a href="p5-lanzamiento.html"><b class="code">P5</b>Lanzamiento desde la Tierra</a></li>
+      <li><a href="p5-kepler.html"><b class="code">P5, 7</b>Órbitas de Kepler</a></li>
+      <li><a href="p6-satelite-barra.html"><b class="code">P6</b>Satélite con barra</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P7</b>Dos y tres cuerpos</a></li>
+      <li><span><b class="code">P8</b>Órbita hiperbólica</span></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:380px" aria-label="Vista desde arriba de la mesa: las masas que se atraen gravitatoriamente, sus trayectorias y el centro de masa. En el caso de tres cuerpos, las tres masas y sus trayectorias."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p7" aria-pressed="true">P7 · dos masas iguales</button>
+        <button data-sy="n3" aria-pressed="false">Extra · tres cuerpos</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Vista 1</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Vista 2</button>
+          <button data-view="v3" aria-pressed="false" id="vb3">Vista 3</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+      <div data-vpanel="v3" hidden>
+        <div class="plot"><canvas id="p3c" style="height:300px"></canvas><div class="tag" id="tag3" style="color:var(--fg)"></div><div class="legend" id="leg3"></div></div>
+        <div class="pcap" id="cap3"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G10-P7</summary>
+      <p><b>7.</b> Considere dos partículas de masa m que interactúan gravitatoriamente entre sí. Las partículas pueden moverse sobre una mesa horizontal libre de rozamiento. En el instante inicial (t = 0) las partículas se hallan separadas una distancia d y se les da a cada una de ellas una velocidad v₀ de módulo v₀ y dirección indicada en la figura. (En la figura, la partícula de la izquierda sale hacia arriba y a la derecha, formando un ángulo α con el segmento que las une; la de la derecha, en sentido opuesto.)</p>
+      <p>a) Indique en un diagrama todas las fuerzas que actúan sobre cada partícula. Para el sistema formado por las dos partículas diga, justificando su respuesta, si se conserva o no el impulso lineal, el impulso angular y la energía mecánica total.<br>b) Halle la velocidad del centro de masa del sistema en el instante inicial. Diga qué tipo de movimiento describe el centro de masa para t &gt; 0.<br>c) Para cada una de las partículas, calcule el vector velocidad (componentes paralela y perpendicular al segmento que las une) cuando las partículas se hallan separadas una distancia d/2.</p>
+      <p class="src">Física 1, Guía 10 (Gravitación). Enunciado textual de la guía; entre paréntesis, lo que muestra la figura. La guía da solo símbolos: la página arranca con m = 3 × 10²⁴ kg, d = 50 000 km, v₀ = 1 km/s y α = 60°. El caso de tres cuerpos no es de la guía: es un agregado para comparar. Usa la misma escala (masa 3 × 10²⁴ kg, distancias en unidades de 50 000 km) y condiciones iniciales clásicas: el «ocho» de Chenciner y Montgomery (2000), el triángulo de Lagrange y el problema pitagórico de Burrau (1913).</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>El movimiento se integra numéricamente (Runge-Kutta de cuarto orden con un paso que se achica cuando dos masas se acercan) y se controla la conservación de P, L y E. Colores: celeste, la masa 1; rosa, la masa 2; amarillo, la masa 3; verde, las componentes de la velocidad.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G10-P7 · Dos masas iguales que se atraen · extra: tres cuerpos =================
+const GG=6.674e-11, sq=Math.sqrt, PI=Math.PI;
+const M0=3e24, LU=5e7, TU=sq(LU**3/(GG*M0));   // escala del caso de tres cuerpos: masa, longitud y tiempo
+const DEF=[
+  {id:'m',lab:'m (cada masa)',unit:'× 10²⁴ kg',min:0.5,max:10,step:0.1,dec:1},
+  {id:'d',lab:'d (separación inicial)',unit:'10³ km',min:10,max:200,step:1,dec:0},
+  {id:'v0',lab:'v₀',unit:'km/s',min:0,max:4,step:0.001,dec:3},
+  {id:'al',lab:'α (con el segmento)',unit:'°',min:0,max:180,step:0.5,dec:1},
+  {id:'dl',lab:'δ (empujón a la masa 1)',unit:'%',min:0,max:5,step:0.01,dec:2},
+];
+const PS={p7:{m:3,d:50,v0:1,al:60}, n3:{dl:0}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p7:['m','d','v0','al'],n3:['dl']};
+const P=Object.assign({},PS.n3,PS.p7); let SY='p7', CASO='ocho';
+
+// ---- condiciones iniciales (SI). En el P7: la masa 1 a la izquierda, la 2 a la derecha, CM en el origen ----
+const CASOS={
+  ocho:{nom:'el ocho',m:[1,1,1],x:[[0.97000436,-0.24308753],[-0.97000436,0.24308753],[0,0]],v:[[0.466203685,0.43236573],[0.466203685,0.43236573],[-0.93240737,-0.86473146]],tf:2*6.32591398},
+  lagrange:{nom:'triángulo de Lagrange',m:[1,1,1],tf:3*2*PI/sq(3)},
+  pita:{nom:'problema pitagórico',m:[3,4,5],x:[[1,3],[-2,-1],[1,-1]],v:[[0,0],[0,0],[0,0]],tf:70},
+};
+(function(){ const c=CASOS.lagrange, R=1/sq(3), w=sq(3); c.x=[0,1,2].map(k=>[R*Math.cos(PI/2+2*PI*k/3),R*Math.sin(PI/2+2*PI*k/3)]); c.v=c.x.map(([x,y])=>[-w*y,w*x]); })();
+function sist(){ if(SY==='p7'){ const m=P.m*1e24, d=P.d*1e6, v=P.v0*1e3, a=rad(P.al), c=Math.cos(a), s=Math.sin(a);
+    return {m:[m,m],x:[[-d/2,0],[d/2,0]],v:[[v*c,v*s],[-v*c,-v*s]]}; }
+  const c=CASOS[CASO], k=1+P.dl/100, vs=LU/TU;
+  const m=c.m.map(x=>x*M0), x=c.x.map(([a,b])=>[a*LU,b*LU]), v=c.v.map(([a,b],i)=>[a*vs*(i===0?k:1),b*vs*(i===0?k:1)]);
+  // el empujón cambia P: se resta la velocidad del CM para que el CM siga quieto
+  const Mt=m.reduce((a,b)=>a+b), vc=[0,1].map(j=>v.reduce((s,vi,i)=>s+m[i]*vi[j],0)/Mt), xc=[0,1].map(j=>x.reduce((s,xi,i)=>s+m[i]*xi[j],0)/Mt);
+  return {m,x:x.map(p=>[p[0]-xc[0],p[1]-xc[1]]),v:v.map(p=>[p[0]-vc[0],p[1]-vc[1]])}; }
+// ---- P7 analítico: problema de Kepler de la separación ----
+function rel(){ const m=P.m*1e24, d=P.d*1e6, v=P.v0*1e3, a=rad(P.al), mu=GG*2*m, h=d*2*v*Math.sin(a), eps=2*v*v-mu/d, e=sq(Math.max(0,1+2*eps*h*h/(mu*mu))), p=h*h/mu;
+  const rmin=h===0?0:p/(1+e), rmax=eps<0?(h===0?-mu/eps:p/(1-e)):Infinity, sma=eps<0?-mu/(2*eps):Infinity;
+  const vpe=2*v*Math.sin(a), vpa2=v*v+GG*m/d-4*v*v*Math.sin(a)**2;   // en r = d/2, para cada masa
+  const llega=vpa2>=0&&(Math.cos(a)>0||rmax<Infinity);
+  return {m,d,v,a,mu,h,eps,e,rmin,rmax,sma,T:isFinite(sma)?2*PI*sq(sma**3/mu):Infinity,vpe,vpa:sq(Math.max(0,vpa2)),llega}; }
+
+// ---- integración de N cuerpos: RK4 con paso ∝ (r_ij³/G(m_i + m_j))^½ mínimo ----
+let __tr=null;
+function traj(){ const s=sist(), key=[SY,CASO,P.m,P.d,P.v0,P.al,P.dl].join(); if(__tr&&__tr.key===key) return __tr;
+  const N=s.m.length, m=s.m; let x=s.x.map(p=>p.slice()), v=s.v.map(p=>p.slice());
+  let tf, eta=0.002; if(SY==='p7'){ const r=rel(); tf=isFinite(r.T)?r.T:0; if(!isFinite(r.T)||r.T>40*sq((P.d*1e6)**3/r.mu)) tf=40*sq((P.d*1e6)**3/r.mu); } else { tf=CASOS[CASO].tf*TU; if(CASO==='pita') eta=0.0008; }
+  const acc=x=>{ const a=x.map(()=>[0,0]); let dm=Infinity; for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){ const dx=x[j][0]-x[i][0], dy=x[j][1]-x[i][1], r2=dx*dx+dy*dy, r=sq(r2), f=GG/(r2*r);
+      a[i][0]+=f*m[j]*dx; a[i][1]+=f*m[j]*dy; a[j][0]-=f*m[i]*dx; a[j][1]-=f*m[i]*dy; dm=Math.min(dm,sq(r2*r/(GG*(m[i]+m[j])))); } return [a,dm]; };
+  const add=(x,k,dt)=>x.map((p,i)=>[p[0]+dt*k[i][0],p[1]+dt*k[i][1]]);
+  const dsto=tf/6000; let t=0, ts=-1, fin='sigue', steps=0, rminP=Infinity; const T=[], X=[], V=[];
+  const guarda=()=>{ T.push(t); X.push(x.map(p=>p.slice())); V.push(v.map(p=>p.slice())); ts=t; };
+  guarda(); const sepIni=SY==='p7'?Math.hypot(x[1][0]-x[0][0],x[1][1]-x[0][1]):0;
+  while(t<tf&&steps<3e6){ const [a1,dm]=acc(x); const dt=Math.min(eta*dm,tf-t,dsto);
+    const k1x=v, k1v=a1, x2=add(x,k1x,dt/2), v2=add(v,k1v,dt/2), [k2v]=acc(x2), x3=add(x,v2,dt/2), v3=add(v,k2v,dt/2), [k3v]=acc(x3), x4=add(x,v3,dt), v4=add(v,k3v,dt), [k4v]=acc(x4);
+    x=x.map((p,i)=>[p[0]+dt/6*(k1x[i][0]+2*v2[i][0]+2*v3[i][0]+v4[i][0]),p[1]+dt/6*(k1x[i][1]+2*v2[i][1]+2*v3[i][1]+v4[i][1])]);
+    v=v.map((p,i)=>[p[0]+dt/6*(k1v[i][0]+2*k2v[i][0]+2*k3v[i][0]+k4v[i][0]),p[1]+dt/6*(k1v[i][1]+2*k2v[i][1]+2*k3v[i][1]+k4v[i][1])]);
+    t+=dt; steps++; if(t-ts>=dsto*0.999||t>=tf) guarda();
+    if(SY==='p7'){ const r=Math.hypot(x[1][0]-x[0][0],x[1][1]-x[0][1]); rminP=Math.min(rminP,r); if(r<1e-3*sepIni){ fin='chocan'; guarda(); break; } if(r>8*sepIni){ fin='se separan'; guarda(); break; } } }
+  const inv=(X,V)=>{ let px=0, py=0, L=0, K=0, U=0; for(let i=0;i<N;i++){ px+=m[i]*V[i][0]; py+=m[i]*V[i][1]; L+=m[i]*(X[i][0]*V[i][1]-X[i][1]*V[i][0]); K+=m[i]*(V[i][0]**2+V[i][1]**2)/2;
+      for(let j=i+1;j<N;j++) U-=GG*m[i]*m[j]/Math.hypot(X[j][0]-X[i][0],X[j][1]-X[i][1]); } return {px,py,L,K,U,E:K+U}; };
+  const I=X.map((Xk,k)=>inv(Xk,V[k])), E0=I[0].E, L0=I[0].L, Lsc=Math.max(Math.abs(L0),m.reduce((s,mi,i)=>s+mi*Math.hypot(...X[0][i])*Math.hypot(...V[0][i]),0),M0*LU*LU/TU); let dE=0, dL=0; I.forEach(q=>{ dE=Math.max(dE,Math.abs(q.E/E0-1)); dL=Math.max(dL,Math.abs(q.L-L0)/Lsc); });
+  return __tr={key,s,N,m,T,X,V,I,tEnd:t,fin,steps,dE,dL,rminP,Lsc}; }
+function interp(T,t){ let a=0, b=T.length-1; if(t>=T[b]) return [b,b,0]; while(b-a>1){ const c=(a+b)>>1; if(T[c]<=t) a=c; else b=c; } return [a,b,(t-T[a])/(T[b]-T[a]||1)]; }
+function at(t){ const tr=traj(), [a,b,f]=interp(tr.T,t), L=(A,B)=>A.map((p,i)=>[p[0]+f*(B[i][0]-p[0]),p[1]+f*(B[i][1]-p[1])]); return {t:Math.min(t,tr.tEnd),x:L(tr.X[a],tr.X[b]),v:L(tr.V[a],tr.V[b])}; }
+// P7: primer instante en que la separación vale d/2
+function enMitad(){ const tr=traj(); if(SY!=='p7') return null; const d=P.d*1e6/2, sep=k=>Math.hypot(tr.X[k][1][0]-tr.X[k][0][0],tr.X[k][1][1]-tr.X[k][0][1]);
+  for(let k=1;k<tr.T.length;k++){ const a=sep(k-1), b=sep(k); if((a-d)*(b-d)<=0&&a!==b){ const f=(a-d)/(a-b), t=tr.T[k-1]+f*(tr.T[k]-tr.T[k-1]); return {t,...at(t)}; } } return null; }
+function comp(st){ const dx=st.x[1][0]-st.x[0][0], dy=st.x[1][1]-st.x[0][1], r=Math.hypot(dx,dy), u=[dx/r,dy/r], n=[-u[1],u[0]], v=st.v[0];   // de la masa 1: paralela (hacia la 2) y perpendicular
+  return {r,par:v[0]*u[0]+v[1]*u[1],per:v[0]*n[0]+v[1]*n[1]}; }
+
+// ---- números ----
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+const ci=(x,d=3)=>{ if(!isFinite(x)) return '∞'; if(x===0) return '0'; if(Math.abs(x)>=0.01&&Math.abs(x)<1000) return cm(x,d); const ex=Math.floor(Math.log10(Math.abs(x))); return cm(x/10**ex,d)+' × 10'+sup(ex); };
+function dur(s){ if(!isFinite(s)) return '∞'; if(s<120) return cm(s,0)+' s'; if(s<7200) return cm(s/60,1)+' min'; if(s<172800) return cm(s/3600,2)+' h'; return cm(s/86400,2)+' días'; }
+const km=x=>isFinite(x)?mil(x/1e3)+' km':'∞';
+const VIS=()=>SY==='p7'?10:CASO==='pita'?36:CASO==='lagrange'&&P.dl>0?30:14;
+const tSim=()=>Math.min(1,S.t/VIS())*traj().tEnd;
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; if(S.t>VIS()+1.5) S.t=0; }
+const COL=()=>[C.sys,C.sob,C.v];
+
+// ================= Escena =================
+const scene=$('scene');
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const tr=traj(), st=at(tSim()), N=tr.N, col=COL(), nar=w<560;
+  // encuadre fijo para todo el recorrido (en el pitagórico, sin los que salen despedidos lejos)
+  let ext=0; const lim=SY==='p7'?4*P.d*1e6:4*LU; tr.X.forEach(xs=>xs.forEach(([x,y])=>{ const r=Math.max(Math.abs(x),Math.abs(y)); if(r<lim) ext=Math.max(ext,r); }));
+  ext=Math.max(ext,SY==='p7'?P.d*1e6/2:LU)*1.08; const sc=Math.min((w-24)/(2*ext),(h-40)/(2*ext)), cx=w/2, cy=h/2+8, X=x=>cx+x*sc, Y=y=>cy-y*sc;
+  // estelas
+  for(let i=0;i<N;i++){ const pts=[]; for(let k=0;k<tr.T.length&&tr.T[k]<=st.t;k++) pts.push([X(tr.X[k][i][0]),Y(tr.X[k][i][1])]); pts.push([X(st.x[i][0]),Y(st.x[i][1])]); line(ctx,pts,col[i],1.6,null,0.75); }
+  // CM
+  line(ctx,[[X(0)-6,Y(0)],[X(0)+6,Y(0)]],C.fg,1.5); line(ctx,[[X(0),Y(0)-6],[X(0),Y(0)+6]],C.fg,1.5); if(!nar) txt(ctx,'CM',X(0)+8,Y(0)+14,C.fg,{size:11});
+  if(SY==='p7'){ const mi=enMitad(); line(ctx,[[X(st.x[0][0]),Y(st.x[0][1])],[X(st.x[1][0]),Y(st.x[1][1])]],C.faint,1,[2,3]);
+    if(mi&&st.t>=mi.t){ for(let i=0;i<2;i++) dot(ctx,X(mi.x[i][0]),Y(mi.x[i][1]),5,col[i],true); }
+    const c=comp(st), u=[(st.x[1][0]-st.x[0][0])/c.r,(st.x[1][1]-st.x[0][1])/c.r], n=[-u[1],u[0]], vref=Math.max(P.v0*1e3,300), K=46/vref;
+    for(let i=0;i<2;i++){ const sg=i===0?1:-1, px=X(st.x[i][0]), py=Y(st.x[i][1]);
+      arrow(ctx,px,py,px+sg*u[0]*c.par*K,py-sg*u[1]*c.par*K,C.ok,1.8,6); arrow(ctx,px,py,px+sg*n[0]*c.per*K,py-sg*n[1]*c.per*K,C.ok,1.8,6,[3,2]); } }
+  for(let i=0;i<N;i++){ const r=SY==='p7'?7:4+3*Math.cbrt(tr.m[i]/M0); dot(ctx,X(st.x[i][0]),Y(st.x[i][1]),r,col[i]); }
+  $('clock').textContent='t = '+dur(st.t);
+  const I=tr.I[interp(tr.T,st.t)[0]];
+  if(SY==='p7'){ const r=rel(), c=comp(st);
+    txt(ctx,r.eps<0?'ligadas':'se separan',12,18,r.eps<0?C.ok:C.v,{size:11.5});
+    readout([['separación',km(c.r),C.sys],['v∥ de la masa 1',cm(c.par/1e3,3)+' km/s',C.ok],['v⊥',cm(c.per/1e3,3)+' km/s',C.ok],['P total',ci(Math.hypot(I.px,I.py)/(P.m*1e24*P.v0*1e3||1))+' · m v₀'],['en d/2: v∥',r.llega?cm(r.vpa/1e3,3)+' km/s':'no llega'],['v⊥',r.llega?cm(r.vpe/1e3,3)+' km/s':'—']]);
+    $('formula').innerHTML=`<b>P</b> = mv₀ − mv₀ = 0 → v_CM = 0 · <b>en d/2</b> (cada masa a d/4 del CM): L: m d v₀ sen α = m (d/2) v⊥ → v⊥ = 2v₀ sen α · E: mv₀² − Gm²/d = m(v∥² + v⊥²) − 2Gm²/d → v∥ = √(v₀² + Gm/d − 4v₀² sen²α)`; }
+  else { txt(ctx,CASOS[CASO].nom+(P.dl>0?` · empujón de ${cm(P.dl,2)} %`:''),12,18,C.muted,{size:11.5});
+    readout([['caso',CASOS[CASO].nom],['E',ci(I.E)+' J',C.v],['variación de E',ci(Math.abs(I.E/tr.I[0].E-1),1)],['L (en unidades de mℓ²/τ)',ci(I.L/(M0*LU*LU/TU),2),C.ok],['|P| (en unidades de mℓ/τ)',ci(Math.hypot(I.px,I.py)/(M0*LU/TU),1)]]);
+    $('formula').innerHTML=`<b>Se conservan</b> P, L y E (fuerzas internas, centrales y conservativas), pero con tres cuerpos eso no alcanza para resolver el movimiento: no hay solución general en fórmulas y casi todos los casos son caóticos. Unidades: masa 3 × 10²⁴ kg, distancia 50 000 km, tiempo √(ℓ³/Gm) = ${dur(TU)}.`; } }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tramo=[]; const fin=()=>{ line(ctx,tramo,col,wd||2.2,dash); tramo=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tramo.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const fsT=tr=>tr.tEnd>2*86400?86400:3600, lbT=tr=>fsT(tr)===86400?'t (días)':'t (h)';
+function vCons(id,tg,lg,cp){ const tr=traj(), st=at(tSim()), fs=fsT(tr), E0=tr.I[0].E, L0=tr.I[0].L, K0=tr.I[0].K||1, pr=tr.m[0]*Math.max(...tr.V[0].map(p=>Math.hypot(...p)),1);
+  const E=[], L=[], Pp=[], K=[]; tr.I.forEach((q,k)=>{ const t=tr.T[k]/fs; E.push([t,q.E/E0]); L.push([t,1+(q.L-L0)/tr.Lsc]); Pp.push([t,Math.hypot(q.px,q.py)/pr]); K.push([t,q.K/Math.abs(E0)]); });
+  const m=Math.max(1.3,...K.map(p=>p[1]))*1.05;
+  plot(id,0,tr.tEnd/fs,-0.1,m,[[K,C.sys,null,1.4],[E,C.v,[6,4]],[L,C.ok,[2,3]],[Pp,C.sob,[1,3]]],lbT(tr),{mark:(ctx,X,Y)=>{ ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(X(st.t/fs),Y(-0.1)); ctx.lineTo(X(st.t/fs),Y(m)); ctx.stroke(); }});
+  $(tg).textContent='Magnitudes del sistema, relativas a su valor inicial'; legend(lg,[[C.v,'E / E₀','dashed'],[C.ok,'L (relativa)','dotted'],[C.sob,'|P| / (m v)','dotted'],[C.sys,'K / |E₀|']]);
+  $(cp).textContent=`Sobre el sistema no actúan fuerzas externas en el plano (peso y normal se cancelan): P se conserva (y vale 0). Las fuerzas internas son centrales y conservativas: se conservan L y E. La energía cinética K, en cambio, sube y baja. En esta integración E varía menos que ${ci(Math.max(tr.dE,1e-15),1)} y L menos que ${ci(Math.max(tr.dL,1e-15),1)}.`; }
+function v2p7(){ const tr=traj(), st=at(tSim()), fs=fsT(tr), u=1e6, r=rel(), mi=enMitad(), pts=tr.X.map((x,k)=>[tr.T[k]/fs,Math.hypot(x[1][0]-x[0][0],x[1][1]-x[0][1])/u]), m=Math.max(...pts.map(p=>p[1]))*1.08;
+  plot('p2c',0,tr.tEnd/fs,0,m,[[[[0,r.d/2/u],[tr.tEnd/fs,r.d/2/u]],C.faint,[5,4],1.2],[pts,C.sys]],lbT(tr),{mark:(ctx,X,Y)=>{ dot(ctx,X(st.t/fs),Y(comp(st).r/u),4.5,C.sys); if(mi) dot(ctx,X(mi.t/fs),Y(r.d/2/u),4,C.ok,true); }});
+  $('tag2').textContent='Separación entre las masas (10³ km)'; legend('leg2',[[C.sys,'separación'],[C.faint,'d/2','dashed']]);
+  $('cap2').textContent=mi?`Llegan a d/2 a los ${dur(mi.t)}. La separación sigue una cónica de Kepler: mínimo ${km(r.rmin)}`+(isFinite(r.rmax)?`, máximo ${km(r.rmax)}, período ${dur(r.T)}.`:'; se separan para siempre.'):'Con estos valores la separación nunca llega a d/2.'; }
+function v3p7(){ const tr=traj(), st=at(tSim()), r=rel(), u=1e6, mi=enMitad(), A=[], B=[]; tr.X.forEach((x,k)=>{ const c=comp({x,v:tr.V[k]}); A.push([c.r/u,c.par/1e3]); B.push([c.r/u,c.per/1e3]); });
+  const xs=A.map(p=>p[0]), ys=A.concat(B).map(p=>p[1]), y0=Math.min(0,...ys)*1.1, y1=Math.max(...ys)*1.1, x0=Math.min(...xs)*0.95, x1=Math.max(...xs)*1.03;
+  plot('p3c',x0,x1,y0,y1,[[A,C.ok],[B,C.ok,[4,3]]],'separación (10³ km)',{mark:(ctx,X,Y)=>{ line(ctx,[[X(r.d/2/u),Y(y0)],[X(r.d/2/u),Y(y1)]],C.faint,1,[3,4]);
+    if(r.llega){ dot(ctx,X(r.d/2/u),Y(r.vpe/1e3),4.5,C.v,true); dot(ctx,X(r.d/2/u),Y((r.v*Math.cos(r.a)>0?1:-1)*r.vpa/1e3),4.5,C.v,true); } const c=comp(st); dot(ctx,X(c.r/u),Y(c.par/1e3),4,C.ok); dot(ctx,X(c.r/u),Y(c.per/1e3),4,C.ok); }});
+  $('tag3').textContent='Velocidad de la masa 1 (km/s) según la separación'; legend('leg3',[[C.ok,'v∥ (hacia la otra)'],[C.ok,'v⊥','dashed'],[C.v,'analítico en d/2','dotted']]);
+  $('cap3').textContent=r.llega?`En d/2 (círculos amarillos): v⊥ = 2v₀ sen α = ${cm(r.vpe/1e3,3)} km/s y |v∥| = ${cm(r.vpa/1e3,3)} km/s. La integración da `+(mi?`${cm(Math.abs(comp(mi).per)/1e3,3)} y ${cm(Math.abs(comp(mi).par)/1e3,3)} km/s.`:'—.')+' La otra masa tiene la velocidad opuesta.':'No llegan a d/2: v∥² = v₀² + Gm/d − 4v₀² sen²α sería negativo (o se separan desde el principio).'; }
+function v2n3(){ const tr=traj(), st=at(tSim()), fs=fsT(tr), u=1e6, pares=[[0,1],[0,2],[1,2]], cols=[C.lin,C.ok,C.sob], ser=pares.map(([i,j],k)=>[tr.X.map((x,n)=>[tr.T[n]/fs,Math.hypot(x[j][0]-x[i][0],x[j][1]-x[i][1])/u]),cols[k],null,1.6]);
+  const m=Math.min(Math.max(...ser.flatMap(s=>s[0].map(p=>p[1]))),8*LU/u)*1.05;
+  plot('p2c',0,tr.tEnd/fs,0,m,ser,lbT(tr),{mark:(ctx,X,Y)=>{ ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(X(st.t/fs),Y(0)); ctx.lineTo(X(st.t/fs),Y(m)); ctx.stroke(); }});
+  $('tag2').textContent='Distancia entre cada par (10³ km)'; legend('leg2',[[cols[0],'1–2'],[cols[1],'1–3'],[cols[2],'2–3']]);
+  $('cap2').textContent={ocho:'En el ocho las tres distancias se repiten con el período: las tres masas se persiguen por la misma curva.',lagrange:P.dl>0?'Con el empujón, las distancias se separan de a poco y el triángulo se desarma: con masas iguales el equilibrio de Lagrange es inestable.':'Triángulo de Lagrange: las tres distancias quedan iguales y constantes; el triángulo gira rígido con ω² = 3Gm/s³.',pita:'Problema pitagórico: muchos acercamientos muy cercanos y, al final, un par queda ligado y la tercera masa sale despedida hacia el otro lado (P = 0).'}[CASO]; }
+function v3n3(){ const tr=traj(), st=at(tSim()), fs=fsT(tr), E0=Math.abs(tr.I[0].E), K=tr.I.map((q,k)=>[tr.T[k]/fs,q.K/E0]), U=tr.I.map((q,k)=>[tr.T[k]/fs,q.U/E0]), Et=tr.I.map((q,k)=>[tr.T[k]/fs,q.E/E0]);
+  const lo=Math.max(Math.min(...U.map(p=>p[1])),-8), hi=Math.min(Math.max(...K.map(p=>p[1])),8);
+  plot('p3c',0,tr.tEnd/fs,lo*1.05,hi*1.05,[[K,C.sys,null,1.5],[U,C.sob,null,1.5],[Et,C.v,[6,4]]],lbT(tr),{mark:(ctx,X,Y)=>{ ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(X(st.t/fs),Y(lo*1.05)); ctx.lineTo(X(st.t/fs),Y(hi*1.05)); ctx.stroke(); }});
+  $('tag3').textContent='Energías en unidades de |E₀|'; legend('leg3',[[C.sys,'cinética'],[C.sob,'potencial'],[C.v,'total','dashed']]);
+  $('cap3').textContent=CASO==='pita'?'En cada encuentro cercano la cinética y la potencial dan saltos enormes y opuestos; la total no cambia. El eje está recortado.':'La total queda constante; en el triángulo de Lagrange sin empujón también K y U son constantes.'; }
+function draw(){ drawScene(); const v=S.view;
+  if(v==='v1') vCons('p1c','tag1','leg1','cap1'); else if(SY==='p7'){ if(v==='v2') v2p7(); else v3p7(); } else { if(v==='v2') v2n3(); else v3n3(); } }
+
+// ================= Predecí =================
+const PRED={
+  p7:{ q:'Las dos masas salen con velocidades opuestas. Después, el centro de masa…',
+    opts:[['quieto','queda quieto'],['mueve','se mueve en línea recta'],['gira','gira alrededor del punto medio']], right:'quieto', go:'Probalo',
+    run(){ Object.assign(P,PS0.p7); guiaOff(); restart(); refresh(); setView('v1'); return 'Queda quieto: arranca con P = mv₀ − mv₀ = 0 y no hay fuerzas externas en el plano de la mesa, así que P sigue siendo 0 y el CM no se mueve. Cada masa está siempre a la misma distancia del CM, del lado opuesto.'; } },
+  n3:{ q:'Tres masas iguales en un triángulo equilátero que gira. Si a una le das un empujón de 0,1 %…',
+    opts:[['igual','sigue girando casi igual'],['oscila','el triángulo se deforma un poco y oscila'],['desarma','el triángulo se desarma']], right:'desarma', go:'Probalo',
+    run(){ CASO='lagrange'; P.dl=0.1; guiaOff(); restart(); refresh(); setView('v2'); return 'Se desarma: con masas iguales el triángulo de Lagrange es inestable (solo es estable si una masa es mucho mayor que las otras dos, como el Sol y Júpiter con los troyanos). La perturbación crece hasta romperlo.'; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p7:[
+    {txt:'Con α = 60°, elegí v₀ para que d/2 sea justo la menor separación (± 1 %).',
+     chk(){ if(P.al!==60) return [false,'Poné α = 60°']; const r=rel(), q=r.rmin/(r.d/2); return Math.abs(q-1)<=0.01?[true,`Logrado: v₀ = √(Gm/d/(4 sen²α − 1)) = ${cm(sq(GG*r.m/r.d/(4*Math.sin(r.a)**2-1))/1e3,3)} km/s; ahí v∥ = 0.`]:[false,`Separación mínima: ${km(r.rmin)}`]; }},
+    {txt:'Con α = 90°, ¿qué v₀ hace que las masas giren en una circunferencia? ¿Por qué v₀ = √(Gm/2d)?',
+     chk(){ if(P.al!==90) return [false,'Poné α = 90°']; const e=rel().e; return e<0.005?[true,`Logrado: v₀ = ${cm(P.v0,3)} km/s (exacto ${cm(sq(GG*P.m*1e24/(2*P.d*1e6))/1e3,3)}).`]:[false,`e = ${cm(e,3)}`]; }},
+    {txt:'Si las masas fueran distintas, ¿seguiría quieto el CM? ¿Qué cambiaría en las trayectorias?'},
+  ],
+  n3:[
+    {txt:'En el ocho, subí el empujón δ de a poco. ¿La figura se rompe enseguida, como el triángulo de Lagrange, o aguanta?'},
+    {txt:'En el problema pitagórico, ¿qué masa sale despedida? ¿Por qué la pareja que queda sale en sentido contrario?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p7'){ const r=rel();
+    return {title:'Dos masas iguales que se atraen', finLbl:'Velocidad de cada masa en d/2', steps:[
+      ['a) Sobre cada masa: la atracción de la otra (Gm²/r², sobre la recta que las une), el peso y la normal, que se cancelan. Sin fuerzas externas netas, P se conserva; las internas son centrales: L se conserva; son conservativas: E se conserva', `\\[\\vec F_{12}=-\\vec F_{21}=\\frac{Gm^2}{r^2}\\hat r\\]`],
+      ['b) Velocidades iniciales opuestas', `\\[\\vec v_\\text{CM}=\\frac{m\\vec v_0+m(-\\vec v_0)}{2m}=0\\]`,true],
+      ['El CM queda quieto en el punto medio: cada masa está a r/2 de él, del lado opuesto', `\\[\\vec r_1=-\\tfrac12\\vec r\\qquad\\vec r_2=\\tfrac12\\vec r\\]`],
+      ['c) Impulso angular respecto del CM (solo cuenta v⊥)', `\\[L=2\\,m\\,\\frac r2\\,v_\\perp:\\quad m\\,d\\,v_0\\sin\\alpha=m\\,\\frac d2\\,v_\\perp\\ \\Rightarrow\\ v_\\perp=2v_0\\sin\\alpha\\]`],
+      ['Energía', `\\[mv_0^2-\\frac{Gm^2}{d}=m(v_\\parallel^2+v_\\perp^2)-\\frac{2Gm^2}{d}\\]`],
+      ['Despejando', `\\[v_\\parallel=\\sqrt{v_0^2+\\frac{Gm}d-4v_0^2\\sin^2\\alpha}\\]`,true],
+      ['Con los datos', r.llega?`\\[v_\\perp=${tx(r.vpe/1e3,3)}\\ \\tfrac{\\text{km}}{\\text{s}}\\qquad v_\\parallel=${tx(r.vpa/1e3,3)}\\ \\tfrac{\\text{km}}{\\text{s}}\\]`:`\\[v_\\parallel^2<0:\\ \\text{no llegan a }d/2\\]`],
+      ['La otra masa tiene la velocidad opuesta (P = 0). Hay que mirar el signo de v∥: se acercan si al principio se acercaban', `\\[\\vec v_2=-\\vec v_1\\]`],
+    ], fin:`\\[v_\\perp=2v_0\\sin\\alpha\\qquad v_\\parallel=\\sqrt{v_0^2+\\tfrac{Gm}{d}-4v_0^2\\sin^2\\alpha}\\]`}; }
+  const tr=traj();
+  return {title:'Tres cuerpos (agregado)', finLbl:'Lo que se conserva', steps:[
+    ['Igual que con dos: sin fuerzas externas, internas centrales y conservativas', `\\[\\vec P,\\ L,\\ E\\ \\text{constantes}\\]`],
+    ['Pero son 6 grados de libertad en el plano con solo 4 constantes (P_x, P_y, L, E): no alcanza para resolverlo en general', `\\[\\text{sin solución general en fórmulas (Poincaré, 1890)}\\]`],
+    ['Triángulo de Lagrange: lado s, cada masa a s/√3 del CM, gira rígido', `\\[\\omega^2=\\frac{3Gm}{s^3}\\qquad T=${tx(2*PI/sq(3)*TU/3600,2)}\\ \\text{h}\\]`],
+    ['El ocho (Chenciner y Montgomery, 2000): las tres masas recorren la misma curva', `\\[T\\simeq6{,}326\\,\\sqrt{\\ell^3/Gm}=${tx(6.32591398*TU/3600,2)}\\ \\text{h}\\]`],
+    ['Problema pitagórico (Burrau, 1913): masas 3, 4 y 5 en los vértices de un triángulo 3-4-5, en reposo. Es caótico', `\\[E<0\\ \\text{pero una masa escapa}\\]`],
+    ['Control numérico en este caso', `\\[\\left|\\frac{\\Delta E}{E}\\right|<${tx(Math.max(tr.dE,1e-15)*1e9,2)}\\times10^{-9}\\]`],
+  ], fin:`\\[\\vec P=0,\\ L,\\ E\\]`}; }
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Valores de partida</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const GUIA={
+  p7:[['α = 60° · ligadas',()=>Object.assign(P,PS0.p7)],['circunferencias',()=>{ Object.assign(P,PS0.p7,{al:90}); P.v0=sq(GG*P.m*1e24/(2*P.d*1e6))/1e3; }],['d/2 justo',()=>{ Object.assign(P,PS0.p7); P.v0=sq(GG*P.m*1e24/(P.d*1e6)/2)/1e3; }],['se separan',()=>{ Object.assign(P,PS0.p7); P.v0=1.2*sq(GG*P.m*1e24/(P.d*1e6))/1e3; }]],
+  n3:[['el ocho',()=>{ CASO='ocho'; P.dl=0; }],['Lagrange',()=>{ CASO='lagrange'; P.dl=0; }],['Lagrange + empujón',()=>{ CASO='lagrange'; P.dl=0.1; }],['pitagórico',()=>{ CASO='pita'; P.dl=0; }]],
+};
+const NOTE={p7:'La guía da solo símbolos: la página arranca con m = 3 × 10²⁴ kg, d = 50 000 km, v₀ = 1 km/s y α = 60°. Flechas verdes: v∥ (llena) y v⊥ (punteada) de cada masa. Los círculos marcan dónde están cuando la separación vale d/2.',
+  n3:'Agregado, no es de la guía. Elegí un caso; δ le da un empujón a la masa 1 (y se corrige el CM para que siga quieto). Probá δ en el ocho y en Lagrange.'};
+const VB={p7:['Qué se conserva','Separación(t)','Velocidad según la separación'],n3:['Qué se conserva','Distancias entre pares','Energías']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]); $('note').textContent=NOTE[SY]; ['vb1','vb2','vb3'].forEach((id,i)=>$(id).textContent=VB[SY][i]);
+  restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p7',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

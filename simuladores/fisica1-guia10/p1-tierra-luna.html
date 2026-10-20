@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Viaje Tierra-Luna G10-P1 y P2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 10 · Gravitación</span>
+  <h1>Una partícula entre dos masas <i>· el punto donde la fuerza se anula y la velocidad mínima para llegar a la Luna</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 10">
+    <h2>Guía 10</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P1, 2</b>Viaje Tierra-Luna</a></li>
+      <li><a href="p3-mediatriz-tunel.html"><b class="code">P3, 4</b>Mediatriz y túnel</a></li>
+      <li><span><b class="code">P5</b>Lanzamiento desde la Tierra</span></li>
+      <li><span><b class="code">P5, 7</b>Órbitas de Kepler</span></li>
+      <li><span><b class="code">P6</b>Satélite con barra</span></li>
+      <li><span><b class="code">P7</b>Dos cuerpos</span></li>
+      <li><span><b class="code">P8</b>Órbita hiperbólica</span></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Arriba, la recta que une las dos masas con la partícula que se mueve sobre ella; abajo, el potencial gravitatorio en función de la posición, con la línea de la energía y el punto que sigue a la partícula."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p1" aria-pressed="true">P1 · dos masas cualesquiera</button>
+        <button data-sy="p2" aria-pressed="false">P2 · cohete de la Tierra a la Luna</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Vista 1</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Vista 2</button>
+          <button data-view="v3" aria-pressed="false" id="vb3">Vista 3</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+      <div data-vpanel="v3" hidden>
+        <div class="plot"><canvas id="p3c" style="height:300px"></canvas><div class="tag" id="tag3" style="color:var(--fg)"></div><div class="legend" id="leg3"></div></div>
+        <div class="pcap" id="cap3"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G10-P1 y P2</summary>
+      <p><b>1.</b> Considere dos partículas de masas M₁ y M₂ fijas y separadas por una distancia D. Una tercera partícula de masa m se mueve bajo la atracción gravitatoria de las otras dos. Suponga que m se mueve sobre la recta que une a M₁ y M₂, considerando que puede hallarse entre ambas o bien a la izquierda o a la derecha de ellas.</p>
+      <p>a) Escriba la fuerza neta sobre m, en función de la posición.<br>b) Calcule y grafique el potencial.<br>c) Describa cualitativamente el movimiento de m, para distintos valores de su energía mecánica.</p>
+      <p><b>2.</b> Aplique el problema anterior considerando que M₁ = M_T (masa de la Tierra), M₂ = M_L (masa de la Luna), D es la distancia Tierra-Luna, y la partícula de masa m es un cohete que se dispara desde la superficie de la Tierra hacia la Luna con una velocidad v₀. Tenga en cuenta que en este problema M₁ y M₂ no son partículas puntuales, sino que tienen radios R_T (radio de la Tierra) y R_L (radio de la Luna), respectivamente.</p>
+      <p>a) Calcule y grafique el potencial gravitatorio del cohete en función de su distancia a la Tierra, medida desde la superficie terrestre.<br>b) ¿En qué punto de su trayectoria hacia la Luna el cohete tiene aceleración nula?<br>c) Calcule la velocidad inicial mínima del cohete necesaria para llegar a este punto y caer en la Luna por la acción de la atracción gravitatoria lunar.</p>
+      <p class="src">Física 1, Guía 10 (Gravitación). Enunciado textual de la guía. El P1 da solo símbolos: la página elige valores de partida y dibuja las masas con un radio de 2 % de D (al llegar ahí, m choca). En el P2, como en la guía, la Tierra y la Luna quedan fijas: G = 6,674 × 10⁻¹¹ N m²/kg², M_T = 5,972 × 10²⁴ kg, M_L = 7,342 × 10²² kg, D = 384 400 km, R_T = 6371 km, R_L = 1737 km. Se grafica el potencial φ = U/m (energía potencial por unidad de masa del cohete).</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>El movimiento se integra numéricamente (Runge-Kutta de cuarto orden con paso que se achica cerca de las masas) y la energía se conserva mejor que 1 en 10⁸. Colores: celeste, la partícula; rosa, el potencial; amarillo, la energía; violeta, la fuerza.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G10-P1 y P2 · Una partícula entre dos masas · viaje Tierra-Luna =================
+const GG=6.674e-11, sq=Math.sqrt;
+const MT=5.972e24, ML=7.342e22, DTL=3.844e8, RT=6.371e6, RL=1.737e6;
+const DEF=[
+  {id:'M1',lab:'M₁',unit:'× 10²⁴ kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'M2',lab:'M₂',unit:'× 10²⁴ kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'D',lab:'D',unit:'10³ km',min:20,max:400,step:1,dec:0},
+  {id:'x0',lab:'x₀ / D (posición inicial)',unit:'',min:-1,max:2,step:0.005,dec:3},
+  {id:'v0',lab:'v₀ (+ hacia M₂)',unit:'km/s',min:-20,max:20,step:0.01,dec:2},
+  {id:'w0',lab:'v₀ desde la superficie',unit:'km/s',min:10.5,max:11.5,step:0.001,dec:3},
+];
+const PS={p1:{M1:6,M2:2,D:100,x0:0.3,v0:0}, p2:{w0:11.08}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p1:['M1','M2','D','x0','v0'],p2:['w0']};
+const P=Object.assign({},PS.p2,PS.p1); let SY='p1';
+
+// ---- datos del caso en SI: x se mide desde el centro de M₁, M₂ está en x = D ----
+function ph(){ if(SY==='p2') return {GM1:GG*MT,GM2:GG*ML,D:DTL,r1:RT,r2:RL,x0:RT,v0:P.w0*1e3};
+  const D=P.D*1e6, rc=0.02*D; let x0=P.x0*D; if(Math.abs(x0)<rc) x0=(x0<0?-1:1)*rc*1.001; if(Math.abs(x0-D)<rc) x0=D+(x0<D?-1:1)*rc*1.001;
+  return {GM1:GG*P.M1*1e24,GM2:GG*P.M2*1e24,D,r1:rc,r2:rc,x0,v0:P.v0*1e3}; }
+const phi=(q,x)=>-q.GM1/Math.abs(x)-q.GM2/Math.abs(x-q.D);                       // potencial (J/kg)
+const acc=(q,x)=>-q.GM1*Math.sign(x)/(x*x)-q.GM2*Math.sign(x-q.D)/((x-q.D)**2);   // fuerza por unidad de masa (m/s²)
+const xN=q=>q.D/(1+sq(q.GM2/q.GM1));                                             // punto neutro (a = 0)
+const vmin2=()=>{ const q=ph(); return sq(2*(phi(q,xN(q))-phi(q,RT))); };          // v₀ mínima del P2 (m/s)
+
+// ---- integración: RK4 con paso proporcional a d^1,5 (d: distancia a la masa más cercana) ----
+let __tr=null;
+function traj(){ const q=ph(), key=[SY,q.GM1,q.GM2,q.D,q.x0,q.v0].join(); if(__tr&&__tr.key===key) return __tr;
+  const mu=q.GM1+q.GM2, ts=sq(q.D**3/mu), tcap=SY==='p2'?30*86400:25*ts, far=6*q.D, eta=0.0015;
+  let x=q.x0, v=q.v0, t=0, fin='tiempo'; const T=[0], X=[x], V=[v], e0=v*v/2+phi(q,x); let de=0;
+  while(t<tcap){ const d=Math.min(Math.abs(x),Math.abs(x-q.D)), dt=Math.min(eta*d**1.5/sq(mu),tcap/4000);
+    const k1x=v, k1v=acc(q,x), k2x=v+dt/2*k1v, k2v=acc(q,x+dt/2*k1x), k3x=v+dt/2*k2v, k3v=acc(q,x+dt/2*k2x), k4x=v+dt*k3v, k4v=acc(q,x+dt*k3x);
+    let xn=x+dt/6*(k1x+2*k2x+2*k3x+k4x), vn=v+dt/6*(k1v+2*k2v+2*k3v+k4v), tn=t+dt;
+    const hit=Math.abs(xn)<=q.r1?['M1',(x<0?-1:1)*q.r1]:Math.abs(xn-q.D)<=q.r2?['M2',q.D+(x<q.D?-1:1)*q.r2]:null;
+    if(hit){ const f=(hit[1]-x)/(xn-x); tn=t+f*dt; vn=v+f*(vn-v); xn=hit[1]; fin=hit[0]; }
+    x=xn; v=vn; t=tn; T.push(t); X.push(x); V.push(v); if(!hit) de=Math.max(de,Math.abs(v*v/2+phi(q,x)-e0));
+    if(hit) break; if(Math.abs(x-q.D/2)>far){ fin='lejos'; break; } }
+  return __tr={key,q,T,X,V,fin,tEnd:t,e0,de}; }
+function at(t){ const tr=traj(), T=tr.T; if(t>=tr.tEnd) { const n=T.length-1; return {t:T[n],x:tr.X[n],v:tr.V[n]}; }
+  let a=0, b=T.length-1; while(b-a>1){ const c=(a+b)>>1; if(T[c]<=t) a=c; else b=c; }
+  const f=(t-T[a])/(T[b]-T[a]||1); return {t,x:tr.X[a]+f*(tr.X[b]-tr.X[a]),v:tr.V[a]+f*(tr.V[b]-tr.V[a])}; }
+
+// ---- números y unidades ----
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const km=x=>mil(x/1e3)+' km';
+function dur(s){ if(s<120) return cm(s,0)+' s'; if(s<7200) return cm(s/60,1)+' min'; if(s<172800) return cm(s/3600,2)+' h'; return cm(s/86400,2)+' días'; }
+const VIS=10;   // segundos de animación (a 1×) para todo el recorrido
+const tSim=()=>Math.min(1,S.t/VIS)*traj().tEnd;
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; if(S.t>VIS+2) S.t=0; }
+const FIN={M1:'choca con M₁',M2:'choca con M₂',lejos:'se aleja: escapa',tiempo:'sigue moviéndose'};
+const FIN2={M1:'vuelve a caer en la Tierra',M2:'llega a la Luna',lejos:'se aleja',tiempo:'queda casi quieto cerca del punto neutro'};
+
+// ================= Escena: la recta arriba, el potencial abajo con la misma escala de x =================
+const scene=$('scene');
+function rangoX(q){ return SY==='p2'?[-1.6*RT,q.D+3*RL]:[-1*q.D,2*q.D]; }
+function rangoY(q){ const pN=phi(q,xN(q)), e=traj().e0; if(SY==='p2') return [1.08*phi(q,RT),0.04*Math.abs(phi(q,RT))]; return [Math.min(3*pN,e-0.3*Math.abs(pN)),Math.max(0,e)+0.25*Math.abs(pN)]; }
+function drawScene(){ const tr=traj(), q=tr.q, s=at(tSim()), [xa,xb]=rangoX(q), [ya,yb]=rangoY(q), u=1e6, nar=scene.getBoundingClientRect().width<560, ty=60;
+  const xo=SY==='p2'?RT:0;   // en el P2 el eje se mide desde la superficie terrestre
+  const F=frame(scene,{x0:(xa-xo)/u,x1:(xb-xo)/u,y0:ya/u,y1:yb/u,T:108,B:24,L:46,xlab:SY==='p2'?'distancia a la superficie terrestre (10³ km)':'x (10³ km)'});
+  const {ctx,w,X,Y,L,pw,T}=F, XX=x=>X((x-xo)/u);
+  txt(ctx,'φ (MJ/kg)',L-40,T-8,C.sob,{size:11});
+  // recta con las masas y la partícula
+  line(ctx,[[L,ty],[L+pw,ty]],C['line-2'],1.5);
+  const disco=(xc,r,lab,sub)=>{ const rp=Math.max(4,Math.abs(XX(xc+r)-XX(xc))); ctx.beginPath(); ctx.arc(XX(xc),ty,rp,0,7); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; ctx.stroke();
+    txt(ctx,lab,XX(xc),ty-Math.max(rp,6)-8,C.fg,{align:'center',size:11.5}); if(sub) txt(ctx,sub,XX(xc),ty+Math.max(rp,6)+15,C.faint,{align:'center',size:10.5}); };
+  disco(0,q.r1,SY==='p2'?'Tierra':'M₁'); disco(q.D,q.r2,SY==='p2'?'Luna':'M₂');
+  const xn=xN(q); line(ctx,[[XX(xn),ty-12],[XX(xn),F.T+F.ph]],C.lin,1,[3,4]); txt(ctx,'a = 0',XX(xn),ty+26,C.lin,{align:'center',size:10.5});
+  // el potencial (fuera de las masas) y la energía
+  F.clip(); const N=700, seg=SY==='p2'?[[q.r1,q.D-q.r2]]:[[xa,-q.r1],[q.r1,q.D-q.r2],[q.D+q.r2,xb]];
+  seg.forEach(([a,b])=>{ if(b<=a) return; const pts=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; pts.push([XX(x),Y(phi(q,x)/u)]); } line(ctx,pts,C.sob,2.2); });
+  line(ctx,[[L,Y(tr.e0/u)],[L+pw,Y(tr.e0/u)]],C.v,1.6,[6,4]); line(ctx,[[L,Y(0)],[L+pw,Y(0)]],C['line-2'],1);
+  dot(ctx,XX(s.x),Y(phi(q,s.x)/u),5,C.sob); F.unclip();
+  txt(ctx,'E/m',L+pw-4,Y(tr.e0/u)-5,C.v,{align:'right',size:11});
+  const xp=XX(s.x); if(xp>=L-2&&xp<=L+pw+2){ arrow(ctx,xp,ty,xp+Math.sign(s.v)*Math.min(44,Math.abs(s.v)/sq(2*Math.abs(phi(q,xn)))*30),ty,C.sys,2,7); dot(ctx,xp,ty,6,C.sys); line(ctx,[[xp,ty+8],[xp,Y(phi(q,s.x)/u)]],C.sys,1,[2,3],0.6); }
+  else { const xr=xp<L?L+8:L+pw-8; txt(ctx,xp<L?'← m':'m →',xr,ty-12,C.sys,{align:xp<L?'left':'right',size:11.5}); }
+  const done=S.t>=VIS; txt(ctx,(done?'final: ':'')+(SY==='p2'?FIN2[tr.fin]:FIN[tr.fin]),12,18,done?(tr.fin==='M2'||tr.fin==='lejos'?C.ok:C.v):C.muted,{size:11.5});
+  $('clock').textContent='t = '+dur(s.t);
+  if(SY==='p2') readout([['altura',km(s.x-RT),C.sys],['v',cm(s.v/1e3,3)+' km/s'],['a',cm(acc(q,s.x),nar?4:5)+' m/s²',C.lin],['punto neutro',km(xn-RT)+' de la superficie'],['v₀ mínima',cm(vmin2()/1e3,3)+' km/s',C.v],['viaje',dur(tr.tEnd)]]);
+  else readout([['x',mil(s.x/1e6,1)+' × 10³ km',C.sys],['v',cm(s.v/1e3,3)+' km/s'],['F/m',cm(acc(q,s.x),3)+' m/s²',C.lin],['E/m',cm(tr.e0/1e6,3)+' MJ/kg',C.v],['φ máximo entre las masas',cm(phi(q,xn)/1e6,3)+' MJ/kg',C.sob]]);
+  $('formula').innerHTML=SY==='p2'?`<b>a = 0</b> cuando GM_T/x² = GM_L/(D − x)² → x_N = D/(1 + √(M_L/M_T)) = ${km(xn)} del centro · <b>v₀ mínima:</b> ½v₀² + φ(R_T) = φ(x_N) → v₀ = √(2[φ(x_N) − φ(R_T)]) = ${cm(vmin2()/1e3,3)} km/s`
+    :`<b>fuerza:</b> F(x) = −GmM₁ x/|x|³ − GmM₂ (x − D)/|x − D|³ · <b>potencial:</b> φ(x) = −GM₁/|x| − GM₂/|x − D| · <b>máximo de φ</b> (a = 0) en x_N = D/(1 + √(M₂/M₁)) = ${cm(xn/q.D,4)} D`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tramo=[]; const fin=()=>{ line(ctx,tramo,col,wd||2.2,dash); tramo=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tramo.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function curva(f,a,b,N=500){ const out=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; out.push([x,f(x)]); } return out; }
+function fuera(q,x){ return Math.abs(x)>q.r1&&Math.abs(x-q.D)>q.r2; }
+// P1 · v1: fuerza por unidad de masa
+function v1p1(){ const tr=traj(), q=tr.q, s=at(tSim()), [xa,xb]=rangoX(q), u=1e6, aN=Math.abs(acc(q,q.D/2)), lim=4*aN, xn=xN(q);
+  plot('p1c',xa/u,xb/u,-lim,lim,[[curva(x=>fuera(q,x*u)?acc(q,x*u):NaN,xa/u,xb/u,900),C.lin]],'x (10³ km)',{mark:(ctx,X,Y)=>{ line(ctx,[[X(xn/u),Y(-lim)],[X(xn/u),Y(lim)]],C.lin,1,[3,4]); if(fuera(q,s.x)) dot(ctx,X(s.x/u),Y(Math.max(-lim,Math.min(lim,acc(q,s.x)))),4.5,C.sys); }});
+  $('tag1').textContent='F/m (m/s²) según x'; legend('leg1',[[C.lin,'fuerza por unidad de masa']]);
+  $('cap1').textContent=`A la izquierda de M₁ la fuerza apunta hacia +x y a la derecha de M₂ hacia −x: afuera, m siempre es atraída hacia el par. Entre las masas cambia de signo en x_N = ${cm(xn/q.D,3)} D, más cerca de la masa menor. Cerca de cada masa la fuerza diverge como 1/x² (el eje está recortado).`; }
+// v2 (los dos casos): posición en el tiempo
+function vxt(id,tagid,capid,legid){ const tr=traj(), q=tr.q, s=at(tSim()), u=1e6, xo=SY==='p2'?RT:0, fs=SY==='p2'?3600:1, n=tr.T.length, k=Math.max(1,Math.floor(n/1500)), pts=[];
+  for(let i=0;i<n;i+=k) pts.push([tr.T[i]/fs,(tr.X[i]-xo)/u]); pts.push([tr.T[n-1]/fs,(tr.X[n-1]-xo)/u]);
+  const ys=pts.map(p=>p[1]); let y0=Math.min(...ys,(0-xo)/u), y1=Math.max(...ys,(q.D-xo)/u); const pad=(y1-y0)*0.06; y0-=pad; y1+=pad;
+  plot(id,0,tr.tEnd/fs,y0,y1,[[pts,C.sys],[[[0,(xN(q)-xo)/u],[tr.tEnd/fs,(xN(q)-xo)/u]],C.lin,[3,4],1],[[[0,-xo/u],[tr.tEnd/fs,-xo/u]],C.muted,[6,4],1],[[[0,(q.D-xo)/u],[tr.tEnd/fs,(q.D-xo)/u]],C.muted,[6,4],1]],SY==='p2'?'t (h)':'t (s)',{mark:(ctx,X,Y)=>dot(ctx,X(s.t/fs),Y((s.x-xo)/u),4.5,C.sys)});
+  $(tagid).textContent=SY==='p2'?'Altura sobre la superficie (10³ km) según t':'x (10³ km) según t'; legend(legid,[[C.sys,'posición'],[C.lin,'punto neutro','dashed'],[C.muted,SY==='p2'?'centros de la Tierra y la Luna':'M₁ y M₂','dashed']]);
+  $(capid).textContent=SY==='p2'?`El cohete frena casi todo el viaje: llega al punto neutro con ${cm(Math.abs(sq(Math.max(0,2*(tr.e0-phi(q,xN(q)))))),0)} m/s. Cuanto más cerca de la v₀ mínima, más tiempo pasa casi quieto ahí: con v₀ justa tardaría infinito. Viaje total: ${dur(tr.tEnd)}.`
+    :`Resultado: m ${FIN[tr.fin]} a los ${dur(tr.tEnd)}. En una recta, salvo que escape, m termina siempre chocando con una de las masas: los pozos de potencial no tienen fondo.`; }
+// P1 · v3: energías en el tiempo
+function v3p1(){ const tr=traj(), q=tr.q, s=at(tSim()), n=tr.T.length, k=Math.max(1,Math.floor(n/1200)), K=[], U=[], E=[], u=1e6;
+  for(let i=0;i<n;i+=k){ const t=tr.T[i], x=tr.X[i], v=tr.V[i]; K.push([t,v*v/2/u]); U.push([t,phi(q,x)/u]); E.push([t,(v*v/2+phi(q,x))/u]); }
+  const ys=[...K,...U].map(p=>p[1]), lo=Math.max(Math.min(...ys),3*phi(q,xN(q))/u), hi=Math.min(Math.max(...ys),-3*phi(q,xN(q))/u);
+  plot('p3c',0,tr.tEnd,lo-(hi-lo)*0.05,hi+(hi-lo)*0.05,[[K,C.ok,[5,4]],[U,C.sob],[E,C.v,[2,3]]],'t (s)',{mark:(ctx,X,Y)=>dot(ctx,X(s.t),Y(phi(q,s.x)/u),4.5,C.sob)});
+  $('tag3').textContent='Energías por unidad de masa (MJ/kg)'; legend('leg3',[[C.ok,'cinética','dashed'],[C.sob,'potencial'],[C.v,'total','dotted']]);
+  $('cap3').textContent=`La energía total queda constante: en esta integración varía menos que ${cm(tr.de/Math.abs(tr.e0)*1e9,2)} partes en 10⁹. Lo que gana la cinética lo pierde la potencial.`; }
+// P2 · v1: potencial cerca del punto neutro
+function v1p2(){ const tr=traj(), q=tr.q, s=at(tSim()), u=1e6, a=250e6, b=q.D-RT-RL, xn=xN(q)-RT, e=tr.e0/u;
+  plot('p1c',a/u,b/u,-4.2,-0.9,[[curva(h=>phi(q,h*u+RT)/u,a/u,b/u),C.sob],[[[a/u,e],[b/u,e]],C.v,[6,4],1.6]],'distancia a la superficie terrestre (10³ km)',{mark:(ctx,X,Y)=>{ line(ctx,[[X(xn/u),Y(-4.2)],[X(xn/u),Y(-0.9)]],C.lin,1,[3,4]); const h=s.x-RT; if(h>=a) dot(ctx,X(h/u),Y(phi(q,s.x)/u),4.5,C.sob); }});
+  $('tag1').textContent='φ (MJ/kg), de 250 000 km a la Luna'; legend('leg1',[[C.sob,'potencial'],[C.v,'E/m del cohete','dashed'],[C.lin,'punto neutro','dashed']]);
+  $('cap1').textContent=`El potencial tiene un máximo en el punto neutro, a ${km(xn)} de la superficie: φ_N = ${cm(phi(q,xN(q))/1e6,4)} MJ/kg. Si la energía del cohete (línea amarilla) queda por debajo, vuelve a la Tierra; si queda por encima, cruza y cae en la Luna. En la superficie, φ = ${cm(phi(q,RT)/1e6,2)} MJ/kg.`; }
+// P2 · v2: aceleración cerca del punto neutro
+function v2p2(){ const tr=traj(), q=tr.q, s=at(tSim()), u=1e6, a=200e6, b=q.D-RT-RL, xn=xN(q)-RT, lim=0.006;
+  plot('p2c',a/u,b/u,-lim,lim,[[curva(h=>acc(q,h*u+RT),a/u,b/u),C.lin]],'distancia a la superficie terrestre (10³ km)',{mark:(ctx,X,Y)=>{ line(ctx,[[X(xn/u),Y(-lim)],[X(xn/u),Y(lim)]],C.lin,1,[3,4]); const h=s.x-RT; if(h>=a) dot(ctx,X(h/u),Y(Math.max(-lim,Math.min(lim,acc(q,s.x)))),4.5,C.sys); }});
+  $('tag2').textContent='a (m/s²), de 200 000 km a la Luna'; legend('leg2',[[C.lin,'aceleración (+ hacia la Luna)']]);
+  $('cap2').textContent=`La aceleración se anula a ${km(xn)} de la superficie (${km(xN(q))} del centro, el ${cm(100*xN(q)/q.D,1)} % de D). En la superficie terrestre vale ${cm(acc(q,RT),2)} m/s² y en la lunar ${cm(acc(q,q.D-RL),2)} m/s².`; }
+function draw(){ drawScene(); const v=S.view;
+  if(SY==='p1'){ if(v==='v1') v1p1(); else if(v==='v2') vxt('p2c','tag2','cap2','leg2'); else v3p1(); }
+  else { if(v==='v1') v1p2(); else if(v==='v2') v2p2(); else vxt('p3c','tag3','cap3','leg3'); } }
+
+// ================= Predecí =================
+const PRED={
+  p1:{ q:'Entre M₁ y M₂ hay un punto donde la fuerza neta sobre m es nula. Si m queda ahí, apenas corrida hacia M₂ y en reposo…',
+    opts:[['osc','oscila alrededor de ese punto'],['m2','se va hacia M₂ y choca'],['m1','vuelve hacia la masa mayor']], right:'m2', go:'Probalo',
+    run(){ const q=ph(); Object.assign(P,{x0:xN(q)/q.D+0.004,v0:0}); guiaOff(); restart(); refresh(); return 'Se va hacia M₂: el punto neutro es un máximo del potencial, un equilibrio inestable. Del lado de M₂ gana la atracción de M₂, aunque M₁ sea más grande.'; } },
+  p2:{ q:'Desde la superficie, la velocidad de escape de la Tierra es 11,19 km/s. La velocidad mínima para llegar a la Luna es…',
+    opts:[['mucho','mucho menor: la Luna está cerca y además atrae'],['poco','apenas menor: unos 110 m/s menos'],['mayor','mayor: hay que vencer también a la Luna']], right:'poco', go:'Probalo',
+    run(){ P.w0=Math.ceil(vmin2())/1e3; guiaOff(); restart(); refresh(); return `Apenas menor: ${cm(vmin2()/1e3,3)} km/s. Casi toda la energía se gasta en salir del pozo terrestre (φ de −62,6 a −1,28 MJ/kg); la Luna solo ahorra el último tramo.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p1:[
+    {txt:'Con M₁ = 6, M₂ = 2 (× 10²⁴ kg), D = 100 000 km y x₀ = 0,3 D, elegí la menor v₀ con la que m cruza el punto neutro y cae en M₂ (hasta 1 % por encima).',
+     chk(){ if(P.M1!==6||P.M2!==2||P.D!==100||P.x0!==0.3) return [false,'Primero poné M₁ = 6, M₂ = 2, D = 100 y x₀ = 0,3']; const q=ph(), vm=sq(2*(phi(q,xN(q))-phi(q,q.x0)))/1e3; const r=P.v0/vm;
+       return r>=1&&r<=1.01?[true,`Logrado: v₀ = ${cm(P.v0,2)} km/s; la mínima es ${cm(vm,3)} km/s.`]:[false,r<1?(P.v0<=0?'Tiene que ir hacia M₂ (v₀ > 0)':'No alcanza el punto neutro'):`Cruza, pero podés bajar hasta ${cm(vm,3)} km/s`]; }},
+    {txt:'Partiendo a la izquierda de M₁ y alejándose, ¿qué velocidad hace falta para que m no vuelva? ¿Depende de M₂?'},
+    {txt:'¿Hay algún valor de la energía con el que m quede oscilando para siempre entre las masas sin chocar?'},
+  ],
+  p2:[
+    {txt:'Encontrá la v₀ mínima para que el cohete llegue a la Luna, con 1 m/s de precisión.',
+     chk(){ const d=P.w0*1e3-vmin2(); return d>=0&&d<=1.5?[true,`Logrado: v₀ = ${cm(P.w0,3)} km/s. Exacto: ${cm(vmin2()/1e3,4)} km/s.`]:[false,d<0?'Con esa v₀ vuelve a la Tierra':'Llega, pero podés bajar más']; }},
+    {txt:'Con la v₀ mínima, ¿con qué velocidad llega el cohete a la superficie lunar? Comparala con la velocidad de escape de la Luna, √(2GM_L/R_L).'},
+    {txt:'Si la Luna no estuviera, ¿haría falta más o menos v₀ para llegar a la misma distancia del punto neutro? ¿Cuánto?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){ const q=ph(), xn=xN(q);
+  if(SY==='p1'){ const r=sq(P.M2/P.M1);
+    return {title:'Partícula sobre la recta que une M₁ y M₂', finLbl:'Punto neutro (máximo del potencial entre las masas)', steps:[
+      ['a) Con x medida desde M₁ y M₂ en x = D, cada masa atrae hacia sí', `\\[F(x)=-\\frac{GmM_1\\,x}{|x|^3}-\\frac{GmM_2\\,(x-D)}{|x-D|^3}\\]`],
+      ['Por tramos: a la izquierda (x < 0) apunta a +x; entre las masas compiten; a la derecha (x > D) apunta a −x', `\\[0<x<D:\\quad F=-\\frac{GmM_1}{x^2}+\\frac{GmM_2}{(D-x)^2}\\]`],
+      ['b) El potencial (energía potencial por unidad de masa) es la suma de los dos', `\\[\\varphi(x)=-\\frac{GM_1}{|x|}-\\frac{GM_2}{|x-D|}\\]`,true],
+      ['Tiende a 0 lejos, a −∞ en cada masa, y entre ellas tiene un máximo donde F = 0', `\\[\\frac{M_1}{x_N^2}=\\frac{M_2}{(D-x_N)^2}\\ \\Rightarrow\\ x_N=\\frac{D}{1+\\sqrt{M_2/M_1}}=${tx(1/(1+r),4)}\\,D\\]`],
+      ['Con estos valores', `\\[\\varphi_N=${tx(phi(q,xn)/1e6,3)}\\ \\text{MJ/kg}\\]`],
+      ['c) Entre las masas: si E/m < φ_N, m cae sobre la masa de su lado; si E/m > φ_N, cruza y cae sobre la otra. Afuera: si E < 0 se aleja, se frena y vuelve; si E ≥ 0 y se aleja, escapa', `\\[E=\\tfrac12mv^2+m\\varphi(x)=\\text{cte}\\]`],
+      ['Ahora', `\\[\\frac{E}{m}=${tx(traj().e0/1e6,3)}\\ \\text{MJ/kg}\\ \\Rightarrow\\ \\text{${FIN[traj().fin]}}\\]`],
+    ], fin:`\\[x_N=\\frac{D}{1+\\sqrt{M_2/M_1}}\\]`}; }
+  const pT=phi(q,RT), pN=phi(q,xn), pL=phi(q,q.D-RL), v=vmin2();
+  return {title:'Cohete de la Tierra a la Luna', finLbl:'Velocidad inicial mínima', steps:[
+    ['a) Con h la distancia a la superficie, x = R_T + h, y el cohete fuera de los dos cuerpos', `\\[\\varphi(h)=-\\frac{GM_T}{R_T+h}-\\frac{GM_L}{D-R_T-h}\\]`],
+    ['En la superficie terrestre y en la lunar', `\\[\\varphi(0)=${tx(pT/1e6,2)}\\ \\text{MJ/kg}\\qquad\\varphi_\\text{Luna}=${tx(pL/1e6,3)}\\ \\text{MJ/kg}\\]`],
+    ['b) La aceleración es nula donde se igualan las dos atracciones', `\\[x_N=\\frac{D}{1+\\sqrt{M_L/M_T}}=${tx(xn/1e3,0)}\\ \\text{km}\\]`],
+    ['Medido desde la superficie (el ' + cm(100*xn/q.D,1) + ' % del camino)', `\\[h_N=x_N-R_T=${tx((xn-RT)/1e3,0)}\\ \\text{km}\\qquad\\varphi_N=${tx(pN/1e6,4)}\\ \\text{MJ/kg}\\]`,true],
+    ['c) Alcanza con llegar al punto neutro con v = 0: después la Luna lo atrae', `\\[\\tfrac12v_0^2+\\varphi(0)=\\varphi_N\\ \\Rightarrow\\ v_0=\\sqrt{2(\\varphi_N-\\varphi(0))}\\]`],
+    ['Con los datos', `\\[v_0=${tx(v/1e3,3)}\\ \\text{km/s}\\]`,true],
+    ['Comparación: la de escape de la Tierra sola es apenas mayor', `\\[\\sqrt{2GM_T/R_T}=${tx(sq(2*GG*MT/RT)/1e3,3)}\\ \\text{km/s}\\]`],
+    ['Con esa v₀ llega a la Luna con', `\\[v=\\sqrt{2(\\varphi_N-\\varphi_\\text{Luna})}=${tx(sq(2*(pN-pL))/1e3,2)}\\ \\text{km/s}\\]`],
+  ], fin:`\\[v_{0,\\min}=${tx(v/1e3,3)}\\ \\text{km/s}\\]`}; }
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Valores de partida</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const vSale=fr=>{ Object.assign(P,PS0.p1,{x0:fr}); const q=ph(); return sq(-2*phi(q,q.x0))/1e3; };   // velocidad de escape desde x₀ (km/s)
+const GUIA={
+  p1:[['en reposo · cae en M₁',()=>Object.assign(P,PS0.p1)],
+      ['cruza el punto neutro',()=>{ Object.assign(P,PS0.p1); const q=ph(); P.v0=+(1.05*sq(2*(phi(q,xN(q))-phi(q,q.x0)))/1e3).toFixed(2); }],
+      ['afuera · vuelve',()=>{ P.v0=-+(0.8*vSale(-0.3)).toFixed(2); }],
+      ['afuera · escapa',()=>{ P.v0=-+(1.05*vSale(-0.3)).toFixed(2); }]],
+  p2:[['v₀ = 11,000 km/s · vuelve',()=>{ P.w0=11; }],['v₀ mínima + 1 m/s',()=>{ P.w0=Math.ceil(vmin2())/1e3+0.001; }],['v₀ = 11,200 km/s',()=>{ P.w0=11.2; }]],
+};
+const NOTE={p1:'La guía da solo símbolos: la página arranca con M₁ = 6 × 10²⁴ kg, M₂ = 2 × 10²⁴ kg, D = 100 000 km y m en reposo en x₀ = 0,3 D. Arriba, la recta; abajo, el potencial con la misma escala de x. Velocidad visual: todo el recorrido dura unos 10 s.',
+  p2:'Datos reales de la Tierra y la Luna (fijas). El eje se mide desde la superficie terrestre, como pide la guía. Abajo, el pozo terrestre es tan hondo que el máximo del punto neutro casi no se ve: la vista 1 lo amplía.'};
+const VB={p1:['Fuerza','x(t)','Energías'],p2:['Potencial cerca del punto neutro','Aceleración','Altura(t)']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]);
+  $('note').textContent=NOTE[SY]; ['vb1','vb2','vb3'].forEach((id,i)=>$(id).textContent=VB[SY][i]); restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p1',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

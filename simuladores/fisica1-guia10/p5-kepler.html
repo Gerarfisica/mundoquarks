@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Órbitas de Kepler G10-P5 y P7</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 10 · Gravitación</span>
+  <h1>Las tres leyes de Kepler <i>· la cónica, las áreas iguales y T² ∝ a³</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 10">
+    <h2>Guía 10</h2>
+    <ol>
+      <li><a href="p1-tierra-luna.html"><b class="code">P1, 2</b>Viaje Tierra-Luna</a></li>
+      <li><a href="p3-mediatriz-tunel.html"><b class="code">P3, 4</b>Mediatriz y túnel</a></li>
+      <li><a href="p5-lanzamiento.html"><b class="code">P5</b>Lanzamiento desde la Tierra</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P5, 7</b>Órbitas de Kepler</a></li>
+      <li><span><b class="code">P6</b>Satélite con barra</span></li>
+      <li><span><b class="code">P7</b>Dos cuerpos</span></li>
+      <li><span><b class="code">P8</b>Órbita hiperbólica</span></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:380px" aria-label="Una órbita de Kepler con el cuerpo central en un foco. Doce sectores barridos en tiempos iguales se van sombreando; se marcan el periastro, el apoastro y el otro foco. En el caso del P7, las dos masas iguales giran alrededor del centro de masa."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p5" aria-pressed="true">P5 · satélite de la Tierra</button>
+        <button data-sy="p7" aria-pressed="false">P7 · dos masas iguales</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Área barrida</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Tercera ley</button>
+          <button data-view="v3" aria-pressed="false" id="vb3">Velocidad según r</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+      <div data-vpanel="v3" hidden>
+        <div class="plot"><canvas id="p3c" style="height:300px"></canvas><div class="tag" id="tag3" style="color:var(--fg)"></div><div class="legend" id="leg3"></div></div>
+        <div class="pcap" id="cap3"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G10-P5 y P7</summary>
+      <p>Esta página no resuelve un problema puntual: muestra las leyes de Kepler en las órbitas de los problemas 5 y 7.</p>
+      <p><b>5.</b> Una nave espacial de masa m es lanzada desde la superficie terrestre con una velocidad v₀ que forma un ángulo α con dicha superficie (ver figura). Suponga que la Tierra, de masa M_T y radio R_T, permanece en reposo, y que toda su masa se halla concentrada en su centro. […] b) Halle la expresión de la energía mecánica total en función de la distancia r al centro de la Tierra y de los datos del problema. Escriba el potencial efectivo que gobierna el movimiento radial de la nave y grafíquelo en función de r. c) Diga para qué valores de la energía mecánica total el movimiento de la nave es ligado. […]</p>
+      <p><b>7.</b> Considere dos partículas de masa m que interactúan gravitatoriamente entre sí. Las partículas pueden moverse sobre una mesa horizontal libre de rozamiento. En el instante inicial (t = 0) las partículas se hallan separadas una distancia d y se les da a cada una de ellas una velocidad v₀ de módulo v₀ y dirección indicada en la figura. (En la figura, cada velocidad forma un ángulo α con el segmento que las une; las dos son opuestas.) […] b) Halle la velocidad del centro de masa del sistema en el instante inicial. Diga qué tipo de movimiento describe el centro de masa para t &gt; 0. […]</p>
+      <p class="src">Física 1, Guía 10 (Gravitación). Enunciados textuales de la guía, recortados ([…]). En el P5 la nave parte a una distancia r₀ del centro (r₀ = R_T es el lanzamiento desde la superficie); la Tierra se toma puntual, así que la órbita se dibuja completa aunque corte la superficie. En el P7 la página elige valores (la guía da solo símbolos): m = 3 × 10²⁴ kg, d = 50 000 km, v₀ = 1 km/s y α = 60°.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Las órbitas se integran numéricamente (Runge-Kutta de cuarto orden con paso proporcional a r^1,5); las áreas de los sectores se calculan sobre la trayectoria y se comparan con L/2m · Δt. Colores: celeste, el cuerpo que orbita; rosa, la otra masa del P7; amarillo, la energía y la cónica; verde, el área barrida.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G10-P5 y P7 · Las tres leyes de Kepler =================
+const GG=6.674e-11, sq=Math.sqrt, PI=Math.PI;
+const MT=5.972e24, RT=6.371e6;
+const DEF=[
+  {id:'r0',lab:'r₀ (distancia inicial al centro)',unit:'10³ km',min:6.371,max:60,step:0.001,dec:3},
+  {id:'v0',lab:'v₀',unit:'km/s',min:0.5,max:13,step:0.001,dec:3},
+  {id:'al',lab:'α (con la horizontal local)',unit:'°',min:-80,max:80,step:0.5,dec:1},
+  {id:'m',lab:'m (cada masa)',unit:'× 10²⁴ kg',min:0.5,max:10,step:0.1,dec:1},
+  {id:'d',lab:'d (separación inicial)',unit:'10³ km',min:10,max:200,step:1,dec:0},
+  {id:'u0',lab:'v₀ (de cada masa)',unit:'km/s',min:0,max:5,step:0.001,dec:3},
+  {id:'be',lab:'α (con el segmento que las une)',unit:'°',min:0,max:180,step:0.5,dec:1},
+];
+const PS={p5:{r0:10,v0:7,al:0}, p7:{m:3,d:50,u0:1,be:60}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p5:['r0','v0','al'],p7:['m','d','u0','be']};
+const P=Object.assign({},PS.p7,PS.p5); let SY='p5';
+
+// ---- el problema de Kepler equivalente: r̈ = −μ r/r³ ----
+// P5: r es la posición de la nave (μ = GM_T). P7: r = r₂ − r₁ (μ = G·2m); cada masa está a ±r/2 del CM, que queda quieto.
+function ph(){ if(SY==='p5'){ const a=rad(P.al), v=P.v0*1e3; return {mu:GG*MT,x:P.r0*1e6,y:0,vx:v*Math.sin(a),vy:v*Math.cos(a),k:1}; }
+  const b=rad(P.be), v=P.u0*1e3; return {mu:GG*2*P.m*1e24,x:P.d*1e6,y:0,vx:-2*v*Math.cos(b),vy:-2*v*Math.sin(b),k:0.5}; }
+function elem(q){ const r=Math.hypot(q.x,q.y), v2=q.vx**2+q.vy**2, h=q.x*q.vy-q.y*q.vx, eps=v2/2-q.mu/r, rv=q.x*q.vx+q.y*q.vy;
+  const ex=((v2-q.mu/r)*q.x-rv*q.vx)/q.mu, ey=((v2-q.mu/r)*q.y-rv*q.vy)/q.mu, e=Math.hypot(ex,ey), p=h*h/q.mu, a=eps<0?-q.mu/(2*eps):Infinity;
+  return {r0:r,h,eps,e,p,a,w:e>1e-9?Math.atan2(ey,ex):0,rmin:p/(1+e),rmax:e<1?p/(1-e):Infinity,T:eps<0?2*PI*sq(a**3/q.mu):Infinity,b:eps<0?a*sq(Math.max(0,1-e*e)):NaN}; }
+const tipo=el=>el.eps<0?(el.e<2e-3?'circunferencia':'elipse'):(Math.abs(el.e-1)<2e-3?'parábola':'hipérbola');
+
+// ---- integración (RK4, paso ∝ r^1,5) y área barrida acumulada ----
+const NS=12;
+let __tr=null;
+function traj(){ const q=ph(), el=elem(q), key=[SY,q.mu,q.x,q.vx,q.vy].join(); if(__tr&&__tr.key===key) return __tr;
+  const bound=el.eps<0&&el.rmax<60*Math.max(el.r0,el.rmin), far=8*Math.max(el.r0,el.rmin), cap=bound?el.T:200*2*PI*sq(el.r0**3/q.mu);
+  let x=q.x, y=q.y, vx=q.vx, vy=q.vy, t=0, A=0; const T=[0], X=[x], Y=[y], VX=[vx], VY=[vy], AA=[0];
+  const f=(x,y)=>{ const r3=(x*x+y*y)**1.5; return [-q.mu*x/r3,-q.mu*y/r3]; };
+  while(t<cap-1e-9){ const r=Math.hypot(x,y); let dt=Math.min(0.002*r**1.5/sq(q.mu),cap-t);
+    const a1=f(x,y), x2=x+dt/2*vx, y2=y+dt/2*vy, u2=vx+dt/2*a1[0], w2=vy+dt/2*a1[1], a2=f(x2,y2), x3=x+dt/2*u2, y3=y+dt/2*w2, u3=vx+dt/2*a2[0], w3=vy+dt/2*a2[1], a3=f(x3,y3), x4=x+dt*u3, y4=y+dt*w3, u4=vx+dt*a3[0], w4=vy+dt*a3[1], a4=f(x4,y4);
+    const xn=x+dt/6*(vx+2*u2+2*u3+u4), yn=y+dt/6*(vy+2*w2+2*w3+w4);
+    vx+=dt/6*(a1[0]+2*a2[0]+2*a3[0]+a4[0]); vy+=dt/6*(a1[1]+2*a2[1]+2*a3[1]+a4[1]);
+    // área del sector entre dos posiciones vecinas, con el arco aproximado por la parábola de Simpson (punto medio x3, y3 ≈ trayectoria)
+    A+=Math.abs((x*y3-x3*y)+(x3*yn-xn*y3))/2; x=xn; y=yn; t+=dt;
+    T.push(t); X.push(x); Y.push(y); VX.push(vx); VY.push(vy); AA.push(A); if(!bound&&Math.hypot(x,y)>far) break; }
+  const tEnd=t, dts=tEnd/NS, at0=s=>interp(T,AA,s), sec=[]; for(let i=0;i<NS;i++) sec.push(at0((i+1)*dts)-at0(i*dts));
+  const ex=Math.abs(el.h)*dts/2, dev=Math.max(...sec.map(s=>Math.abs(s/ex-1)));
+  return __tr={key,q,el,T,X,Y,VX,VY,AA,tEnd,dts,sec,dev,bound}; }
+function interp(T,V,t){ let a=0, b=T.length-1; if(t>=T[b]) return V[b]; while(b-a>1){ const c=(a+b)>>1; if(T[c]<=t) a=c; else b=c; } const f=(t-T[a])/(T[b]-T[a]||1); return V[a]+f*(V[b]-V[a]); }
+function at(t){ const tr=traj(), T=tr.T; return {t:Math.min(t,tr.tEnd),x:interp(T,tr.X,t),y:interp(T,tr.Y,t),vx:interp(T,tr.VX,t),vy:interp(T,tr.VY,t),A:interp(T,tr.AA,t)}; }
+
+// ---- números ----
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+const ci=(x,d=3)=>{ if(!isFinite(x)) return '∞'; const ex=Math.floor(Math.log10(Math.abs(x))); return cm(x/10**ex,d)+' × 10'+sup(ex); };
+function dur(s){ if(!isFinite(s)) return '∞'; if(s<120) return cm(s,0)+' s'; if(s<7200) return cm(s/60,1)+' min'; if(s<172800) return cm(s/3600,2)+' h'; return cm(s/86400,2)+' días'; }
+const km=x=>isFinite(x)?mil(x/1e3)+' km':'∞';
+const VIS=12;
+const tSim=()=>Math.min(1,S.t/VIS)*traj().tEnd;
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; if(S.t>VIS+(traj().bound?0:1.5)){ S.t=traj().bound?S.t-VIS:0; } }
+
+// ================= Escena =================
+const scene=$('scene');
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const tr=traj(), q=tr.q, el=tr.el, s=at(tSim()), k=q.k, two=SY==='p7', nar=w<560;
+  // encuadre: la órbita entera (si es abierta, hasta 5 r₀)
+  const lim=tr.bound?Infinity:5*Math.max(el.r0,el.rmin); let x0=0, x1=0, y0=0, y1=0;
+  for(let i=0;i<tr.X.length;i++){ if(Math.hypot(tr.X[i],tr.Y[i])>lim) continue; const px=k*tr.X[i], py=k*tr.Y[i]; x0=Math.min(x0,px,two?-px:px); x1=Math.max(x1,px,two?-px:px); y0=Math.min(y0,py,two?-py:py); y1=Math.max(y1,py,two?-py:py); }
+  if(SY==='p5'){ x0=Math.min(x0,-RT); x1=Math.max(x1,RT); y0=Math.min(y0,-RT); y1=Math.max(y1,RT); }
+  const sc=Math.min((w-36)/(x1-x0),(h-56)/(y1-y0)), cx=w/2-(x0+x1)/2*sc, cy=h/2+8+(y0+y1)/2*sc, X=x=>cx+x*sc, Y=y=>cy-y*sc;
+  // sectores barridos en tiempos iguales
+  const cols=[C.ok,C.lin];
+  for(let j=0;j<NS;j++){ const ta=j*tr.dts, tb=Math.min((j+1)*tr.dts,s.t); if(ta>=s.t) break; ctx.beginPath(); ctx.moveTo(X(0),Y(0));
+    for(let i=0;i<=40;i++){ const tt=ta+(tb-ta)*i/40, px=k*interp(tr.T,tr.X,tt), py=k*interp(tr.T,tr.Y,tt); ctx.lineTo(X(px),Y(py)); }
+    ctx.closePath(); ctx.fillStyle=cols[j%2]; ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; }
+  // la cónica completa (y la de la otra masa en el P7)
+  const con=(sgn,col)=>{ const pts=[]; const flush=()=>{ if(pts.length) line(ctx,pts.splice(0),col,1.3,[4,4]); };
+    for(let i=0;i<=720;i++){ const th=-PI+2*PI*i/720, d=1+el.e*Math.cos(th-el.w); if(d<=1e-6){ flush(); continue; } const r=el.p/d; if(r>lim){ flush(); continue; } pts.push([X(sgn*k*r*Math.cos(th)),Y(sgn*k*r*Math.sin(th))]); } flush(); };
+  con(1,C.v); if(two) con(-1,C.sob);
+  // cuerpo central o CM
+  if(SY==='p5'){ ctx.beginPath(); ctx.arc(X(0),Y(0),Math.max(3,RT*sc),0,7); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.3; ctx.stroke(); txt(ctx,'Tierra',X(0),Y(0)+4,C.muted,{align:'center',size:10.5}); }
+  else { line(ctx,[[X(0)-6,Y(0)],[X(0)+6,Y(0)]],C.fg,1.5); line(ctx,[[X(0),Y(0)-6],[X(0),Y(0)+6]],C.fg,1.5); txt(ctx,'CM',X(0)+8,Y(0)+14,C.fg,{size:11}); }
+  // focos, periastro y apoastro
+  const pe=SY==='p5'?['perigeo','apogeo']:['periastro','apoastro'], cw=Math.cos(el.w), sw=Math.sin(el.w);
+  if(el.e>2e-3){ const xp=k*el.rmin*cw, yp=k*el.rmin*sw; dot(ctx,X(xp),Y(yp),3,C.v); if(!nar) txt(ctx,pe[0],X(xp)+(cw>=0?6:-6),Y(yp)-6,C.v,{size:10.5,align:cw>=0?'left':'right'});
+    if(tr.bound){ const xa=-k*el.rmax*cw, ya=-k*el.rmax*sw, fx=-2*k*el.a*el.e*cw, fy=-2*k*el.a*el.e*sw; dot(ctx,X(xa),Y(ya),3,C.v); if(!nar) txt(ctx,pe[1],X(xa)+(cw>=0?-6:6),Y(ya)-6,C.v,{size:10.5,align:cw>=0?'right':'left'});
+      line(ctx,[[X(xp),Y(yp)],[X(xa),Y(ya)]],C.faint,1,[2,4]); dot(ctx,X(fx),Y(fy),3,C.faint,true); txt(ctx,'F′',X(fx)+6,Y(fy)+12,C.faint,{size:10.5}); } }
+  // las masas
+  const bx=k*s.x, by=k*s.y, sp=Math.hypot(s.vx,s.vy), vk=Math.min(40,26*sp/sq(q.mu/el.r0))/Math.max(sp,1e-9);
+  if(two){ line(ctx,[[X(-bx),Y(-by)],[X(bx),Y(by)]],C.faint,1,[2,3]); arrow(ctx,X(-bx),Y(-by),X(-bx)-k*s.vx*vk,Y(-by)+k*s.vy*vk,C.sob,2,7); dot(ctx,X(-bx),Y(-by),6,C.sob); txt(ctx,'m₁',X(-bx)-10,Y(-by)-10,C.sob,{size:11,align:'right'}); }
+  arrow(ctx,X(bx),Y(by),X(bx)+k*s.vx*vk,Y(by)-k*s.vy*vk,C.sys,2,7); dot(ctx,X(bx),Y(by),6,C.sys); if(two) txt(ctx,'m₂',X(bx)+10,Y(by)-10,C.sys,{size:11});
+  txt(ctx,`${tipo(el)} · e = ${cm(el.e,3)}`,12,18,el.eps<0?C.ok:C.v,{size:11.5}); $('clock').textContent='t = '+dur(s.t);
+  const r=Math.hypot(s.x,s.y);
+  if(SY==='p5') readout([['r',km(r),C.sys],['v',cm(sp/1e3,3)+' km/s'],['a',km(el.a)],['T',dur(el.T)],['dA/dt = L/2m',ci(Math.abs(el.h)/2/1e6)+' km²/s',C.ok],['E/m',cm(el.eps/1e6,3)+' MJ/kg',C.v]]);
+  else readout([['separación r',km(r),C.sys],['v de cada masa',cm(sp/2e3,3)+' km/s'],['a (relativa)',km(el.a)],['T',dur(el.T)],['E del sistema',ci(P.m*1e24/2*el.eps)+' J',C.v],['v_CM','0']]);
+  $('formula').innerHTML=SY==='p5'?`<b>1.ª</b> r(θ) = p/(1 + e cos(θ − θ_p)), p = L²/(m²GM_T) · <b>2.ª</b> dA/dt = L/(2m) = cte · <b>3.ª</b> T² = 4π²a³/(GM_T), a = −GM_Tm/(2E). Los sectores sombreados se barren en tiempos iguales (T/12)`
+    :`<b>CM quieto:</b> v₁ + v₂ = 0 · <b>relativa:</b> r = r₂ − r₁ cumple r̈ = −G(2m) r/r³, un problema de Kepler con M = 2m · cada masa está a ±r/2 del CM: elipses de semieje a/2, mismo período T = 2π√(a³/(2Gm))`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tramo=[]; const fin=()=>{ line(ctx,tramo,col,wd||2.2,dash); tramo=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tramo.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function drawV1(){ const tr=traj(), s=at(tSim()), n=tr.T.length, kk=Math.max(1,Math.floor(n/800)), Atot=tr.AA[n-1], A=[], th=[]; let ang=0, prev=Math.atan2(tr.Y[0],tr.X[0]);
+  for(let i=0;i<n;i++){ const a=Math.atan2(tr.Y[i],tr.X[i]); let d=a-prev; if(d>PI) d-=2*PI; if(d<-PI) d+=2*PI; ang+=d; prev=a; if(i%kk===0||i===n-1){ A.push([tr.T[i]/tr.tEnd,tr.AA[i]/Atot]); th.push([tr.T[i]/tr.tEnd,Math.abs(ang)/(tr.bound?2*PI:PI)]); } }
+  plot('p1c',0,1,0,1.05,[[th,C.v,[6,4],1.6],[A,C.ok]],tr.bound?'t / T':'t / t_final',{mark:(ctx,X,Y)=>dot(ctx,X(s.t/tr.tEnd),Y(s.A/Atot),4.5,C.ok)});
+  $('tag1').textContent=tr.bound?'Fracción del área y del ángulo recorridos':'Área barrida (relativa) y ángulo / π'; legend('leg1',[[C.ok,'área barrida'],[C.v,'ángulo barrido','dashed']]);
+  $('cap1').textContent=`El área crece en línea recta (2.ª ley: dA/dt = L/2m), aunque el ángulo no: cerca del ${SY==='p5'?'perigeo':'periastro'} gira más rápido. Los ${NS} sectores sombreados tienen la misma área: difieren entre sí menos que ${cm(Math.max(tr.dev*1e6,0.01),2)} partes por millón.`; }
+const REF=[['EEI',6.778e6],['GPS',2.656e7],['geoestacionaria',4.2164e7],['Luna',3.844e8]];
+function drawV2(){ const tr=traj(), el=tr.el, mu=tr.q.mu, lg=Math.log10, Tof=a=>2*PI*sq(a**3/mu)/3600;
+  let a0,a1; if(SY==='p5'){ a0=5e6; a1=5e8; } else { const ar=isFinite(el.a)?el.a:el.r0; a0=ar/20; a1=ar*5; }
+  const y0=lg(Tof(a0)), y1=lg(Tof(a1)), dec=(lo,hi)=>{ const o=[]; for(let e=Math.ceil(lo);e<=Math.floor(hi);e++) o.push(e); return o; };
+  const fmtA=v=>mil(10**v/1e3), fmtT=v=>{ const x=10**v; return x>=1?mil(x)+' h':cm(x,2)+' h'; };
+  const xs=[]; for(let e=Math.floor(lg(a0));e<=Math.ceil(lg(a1));e++) [1,3].forEach(m=>{ const v=lg(m*10**e); if(v>=lg(a0)&&v<=lg(a1)) xs.push(v); });
+  const pts=[]; for(let i=0;i<=60;i++){ const la=lg(a0)+(lg(a1)-lg(a0))*i/60; pts.push([la,lg(Tof(10**la))]); }
+  const ser=[[pts,C.v,[6,4],1.6]]; if(SY==='p7'){ const p2=pts.map(([la])=>[la,lg(2*PI*sq((10**la)**3/(GG*P.m*1e24/4))/3600)]); ser.push([p2,C.sob,[2,3],1.4]); }
+  plot('p2c',lg(a0),lg(a1),y0,y1,ser,'a (km), escala logarítmica',{xt:xs,yt:dec(y0,y1),xf:fmtA,yf:fmtT,mark:(ctx,X,Y)=>{
+    if(SY==='p5') REF.forEach(([nm,a])=>{ dot(ctx,X(lg(a)),Y(lg(Tof(a))),3.5,C.faint); txt(ctx,nm,X(lg(a))+6,Y(lg(Tof(a)))+12,C.muted,{size:10.5}); });
+    if(tr.bound){ dot(ctx,X(lg(el.a)),Y(lg(el.T/3600)),5,C.sys); if(SY==='p7') dot(ctx,X(lg(el.a/2)),Y(lg(el.T/3600)),5,C.sob); } }});
+  $('tag2').textContent='Período (h) según el semieje mayor, log-log'; legend('leg2',SY==='p5'?[[C.v,'T² = 4π²a³/GM_T','dashed'],[C.sys,'esta órbita']]:[[C.v,'relativa: T² = 4π²a³/(2Gm)','dashed'],[C.sob,'cada masa: semieje a/2','dotted']]);
+  $('cap2').textContent=!tr.bound?'La órbita es abierta: no hay período. La recta muestra T(a) para las órbitas cerradas.':SY==='p5'?`En escala log-log, T ∝ a^(3/2) es una recta de pendiente 3/2. Esta órbita: a = ${km(el.a)}, T = ${dur(el.T)}. El período depende solo de a, no de la excentricidad.`
+    :`La órbita relativa (celeste) cumple T² = 4π²a³/(G·2m). Cada masa recorre una elipse de semieje a/2 con el mismo período: está en otra recta, la de una masa central efectiva m/4.`; }
+function drawV3(){ const tr=traj(), el=tr.el, mu=tr.q.mu, s=at(tSim()), r0=el.rmin, r1=tr.bound?el.rmax:5*Math.max(el.r0,el.rmin), u=1e6, f=SY==='p7'?0.5:1;
+  const vis=r=>f*sq(Math.max(0,2*(el.eps+mu/r))), pts=[], cir=[]; const lo=Math.max(r0*0.9,1), hi=r1*1.05;
+  for(let i=0;i<=300;i++){ const r=lo+(hi-lo)*i/300; pts.push([r/u,r>=r0*(1-1e-9)&&r<=r1*(1+1e-9)?vis(r)/1e3:NaN]); cir.push([r/u,f*sq(mu/r)/1e3]); }
+  const ys=pts.map(p=>p[1]).filter(isFinite).concat(cir.map(p=>p[1]));
+  plot('p3c',lo/u,hi/u,0,Math.max(...ys)*1.1,[[cir,C.faint,[5,4],1.3],[pts,C.sys]],(SY==='p7'?'separación r':'r')+' (10³ km)',{mark:(ctx,X,Y)=>{ const r=Math.hypot(s.x,s.y); dot(ctx,X(r/u),Y(f*Math.hypot(s.vx,s.vy)/1e3),4.5,C.sys); }});
+  $('tag3').textContent=(SY==='p7'?'Velocidad de cada masa':'Velocidad')+' (km/s) según r'; legend('leg3',[[C.sys,'vis-viva'],[C.faint,'órbita circular de radio r','dashed']]);
+  $('cap3').textContent=tr.bound?`Vis-viva: v² = GM(2/r − 1/a). La velocidad es máxima en el ${SY==='p5'?'perigeo':'periastro'} y mínima en el ${SY==='p5'?'apogeo':'apoastro'}: su cociente es (1 + e)/(1 − e) = ${cm((1+el.e)/(1-el.e),3)}.`+(SY==='p7'?' Cada masa va a la mitad de la velocidad relativa.':'')
+    :`Con E ≥ 0 la velocidad no baja a cero: lejos tiende a ${cm(f*sq(Math.max(0,2*el.eps))/1e3,3)} km/s.`; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else if(S.view==='v2') drawV2(); else drawV3(); }
+
+// ================= Predecí =================
+const PRED={
+  p5:{ q:'En una órbita de excentricidad e = 0,5, la velocidad en el perigeo comparada con la del apogeo es…',
+    opts:[['1','la misma'],['2','el doble'],['3','el triple']], right:'3', go:'Probalo',
+    run(){ Object.assign(P,{r0:10,al:0}); P.v0=sq(1.5*GG*MT/1e7)/1e3; guiaOff(); restart(); refresh(); setView('v3'); return 'El triple: de L = m r v en los dos extremos sale v_p/v_a = r_a/r_p = (1 + e)/(1 − e) = 3. Es la segunda ley: cerca del foco tiene que barrer la misma área con un radio más corto.'; } },
+  p7:{ q:'La separación entre las masas recorre una elipse de período T. Cada masa, alrededor del CM…',
+    opts:[['mitad','recorre una elipse de la mitad del tamaño, con el mismo período'],['medio','recorre la misma elipse en T/2'],['circ','gira en una circunferencia']], right:'mitad', go:'Probalo',
+    run(){ Object.assign(P,PS0.p7); guiaOff(); restart(); refresh(); setView('v2'); return 'Mitad del tamaño y mismo período: r₂ = r/2 y r₁ = −r/2 respecto del CM, que queda quieto. Por eso cada masa no está sobre la recta de la tercera ley de la órbita relativa.'; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p5:[
+    {txt:'Encontrá cualquier órbita (cerrada) con un período de un día sideral, 23,934 h (± 0,3 %). ¿Importa la excentricidad?',
+     chk(){ const el=traj().el; if(el.eps>=0) return [false,'La órbita es abierta']; const r=el.T/86164; return Math.abs(r-1)<=0.003?[true,`Logrado: a = ${km(el.a)}. Cualquier forma sirve: T depende solo de a (geoestacionaria: 42 164 km, circular).`]:[false,`T = ${dur(el.T)}`]; }},
+    {txt:'Con r₀ = 10 000 km y α = 0, elegí v₀ para que la excentricidad sea 0,5 (± 1 %).',
+     chk(){ if(P.r0!==10||P.al!==0) return [false,'Poné r₀ = 10 y α = 0']; const e=traj().el.e; return Math.abs(e/0.5-1)<=0.01?[true,`Logrado: v₀ = √(1,5 GM_T/r₀) = ${cm(sq(1.5*GG*MT/1e7)/1e3,3)} km/s.`]:[false,`e = ${cm(e,3)}`]; }},
+    {txt:'Con α ≠ 0, ¿por qué el punto de partida deja de ser el perigeo o el apogeo? ¿Dónde quedan?'},
+  ],
+  p7:[
+    {txt:'Con α = 90°, elegí v₀ para que las dos masas giren en circunferencias alrededor del CM (e < 0,005).',
+     chk(){ if(P.be!==90) return [false,'Poné α = 90°']; const e=traj().el.e; return e<0.005?[true,`Logrado: v₀ = √(Gm/2d) = ${cm(sq(GG*P.m*1e24/(2*P.d*1e6))/1e3,3)} km/s.`]:[false,`e = ${cm(e,3)}`]; }},
+    {txt:'¿Con qué v₀ mínima las masas se separan para siempre? ¿Depende de α?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){ const tr=traj(), el=tr.el, q=tr.q;
+  const fin=`\\[T^2=\\frac{4\\pi^2a^3}{${SY==='p5'?'GM_T':'G(2m)'}}\\]`;
+  const leyes=[
+    ['1.ª ley: la órbita es una cónica con el cuerpo central en un foco', `\\[r(\\theta)=\\frac{p}{1+e\\cos(\\theta-\\theta_p)}\\qquad p=\\frac{L^2}{m^2GM}\\]`],
+    ['Con estos valores', `\\[p=${tx(el.p/1e6,3)}\\times10^3\\ \\text{km}\\qquad e=${tx(el.e,4)}\\]`],
+    ['2.ª ley: L se conserva (fuerza central), así que el área barrida crece a ritmo constante', `\\[\\frac{dA}{dt}=\\frac12\\,r^2\\dot\\theta=\\frac{L}{2m}=${tx(Math.abs(el.h)/2e6,0)}\\ \\tfrac{\\text{km}^2}{\\text{s}}\\]`,true],
+    ['3.ª ley: con A = πab en un período y b² = a p', el.eps<0?`\\[a=-\\frac{GMm}{2E}=${tx(el.a/1e6,3)}\\times10^3\\ \\text{km}\\qquad T=${tx(el.T/3600,3)}\\ \\text{h}\\]`:`\\[E\\ge0:\\ \\text{la órbita es abierta y no hay período}\\]`,true],
+    ['Vis-viva (de E y a)', `\\[v^2=GM\\left(\\frac2r-\\frac1a\\right)\\]`],
+  ];
+  if(SY==='p5') return {title:'Las leyes de Kepler en la órbita de la nave', finLbl:'Tercera ley', steps:[
+    ['Datos iniciales: r₀, v₀ y α. Por unidad de masa', `\\[\\frac Lm=r_0v_0\\cos\\alpha\\qquad\\frac Em=\\tfrac12v_0^2-\\frac{GM_T}{r_0}=${tx(el.eps/1e6,3)}\\ \\tfrac{\\text{MJ}}{\\text{kg}}\\]`], ...leyes], fin};
+  return {title:'Dos masas iguales: el problema de Kepler equivalente', finLbl:'Tercera ley (órbita relativa)', steps:[
+    ['b) Las velocidades iniciales son opuestas: el CM arranca quieto y, sin fuerzas externas, queda quieto', `\\[\\vec v_\\text{CM}=\\frac{m\\vec v_0-m\\vec v_0}{2m}=0\\]`],
+    ['La separación r = r₂ − r₁ obedece un problema de Kepler con masa reducida m/2 y M = 2m', `\\[\\frac m2\\,\\ddot{\\vec r}=-\\frac{Gm^2}{r^2}\\hat r\\ \\Rightarrow\\ \\ddot{\\vec r}=-\\frac{G(2m)}{r^2}\\hat r\\]`],
+    ['Inicialmente r = d y la velocidad relativa vale 2v₀', `\\[\\frac{E_\\text{rel}}{\\mu}=2v_0^2-\\frac{2Gm}{d}=${tx(el.eps/1e6,3)}\\ \\tfrac{\\text{MJ}}{\\text{kg}}\\]`],
+    ...leyes,
+    ['Cada masa está a ±r/2 del CM: elipses de semieje a/2, con foco en el CM y el mismo período', `\\[\\vec r_2=\\tfrac12\\vec r\\qquad\\vec r_1=-\\tfrac12\\vec r\\]`],
+  ], fin}; }
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Valores de partida</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const vR=()=>sq(GG*MT/(P.r0*1e6))/1e3;   // circular a r₀ (km/s)
+const GUIA={
+  p5:[['elipse',()=>Object.assign(P,PS0.p5)],['circular',()=>{ Object.assign(P,PS0.p5); P.v0=vR(); }],['e = 0,5',()=>{ Object.assign(P,PS0.p5); P.v0=sq(1.5)*vR(); }],
+      ['α = 30°',()=>Object.assign(P,PS0.p5,{r0:15,v0:5.5,al:30})],['parábola',()=>{ Object.assign(P,PS0.p5); P.v0=sq(2)*vR(); }],['hipérbola',()=>{ Object.assign(P,PS0.p5); P.v0=1.25*sq(2)*vR(); }]],
+  p7:[['ligadas',()=>Object.assign(P,PS0.p7)],['circunferencias',()=>{ Object.assign(P,PS0.p7,{be:90}); P.u0=sq(GG*P.m*1e24/(2*P.d*1e6))/1e3; }],['se separan',()=>{ Object.assign(P,PS0.p7); P.u0=+(1.15*sq(GG*P.m*1e24/(P.d*1e6))/1e3).toFixed(3); }]],
+};
+const NOTE={p5:'La nave parte a una distancia r₀ del centro de la Tierra con velocidad v₀ que forma un ángulo α con la horizontal local (como en el P5, pero r₀ es libre). La Tierra se toma puntual: la órbita se dibuja completa aunque corte la superficie. Una vuelta dura unos 12 s.',
+  p7:'La guía da solo símbolos: la página arranca con m = 3 × 10²⁴ kg, d = 50 000 km, v₀ = 1 km/s y α = 60°. Se ve desde el CM, que queda quieto; los sectores los barre m₂. La de m₁ es la misma elipse, girada 180°.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]); $('note').textContent=NOTE[SY]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p5',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

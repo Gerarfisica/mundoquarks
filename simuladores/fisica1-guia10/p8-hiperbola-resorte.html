@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Órbita hiperbólica G10-P8</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 10 · Gravitación</span>
+  <h1>Órbita hiperbólica y un resorte <i>· L y E se conservan antes y después de engancharse</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 10">
+    <h2>Guía 10</h2>
+    <ol>
+      <li><a href="p1-tierra-luna.html"><b class="code">P1, 2</b>Viaje Tierra-Luna</a></li>
+      <li><a href="p3-mediatriz-tunel.html"><b class="code">P3, 4</b>Mediatriz y túnel</a></li>
+      <li><a href="p5-lanzamiento.html"><b class="code">P5</b>Lanzamiento desde la Tierra</a></li>
+      <li><a href="p5-kepler.html"><b class="code">P5, 7</b>Órbitas de Kepler</a></li>
+      <li><a href="p6-satelite-barra.html"><b class="code">P6</b>Satélite con barra</a></li>
+      <li><a href="p7-dos-cuerpos.html"><b class="code">P7</b>Dos y tres cuerpos</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P8</b>Órbita hiperbólica</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:380px" aria-label="Vista del plano de la órbita: la partícula llega desde la derecha con parámetro de impacto b, recorre una hipérbola alrededor de la masa M fija en O y en el punto de máximo acercamiento A se engancha a un resorte que la une a O."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Potencial efectivo</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">r(t)</button>
+          <button data-view="v3" aria-pressed="false" id="vb3">Velocidades según r</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+      <div data-vpanel="v3" hidden>
+        <div class="plot"><canvas id="p3c" style="height:300px"></canvas><div class="tag" id="tag3" style="color:var(--fg)"></div><div class="legend" id="leg3"></div></div>
+        <div class="pcap" id="cap3"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G10-P8</summary>
+      <p><b>8.</b> Una partícula de masa m se acerca desde el infinito con velocidad v₀ y parámetro de impacto b a un cuerpo de masa M, que se halla fijo en el punto O. Debido a la atracción gravitatoria ejercida por M, la partícula describe una trayectoria hiperbólica, y al pasar por el punto de máximo acercamiento (punto A) se engancha con un resorte de masa despreciable, constante elástica k y longitud natural l₀ = r₀. El otro extremo del resorte está sujeto a un eje que pasa por O. Considere que la energía potencial gravitatoria en el infinito es nula (es decir, V_G = 0 cuando la partícula se halla suficientemente alejada del cuerpo).</p>
+      <p>a) Diga qué magnitudes se conservan para la partícula de masa m antes y después de alcanzar el punto A. Calcule la velocidad de la partícula en el punto A y la distancia r₀ de máximo acercamiento.<br>b) Después de engancharse con el resorte, encuentre la velocidad de la partícula (componentes radial y tangencial) cuando ésta se halla a una distancia d = 2 r₀ del punto O. Exprese el resultado en términos de r₀ y de los datos del problema.</p>
+      <p class="src">Física 1, Guía 10 (Gravitación). Enunciado textual de la guía. La guía da solo símbolos: la página arranca con M = 6 × 10²⁴ kg (parecida a la Tierra, tomada puntual), m = 1000 kg, v₀ = 3 km/s, b = 40 000 km y k = 4 × 10⁻⁵ N/m: con distancias de decenas de miles de kilómetros, el resorte tiene que ser muy blando (período propio de unas 9 h) para que d = 2r₀ se alcance. Como en la figura, la partícula llega desde la derecha moviéndose hacia la izquierda, a una altura b sobre O.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>El movimiento se integra numéricamente (Runge-Kutta de cuarto orden): la llegada, hacia atrás en el tiempo desde A; después del enganche, hacia adelante con la gravedad y el resorte. Colores: celeste, la partícula; rosa, el potencial efectivo; amarillo, la energía; verde, las componentes de la velocidad; violeta, el resorte.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G10-P8 · Órbita hiperbólica que se engancha a un resorte =================
+const GG=6.674e-11, sq=Math.sqrt, PI=Math.PI;
+const DEF=[
+  {id:'M',lab:'M',unit:'× 10²⁴ kg',min:0.5,max:20,step:0.1,dec:1},
+  {id:'m',lab:'m',unit:'kg',min:100,max:5000,step:10,dec:0},
+  {id:'v0',lab:'v₀ (en el infinito)',unit:'km/s',min:0.5,max:8,step:0.01,dec:2},
+  {id:'b',lab:'b (parámetro de impacto)',unit:'10³ km',min:5,max:100,step:0.5,dec:1},
+  {id:'k',lab:'k (resorte)',unit:'× 10⁻⁵ N/m',min:0,max:50,step:0.01,dec:2},
+];
+const P0={M:6,m:1000,v0:3,b:40,k:4}, P={...P0};
+
+// ---- valores analíticos ----
+function an(){ const GM=GG*P.M*1e24, v0=P.v0*1e3, b=P.b*1e6, m=P.m, k=P.k*1e-5, h=v0*b;
+  const r0=(-GM+sq(GM*GM+v0**4*b*b))/(v0*v0), vA=h/r0, e=sq(1+(v0**4*b*b)/(GM*GM)), thA=Math.acos(-1/e);
+  const vt2=h/(2*r0), vr2sq=v0*v0+GM/r0-vt2*vt2-k*r0*r0/m;
+  const E=v0*v0/2, Uef=r=>h*h/(2*r*r)-GM/r+(k/m)*(r-r0)**2/2;   // por unidad de masa, después del enganche
+  let rmax=Infinity; if(k>0||E<0){ let hi=2*r0; while(Uef(hi)<E&&hi<1e3*r0) hi*=1.5; if(Uef(hi)>=E){ let lo=r0; for(let i=0;i<80;i++){ const c=(lo+hi)/2; if(Uef(c)<E) lo=c; else hi=c; } rmax=(lo+hi)/2; } }
+  return {GM,v0,b,m,k,h,r0,vA,e,thA,vt2,vr2:sq(Math.max(0,vr2sq)),llega:vr2sq>=0,E,Uef,rmax,kj:m*(v0*v0+GM/r0-vt2*vt2)/(r0*r0)}; }
+
+// ---- integración: la llegada hacia atrás desde A, después del enganche hacia adelante ----
+function rk(x,y,vx,vy,acc,dir,stop,dtf){ const T=[0], X=[x], Y=[y], VX=[vx], VY=[vy]; let t=0, n=0;
+  while(n<400000){ const dt=dir*dtf(Math.hypot(x,y)); const f=acc;
+    const a1=f(x,y), x2=x+dt/2*vx, y2=y+dt/2*vy, u2=vx+dt/2*a1[0], w2=vy+dt/2*a1[1], a2=f(x2,y2), x3=x+dt/2*u2, y3=y+dt/2*w2, u3=vx+dt/2*a2[0], w3=vy+dt/2*a2[1], a3=f(x3,y3), x4=x+dt*u3, y4=y+dt*w3, u4=vx+dt*a3[0], w4=vy+dt*a3[1], a4=f(x4,y4);
+    x+=dt/6*(vx+2*u2+2*u3+u4); y+=dt/6*(vy+2*w2+2*w3+w4); vx+=dt/6*(a1[0]+2*a2[0]+2*a3[0]+a4[0]); vy+=dt/6*(a1[1]+2*a2[1]+2*a3[1]+a4[1]); t+=dt; n++;
+    T.push(t); X.push(x); Y.push(y); VX.push(vx); VY.push(vy); if(stop(t,x,y)) break; }
+  return {T,X,Y,VX,VY}; }
+let __tr=null;
+function traj(){ const a=an(), key=[P.M,P.m,P.v0,P.b,P.k].join(); if(__tr&&__tr.key===key) return __tr;
+  const c=Math.cos(a.thA), s=Math.sin(a.thA), xA=a.r0*c, yA=a.r0*s, vxA=-a.vA*s, vyA=a.vA*c, GM=a.GM, km=a.k/a.m;
+  const grav=(x,y)=>{ const r3=(x*x+y*y)**1.5; return [-GM*x/r3,-GM*y/r3]; };
+  const resorte=(x,y)=>{ const r=Math.hypot(x,y), g=GM/(r*r)+km*(r-a.r0); return [-g*x/r,-g*y/r]; };
+  const tK=r=>0.002*r**1.5/sq(GM), Rs=Math.max(6*a.r0,2.5*a.b);
+  const ida=rk(xA,yA,vxA,vyA,grav,-1,(t,x,y)=>Math.hypot(x,y)>Rs,tK);
+  const tS=km>0?2*PI/sq(km):Infinity, dtf=r=>Math.min(tK(r),tS/400);
+  // después: unas tres oscilaciones radiales (o hasta alejarse, si k = 0)
+  let vueltas=0, prev=0;
+  const desp=rk(xA,yA,vxA,vyA,resorte,1,(t,x,y)=>{ const r=Math.hypot(x,y); if(!isFinite(a.rmax)) return r>Rs; const sg=Math.sign(r-(a.r0+a.rmax)/2); if(sg!==prev&&prev!==0) vueltas++; prev=sg; return vueltas>=6; },dtf);
+  // une las dos partes en una sola línea de tiempo: t < 0 antes de A
+  const n=ida.T.length, T=[], X=[], Y=[], VX=[], VY=[];
+  for(let i=n-1;i>0;i--){ T.push(ida.T[i]); X.push(ida.X[i]); Y.push(ida.Y[i]); VX.push(ida.VX[i]); VY.push(ida.VY[i]); }
+  for(let i=0;i<desp.T.length;i++){ T.push(desp.T[i]); X.push(desp.X[i]); Y.push(desp.Y[i]); VX.push(desp.VX[i]); VY.push(desp.VY[i]); }
+  const t0=T[0]; for(let i=0;i<T.length;i++) T[i]-=t0;
+  // conservación después de A
+  let dE=0, dL=0; for(let i=n-1;i<T.length;i+=7){ const r=Math.hypot(X[i],Y[i]), v2=VX[i]**2+VY[i]**2, E=v2/2-GM/r+km*(r-a.r0)**2/2, L=X[i]*VY[i]-Y[i]*VX[i]; dE=Math.max(dE,Math.abs(E/a.E-1)); dL=Math.max(dL,Math.abs(L/a.h-1)); }
+  return __tr={key,a,T,X,Y,VX,VY,tA:-t0,tEnd:T[T.length-1],dE,dL}; }
+function interp(T,t){ let a=0, b=T.length-1; if(t>=T[b]) return [b,b,0]; while(b-a>1){ const c=(a+b)>>1; if(T[c]<=t) a=c; else b=c; } return [a,b,(t-T[a])/(T[b]-T[a]||1)]; }
+function at(t){ const tr=traj(), [i,j,f]=interp(tr.T,t), L=k=>tr[k][i]+f*(tr[k][j]-tr[k][i]); const x=L('X'), y=L('Y'), vx=L('VX'), vy=L('VY'), r=Math.hypot(x,y);
+  return {t,x,y,vx,vy,r,vr:(x*vx+y*vy)/r,vt:(x*vy-y*vx)/r,desp:t>=tr.tA}; }
+// primer paso por 2r₀ después de A
+function en2r0(){ const tr=traj(), a=tr.a; for(let i=1;i<tr.T.length;i++){ if(tr.T[i]<tr.tA) continue; const r1=Math.hypot(tr.X[i-1],tr.Y[i-1]), r2=Math.hypot(tr.X[i],tr.Y[i]); if((r1-2*a.r0)*(r2-2*a.r0)<=0&&r1!==r2) return at(tr.T[i-1]+(2*a.r0-r1)/(r2-r1)*(tr.T[i]-tr.T[i-1])); } return null; }
+
+// ---- números ----
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+function dur(s){ if(!isFinite(s)) return '∞'; const a=Math.abs(s), sg=s<0?'−':''; if(a<120) return sg+cm(a,0)+' s'; if(a<7200) return sg+cm(a/60,1)+' min'; if(a<172800) return sg+cm(a/3600,2)+' h'; return sg+cm(a/86400,2)+' días'; }
+const km=x=>isFinite(x)?mil(x/1e3)+' km':'∞';
+const VIS=14;
+const tSim=()=>Math.min(1,S.t/VIS)*traj().tEnd;
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; if(S.t>VIS+1.5) S.t=0; }
+
+// ================= Escena =================
+const scene=$('scene');
+function resorte(ctx,x0,y0,x1,y1,col){ const L=Math.hypot(x1-x0,y1-y0); if(L<4) return; const ux=(x1-x0)/L, uy=(y1-y0)/L, nx=-uy, ny=ux, N=16, amp=5, pts=[[x0,y0]];
+  for(let i=1;i<N;i++){ const f=i/N, s=(i%2?1:-1)*amp; pts.push([x0+ux*L*f+nx*s,y0+uy*L*f+ny*s]); } pts.push([x1,y1]); line(ctx,pts,col,1.4); }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const tr=traj(), a=tr.a, st=at(tSim()), nar=w<560;
+  let x0=0, x1=0, y0=0, y1=0; for(let i=0;i<tr.X.length;i++){ x0=Math.min(x0,tr.X[i]); x1=Math.max(x1,tr.X[i]); y0=Math.min(y0,tr.Y[i]); y1=Math.max(y1,tr.Y[i]); }
+  const sc=Math.min((w-30)/(x1-x0),(h-78)/(y1-y0)), cx=w/2-(x0+x1)/2*sc, cy=h/2+20+(y0+y1)/2*sc, X=x=>cx+x*sc, Y=y=>cy-y*sc;
+  // asíntota de llegada y el parámetro de impacto
+  line(ctx,[[X(x1),Y(a.b)],[X(0),Y(a.b)]],C.faint,1,[3,4]); line(ctx,[[X(0),Y(0)],[X(x1),Y(0)]],C.faint,1,[3,4]);
+  arrow(ctx,X(x1)-6,Y(a.b)+10,X(x1)-6,Y(0)-2,C.faint,1,5); arrow(ctx,X(x1)-6,Y(a.b/2),X(x1)-6,Y(a.b)+2,C.faint,1,5); txt(ctx,'b',X(x1)-14,Y(a.b/2)+4,C.muted,{size:11,align:'right'});
+  // circunferencias r₀ y 2r₀
+  [[a.r0,'r₀'],[2*a.r0,'2r₀']].forEach(([r,l])=>{ ctx.beginPath(); ctx.arc(X(0),Y(0),r*sc,0,7); ctx.strokeStyle=C.line; ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]); if(!nar) txt(ctx,l,X(0)+r*sc*0.71+3,Y(0)+r*sc*0.71+10,C.faint,{size:10.5}); });
+  // la hipérbola completa sin resorte (punteada)
+  { const p=a.h*a.h/a.GM, pts=[]; for(let i=0;i<=400;i++){ const f=-Math.acos(-1/a.e)*0.995+2*Math.acos(-1/a.e)*0.995*i/400, r=p/(1+a.e*Math.cos(f)); const th=a.thA+f; if(r<4*Math.max(x1-x0,y1-y0)) pts.push([X(r*Math.cos(th)),Y(r*Math.sin(th))]); } line(ctx,pts,C.faint,1.1,[4,4]); }
+  // recorrido
+  const pts=[]; for(let i=0;i<tr.T.length&&tr.T[i]<=st.t;i+=Math.max(1,tr.T.length>>11)) pts.push([X(tr.X[i]),Y(tr.Y[i])]); pts.push([X(st.x),Y(st.y)]); line(ctx,pts,C.sys,2);
+  const xA=a.r0*Math.cos(a.thA), yA=a.r0*Math.sin(a.thA); dot(ctx,X(xA),Y(yA),3.5,C.v); txt(ctx,'A',X(xA)-8,Y(yA)-8,C.v,{size:12,align:'right'});
+  if(st.desp) resorte(ctx,X(0),Y(0),X(st.x),Y(st.y),C.lin);
+  dot(ctx,X(0),Y(0),9,C.muted); txt(ctx,'M',X(0)+12,Y(0)+16,C.fg,{size:11.5}); txt(ctx,'O',X(0)-14,Y(0)+16,C.faint,{size:11});
+  const vk=Math.min(44,28*Math.hypot(st.vx,st.vy)/a.vA)/Math.max(Math.hypot(st.vx,st.vy),1e-9); arrow(ctx,X(st.x),Y(st.y),X(st.x)+st.vx*vk,Y(st.y)-st.vy*vk,C.sys,2,7); dot(ctx,X(st.x),Y(st.y),6,C.sys);
+  txt(ctx,st.desp?(isFinite(a.rmax)?(nar?'enganchada':'enganchada: oscila entre r₀ y r_máx'):'enganchada (k = 0): sigue la hipérbola'):'llega en hipérbola',12,18,st.desp?C.lin:C.muted,{size:11.5}); $('clock').textContent='t − t_A = '+dur(st.t-tr.tA);
+  readout([['r',km(st.r),C.sys],['v_r',cm(st.vr/1e3,3)+' km/s',C.ok],['v_t',cm(st.vt/1e3,3)+' km/s',C.ok],['r₀',km(a.r0),C.v],['v_A',cm(a.vA/1e3,3)+' km/s',C.v],['en 2r₀: v_t',cm(a.vt2/1e3,3)+' km/s'],['v_r',a.llega?'± '+cm(a.vr2/1e3,3)+' km/s':'no llega']]);
+  $('formula').innerHTML=`<b>se conservan</b> L = mv₀b (fuerzas centrales: gravedad y resorte) y E = ½mv₀² (gravedad y resorte conservativos; el resorte arranca sin estirar) · <b>en A:</b> v_A r₀ = v₀b, ½v_A² − GM/r₀ = ½v₀² · <b>en 2r₀:</b> v_t = v₀b/(2r₀), v_r² = v₀² + GM/r₀ − v_t² − kr₀²/m`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tramo=[]; const fin=()=>{ line(ctx,tramo,col,wd||2.2,dash); tramo=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tramo.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function drawV1(){ const tr=traj(), a=tr.a, st=at(tSim()), u=1e6, r1=Math.max(isFinite(a.rmax)?1.3*a.rmax:4*a.r0,2.6*a.r0), r0p=0.6*a.r0, U1=r=>(a.h*a.h/(2*r*r)-a.GM/r)/u, U2=r=>a.Uef(r)/u, A=[], B=[];
+  for(let i=0;i<=400;i++){ const r=r0p+(r1-r0p)*i/400; A.push([r/u,U1(r)]); B.push([r/u,r>=a.r0?U2(r):NaN]); }
+  const E=a.E/u, lo=Math.min(U1(a.r0),0)*1.3-0.2*E, hi=Math.max(E*2.2,U1(r0p)*0.5);
+  plot('p1c',r0p/u,r1/u,lo,hi,[[A,C.faint,[5,4],1.3],[B,C.sob],[[[r0p/u,E],[r1/u,E]],C.v,[6,4],1.6]],'r (10³ km)',{mark:(ctx,X,Y)=>{ [a.r0,2*a.r0].forEach(r=>line(ctx,[[X(r/u),Y(lo)],[X(r/u),Y(hi)]],C.line,1,[2,3])); dot(ctx,X(a.r0/u),Y(E),3.5,C.v,true); if(isFinite(a.rmax)) dot(ctx,X(a.rmax/u),Y(E),3.5,C.v,true); dot(ctx,X(st.r/u),Y(st.desp?U2(st.r):U1(st.r)),4.5,C.sob); }});
+  $('tag1').textContent='U_ef/m (MJ/kg) según r'; legend('leg1',[[C.faint,'sin resorte','dashed'],[C.sob,'con resorte (r ≥ r₀)'],[C.v,'E/m','dashed']]);
+  $('cap1').textContent=`Sin resorte la línea de la energía (E = ½mv₀² > 0) corta a U_ef solo en r₀: la partícula se va. Con el resorte se suma ½k(r − r₀)², que crece sin límite: queda ligada entre r₀ y r_máx = ${km(a.rmax)}.`+(a.llega?' Pasa por 2r₀ (línea vertical) con E > U_ef: tiene velocidad radial.':' 2r₀ queda fuera de la zona permitida: no llega.'); }
+function drawV2(){ const tr=traj(), a=tr.a, st=at(tSim()), fs=3600, u=1e6, pts=[]; for(let i=0;i<tr.T.length;i+=Math.max(1,tr.T.length>>11)) pts.push([(tr.T[i]-tr.tA)/fs,Math.hypot(tr.X[i],tr.Y[i])/u]);
+  const t0=-tr.tA/fs, t1=(tr.tEnd-tr.tA)/fs, m=Math.max(...pts.map(p=>p[1]))*1.05;
+  plot('p2c',t0,t1,0,m,[[[[t0,a.r0/u],[t1,a.r0/u]],C.v,[5,4],1],[[[t0,2*a.r0/u],[t1,2*a.r0/u]],C.faint,[5,4],1],[pts,C.sys]],'t − t_A (h)',{mark:(ctx,X,Y)=>{ line(ctx,[[X(0),Y(0)],[X(0),Y(m)]],C.lin,1,[3,3]); dot(ctx,X((st.t-tr.tA)/fs),Y(st.r/u),4.5,C.sys); }});
+  $('tag2').textContent='Distancia a O (10³ km)'; legend('leg2',[[C.sys,'r(t)'],[C.v,'r₀','dashed'],[C.faint,'2r₀','dashed']]);
+  $('cap2').textContent=`Antes de A (t < 0) baja por la hipérbola; en A, r = r₀ es mínimo. Después, el resorte la retiene: r oscila entre r₀ y r_máx. Durante todo el movimiento L y E se conservan: en esta integración varían menos que ${cm(Math.max(tr.dE,tr.dL)*1e9,2)} partes en 10⁹.`; }
+function drawV3(){ const tr=traj(), a=tr.a, st=at(tSim()), u=1e6, R=[], Tt=[]; const p2=en2r0();
+  for(let i=0;i<tr.T.length;i++){ if(tr.T[i]<tr.tA) continue; const x=tr.X[i], y=tr.Y[i], vx=tr.VX[i], vy=tr.VY[i], r=Math.hypot(x,y); R.push([r/u,(x*vx+y*vy)/r/1e3]); Tt.push([r/u,(x*vy-y*vx)/r/1e3]); }
+  const xs=R.map(p=>p[0]), ys=R.concat(Tt).map(p=>p[1]), lo=Math.min(...ys)*1.1, hi=Math.max(...ys)*1.1;
+  plot('p3c',Math.min(...xs)*0.97,Math.max(...xs)*1.03,lo,hi,[[Tt,C.ok,[4,3]],[R,C.ok]],'r (10³ km), después de A',{mark:(ctx,X,Y)=>{ line(ctx,[[X(2*a.r0/u),Y(lo)],[X(2*a.r0/u),Y(hi)]],C.faint,1,[3,4]);
+    if(a.llega){ dot(ctx,X(2*a.r0/u),Y(a.vt2/1e3),4.5,C.v,true); dot(ctx,X(2*a.r0/u),Y(a.vr2/1e3),4.5,C.v,true); dot(ctx,X(2*a.r0/u),Y(-a.vr2/1e3),4.5,C.v,true); } if(st.desp){ dot(ctx,X(st.r/u),Y(st.vr/1e3),4,C.ok); dot(ctx,X(st.r/u),Y(st.vt/1e3),4,C.ok); } }});
+  $('tag3').textContent='Componentes de la velocidad (km/s) después del enganche'; legend('leg3',[[C.ok,'v_r'],[C.ok,'v_t','dashed'],[C.v,'analítico en 2r₀','dotted']]);
+  $('cap3').textContent=a.llega?`En 2r₀: v_t = v₀b/(2r₀) = ${cm(a.vt2/1e3,4)} km/s y v_r = ± ${cm(a.vr2/1e3,4)} km/s (sale con +, vuelve con −). La integración da ${p2?cm(p2.vt/1e3,4)+' y '+cm(p2.vr/1e3,4):'—'} km/s. v_t = L/(mr) depende solo de r.`:'Con este resorte la partícula no llega a 2r₀: v_r² sería negativo.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else if(S.view==='v2') drawV2(); else drawV3(); }
+
+// ================= Predecí =================
+const PRED={ q:'En A la partícula se engancha al resorte (sin estirar). Después…',
+  opts:[['sigue','sigue la hipérbola y se aleja, solo un poco frenada'],['ligada','queda ligada: r oscila entre r₀ y un máximo'],['cae','cae sobre M']], right:'ligada', go:'Probalo',
+  run(){ Object.assign(P,P0); guiaOff(); restart(); refresh(); setView('v2'); return `Queda ligada: el resorte agrega ½k(r − r₀)², que crece sin límite, así que la energía (positiva, ½mv₀²) ya no alcanza para irse. En A, r₀ es el mínimo: no puede caer sobre M, porque L se conserva y v_t = L/(mr) crecería sin límite.`; } };
+
+// ================= Desafíos =================
+const CHAL=[
+  {txt:'Elegí k para que 2r₀ sea justo la distancia máxima (v_r = 0 en 2r₀), con 1 % de tolerancia.',
+   chk(){ const a=an(), q=a.rmax/(2*a.r0); return Math.abs(q-1)<=0.01?[true,`Logrado: k = m(v₀² + GM/r₀ − v_t²)/r₀² = ${cm(a.kj/1e-5,3)} × 10⁻⁵ N/m (período propio 2π√(m/k) = ${dur(2*PI*sq(a.m/a.kj))}).`]:[false,`r_máx = ${km(a.rmax)} (${cm(q,3)} · 2r₀)`]; }},
+  {txt:'Poné k = 0: ¿qué trayectoria sigue después de A? ¿Cuánto vale v en el infinito?'},
+  {txt:'¿Por qué se conserva L después del enganche, si el resorte hace fuerza? ¿Se conservaría si el resorte estuviera sujeto a otro punto?'},
+];
+
+// ================= Cuentas =================
+function cuentas(){ const a=an();
+  return {title:'Hipérbola y resorte', finLbl:'Velocidad en d = 2r₀', steps:[
+    ['a) Antes de A solo actúa la gravedad de M: central y conservativa. Se conservan L respecto de O y E (no p)', `\\[L=mv_0b\\qquad E=\\tfrac12mv_0^2\\ \\ (V_G(\\infty)=0)\\]`],
+    ['Después de A se suma el resorte, también central (apunta a O) y conservativo: siguen conservándose L y E. En A está sin estirar, así que E no cambia', `\\[E=\\tfrac12mv^2-\\frac{GMm}{r}+\\tfrac12k(r-r_0)^2\\]`],
+    ['En A (máximo acercamiento) la velocidad es perpendicular a OA', `\\[mv_Ar_0=mv_0b\\qquad\\tfrac12mv_A^2-\\frac{GMm}{r_0}=\\tfrac12mv_0^2\\]`],
+    ['Eliminando v_A queda una cuadrática en r₀', `\\[r_0=\\frac{-GM+\\sqrt{G^2M^2+v_0^4b^2}}{v_0^2}=${tx(a.r0/1e3,1)}\\ \\text{km}\\]`,true],
+    ['Y la velocidad en A', `\\[v_A=\\frac{v_0b}{r_0}=${tx(a.vA/1e3,4)}\\ \\text{km/s}\\]`,true],
+    ['b) En d = 2r₀, de L', `\\[v_t=\\frac{v_0b}{2r_0}=${tx(a.vt2/1e3,4)}\\ \\text{km/s}\\]`],
+    ['De E (el resorte está estirado r₀)', `\\[\\tfrac12mv_0^2=\\tfrac12m(v_r^2+v_t^2)-\\frac{GMm}{2r_0}+\\tfrac12kr_0^2\\]`],
+    ['Despejando', `\\[v_r=\\pm\\sqrt{v_0^2+\\frac{GM}{r_0}-\\frac{v_0^2b^2}{4r_0^2}-\\frac{kr_0^2}{m}}\\]`,true],
+    ['Con los datos', a.llega?`\\[v_r=\\pm${tx(a.vr2/1e3,4)}\\ \\text{km/s}\\]`:`\\[v_r^2<0:\\ \\text{no llega a }2r_0\\]`],
+  ], fin:`\\[v_t=\\frac{v_0b}{2r_0}\\qquad v_r=\\pm\\sqrt{v_0^2+\\tfrac{GM}{r_0}-\\tfrac{v_0^2b^2}{4r_0^2}-\\tfrac{kr_0^2}{m}}\\]`}; }
+
+// ================= Arranque =================
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+(function(){ const el=$('guia'); el.innerHTML='<span class="lbl">Valores de partida</span>';
+  [['k = 4 × 10⁻⁵ N/m',()=>Object.assign(P,P0)],['sin resorte',()=>Object.assign(P,P0,{k:0})],['2r₀ justo',()=>{ Object.assign(P,P0); P.k=an().kj/1e-5; }],['resorte duro',()=>Object.assign(P,P0,{k:20})]].forEach(([l,fn])=>{
+    const b=document.createElement('button'); b.textContent=l; b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); })();
+$('note').textContent='La guía da solo símbolos: la página arranca con M = 6 × 10²⁴ kg, m = 1000 kg, v₀ = 3 km/s, b = 40 000 km y k = 4 × 10⁻⁵ N/m (un resorte muy blando: su período propio, 2π√(m/k), es de unas 9 h, comparable al del movimiento). La punteada es la hipérbola completa, la que seguiría sin resorte. El reloj marca el tiempo desde A.';
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('hint').hidden=true;
+wireCommon(restart);
+buildPred(PRED); buildChal(CHAL); refresh();
+startLoop(step,draw);
+</script>
+</body>
+</html>

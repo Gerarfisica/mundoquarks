@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Eje instantáneo G11-P6 a P9</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+#scene{touch-action:none}
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 11 · Cinemática del cuerpo rígido</span>
+  <h1>El eje instantáneo de rotación <i>· los puntos quietos, el método gráfico y el eje helicoidal</i></h1>
+  <a class="mq-back" href="../../simuladores-cuerpo-rigido.html">← Cuerpo rígido</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 11">
+    <h2>Guía 11</h2>
+    <ol>
+      <li><a href="p1-rigido-o-no.html"><b class="code">P1, 2</b>¿Rígido o no?</a></li>
+      <li><a href="p3-triangulo-que-gira.html"><b class="code">P3, 4</b>Triángulo que gira</a></li>
+      <li><a href="p5-esfera-que-orbita.html"><b class="code">P5</b>Esfera que orbita</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6 a 9</b>Eje instantáneo</a></li>
+      <li><a href="p10-discos.html"><b class="code">P10</b>Discos</a></li>
+      <li><a href="p11-cilindro-que-rueda.html"><b class="code">P8, 11</b>Cilindro que rueda</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:380px" aria-label="Un cuerpo plano con dos puntos P y Q y sus velocidades; las perpendiculares a cada velocidad se cruzan en el eje instantáneo; el campo de velocidades del cuerpo. En el caso del problema 9, una vista en perspectiva de un disco que avanza a lo largo de su eje mientras gira."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="f1" aria-pressed="true">P8 · figura 1</button>
+        <button data-sy="f2" aria-pressed="false">P8 · figura 2</button>
+        <button data-sy="lib" aria-pressed="false">P6, 7 · libre</button>
+        <button data-sy="p9" aria-pressed="false">P9 · v_z ≠ 0</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">|v| según la distancia al eje</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:280px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G11-P6 a P9</summary>
+      <p><b>6.</b> El eje instantáneo de rotación es el conjunto de puntos que tienen velocidad nula en un dado instante.<br>i) Demuestre que, si existe, es una recta paralela a Ω.<br>ii) Demuestre que si hay un punto P del cuerpo tal que v_P · Ω ≠ 0, entonces no hay eje instantáneo de rotación.</p>
+      <p><b>7.</b> Demuestre que si un punto O pertenece al eje instantáneo de rotación, entonces v_P es perpendicular a r_OP.</p>
+      <p><b>8.</b> Teniendo en cuenta el resultado del problema 7:<br>i) Invente un método gráfico para determinar la posición del eje instantáneo de rotación, en los siguientes casos: (dos cuerpos con Ω saliente de la hoja; en el primero, v_Q apunta hacia abajo a la izquierda y v_P hacia abajo a la derecha; en el segundo, v_P es horizontal y v_Q apunta hacia arriba a la derecha.)<br>ii) Dibuje el campo de velocidades de un cilindro que rueda sin deslizar sobre un plano horizontal.<br>iii) Encuentre el eje instantáneo de rotación en los ejemplos del problema 3.</p>
+      <p><b>9.</b> La velocidad angular de un cuerpo rígido sometido a un movimiento rototraslatorio es (0, 0, ω) y la velocidad de uno de sus puntos P es (v_x, v_y, 0).<br>i) Determinar por consideraciones de cálculo vectorial, si existe un eje instantáneo de rotación.<br>ii) Idem que i), pero con v_P = (v_x, v_y, v_z) con v_z ≠ 0.<br>iii) ¿Cuál es, en ambos casos, el lugar geométrico de los puntos de velocidad mínima (en módulo)?</p>
+      <p class="src">Física 1, Guía 11 (Cinemática del cuerpo rígido). Enunciados textuales de la guía; entre paréntesis, lo que muestran las figuras del P8. Las figuras no dan valores: la página arma cada caso con un eje y un Ω elegidos (en cm y rad/s) para que las direcciones coincidan con el dibujo. El P8 ii está en la página del cilindro que rueda y el P8 iii, en la del triángulo que gira.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Campo de velocidades de un rígido: v = v_P + Ω × r_PX. En el plano, el eje se obtiene como r_P + ẑ × v_P / Ω. Colores: celeste, P; rosa, Q; violeta, el eje instantáneo y las perpendiculares; verde, el campo de velocidades; amarillo, el eje de velocidad mínima del P9.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G11-P6 a P9 · El eje instantáneo de rotación =================
+const sq=Math.sqrt, PI=Math.PI;
+const DEF=[
+  {id:'Om',lab:'Ω (+ antihorario)',unit:'rad/s',min:-2,max:2,step:0.01,dec:2},
+  {id:'w',lab:'ω',unit:'rad/s',min:0.2,max:2,step:0.01,dec:2},
+  {id:'vx',lab:'v_x de P',unit:'cm/s',min:-6,max:6,step:0.05,dec:2},
+  {id:'vy',lab:'v_y de P',unit:'cm/s',min:-6,max:6,step:0.05,dec:2},
+  {id:'vz',lab:'v_z de P',unit:'cm/s',min:-4,max:4,step:0.05,dec:2},
+];
+const P={Om:1,w:1,vx:2,vy:1,vz:1.5};
+const SHOW={f1:[],f2:[],lib:['Om'],p9:['w','vx','vy','vz']};
+// casos planos: P y Q (cm), eje C y Ω (rad/s, + antihorario: Ω saliente de la hoja, como en la figura)
+const CASOS={f1:{P:[0,0],Q:[3,7],C:[4,4],Om:1}, f2:{P:[0,0],Q:[4,4],C:[0,8],Om:0.8}, lib:{P:[0,0],Q:[5,2],vP:[3,-2]}};
+let SY='f1';
+const zx=([x,y])=>[-y,x];   // ẑ × (x, y)
+function caso(){ const c=CASOS[SY];
+  if(SY==='lib'){ const Om=P.Om, C=Math.abs(Om)>1e-9?[c.P[0]-c.vP[1]/Om,c.P[1]+c.vP[0]/Om]:null; const vel=r=>C?[-Om*(r[1]-C[1]),Om*(r[0]-C[0])]:c.vP.slice(); return {P:c.P,Q:c.Q,C,Om,vel}; }
+  const vel=r=>[-c.Om*(r[1]-c.C[1]),c.Om*(r[0]-c.C[0])]; return {P:c.P,Q:c.Q,C:c.C,Om:c.Om,vel}; }
+const K=0.6;   // escala de las flechas (s)
+const TT=1.6;
+function restart(){ S.t=0; }
+function step(dt){ if(DRAG) return; S.t+=dt; if(S.t>(SY==='p9'?4*PI/P.w:TT+0.6)) S.t=0; }
+
+// ================= Escena =================
+const scene=$('scene'); let VIEW=null, DRAG=null;
+function blob(k){ const m=[(k.P[0]+k.Q[0])/2,(k.P[1]+k.Q[1])/2], dx=k.Q[0]-k.P[0], dy=k.Q[1]-k.P[1], d=Math.hypot(dx,dy)||1, u=[dx/d,dy/d], A=d/2+2.4, B=Math.max(3,A*0.6), pts=[];
+  for(let i=0;i<100;i++){ const f=2*PI*i/100, g=1+0.06*Math.sin(3*f+1)+0.04*Math.cos(5*f); pts.push([m[0]+u[0]*A*Math.cos(f)*g-u[1]*B*Math.sin(f)*g,m[1]+u[1]*A*Math.cos(f)*g+u[0]*B*Math.sin(f)*g]); } return pts; }
+function dentro(pts,[x,y]){ let c=false; for(let i=0,j=pts.length-1;i<pts.length;j=i++){ const [xi,yi]=pts[i], [xj,yj]=pts[j]; if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi)) c=!c; } return c; }
+function mueve(k,r,t){ if(!k.C) return [r[0]+k.vel(r)[0]*t,r[1]+k.vel(r)[1]*t]; const a=k.Om*t, x=r[0]-k.C[0], y=r[1]-k.C[1]; return [k.C[0]+x*Math.cos(a)-y*Math.sin(a),k.C[1]+x*Math.sin(a)+y*Math.cos(a)]; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); if(SY==='p9') return escena3D(ctx,w,h);
+  const k=caso(), t=S.t>TT?TT:S.t, b=blob(k), nar=w<560;
+  if(!VIEW||!DRAG){ let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity; const add=([x,y])=>{ x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); };
+    if(SY==='lib'){ add([-9,-8]); add([14,10]); } else { b.forEach(add); if(k.C) add(k.C); [k.P,k.Q].forEach(p=>{ const v=k.vel(p); add([p[0]+v[0]*K,p[1]+v[1]*K]); }); }
+    const pad=1.5, sc=Math.min((w-24)/(x1-x0+2*pad),(h-44)/(y1-y0+2*pad)), cx=w/2-(x0+x1)/2*sc, cy=h/2+10+(y0+y1)/2*sc; VIEW={sc,X:x=>cx+x*sc,Y:y=>cy-y*sc,iX:px=>(px-cx)/sc,iY:py=>(cy-py)/sc}; }
+  const {X,Y}=VIEW;
+  // cuerpo (en t) y su posición inicial
+  const poly=(pts,fill,stroke,dash)=>{ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y))); ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); } ctx.strokeStyle=stroke; ctx.lineWidth=1.4; ctx.setLineDash(dash||[]); ctx.stroke(); ctx.setLineDash([]); };
+  if(t>0) poly(b,null,C.faint,[3,4]); poly(b.map(p=>mueve(k,p,t)),C['panel-2'],C.muted);
+  if(t===0){
+    // campo de velocidades dentro del cuerpo
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity; b.forEach(([x,y])=>{ x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); });
+    const st=Math.max(1.2,(x1-x0)/9); for(let x=x0+st/2;x<x1;x+=st) for(let y=y0+st/2;y<y1;y+=st){ if(!dentro(b,[x,y])) continue; const v=k.vel([x,y]); arrow(ctx,X(x),Y(y),X(x+v[0]*K*0.5),Y(y+v[1]*K*0.5),C.ok,1.2,5); }
+    // método gráfico: perpendiculares a v_P y v_Q
+    [k.P,k.Q].forEach(p=>{ const v=k.vel(p), L=Math.hypot(...v); if(L<1e-9) return; const n=[-v[1]/L,v[0]/L], E=30; line(ctx,[[X(p[0]-n[0]*E),Y(p[1]-n[1]*E)],[X(p[0]+n[0]*E),Y(p[1]+n[1]*E)]],C.lin,1,[4,4]); });
+    if(k.C){ dot(ctx,X(k.C[0]),Y(k.C[1]),6,C.lin,true); if(!nar) txt(ctx,'eje instantáneo',X(k.C[0])+9,Y(k.C[1])-8,C.lin,{size:11}); }
+    [[k.P,C.sys,'P'],[k.Q,C.sob,'Q']].forEach(([p,col,l])=>{ const v=k.vel(p); arrow(ctx,X(p[0]),Y(p[1]),X(p[0]+v[0]*K),Y(p[1]+v[1]*K),col,2.2,8); });
+    if(SY==='lib') dot(ctx,X(k.P[0]+k.vel(k.P)[0]*K),Y(k.P[1]+k.vel(k.P)[1]*K),6,C.fg,true); }
+  else if(k.C) dot(ctx,X(k.C[0]),Y(k.C[1]),6,C.lin,true);
+  [[k.P,C.sys,'P'],[k.Q,C.sob,'Q']].forEach(([p,col,l])=>{ const q=mueve(k,p,t); dot(ctx,X(q[0]),Y(q[1]),5,col); txt(ctx,l,X(q[0])-8,Y(q[1])-8,col,{size:12,align:'right'}); });
+  // Ω saliente (⊙) o entrante (⊗)
+  const ox=w-34, oy=34; ctx.beginPath(); ctx.arc(ox,oy,9,0,7); ctx.strokeStyle=C.fg; ctx.lineWidth=1.3; ctx.stroke(); if(k.Om>=0) dot(ctx,ox,oy,2.5,C.fg); else { line(ctx,[[ox-5,oy-5],[ox+5,oy+5]],C.fg,1.3); line(ctx,[[ox-5,oy+5],[ox+5,oy-5]],C.fg,1.3); } txt(ctx,'Ω',ox-16,oy+4,C.fg,{size:12,align:'right'});
+  txt(ctx,k.C?'las perpendiculares a v_P y v_Q se cruzan en el eje':'Ω = 0: traslación, no hay eje',12,18,C.lin,{size:11.5}); $('clock').textContent='';
+  const vP=k.vel(k.P), vQ=k.vel(k.Q);
+  readout([['eje (x, y)',k.C?`(${cm(k.C[0],2)}; ${cm(k.C[1],2)}) cm`:'∞',C.lin],['Ω',cm(k.Om,3)+' rad/s'],['|v_P|',cm(Math.hypot(...vP),2)+' cm/s',C.sys],['|v_Q|',cm(Math.hypot(...vQ),2)+' cm/s',C.sob],['v_P · r_eje,P',k.C?cm(vP[0]*(k.P[0]-k.C[0])+vP[1]*(k.P[1]-k.C[1]),3):'—']]);
+  $('formula').innerHTML=`<b>P7:</b> si O está en el eje, v_P = Ω × r_OP, perpendicular a r_OP → <b>P8 i:</b> el eje está sobre la perpendicular a v_P por P y sobre la perpendicular a v_Q por Q: se cruzan en el eje · en el plano, r_eje = r_P + ẑ × v_P / Ω · |v| = |Ω| · (distancia al eje)`; }
+// P9: vista en perspectiva de un disco que gira con ω alrededor del eje helicoidal y avanza v_z
+function escena3D(ctx,w,h){ const om=P.w, v=[P.vx,P.vy,P.vz], C9=[-v[1]/om,v[0]/om], t=S.t, Tt=4*PI/om, zt=v[2]*Tt, nar=w<560;
+  const pr=([x,y,z])=>[(x-y)*0.866,-(x+y)*0.5+z];
+  const pos=(r0,tt)=>{ const a=om*tt, x=r0[0]-C9[0], y=r0[1]-C9[1]; return [C9[0]+x*Math.cos(a)-y*Math.sin(a),C9[1]+x*Math.sin(a)+y*Math.cos(a),r0[2]+v[2]*tt]; };
+  const rim=[0,1,2,3].map(i=>[4*Math.cos(i*PI/2),4*Math.sin(i*PI/2),0]);
+  // encuadre de todo el recorrido
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity; const add=p=>{ const [a,b]=pr(p); x0=Math.min(x0,a); x1=Math.max(x1,a); y0=Math.min(y0,b); y1=Math.max(y1,b); };
+  for(let i=0;i<=40;i++){ const tt=Tt*i/40; rim.forEach(r=>add(pos(r,tt))); } add([C9[0],C9[1],Math.min(0,zt)-2]); add([C9[0],C9[1],Math.max(0,zt)+2]);
+  const sc=Math.min((w-30)/(x1-x0),(h-50)/(y1-y0)), cx=w/2-(x0+x1)/2*sc, cy=h/2+12+(y0+y1)/2*sc, S2=p=>{ const [a,b]=pr(p); return [cx+a*sc,cy-b*sc]; };
+  // ejes de referencia y eje helicoidal
+  const o=S2([0,0,0]); [[[3,0,0],'x'],[[0,3,0],'y'],[[0,0,3],'z']].forEach(([p,l])=>{ const q=S2(p); arrow(ctx,o[0],o[1],q[0],q[1],C.faint,1,5); txt(ctx,l,q[0]+4,q[1]-3,C.faint,{size:11}); });
+  const a1=S2([C9[0],C9[1],Math.min(0,zt)-2]), a2=S2([C9[0],C9[1],Math.max(0,zt)+2]); line(ctx,[a1,a2],C.v,2,[6,4]); if(!nar) txt(ctx,v[2]===0?'eje instantáneo':'eje de velocidad mínima',a2[0]+6,a2[1]+12,C.v,{size:11});
+  // hélices de los puntos del borde y de P
+  [[rim[0],C.sob],[rim[2],C.sob],[[0,0,0],C.sys]].forEach(([r,col])=>{ const pts=[]; for(let i=0;i<=200;i++){ const tt=Math.min(t,Tt)*i/200; pts.push(S2(pos(r,tt))); } line(ctx,pts,col,1.6,null,0.85); });
+  // el disco ahora
+  const ring=[]; for(let i=0;i<=60;i++){ const f=2*PI*i/60; ring.push(S2(pos([4*Math.cos(f),4*Math.sin(f),0],t))); } ctx.beginPath(); ring.forEach(([a,b],i)=>i?ctx.lineTo(a,b):ctx.moveTo(a,b)); ctx.closePath(); ctx.fillStyle=C['panel-2']; ctx.globalAlpha=0.7; ctx.fill(); ctx.globalAlpha=1; ctx.strokeStyle=C.muted; ctx.lineWidth=1.4; ctx.stroke();
+  const pP=pos([0,0,0],t), sP=S2(pP), vv=[-om*(pP[1]-C9[1]),om*(pP[0]-C9[0]),v[2]], tip=S2([pP[0]+vv[0]*0.6,pP[1]+vv[1]*0.6,pP[2]+vv[2]*0.6]); arrow(ctx,sP[0],sP[1],tip[0],tip[1],C.sys,2.2,8); dot(ctx,sP[0],sP[1],5,C.sys); txt(ctx,'P',sP[0]-8,sP[1]-8,C.sys,{size:12,align:'right'});
+  rim.slice(0,1).concat(rim.slice(2,3)).forEach(r=>{ const q=S2(pos(r,t)); dot(ctx,q[0],q[1],4,C.sob); });
+  txt(ctx,v[2]===0?'v_P · Ω = 0: hay eje instantáneo':'v_P · Ω ≠ 0: no hay eje instantáneo (movimiento helicoidal)',12,18,v[2]===0?C.ok:C.v,{size:11.5}); $('clock').textContent='t = '+cm(t,2)+' s';
+  readout([['v_P · Ω',cm(v[2]*om,3)+' cm/s²',C.v],['|v| mínima',cm(Math.abs(v[2]),3)+' cm/s',C.v],['eje (x, y)',`(${cm(C9[0],2)}; ${cm(C9[1],2)}) cm`],['paso de la hélice',cm(v[2]*2*PI/om,2)+' cm']]);
+  $('formula').innerHTML=`<b>P9:</b> para todo punto, v = v_P + Ω × r_PX → v · Ω = v_P · Ω = v_z ω, el mismo para todos · si v_z ≠ 0 ningún punto tiene v = 0 · la parte perpendicular a Ω se anula sobre la recta x = −v_y/ω, y = v_x/ω (paralela a z): ahí |v| = |v_z| es mínima`; }
+// arrastre (caso libre)
+function hit(px,py){ const c=CASOS.lib, k=caso(), {X,Y}=VIEW, v=k.vel(c.P), H=[['P',c.P],['Q',c.Q],['vP',[c.P[0]+v[0]*K,c.P[1]+v[1]*K]]]; let best=null, bd=18; H.forEach(([n,p])=>{ const d=Math.hypot(X(p[0])-px,Y(p[1])-py); if(d<bd){ bd=d; best=n; } }); return best; }
+scene.addEventListener('pointerdown',e=>{ if(SY!=='lib') return; const r=scene.getBoundingClientRect(); restart(); const k=hit(e.clientX-r.left,e.clientY-r.top); if(k){ DRAG=k; scene.setPointerCapture(e.pointerId); } });
+scene.addEventListener('pointermove',e=>{ if(!DRAG) return; const r=scene.getBoundingClientRect(), x=VIEW.iX(e.clientX-r.left), y=VIEW.iY(e.clientY-r.top), c=CASOS.lib;
+  if(DRAG==='P'){ c.P=[x,y]; } else if(DRAG==='Q') c.Q=[x,y]; else c.vP=[(x-c.P[0])/K,(y-c.P[1])/K]; updateChal(); renderCuentas(false); });
+scene.addEventListener('pointerup',()=>{ DRAG=null; });
+
+// ================= Gráfico =================
+function drawV1(){ const F0=$('p1c');
+  if(SY==='p9'){ const om=P.w, vz=Math.abs(P.vz), dP=Math.hypot(-P.vy/om,P.vx/om), m=Math.max(6,dP*1.6), pts=[]; for(let i=0;i<=200;i++){ const d=m*i/200; pts.push([d,sq(vz*vz+om*om*d*d)]); }
+    const F=frame(F0,{x0:0,x1:m,y0:0,y1:Math.max(...pts.map(p=>p[1]))*1.1,xlab:'distancia al eje (cm)'}); const {ctx,X,Y}=F; line(ctx,pts.map(p=>[X(p[0]),Y(p[1])]),C.v,2.2); line(ctx,[[X(0),Y(vz)],[X(m),Y(vz)]],C.faint,1,[4,4]); dot(ctx,X(dP),Y(sq(vz*vz+om*om*dP*dP)),4.5,C.sys);
+    $('tag1').textContent='|v| (cm/s) según la distancia al eje'; legend('leg1',[[C.v,'√(v_z² + ω²d²)'],[C.faint,'|v_z|','dashed']]);
+    $('cap1').textContent=`El mínimo, |v_z| = ${cm(Math.abs(P.vz),2)} cm/s, se alcanza sobre el eje.`+(P.vz===0?' Con v_z = 0 el mínimo es cero: ese eje es el eje instantáneo de rotación.':' Como v_z ≠ 0, no hay ningún punto quieto.'); return; }
+  const k=caso(); if(!k.C){ frame(F0,{x0:0,x1:10,y0:0,y1:10,xlab:'distancia (cm)'}); $('tag1').textContent='Traslación: todos los puntos tienen la misma velocidad'; legend('leg1',[]); $('cap1').textContent='Con Ω = 0 no hay eje instantáneo (está en el infinito).'; return; }
+  const dP=Math.hypot(k.P[0]-k.C[0],k.P[1]-k.C[1]), dQ=Math.hypot(k.Q[0]-k.C[0],k.Q[1]-k.C[1]), m=Math.max(dP,dQ)*1.3, o=Math.abs(k.Om);
+  const F=frame(F0,{x0:0,x1:m,y0:0,y1:o*m*1.05,xlab:'distancia al eje (cm)'}); const {ctx,X,Y}=F; line(ctx,[[X(0),Y(0)],[X(m),Y(o*m)]],C.ok,2.2); dot(ctx,X(dP),Y(o*dP),4.5,C.sys); dot(ctx,X(dQ),Y(o*dQ),4.5,C.sob);
+  $('tag1').textContent='|v| (cm/s) según la distancia al eje'; legend('leg1',[[C.ok,'|Ω| d'],[C.sys,'P'],[C.sob,'Q']]);
+  $('cap1').textContent=`En el plano todo el cuerpo gira alrededor del eje: |v| = |Ω| d, con |Ω| = ${cm(o,3)} rad/s. P está a ${cm(dP,2)} cm del eje y Q a ${cm(dQ,2)} cm.`; }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí =================
+const PRED={ q:'En la figura 1 del P8, ¿dónde está el eje instantáneo?',
+  opts:[['medio','en el punto medio entre P y Q'],['cruce','donde se cruzan las perpendiculares a v_P por P y a v_Q por Q'],['nada','no hay: P y Q se mueven']], right:'cruce', go:'Probalo',
+  run(){ pickChip('f1',setMode); return 'Donde se cruzan las perpendiculares: por el P7, la velocidad de cada punto es perpendicular a la recta que lo une con el eje, así que el eje está sobre las dos perpendiculares. Puede quedar fuera del cuerpo.'; } };
+
+// ================= Desafíos =================
+const CHAL=[
+  {txt:'En el caso libre, mové la velocidad de P para que el eje instantáneo quede justo sobre Q (a menos de 0,3 cm).',
+   chk(){ if(SY!=='lib') return [false,'Elegí el caso libre']; const k=caso(); if(!k.C) return [false,'Con Ω = 0 no hay eje']; const d=Math.hypot(k.C[0]-k.Q[0],k.C[1]-k.Q[1]); return d<0.3?[true,'Logrado: ahora Q está quieto y todo el cuerpo gira alrededor de él.']:[false,`El eje está a ${cm(d,2)} cm de Q`]; }},
+  {txt:'En el P9, elegí v_z para que exista eje instantáneo de rotación.',
+   chk(){ if(SY!=='p9') return [false,'Elegí el caso P9']; return P.vz===0?[true,'Logrado: con v_z = 0, v_P · Ω = 0 y el eje de velocidad mínima pasa a tener velocidad nula.']:[false,`v_P · Ω = ${cm(P.vz*P.w,2)} ≠ 0`]; }},
+  {txt:'P6 ii: si v_P · Ω ≠ 0, ¿por qué ningún punto del cuerpo puede tener velocidad nula?'},
+];
+
+// ================= Cuentas =================
+function cuentas(){ const k=SY==='p9'?null:caso();
+  const base=[
+    ['Campo de velocidades de un rígido', `\\[\\vec v_X=\\vec v_P+\\vec\\Omega\\times\\vec r_{PX}\\]`],
+    ['P6 i) Si X₁ y X₂ tienen velocidad nula, restando', `\\[\\vec\\Omega\\times(\\vec r_{X_2}-\\vec r_{X_1})=0\\ \\Rightarrow\\ \\vec r_{X_2}-\\vec r_{X_1}\\parallel\\vec\\Omega\\]`],
+    ['P6 ii) Ω × r es perpendicular a Ω: la proyección de la velocidad sobre Ω es la misma para todos los puntos', `\\[\\vec v_X\\cdot\\vec\\Omega=\\vec v_P\\cdot\\vec\\Omega\\ne0\\ \\Rightarrow\\ \\vec v_X\\ne0\\]`],
+    ['P7) Si O está en el eje, v_O = 0', `\\[\\vec v_P=\\vec\\Omega\\times\\vec r_{OP}\\ \\perp\\ \\vec r_{OP}\\]`,true],
+    ['P8 i) Método gráfico: el eje está sobre la perpendicular a v_P por P y sobre la perpendicular a v_Q por Q', `\\[\\text{eje}=\\perp_P(\\vec v_P)\\cap\\perp_Q(\\vec v_Q)\\]`],
+  ];
+  if(SY==='p9'){ const om=P.w;
+    return {title:'Eje instantáneo y eje helicoidal', finLbl:'Puntos de velocidad mínima', steps:[...base,
+      ['P9 i) Con v_P = (v_x, v_y, 0), v_P · Ω = 0. Buscando v_X = 0 con r_PX = (x, y, z)', `\\[v_x-\\omega y=0,\\ \\ v_y+\\omega x=0\\ \\Rightarrow\\ x=-\\frac{v_y}{\\omega},\\ y=\\frac{v_x}{\\omega}\\]`],
+      ['Para cualquier z: es una recta paralela a Ω, el eje instantáneo', `\\[(x,y)=(${tx(-P.vy/om,2)};\\ ${tx(P.vx/om,2)})\\ \\text{cm}\\]`],
+      ['P9 ii) Con v_z ≠ 0, la componente z de la velocidad es v_z en todos los puntos: no hay eje', `\\[\\vec v_X\\cdot\\hat z=v_z\\ne0\\]`],
+      ['P9 iii) La parte perpendicular a z se anula sobre la misma recta: allí |v| es mínima', `\\[|\\vec v|_\\text{mín}=|v_z|=${tx(Math.abs(P.vz),2)}\\ \\text{cm/s}\\]`,true],
+    ], fin:`\\[x=-\\frac{v_y}{\\omega},\\ \\ y=\\frac{v_x}{\\omega},\\ \\ z\\ \\text{cualquiera}\\]`}; }
+  return {title:'Eje instantáneo en el plano', finLbl:'Este caso', steps:[...base,
+    ['En el plano (Ω = Ω ẑ), despejando r de v = 0', `\\[\\vec r_\\text{eje}=\\vec r_P+\\frac{\\hat z\\times\\vec v_P}{\\Omega}\\]`],
+  ], fin:k.C?`\\[\\vec r_\\text{eje}=(${tx(k.C[0],2)};\\ ${tx(k.C[1],2)})\\ \\text{cm}\\qquad\\Omega=${tx(k.Om,3)}\\ \\text{rad/s}\\]`:`\\[\\Omega=0:\\ \\text{traslación}\\]`}; }
+
+// ================= Arranque =================
+const NOTE={f1:'Figura 1 del P8. En verde, el campo de velocidades; en violeta, las perpendiculares a v_P y v_Q y su cruce.',f2:'Figura 2 del P8: v_P horizontal, v_Q a 45°.',
+  lib:'Caso libre: arrastrá P, Q o la punta de v_P (círculo blanco) y elegí Ω. La velocidad de Q sale del campo del rígido.',p9:'P9: Ω = (0, 0, ω) y v_P = (v_x, v_y, v_z). Las curvas rosas son las hélices que dibujan dos puntos del borde del disco.'};
+function setMode(sy){ SY=sy; VIEW=null; DEF.forEach(d=>showParam(d.id,SHOW[sy].includes(d.id))); $('params').hidden=SHOW[sy].length===0; $('note').textContent=NOTE[sy]; restart(); refresh(); togglePlay(true); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ restart(); refresh(); if(!S.running) togglePlay(true); });
+$('guia').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('f1');
+startLoop(step,draw);
+</script>
+</body>
+</html>

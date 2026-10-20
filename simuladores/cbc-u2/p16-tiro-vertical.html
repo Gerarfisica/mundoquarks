@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Tiro vertical U2 1.16 a 1.22</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Física 03 · Unidad 2 · Cinemática</span>
+  <h1>Tiro vertical y caída libre <i>· todo lo que vuela acelera hacia abajo con g, suba o baje</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Unidad 2">
+    <h2>Unidad 2</h2>
+    <ol>
+      <li><a href="p1-mru-encuentro.html"><b class="code">1.1 a 1.7</b>MRU y encuentro</a></li>
+      <li><a href="p9-frenado.html"><b class="code">1.9, 1.11, 1.12, 1.14</b>Frenado y persecución</a></li>
+      <li><a href="p8-graficos.html"><b class="code">1.8, 1.10, 1.13, 1.15</b>De v(t) a x(t) y a(t)</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">1.16 a 1.22</b>Tiro vertical</a></li>
+      <li><a href="p23-a-variable.html"><b class="code">1.23 a 1.29</b>Aceleración variable</a></li>
+      <li><a href="p203-tiro-oblicuo.html"><b class="code">2.3 a 2.9</b>Tiro oblicuo</a></li>
+      <li><a href="p201-vectores.html"><b class="code">2.1, 2.2, 2.10</b>Vectores en el plano</a></li>
+      <li><a href="p211-circular.html"><b class="code">2.11 a 2.26</b>Circular y transmisiones</a></li>
+      <li><a href="p303-relativo-recta.html"><b class="code">3.3 a 3.5</b>Relativo en una recta</a></li>
+      <li><a href="p306-rio-viento.html"><b class="code">3.6, 3.7, 3.9, 3.10, 3.12</b>Río, avión y viento</a></li>
+      <li><a href="p301-observadores.html"><b class="code">3.1, 3.2, 3.8, 3.11</b>Dos observadores</a></li>
+      <li><a href="p313-cicloide.html"><b class="code">3.13, 3.14</b>Cicloide y curvatura</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Un eje vertical con las alturas y los cuerpos del problema (piedras, globos, una cañita voladora) que suben y bajan, con sus flechas de velocidad."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="terraza" aria-pressed="true">1.16</button>
+        <button data-sy="globo" aria-pressed="false">1.17</button>
+        <button data-sy="caida" aria-pressed="false">1.18</button>
+        <button data-sy="dos" aria-pressed="false">1.19</button>
+        <button data-sy="gomera" aria-pressed="false">1.20</button>
+        <button data-sy="juan" aria-pressed="false">1.21</button>
+        <button data-sy="canita" aria-pressed="false">1.22</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Altura y(t)</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Velocidad v(t)</button>
+          <button data-view="v3" aria-pressed="false" id="vb3">Aceleración a(t)</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:260px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:260px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+      <div data-vpanel="v3" hidden>
+        <div class="plot"><canvas id="p3c" style="height:260px"></canvas><div class="tag" id="tag3" style="color:var(--fg)"></div><div class="legend" id="leg3"></div></div>
+        <div class="pcap" id="cap3"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U2 · 1.16 a 1.22</summary>
+      <p><b>16.</b> Desde una terraza a 40 m del suelo se lanza una piedra verticalmente hacia arriba con velocidad de 15 m/s. Despreciando el rozamiento con el aire: a) Calcular los vectores posición, velocidad y aceleración en el instante t = 3 s. b) ¿Cuándo llega al suelo? c) ¿Cuándo y dónde se encuentra con una piedra arrojada desde el suelo verticalmente hacia arriba con una velocidad de 55 m/s y que parte desde el suelo en el mismo instante que la anterior? d) Representar gráficamente (para ambas piedras) la posición, la velocidad y la aceleración en función del tiempo.</p>
+      <p><b>17.</b> Un cuerpo se deja caer desde un globo aerostático, ubicado a 1000 m de altura, que desciende verticalmente con velocidad constante de 12 m/s. Despreciando el rozamiento con el aire: a) Elegir un sistema de referencia y escribir las ecuaciones que describen el movimiento del cuerpo. b) Calcular la velocidad y la distancia recorrida por el cuerpo al cabo de 10 s. c) Graficar en un mismo esquema x vs. t y v vs. t para el globo y el cuerpo. d) Resolver los incisos a), b) y c) considerando que el globo asciende con velocidad constante de 12 m/s.</p>
+      <p><b>18.</b> Una piedra que parte del reposo en caída libre recorre 67 m en el último segundo de su movimiento antes de tocar el piso. Despreciando el rozamiento con el aire, determinar: a) La altura desde la cual cayó. b) El tiempo que tarda en llegar al piso. c) La velocidad de llegada. d) Graficar en función del tiempo posición, velocidad y aceleración.</p>
+      <p><b>19.</b> ¿Con qué velocidad debe pasar un objeto por un punto P, moviéndose verticalmente, para que alcance un punto situado a una altura h del mismo, a los 3 y a los 7 segundos después de haber pasado por P, respectivamente? Despreciar el rozamiento con el aire.</p>
+      <p><b>20.</b> Un globo con gas asciende verticalmente con velocidad constante de 10 m/s. Cuando se encuentra a 16 m del piso, un muchacho que está debajo le dispara una piedra con su gomera, la que parte verticalmente a 30 m/s desde una altura de 1 m. Despreciando el rozamiento con el aire: a) ¿A qué distancia del piso alcanzará la piedra al globo? ¿Cuánto tiempo después de partir? b) ¿Cuál será la velocidad de la piedra (respecto a tierra) en ese instante? Interpretar. c) Suponiendo que pase por el costado, ¿vuelven a encontrarse? ¿Cuándo y dónde? ¿Cuál es la velocidad de la piedra en ese momento? d) Trazar los gráficos correspondientes.</p>
+      <p><b>21.</b> Juan arroja verticalmente hacia arriba una piedra, con una velocidad de partida de 10 m/s, y simultáneamente Pedro, que se encuentra 40 m más arriba, arroja otra hacia abajo, también con velocidad de 10 m/s. Despreciando el rozamiento con el aire: a) ¿A qué altura y en qué instante se cruzan ambas piedras? b) Trazar los gráficos correspondientes e interpretar.</p>
+      <p><b>22.</b> Una cañita voladora, que parte del reposo a nivel del piso, es impulsada verticalmente hacia arriba con una aceleración que se supone constante, mientras dura el combustible. Este se agota a los 5 segundos de partir, cuando está a 100 m de altura. Desde ese instante se mueve libremente (se desprecia el rozamiento con el aire) hasta que regresa al punto de partida. Determinar: a) La máxima velocidad que alcanza al ascender. b) A qué altura (máxima) del piso llegará. c) Trazar los gráficos de aceleración, velocidad y posición de la cañita en función del tiempo desde que parte hasta que vuelve al piso.</p>
+      <p class="src">CBC, Física 03, Unidad 2 (Cinemática). Enunciados textuales de la guía. g = 10 m/s²; eje y hacia arriba con el origen en el piso (en el 21, en la mano de Juan; en el 19, en P). Los cuerpos que llegan al piso quedan quietos.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Tiro vertical: y(t) = y₀ + v₀ t − ½ g t² y v(t) = v₀ − g t. Dos cuerpos se encuentran cuando tienen la misma altura en el mismo instante. Colores: celeste, el primer cuerpo; amarillo, el segundo (o el globo); verde, los encuentros.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+
+// ================= Cinemática (U2) =================
+// ceros de f en [a,b]: muestreo y bisección
+function ceros(f,a,b,N=2000){ const r=[]; let x0=a, f0=f(a); if(Math.abs(f0)<1e-12) r.push(a); for(let i=1;i<=N;i++){ const x1=a+(b-a)*i/N, f1=f(x1); if(Math.abs(f1)<1e-12){ if(!r.length||Math.abs(r[r.length-1]-x1)>1e-9) r.push(x1); } else if(f0*f1<0&&Math.abs(f0)>1e-12){ let lo=x0, hi=x1, flo=f0; for(let k=0;k<60;k++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } } r.push((lo+hi)/2); } x0=x1; f0=f1; } return r; }
+const kmh=v=>v*3.6, ms=v=>v/3.6;
+// motor 1D. M = {cuerpos:[{n,col,x:t=>,v:t=>,a:t=>}], t0,t1, a,b (rango de x), vert, ut, ux, marks:[[x,txt,col]], kv (px por unidad de v)}
+function encuentros1D(M){ const c=M.cuerpos; if(c.length<2) return []; const r=ceros(t=>c[0].x(t)-c[1].x(t),M.t0,M.t1).filter(t=>t>=M.t0-1e-9&&t<=M.t1+1e-9&&(!M.filtro||M.filtro(t))), o=[]; r.forEach(t=>{ if(!o.length||t-o[o.length-1]>(M.t1-M.t0)/100) o.push(t); }); return o; }
+function dibuja1D(cv,M,t){ const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h); const vert=!!M.vert, pad=vert?28:34, L=vert?(h-2*pad):(w-2*pad);
+  const P=x=>vert?h-pad-(x-M.a)/(M.b-M.a)*L:pad+(x-M.a)/(M.b-M.a)*L, c=vert?(M.cx??w*0.28):(M.cy??h*0.55);
+  const seg=(p,q,col,lw,d)=>vert?line(ctx,[[q,p[0]],[q,p[1]]],col,lw,d):line(ctx,[[p[0],q],[p[1],q]],col,lw,d);
+  seg([P(M.a),P(M.b)],c,C.muted,1.5); ticks(M.a,M.b,6).forEach(x=>{ const p=P(x); if(vert){ line(ctx,[[c-4,p],[c+4,p]],C.faint,1); txt(ctx,axf(x),c-8,p+4,C.faint,{size:10,align:'right'}); } else { line(ctx,[[p,c-4],[p,c+4]],C.faint,1); txt(ctx,axf(x),p,c+16,C.faint,{size:10,align:'center'}); } });
+  txt(ctx,M.ux||'',vert?c+8:P(M.b),vert?P(M.b)-8:c-8,C.faint,{size:10.5,align:vert?'left':'right'});
+  (M.marks||[]).forEach(([x,s,col])=>{ const p=P(x); if(vert){ line(ctx,[[c-14,p],[w-10,p]],col||C.faint,1,[3,4]); txt(ctx,s,w-12,p-4,col||C.faint,{size:10.5,align:'right'}); } else { line(ctx,[[p,c-34],[p,c+6]],col||C.faint,1,[3,4]); txt(ctx,s,p,c-38,col||C.faint,{size:10.5,align:'center'}); } });
+  M.cuerpos.forEach((b,i)=>{ const x=b.x(t); if(!isFinite(x)) return; const p=P(Math.max(M.a,Math.min(M.b,x))), off=(i-(M.cuerpos.length-1)/2)*(vert?34:22), q=c+(vert?off+36:-off-14);
+    const X0=vert?q:p, Y0=vert?p:q; ctx.beginPath(); ctx.arc(X0,Y0,7,0,7); ctx.fillStyle=b.col; ctx.fill(); txt(ctx,b.n,X0+(vert?11:0),Y0+(vert?4:-12),b.col,{size:11,align:vert?'left':'center'});
+    const v=b.v?b.v(t):0, k=M.kv??6; if(Math.abs(v)>1e-9){ const d=Math.max(-90,Math.min(90,v*k)); vert?arrow(ctx,X0,Y0,X0,Y0-d,b.col,2,7):arrow(ctx,X0,Y0,X0+d,Y0,b.col,2,7); } });
+  return P; }
+function graf1D(id,M,t,cual,o={}){ const c=M.cuerpos, f=b=>cual==='x'?b.x:cual==='v'?b.v:b.a, ser=c.map((b,i)=>[curva(f(b),M.t0,M.t1,400),b.col,i?[6,4]:null]);
+  let lo=Infinity, hi=-Infinity; ser.forEach(s=>s[0].forEach(p=>{ if(isFinite(p[1])){ lo=Math.min(lo,p[1]); hi=Math.max(hi,p[1]); } })); if(o.y0!==undefined){ lo=o.y0; hi=o.y1; } if(!(hi>lo)){ hi=lo+1; lo-=1; } const pd=(hi-lo)*0.08;
+  const E=cual==='x'?encuentros1D(M):[];
+  plot(id,M.t0,M.t1,lo-pd,hi+pd,ser,`t (${M.ut||'s'})`,{mark:(ctx,X,Y)=>{ line(ctx,[[X(t),Y(lo-pd)],[X(t),Y(hi+pd)]],C.faint,1,[2,3]); c.forEach(b=>{ const y=f(b)(t); if(isFinite(y)) dot(ctx,X(t),Y(y),4.5,b.col); }); E.forEach(te=>dot(ctx,X(te),Y(c[0].x(te)),5,C.ok,true)); (o.extra||(()=>{}))(ctx,X,Y); }}); return E; }
+// ================= U2 · 1.16 a 1.22 · Tiro vertical y caída libre =================
+const DEF=[
+  {id:'y0',lab:'altura de partida',unit:'m',min:0,max:100,step:1,dec:0},
+  {id:'v0',lab:'velocidad inicial',unit:'m/s',min:-30,max:60,step:1,dec:0},
+  {id:'v2',lab:'velocidad de la segunda piedra',unit:'m/s',min:0,max:80,step:1,dec:0},
+  {id:'vg',lab:'velocidad del globo (+ sube)',unit:'m/s',min:-20,max:20,step:1,dec:0},
+  {id:'dl',lab:'distancia en el último segundo',unit:'m',min:5,max:150,step:1,dec:0},
+  {id:'ta',lab:'primer paso por h',unit:'s',min:0.5,max:8,step:0.5,dec:1},
+  {id:'tb',lab:'segundo paso por h',unit:'s',min:1,max:12,step:0.5,dec:1},
+  {id:'d',lab:'Pedro está más arriba',unit:'m',min:5,max:80,step:1,dec:0},
+  {id:'tc',lab:'dura el combustible',unit:'s',min:1,max:10,step:0.5,dec:1},
+  {id:'hc',lab:'altura al apagarse',unit:'m',min:10,max:300,step:5,dec:0},
+];
+const PS={terraza:{y0:40,v0:15,v2:55}, globo:{vg:-12}, caida:{dl:67}, dos:{ta:3,tb:7}, gomera:{vg:10,v0:30}, juan:{v0:10,d:40}, canita:{tc:5,hc:100}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={terraza:['y0','v0','v2'],globo:['vg'],caida:['dl'],dos:['ta','tb'],gomera:['vg','v0'],juan:['v0','d'],canita:['tc','hc']};
+const P=Object.assign({},PS.canita,PS.juan,PS.gomera,PS.dos,PS.caida,PS.globo,PS.terraza); let SY='terraza';
+// tiro vertical; si piso, al llegar a y = 0 queda quieto
+function tv(y0,v0,piso=true,t0=0){ const tp=piso?(v0+sq(v0*v0+2*G*y0))/G:Infinity; return {x:t=>{ const s=Math.min(Math.max(t-t0,0),tp); return y0+v0*s-G*s*s/2; }, v:t=>{ const s=t-t0; return s<0?0:s<tp?v0-G*s:0; }, a:t=>{ const s=t-t0; return s<0||s>=tp?0:-G; }, tp}; }
+const mru=(y0,v)=>({x:t=>y0+v*t,v:()=>v,a:()=>0});
+function canita(){ const a=2*P.hc/P.tc**2, vm=a*P.tc, f=tv(P.hc,vm,true,P.tc); return {x:t=>t<P.tc?a*t*t/2:f.x(t),v:t=>t<P.tc?a*t:f.v(t),a:t=>t<P.tc?a:f.a(t),a1:a,vm,tf:P.tc+f.tp}; }
+const tCaida=()=>(P.dl+G/2)/G;
+function modelo(){ const N=C.sys, Y=C.v;
+  if(SY==='terraza'){ const p1=tv(P.y0,P.v0), p2=tv(0,P.v2); return {cuerpos:[Object.assign({n:'1',col:N},p1),Object.assign({n:'2',col:Y},p2)],t0:0,t1:Math.max(p1.tp,1)*1.1,a:0,b:Math.max(P.y0+P.v0**2/(2*G),P.v2**2/(2*G))*1.1+5,ux:'y (m)',vert:true,kv:1.4,marks:[[P.y0,'terraza',C.faint]],filtro:t=>t>1e-6&&t<Math.min(p1.tp,p2.tp)-1e-6}; }
+  if(SY==='globo'){ const c=tv(1000,P.vg); return {cuerpos:[Object.assign({n:'cuerpo',col:N},c),Object.assign({n:'globo',col:Y},mru(1000,P.vg))],t0:0,t1:16,a:0,b:1200,ux:'y (m)',vert:true,kv:0.8,filtro:t=>t>1e-3}; }
+  if(SY==='caida'){ const tf=tCaida(), H=G*tf*tf/2, c=tv(H,0); return {cuerpos:[Object.assign({n:'piedra',col:N},c)],t0:0,t1:tf*1.08,a:0,b:H*1.08,ux:'y (m)',vert:true,kv:1.2,marks:[[G*(tf-1)**2/2>H?0:H-G*(tf-1)**2/2,'1 s antes',C.ok]],H,tf}; }
+  if(SY==='dos'){ const v0=G*(P.ta+P.tb)/2, h=v0*P.ta-G*P.ta**2/2, c=tv(0,v0,false); return {cuerpos:[Object.assign({n:'objeto',col:N},c)],t0:0,t1:P.tb+1,a:Math.min(0,c.x(P.tb+1))-5,b:v0*v0/(2*G)*1.1+5,ux:'y (m)',vert:true,kv:1.2,marks:[[0,'P',C.faint],[h,'h',C.ok]],v0,h}; }
+  if(SY==='gomera'){ const p=tv(1,P.v0); return {cuerpos:[Object.assign({n:'piedra',col:N},p),Object.assign({n:'globo',col:Y},mru(16,P.vg))],t0:0,t1:Math.max(p.tp,1)*1.05,a:0,b:Math.max(16+P.vg*p.tp,1+P.v0**2/(2*G))*1.1+5,ux:'y (m)',vert:true,kv:1.6,filtro:t=>t>1e-6&&t<p.tp-1e-6}; }
+  if(SY==='juan'){ const j=tv(0,P.v0,false), p=tv(P.d,-10,false); return {cuerpos:[Object.assign({n:'Juan',col:N},j),Object.assign({n:'Pedro',col:Y},p)],t0:0,t1:4,a:-40,b:P.d+10,ux:'y (m)',vert:true,kv:1.4,marks:[[0,'Juan',C.faint],[P.d,'Pedro',C.faint]]}; }
+  const c=canita(); return {cuerpos:[Object.assign({n:'cañita',col:N},c)],t0:0,t1:c.tf*1.03,a:0,b:(P.hc+c.vm**2/(2*G))*1.1,ux:'y (m)',vert:true,kv:1,marks:[[P.hc,'se apaga',C.sob]],c}; }
+function restart(){ S.t=0; }
+function step(dt){ const M=modelo(), sp=M.t1-M.t0; S.t=(S.t+dt*sp/8)%sp; }
+const tNow=()=>{ const M=modelo(), sp=M.t1-M.t0; return M.t0+((S.t%sp)+sp)%sp; };
+
+// ================= Escena =================
+const scene=$('scene');
+function drawScene(){ const M=modelo(), t=tNow(), E=encuentros1D(M); dibuja1D(scene,M,t); $('clock').textContent=`t = ${cm(t,2)} s`; const b=M.cuerpos[0];
+  const enc=E.length?E.map(te=>`t = ${cm(te,2)} s, y = ${cm(b.x(te),1)} m`).join(' · '):'no se encuentran';
+  if(SY==='terraza') readout([['en t = 3 s',`y = ${cm(b.x(3),1)} m, v = ${cm(b.v(3),1)} m/s, a = −10 m/s²`,C.sys],['llega al suelo',cm(b.tp,2)+' s'],['encuentro',enc,C.ok]]);
+  else if(SY==='globo'){ const d=P.vg<0?1000-b.x(10):(P.vg**2/(2*G))*2+(1000-b.x(10)); readout([['a los 10 s',`v = ${cm(b.v(10),1)} m/s, y = ${cm(b.x(10),1)} m`,C.sys],['distancia recorrida',cm(d,1)+' m'],['globo a los 10 s',cm(1000+P.vg*10,0)+' m',C.v]]); }
+  else if(SY==='caida') readout([['tiempo de caída',cm(M.tf,2)+' s',C.sys],['altura',cm(M.H,1)+' m',C.ok],['velocidad de llegada',cm(G*M.tf,1)+' m/s']]);
+  else if(SY==='dos') readout([['velocidad en P',cm(M.v0,1)+' m/s',C.ok],['altura h',cm(M.h,1)+' m'],['punto más alto',`a los ${cm(M.v0/G,1)} s, justo en el medio de ${P.ta} y ${P.tb} s`]]);
+  else if(SY==='gomera') readout([['encuentros',enc,C.ok]].concat(E.map((te,i)=>[`piedra en el ${i+1}.º`,`v = ${cm(b.v(te),1)} m/s`,C.sys])));
+  else if(SY==='juan') readout([['se cruzan',enc,C.ok],['velocidades entonces',E.length?`Juan ${cm(b.v(E[0]),1)} m/s, Pedro ${cm(M.cuerpos[1].v(E[0]),1)} m/s`:'—']]);
+  else readout([['aceleración del motor',cm(M.c.a1,2)+' m/s²'],['velocidad máxima',cm(M.c.vm,1)+' m/s',C.sys],['altura máxima',cm(P.hc+M.c.vm**2/(2*G),1)+' m',C.ok],['vuelve al piso a los',cm(M.c.tf,2)+' s']]);
+  $('formula').innerHTML={terraza:'y₁ = 40 + 15 t − 5 t² · y₂ = 55 t − 5 t² · encuentro: 40 + 15 t = 55 t → <b>t = 1 s</b> (los términos −5t² se cancelan)',globo:'el cuerpo sale con la velocidad del globo: y = 1000 + v_g t − 5 t² · si el globo sube, el cuerpo primero sube y la distancia recorrida suma ida y vuelta',caida:'en el último segundo: H − ½ g (t − 1)² … → <b>Δ = g t − g/2</b> → t = (Δ + 5)/10 · H = ½ g t²',dos:'pasa por h a t_a y a t_b, simétricos respecto del punto más alto: <b>v_P = g (t_a + t_b)/2</b>',gomera:'piedra: y = 1 + 30 t − 5 t² · globo: y = 16 + 10 t · igualando: 5t² − 20t + 15 = 0 → t = 1 s y 3 s',juan:'y_J = 10 t − 5 t² · y_P = 40 − 10 t − 5 t² · igualando: 20 t = 40 → <b>t = 2 s</b>, cuando la piedra de Juan vuelve a su mano',canita:'con motor: y = ½ a t² → a = 2 · 100/25 = 8 m/s², v = 40 m/s · después, tiro vertical desde 100 m: sube 40²/20 = 80 m más'}[SY]; }
+
+// ================= Gráficos =================
+function vista(id,cual,tag,cap){ const M=modelo(), t=tNow(); graf1D(id,M,t,cual); const k=id.slice(1,2); $('tag'+k).textContent=tag; legend('leg'+k,M.cuerpos.map((b,i)=>[b.col,b.n,i?'dashed':null]).concat(cual==='x'&&M.cuerpos.length>1?[[C.ok,'encuentro']]:[])); $('cap'+k).textContent=cap; }
+function draw(){ drawScene();
+  if(S.view==='v1') vista('p1c','x','Altura (m) según el tiempo (s)',{terraza:'Las parábolas se cortan en t = 1 s, a 50 m.',globo:'Si el globo sube, el cuerpo primero sube un poco y después cae.',caida:'Parábola desde el reposo: en el último segundo recorre 67 m.',dos:'La parábola corta la altura h dos veces, simétricas respecto del máximo.',gomera:'La parábola corta a la recta del globo dos veces: al subir (1 s) y al bajar (3 s).',juan:'Se cruzan a los 2 s en la mano de Juan: su piedra ya volvió.',canita:'Hasta los 5 s, parábola hacia arriba (motor); después, hacia abajo (caída libre).'}[SY]);
+  else if(S.view==='v2') vista('p2c','v','Velocidad (m/s) según el tiempo (s)',SY==='gomera'?'En el segundo encuentro la piedra está en su punto más alto (v = 0): el globo la alcanza a ella.':'Todas las rectas de caída libre tienen la misma pendiente: −10 m/s².');
+  else vista('p3c','a','Aceleración (m/s²) según el tiempo (s)',SY==='canita'?'Con motor, +8 m/s²; sin motor, −10 m/s²; en el piso, cero.':'Mientras vuela, la aceleración es siempre −g, también en el punto más alto.'); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'1.20: la piedra alcanza al globo cuando sube, a 26 m. Si pasa al costado, ¿se vuelven a encontrar?',
+  opts:[['no','no: la piedra cae'],['si','sí: el globo la alcanza a ella'],['nunca','solo si el globo baja']], right:'si', go:'Probalo',
+  run(){ pickChip('gomera',setMode); return 'Sí: a los 3 s, a 46 m. La piedra llega justo a su punto más alto (v = 0) y el globo, que sigue subiendo, la alcanza.'; } };
+const CHAL=[{txt:'1.19: ¿con qué velocidad tiene que pasar por P para estar a la misma altura a los 2 s y a los 6 s?',chk(){ if(SY!=='dos') return [false,'Elegí el 1.19']; return P.ta===2&&P.tb===6?[true,'Logrado: v = 10 · (2 + 6)/2 = 40 m/s.']:[false,'Poné 2 y 6 s']; }}];
+function cuentas(){ return {title:'Tiro vertical', finLbl:'Respuestas', steps:[
+  ['1.16) En t = 3 s y al suelo', `\\[y=40+45-45=40\\ \\text{m},\\ v=15-30=-15\\ \\tfrac{\\text{m}}{\\text{s}}\\qquad40+15t-5t^2=0\\Rightarrow t\\simeq4{,}7\\ \\text{s}\\]`],
+  ['Encuentro con la piedra que sube a 55 m/s', `\\[40+15t=55t\\Rightarrow t_E=1\\ \\text{s},\\ y_E=50\\ \\text{m}\\]`,true],
+  ['1.17) A los 10 s, globo que baja / que sube', `\\[v=-12-100=-112\\ \\tfrac{\\text{m}}{\\text{s}},\\ d=620\\ \\text{m}\\qquad v=12-100=-88\\ \\tfrac{\\text{m}}{\\text{s}},\\ d=380+2\\cdot7{,}2=394{,}4\\ \\text{m}\\]`,true],
+  ['1.18) En el último segundo recorre g t − g/2', `\\[67=10t-5\\Rightarrow t=7{,}2\\ \\text{s},\\ H=259{,}2\\ \\text{m},\\ v=72\\ \\tfrac{\\text{m}}{\\text{s}}\\]`,true],
+  ['1.19) El máximo está a los 5 s', `\\[v_P=g\\cdot5=50\\ \\tfrac{\\text{m}}{\\text{s}}\\]`,true],
+  ['1.20) 1 + 30t − 5t² = 16 + 10t', `\\[t=1\\ \\text{s}:\\ 26\\ \\text{m},\\ v=20\\ \\tfrac{\\text{m}}{\\text{s}}\\qquad t=3\\ \\text{s}:\\ 46\\ \\text{m},\\ v=0\\]`,true],
+  ['1.21) 10t − 5t² = 40 − 10t − 5t²', `\\[t_E=2\\ \\text{s},\\ y_E=0\\]`,true],
+  ['1.22) a = 8 m/s² durante 5 s', `\\[v_\\text{máx}=40\\ \\tfrac{\\text{m}}{\\text{s}}\\qquad y_\\text{máx}=100+\\frac{40^2}{20}=180\\ \\text{m}\\]`,true],
+], fin:`\\[y=y_0+v_0t-\\tfrac12gt^2\\]`}; }
+
+// ================= Arranque =================
+const PRES={terraza:[['1.16',()=>Object.assign(P,PS0.terraza)]],globo:[['1.17 · el globo baja',()=>{ P.vg=-12; }],['1.17 d · el globo sube',()=>{ P.vg=12; }]],caida:[['1.18 · 67 m',()=>{ P.dl=67; }]],dos:[['1.19 · 3 y 7 s',()=>Object.assign(P,PS0.dos)]],gomera:[['1.20',()=>Object.assign(P,PS0.gomera)]],juan:[['1.21',()=>Object.assign(P,PS0.juan)]],canita:[['1.22',()=>Object.assign(P,PS0.canita)]]};
+const NOTE={terraza:'Piedra 1 desde la terraza (40 m) hacia arriba; piedra 2 desde el suelo a 55 m/s, al mismo tiempo.',globo:'El cuerpo se suelta del globo a 1000 m: sale con la velocidad del globo.',caida:'Elegí cuánto recorre en el último segundo; la página calcula desde dónde cayó.',dos:'El objeto pasa por P hacia arriba y está a la altura h en dos instantes.',gomera:'Globo a 16 m que sube a 10 m/s; la piedra sale de 1 m a 30 m/s.',juan:'Juan (abajo) tira hacia arriba; Pedro, 40 m más arriba, hacia abajo, a la vez.',canita:'Cañita con motor de aceleración constante; se apaga a los 5 s y 100 m.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); S.t=0; DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ if(P.tb<=P.ta) P.tb=P.ta+0.5; guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('terraza',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

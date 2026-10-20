@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Movimiento circular U2 2.11 a 2.26</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Física 03 · Unidad 2 · Cinemática</span>
+  <h1>Movimiento circular <i>· ω, v = ω R y una aceleración que apunta al centro</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Unidad 2">
+    <h2>Unidad 2</h2>
+    <ol>
+      <li><a href="p1-mru-encuentro.html"><b class="code">1.1 a 1.7</b>MRU y encuentro</a></li>
+      <li><a href="p9-frenado.html"><b class="code">1.9, 1.11, 1.12, 1.14</b>Frenado y persecución</a></li>
+      <li><a href="p8-graficos.html"><b class="code">1.8, 1.10, 1.13, 1.15</b>De v(t) a x(t) y a(t)</a></li>
+      <li><a href="p16-tiro-vertical.html"><b class="code">1.16 a 1.22</b>Tiro vertical</a></li>
+      <li><a href="p23-a-variable.html"><b class="code">1.23 a 1.29</b>Aceleración variable</a></li>
+      <li><a href="p203-tiro-oblicuo.html"><b class="code">2.3 a 2.9</b>Tiro oblicuo</a></li>
+      <li><a href="p201-vectores.html"><b class="code">2.1, 2.2, 2.10</b>Vectores en el plano</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">2.11 a 2.26</b>Circular y transmisiones</a></li>
+      <li><a href="p303-relativo-recta.html"><b class="code">3.3 a 3.5</b>Relativo en una recta</a></li>
+      <li><a href="p306-rio-viento.html"><b class="code">3.6, 3.7, 3.9, 3.10, 3.12</b>Río, avión y viento</a></li>
+      <li><a href="p301-observadores.html"><b class="code">3.1, 3.2, 3.8, 3.11</b>Dos observadores</a></li>
+      <li><a href="p313-cicloide.html"><b class="code">3.13, 3.14</b>Cicloide y curvatura</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Según el caso: un punto que gira en una circunferencia con sus vectores velocidad y aceleración; la Tierra con un punto a cierta latitud; el Sol con Marte y Júpiter; dos ruedas unidas por una cadena; un cuerpo con aceleración angular variable; dos ruedas que frenan; o dos motos en una pista circular."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="mcu" aria-pressed="true">MCU (2.11–2.14, 2.17, 2.21)</button>
+        <button data-sy="tierra" aria-pressed="false">Tierra (2.15, 2.16)</button>
+        <button data-sy="planetas" aria-pressed="false">órbitas (2.18–2.20)</button>
+        <button data-sy="cadena" aria-pressed="false">2.22 · cadena</button>
+        <button data-sy="variable" aria-pressed="false">2.23 · γ(t)</button>
+        <button data-sy="frenos" aria-pressed="false">2.24 · frenos</button>
+        <button data-sy="motos" aria-pressed="false">2.25 · motos</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Gráfico del caso</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:250px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U2 · 2.11 a 2.26</summary>
+      <p><b>11.</b> Un CD, de radio de 6 cm, gira a 2500 rpm. a) Calcular el módulo de la velocidad angular en radianes por segundo. b) Calcular el módulo de la velocidad tangencial de un punto sobre su borde. c) Calcular la frecuencia en Hz.</p>
+      <p><b>12.</b> Una varilla metálica de 30 cm de longitud gira respecto a uno de sus extremos a 60 rpm. Calcular: a) El período y el número de vueltas en 30 s. b) El módulo de la velocidad de un punto de la varilla situado a 10, 20 y 30 cm del extremo fijo.</p>
+      <p><b>13.</b> Un piloto de avión bien entrenado soporta aceleraciones de hasta 8 veces la de la gravedad, durante tiempos breves, sin perder el conocimiento. Si un avión vuela a 2300 km/h, ¿cuál será el radio de giro mínimo que puede soportar?</p>
+      <p><b>14.</b> Si el período de un movimiento circular uniforme (MCU) se triplica, manteniendo el radio constante, ¿cómo cambian su: a) velocidad angular? b) frecuencia? c) aceleración normal o centrípeta?</p>
+      <p><b>15.</b> a) Calcular el módulo de la velocidad de un punto situado sobre el ecuador en la Tierra. b) Calcular el módulo de la velocidad de un punto ubicado en los trópicos, sabiendo que el ángulo que forman con el ecuador terrestre es α = 23° 27′ (latitud). c) ¿Cuál es la velocidad de un punto ubicado en los polos? R_Tierra = 6378 km.</p>
+      <p><b>16.</b> a) ¿Cuánto vale la aceleración centrípeta de un objeto ubicado sobre el ecuador terrestre como consecuencia de la rotación de la Tierra sobre sí misma? b) ¿Cuánto debería valer el período de rotación de la Tierra para que el módulo de la aceleración centrípeta en su superficie en el ecuador fuera igual a 9,8 m/s²?</p>
+      <p><b>17.</b> Una patinadora sobre hielo de 65 kgf de peso se mueve sobre una pista horizontal a 18 km/h. En cierto instante toma el extremo de una varilla, paralela a la pista y perpendicular a su trayectoria, cuyo extremo está enganchado a un poste vertical, de modo tal que su movimiento posterior es una circunferencia de radio igual a 1 m. Determinar inmediatamente que toma la barra: a) El módulo de la velocidad angular. b) El módulo de la aceleración centrípeta. c) ¿Cómo cambian los resultados a) y b) si la patinadora pesa 50 kgf?</p>
+      <p><b>18.</b> Teniendo en cuenta que la Tierra gira alrededor del Sol en 365,25 días y que el radio de giro medio es de 1,5 × 10¹¹ m, calcular (suponiendo que la Tierra gira realizando un movimiento circular uniforme): a) El módulo de la velocidad angular en rad/día. b) El módulo de la velocidad tangencial. c) El ángulo que recorrerá en 30 días. d) El módulo de la aceleración centrípeta.</p>
+      <p><b>19.</b> Calcular cuánto tiempo transcurre entre dos momentos en los cuales el Sol, Marte y Júpiter están alineados (suponiendo que ambos planetas se mueven con un movimiento circular uniforme). El período de la órbita alrededor del Sol de Marte es de 687 días terrestres y el de Júpiter es de 11,86 años terrestres.</p>
+      <p><b>20.</b> La Estación Espacial Internacional gira con velocidad angular constante alrededor de la Tierra cada 90 minutos en una órbita a 300 km de altura sobre la superficie terrestre (por tanto, el radio de la órbita es de 6670 km). a) Calcular el módulo de la velocidad angular. b) Calcular el módulo de la velocidad tangencial. c) ¿Tiene aceleración? En caso afirmativo, indicar sus características y, en caso negativo indicar la razón por la cual no existe.</p>
+      <p><b>21.</b> Un disco gira, con movimiento uniforme, 13,2 radianes cada 6 segundos. Ubicar el centro del disco en el origen de coordenadas. a) Calcular el módulo de la velocidad angular. b) Calcular el período y la frecuencia de rotación. c) ¿Cuánto tiempo tardará el disco en girar un ángulo de 780°? d) ¿Y en efectuar 12 revoluciones? e) Si la trayectoria está descripta en el plano (x, y), el giro es horario y el radio 1 m, expresar usando versores los vectores v y a cuando un punto del borde intercepta los ejes coordenados.</p>
+      <p><b>22.</b> Dos ruedas dentadas, cuyos ejes A y B se encuentran a una distancia fija, se vinculan mediante una cadena para formar un mecanismo de transmisión similar al que puede observarse en una bicicleta. Sus radios son r_A = 3 cm y r_B = 9 cm, respectivamente. Se hace girar a la rueda A con velocidad angular constante en el sentido indicado, a 100 rpm. Considerando el pasaje de un eslabón sucesivamente por los puntos X, Y, Z, determinar: a) El módulo de su velocidad, en cada punto. b) La frecuencia con que gira la rueda B. c) El módulo de la aceleración que experimenta el eslabón en cada punto. (En la figura, X está sobre la rueda A, Y en el tramo recto y Z sobre la rueda B.)</p>
+      <p><b>23.</b> Un cuerpo inicialmente en reposo, tal que θ(t = 0) = 0 y ω(t = 0) = 0, es acelerado en una trayectoria circular de 1,3 m de radio, de acuerdo a la ley γ = 120 s⁻⁴ t² − 48 s⁻³ t + 16 s⁻², donde γ es la aceleración angular medida en s⁻², θ se mide en radianes y ω en s⁻¹. Hallar: a) θ = θ(t). b) ω = ω(t). c) Expresar los vectores v y a en t = 0,3 s.</p>
+      <p><b>24.</b> Dos ruedas A y B, de radios R_A = 20 cm y R_B = 40 cm giran en sentido horario. La frecuencia de rotación de la rueda A es de 120 rpm y la de la rueda B es de 240 rpm. En cierto instante se le aplica un freno a cada rueda de forma tal que A se detiene en 16 s y B en 8 s, ambas con aceleración angular constante. a) Para cada rueda expresar la aceleración angular, la velocidad angular y el ángulo en función del tiempo. b) ¿En qué instante tienen ambas ruedas la misma velocidad angular? ¿En qué instante los puntos de la periferia tienen velocidades de igual módulo? c) Calcular el ángulo barrido por cada rueda entre el instante en el cual se aplican los frenos y cada uno de los instantes del ítem b).</p>
+      <p><b>25.</b> En una autopista circular de 7,5 m de radio dos competidores prueban sus motocicletas. Ambos giran en sentido horario. Uno de ellos, Gino, prueba su moto ejecutando un movimiento circular uniforme de frecuencia igual a 30 rpm. El otro, Miguel, realizando un movimiento uniformemente acelerado, cuya velocidad angular aumenta en forma constante a razón de π 1/s cada segundo. Miguel pasa por B con una velocidad angular de π 1/s en el mismo instante en el que Gino pasa por A. a) Escribir las ecuaciones horarias θ(t) para cada una de las motos (especifique claramente cómo mide el ángulo θ). Hallar el instante y la posición en la cual ambos vehículos se encuentran por primera vez. b) Calcule los vectores velocidad y aceleración de cada moto en el instante de encuentro. (En la figura, A está sobre el eje x y B sobre el eje y.)</p>
+      <p><b>26.</b> Suponer que un objeto sigue una trayectoria en espiral mientras viaja con una velocidad de módulo constante. ¿Es constante la velocidad del objeto? ¿Es constante su aceleración? Si el módulo de la aceleración no es constante, ¿aumenta o disminuye?</p>
+      <p class="src">CBC, Física 03, Unidad 2 (Cinemática). Enunciados textuales de la guía; entre paréntesis, lo que muestran las figuras. Ángulos medidos desde el eje x, antihorario positivo (los giros horarios dan ω negativa), como en las respuestas de la guía. La animación de los giros rápidos va más lenta que la real.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>MCU: θ = θ₀ + ω t, v = ω R, a_c = ω² R = v²/R, hacia el centro. Si ω cambia, aparece además una aceleración tangencial γ R. Colores: celeste, el cuerpo y su trayectoria; amarillo, la velocidad; rosa, la aceleración; verde, los encuentros o alineaciones.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+
+// ================= Cinemática (U2) =================
+// ceros de f en [a,b]: muestreo y bisección
+function ceros(f,a,b,N=2000){ const r=[]; let x0=a, f0=f(a); if(Math.abs(f0)<1e-12) r.push(a); for(let i=1;i<=N;i++){ const x1=a+(b-a)*i/N, f1=f(x1); if(Math.abs(f1)<1e-12){ if(!r.length||Math.abs(r[r.length-1]-x1)>1e-9) r.push(x1); } else if(f0*f1<0&&Math.abs(f0)>1e-12){ let lo=x0, hi=x1, flo=f0; for(let k=0;k<60;k++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } } r.push((lo+hi)/2); } x0=x1; f0=f1; } return r; }
+const kmh=v=>v*3.6, ms=v=>v/3.6;
+// motor 1D. M = {cuerpos:[{n,col,x:t=>,v:t=>,a:t=>}], t0,t1, a,b (rango de x), vert, ut, ux, marks:[[x,txt,col]], kv (px por unidad de v)}
+function encuentros1D(M){ const c=M.cuerpos; if(c.length<2) return []; const r=ceros(t=>c[0].x(t)-c[1].x(t),M.t0,M.t1).filter(t=>t>=M.t0-1e-9&&t<=M.t1+1e-9&&(!M.filtro||M.filtro(t))), o=[]; r.forEach(t=>{ if(!o.length||t-o[o.length-1]>(M.t1-M.t0)/100) o.push(t); }); return o; }
+function dibuja1D(cv,M,t){ const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h); const vert=!!M.vert, pad=vert?28:34, L=vert?(h-2*pad):(w-2*pad);
+  const P=x=>vert?h-pad-(x-M.a)/(M.b-M.a)*L:pad+(x-M.a)/(M.b-M.a)*L, c=vert?(M.cx??w*0.28):(M.cy??h*0.55);
+  const seg=(p,q,col,lw,d)=>vert?line(ctx,[[q,p[0]],[q,p[1]]],col,lw,d):line(ctx,[[p[0],q],[p[1],q]],col,lw,d);
+  seg([P(M.a),P(M.b)],c,C.muted,1.5); ticks(M.a,M.b,6).forEach(x=>{ const p=P(x); if(vert){ line(ctx,[[c-4,p],[c+4,p]],C.faint,1); txt(ctx,axf(x),c-8,p+4,C.faint,{size:10,align:'right'}); } else { line(ctx,[[p,c-4],[p,c+4]],C.faint,1); txt(ctx,axf(x),p,c+16,C.faint,{size:10,align:'center'}); } });
+  txt(ctx,M.ux||'',vert?c+8:P(M.b),vert?P(M.b)-8:c-8,C.faint,{size:10.5,align:vert?'left':'right'});
+  (M.marks||[]).forEach(([x,s,col])=>{ const p=P(x); if(vert){ line(ctx,[[c-14,p],[w-10,p]],col||C.faint,1,[3,4]); txt(ctx,s,w-12,p-4,col||C.faint,{size:10.5,align:'right'}); } else { line(ctx,[[p,c-34],[p,c+6]],col||C.faint,1,[3,4]); txt(ctx,s,p,c-38,col||C.faint,{size:10.5,align:'center'}); } });
+  M.cuerpos.forEach((b,i)=>{ const x=b.x(t); if(!isFinite(x)) return; const p=P(Math.max(M.a,Math.min(M.b,x))), off=(i-(M.cuerpos.length-1)/2)*(vert?34:22), q=c+(vert?off+36:-off-14);
+    const X0=vert?q:p, Y0=vert?p:q; ctx.beginPath(); ctx.arc(X0,Y0,7,0,7); ctx.fillStyle=b.col; ctx.fill(); txt(ctx,b.n,X0+(vert?11:0),Y0+(vert?4:-12),b.col,{size:11,align:vert?'left':'center'});
+    const v=b.v?b.v(t):0, k=M.kv??6; if(Math.abs(v)>1e-9){ const d=Math.max(-90,Math.min(90,v*k)); vert?arrow(ctx,X0,Y0,X0,Y0-d,b.col,2,7):arrow(ctx,X0,Y0,X0+d,Y0,b.col,2,7); } });
+  return P; }
+function graf1D(id,M,t,cual,o={}){ const c=M.cuerpos, f=b=>cual==='x'?b.x:cual==='v'?b.v:b.a, ser=c.map((b,i)=>[curva(f(b),M.t0,M.t1,400),b.col,i?[6,4]:null]);
+  let lo=Infinity, hi=-Infinity; ser.forEach(s=>s[0].forEach(p=>{ if(isFinite(p[1])){ lo=Math.min(lo,p[1]); hi=Math.max(hi,p[1]); } })); if(o.y0!==undefined){ lo=o.y0; hi=o.y1; } if(!(hi>lo)){ hi=lo+1; lo-=1; } const pd=(hi-lo)*0.08;
+  const E=cual==='x'?encuentros1D(M):[];
+  plot(id,M.t0,M.t1,lo-pd,hi+pd,ser,`t (${M.ut||'s'})`,{mark:(ctx,X,Y)=>{ line(ctx,[[X(t),Y(lo-pd)],[X(t),Y(hi+pd)]],C.faint,1,[2,3]); c.forEach(b=>{ const y=f(b)(t); if(isFinite(y)) dot(ctx,X(t),Y(y),4.5,b.col); }); E.forEach(te=>dot(ctx,X(te),Y(c[0].x(te)),5,C.ok,true)); (o.extra||(()=>{}))(ctx,X,Y); }}); return E; }
+// ================= U2 · 2.11 a 2.26 · Movimiento circular =================
+const DEF=[
+  {id:'R',lab:'radio',unit:'m',min:0.01,max:10,step:0.01,dec:2},
+  {id:'rpm',lab:'frecuencia',unit:'rpm',min:1,max:3000,step:1,dec:0},
+  {id:'lat',lab:'latitud',unit:'°',min:0,max:90,step:0.05,dec:2},
+  {id:'Th',lab:'período de rotación de la Tierra',unit:'h',min:1,max:24,step:0.01,dec:2},
+  {id:'T1',lab:'período de Marte',unit:'días',min:100,max:2000,step:1,dec:0},
+  {id:'T2',lab:'período de Júpiter',unit:'años',min:2,max:30,step:0.01,dec:2},
+  {id:'rA',lab:'radio de la rueda A',unit:'cm',min:1,max:15,step:0.5,dec:1},
+  {id:'rB',lab:'radio de la rueda B',unit:'cm',min:1,max:20,step:0.5,dec:1},
+  {id:'nA',lab:'frecuencia de A',unit:'rpm',min:10,max:300,step:1,dec:0},
+];
+const PS={mcu:{R:0.06,rpm:2500}, tierra:{lat:23.45,Th:24}, planetas:{T1:687,T2:11.86}, cadena:{rA:3,rB:9,nA:100}, variable:{}, frenos:{}, motos:{}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={mcu:['R','rpm'],tierra:['lat','Th'],planetas:['T1','T2'],cadena:['rA','rB','nA'],variable:[],frenos:[],motos:[]};
+const P=Object.assign({},PS.cadena,PS.planetas,PS.tierra,PS.mcu); let SY='mcu';
+const RT=6378e3, w=()=>P.rpm*2*PI/60;
+// 2.23
+const th23=t=>10*t**4-8*t**3+8*t*t, w23=t=>40*t**3-24*t*t+16*t, g23=t=>120*t*t-48*t+16, R23=1.3;
+// 2.24 (antihorario positivo; giran en sentido horario)
+const wA=t=>t<16?-4*PI+PI/4*t:0, wB=t=>t<8?-8*PI+PI*t:0, thA=t=>{ const s=Math.min(t,16); return -4*PI*s+PI/8*s*s; }, thB=t=>{ const s=Math.min(t,8); return -8*PI*s+PI/2*s*s; };
+// 2.25 (desde A, antihorario positivo)
+const thG=t=>-PI*t, thM=t=>PI/2-PI*t-PI/2*t*t, RM=7.5;
+const TSPAN={mcu:2,tierra:4,planetas:12000,cadena:2,variable:0.6,frenos:16,motos:2};
+function restart(){ S.t=0; }
+function step(dt){ S.t=(S.t+dt*TSPAN[SY]/(SY==='planetas'?10:SY==='frenos'?8:4))%TSPAN[SY]; }
+const vlen=(v,m)=>{ const L=Math.hypot(...v)||1; return [v[0]/L*m,v[1]/L*m]; };
+
+// ================= Escena =================
+const scene=$('scene');
+function rueda(ctx,cx,cy,r,ang,col){ ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke(); for(let k=0;k<3;k++){ const a=ang+k*2*PI/3; line(ctx,[[cx,cy],[cx+r*Math.cos(a),cy-r*Math.sin(a)]],col,1.4); } dot(ctx,cx,cy,3,col); }
+function punto(ctx,cx,cy,r,th,v,a,col,lab){ const px=cx+r*Math.cos(th), py=cy-r*Math.sin(th); dot(ctx,px,py,6,col); if(v) arrow(ctx,px,py,px+v[0],py-v[1],C.v,2,7); if(a) arrow(ctx,px,py,px+a[0],py-a[1],C.sob,2,7); if(lab) txt(ctx,lab,px+8,py-8,col,{size:11}); }
+function drawScene(){ const {ctx,w:W,h:H}=fit(scene); ctx.clearRect(0,0,W,H); const t=S.t, cx=W/2, cy=H/2, Rp=Math.min(W,H)*0.36;
+  if(SY==='mcu'){ const om=w(), vis=om>6?6*Math.sign(om):om, th=vis*t; ctx.beginPath(); ctx.arc(cx,cy,Rp,0,7); ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; ctx.stroke(); dot(ctx,cx,cy,3,C.fg);
+    line(ctx,[[cx,cy],[cx+Rp*Math.cos(th),cy-Rp*Math.sin(th)]],C.faint,1,[3,3]); punto(ctx,cx,cy,Rp,th,[-Math.sin(th)*50,Math.cos(th)*50],[-Math.cos(th)*45,-Math.sin(th)*45],C.sys);
+    txt(ctx,om>6?'animación más lenta que la real':'',10,18,C.muted,{size:11});
+    const v=om*P.R; readout([['ω',`${cm(om,2)} rad/s = ${cm(om/PI,2)} π rad/s`,C.sys],['v = ω R',cm(v,3)+' m/s',C.v],['a_c = ω² R',cm(om*om*P.R,2)+' m/s²',C.sob],['período',cm(60/P.rpm,4)+' s'],['frecuencia',cm(P.rpm/60,3)+' Hz']]); }
+  else if(SY==='tierra'){ const R=Rp, la=rad(P.lat); ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; ctx.stroke(); line(ctx,[[cx,cy-R-14],[cx,cy+R+14]],C.faint,1,[4,4]); line(ctx,[[cx-R,cy],[cx+R,cy]],C.faint,1);
+    const py=cy-R*Math.sin(la), rr=R*Math.cos(la); ctx.save(); ctx.translate(cx,py); ctx.scale(1,0.18); ctx.beginPath(); ctx.arc(0,0,rr,0,7); ctx.restore(); ctx.strokeStyle=C.sys; ctx.lineWidth=1.2; ctx.stroke();
+    const ph=2*PI*t/4; dot(ctx,cx+rr*Math.cos(ph),py+0.18*rr*Math.sin(ph),5,C.sys); line(ctx,[[cx,cy],[cx+R*Math.cos(la),py]],C.v,1,[3,3]); txt(ctx,`latitud ${cm(P.lat,2)}°`,cx+R*Math.cos(la)+6,py-4,C.v,{size:11});
+    const om=2*PI/(P.Th*3600), v=om*RT*Math.cos(la); readout([['ω',`${fN(om)} rad/s`],['v en esa latitud',`${cm(v,1)} m/s = ${cm(kmh(v),0)} km/h`,C.sys],['en el ecuador',`${cm(om*RT,1)} m/s · a_c = ${cm(om*om*RT,4)} m/s²`],['período para a_c = 9,8 m/s²',`${cm(2*PI*sq(RT/9.8),0)} s ≈ ${cm(2*PI*sq(RT/9.8)/3600,2)} h`,C.sob]]); }
+  else if(SY==='planetas'){ const r1=Rp*0.45, r2=Rp, d=t, a1=2*PI*d/P.T1, a2=2*PI*d/(P.T2*365.25); dot(ctx,cx,cy,8,C.v); [r1,r2].forEach(r=>{ ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.strokeStyle=C.muted; ctx.lineWidth=1; ctx.stroke(); });
+    const al=Math.abs(((a1-a2)%(2*PI)+2*PI)%(2*PI))<0.06; if(al) line(ctx,[[cx,cy],[cx+r2*Math.cos(a2)*1.05,cy-r2*Math.sin(a2)*1.05]],C.ok,1.5,[4,3]);
+    punto(ctx,cx,cy,r1,a1,null,null,C.sob,'Marte'); punto(ctx,cx,cy,r2,a2,null,null,C.sys,'Júpiter'); txt(ctx,`día ${cm(d,0)}`,10,18,al?C.ok:C.muted,{size:11.5});
+    const Ts=1/(1/P.T1-1/(P.T2*365.25)), wE=2*PI/365.25; readout([['Sol–Marte–Júpiter alineados cada',cm(Ts,1)+' días',C.ok],['Tierra: ω',`${cm(wE,4)} rad/día`],['Tierra: v',`${mil(wE/86400*1.5e11,0)} m/s`],['en 30 días',`${cm(wE*30,3)} rad = ${cm(deg(wE*30),1)}°`],['Tierra: a_c',fN((wE/86400)**2*1.5e11)+' m/s²'],['EEI (90 min, 6670 km)',`ω = ${fN(2*PI/5400)} rad/s · v = ${mil(2*PI/5400*6670e3,0)} m/s`]]); }
+  else if(SY==='cadena'){ const k=Math.min(W*0.07,H*0.04), ra=P.rA*k, rb=P.rB*k, xa=W*0.25, xb=W*0.68, om=P.nA*2*PI/60, vis=1.5, angA=vis*t, angB=vis*t*P.rA/P.rB;
+    line(ctx,[[xa,cy-ra],[xb,cy-rb]],C.faint,2); line(ctx,[[xa,cy+ra],[xb,cy+rb]],C.faint,2); rueda(ctx,xa,cy,ra,angA,C.sys); rueda(ctx,xb,cy,rb,angB,C.v);
+    txt(ctx,'A',xa-4,cy+ra+16,C.sys,{size:12}); txt(ctx,'B',xb-4,cy+rb+16,C.v,{size:12}); dot(ctx,xa-ra,cy,4,C.ok); txt(ctx,'X',xa-ra-14,cy+4,C.ok,{size:11}); const ym=[(xa+xb)/2,cy-(ra+rb)/2]; dot(ctx,ym[0],ym[1],4,C.ok); txt(ctx,'Y',ym[0]-4,ym[1]-8,C.ok,{size:11}); dot(ctx,xb+rb,cy,4,C.ok); txt(ctx,'Z',xb+rb+6,cy+4,C.ok,{size:11});
+    const v=om*P.rA; readout([['velocidad de la cadena',cm(v,2)+' cm/s (en X, Y y Z)',C.v],['frecuencia de B',`${cm(P.nA*P.rA/P.rB,2)} rpm = ${cm(P.nA*P.rA/P.rB/60,3)} Hz`],['a en X',cm(v*v/P.rA,1)+' cm/s²',C.sob],['a en Y','0 (tramo recto)'],['a en Z',cm(v*v/P.rB,1)+' cm/s²',C.sob]]); }
+  else if(SY==='variable'){ const th=th23(t), om=w23(t), ga=g23(t); ctx.beginPath(); ctx.arc(cx,cy,Rp,0,7); ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; ctx.stroke();
+    const at=ga*R23, ac=om*om*R23, ut=[-Math.sin(th),Math.cos(th)], ur=[-Math.cos(th),-Math.sin(th)], a=[at*ut[0]+ac*ur[0],at*ut[1]+ac*ur[1]], v=[om*R23*ut[0],om*R23*ut[1]];
+    punto(ctx,cx,cy,Rp,th,vlen(v,Math.min(80,8*Math.hypot(...v))),vlen(a,Math.min(80,2.5*Math.hypot(...a))),C.sys); txt(ctx,'animación lenta: t de 0 a 0,6 s',10,18,C.muted,{size:11});
+    const t3=0.3, th3=th23(t3), o3=w23(t3), g3=g23(t3), u3=[-Math.sin(th3),Math.cos(th3)], r3=[-Math.cos(th3),-Math.sin(th3)];
+    readout([['ahora',`θ = ${cm(th,3)} rad · ω = ${cm(om,3)} 1/s · γ = ${cm(ga,2)} 1/s²`],['v(0,3 s)',`(${cm(o3*R23*u3[0],2)}; ${cm(o3*R23*u3[1],2)}) m/s`,C.v],['a(0,3 s)',`(${cm(g3*R23*u3[0]+o3*o3*R23*r3[0],2)}; ${cm(g3*R23*u3[1]+o3*o3*R23*r3[1],2)}) m/s²`,C.sob]]); }
+  else if(SY==='frenos'){ const xa=W*0.3, xb=W*0.68, ra=Rp*0.35, rb=Rp*0.7; rueda(ctx,xa,cy,ra,thA(t),C.sys); rueda(ctx,xb,cy,rb,thB(t),C.v); txt(ctx,'A',xa-4,cy+ra+16,C.sys,{size:12}); txt(ctx,'B',xb-4,cy+rb+16,C.v,{size:12});
+    const te=16/3, tv=48/7; readout([['ahora',`ω_A = ${cm(wA(t)/PI,2)} π · ω_B = ${cm(wB(t)/PI,2)} π rad/s`],['igual ω',`t = ${cm(te,2)} s · θ_A = ${cm(thA(te)/PI,2)} π · θ_B = ${cm(thB(te)/PI,2)} π rad`,C.ok],['igual v en la periferia',`t = ${cm(tv,2)} s · θ_A = ${cm(thA(tv)/PI,2)} π · θ_B = ${cm(thB(tv)/PI,2)} π rad`,C.ok]]); }
+  else { ctx.beginPath(); ctx.arc(cx,cy,Rp,0,7); ctx.strokeStyle=C.muted; ctx.lineWidth=1.5; ctx.stroke(); txt(ctx,'A',cx+Rp+6,cy+4,C.faint,{size:11}); txt(ctx,'B',cx-4,cy-Rp-8,C.faint,{size:11});
+    const k=Rp/RM, vG=[RM*PI*Math.sin(thG(t)),-RM*PI*Math.cos(thG(t))], oM=-PI-PI*t; punto(ctx,cx,cy,Rp,thG(t),null,null,C.sys,'Gino'); punto(ctx,cx,cy,Rp,thM(t),null,null,C.v,'Miguel');
+    const te=1; readout([['θ_G(t)','−π t'],['θ_M(t)','π/2 − π t − (π/2) t²'],['encuentro',`t = 1 s en θ = −π (punto opuesto a A)`,C.ok],['en el encuentro',`v_G = 7,5π ŷ m/s, a_G = 7,5π² x̂ · v_M = 15π ŷ m/s, a_M = 7,5π ŷ + 30π² x̂ m/s²`]]); }
+  $('clock').textContent=SY==='planetas'?'':`t = ${cm(t,2)} s`;
+  $('formula').innerHTML={mcu:'<b>ω = 2π f</b> · <b>v = ω R</b> · <b>a_c = ω² R = v²/R</b> · si T se triplica, ω y f se dividen por 3 y a_c por 9',tierra:'un punto a latitud φ gira en un círculo de radio R cos φ: <b>v = ω R cos φ</b> · a_c = 9,8 m/s² requiere T = 2π √(R/g)',planetas:'Marte da una vuelta más que Júpiter cada <b>T = 1/(1/T_M − 1/T_J)</b> (como las agujas del reloj)',cadena:'la cadena no resbala: <b>ω_A r_A = ω_B r_B</b> = v · en las ruedas a = v²/r; en el tramo recto, MRU',variable:'integrando γ: ω = 40t³ − 24t² + 16t; θ = 10t⁴ − 8t³ + 8t² · a = γR (tangencial) + ω²R (hacia el centro)',frenos:'γ_A = 4π/16 = π/4 · γ_B = 8π/8 = π (rad/s²) · igual ω: 4π − πt/4 = 8π − πt · igual v: 0,2 |ω_A| = 0,4 |ω_B|',motos:'Gino: 30 rpm = π rad/s · Miguel: ω = −π − π t · se encuentran cuando θ_G = θ_M + 2πk'}[SY]; }
+
+// ================= Gráfico =================
+function drawV1(){ const t=S.t;
+  if(SY==='mcu'){ plot('p1c',0,P.R,0,w()*P.R*1.1,[[curva(r=>w()*r,0,P.R),C.v]],'distancia al centro (m)',{mark:(ctx,X,Y)=>[1/3,2/3,1].forEach(f=>dot(ctx,X(P.R*f),Y(w()*P.R*f),3.5,C.v))}); $('tag1').textContent='Velocidad (m/s) según la distancia al eje'; legend('leg1',[[C.v,'v = ω r']]); $('cap1').textContent='Todos los puntos tienen la misma ω, pero v crece con r. Con la varilla del 2.12 (0,3 m, 60 rpm): 0,2π, 0,4π y 0,6π m/s.'; return; }
+  if(SY==='tierra'){ const om=2*PI/(P.Th*3600); plot('p1c',0,90,0,om*RT*1.1,[[curva(l=>om*RT*Math.cos(rad(l)),0,90),C.sys]],'latitud (°)',{mark:(ctx,X,Y)=>dot(ctx,X(P.lat),Y(om*RT*Math.cos(rad(P.lat))),4.5,C.sys)}); $('tag1').textContent='Velocidad (m/s) por la rotación terrestre'; legend('leg1',[[C.sys,'ω R cos φ']]); $('cap1').textContent='463 m/s en el ecuador, 425 m/s en los trópicos y 0 en los polos.'; return; }
+  if(SY==='planetas'){ const Ts=1/(1/P.T1-1/(P.T2*365.25)), f=d=>((2*PI*d/P.T1-2*PI*d/(P.T2*365.25))%(2*PI))/PI; plot('p1c',0,TSPAN.planetas,0,2,[[curva(f,0,TSPAN.planetas,1200).map((p,i,a)=>i&&p[1]<a[i-1][1]?[p[0],NaN]:p),C.sob]],'días',{mark:(ctx,X,Y)=>{ for(let k=1;k*Ts<TSPAN.planetas;k++) dot(ctx,X(k*Ts),Y(0),4,C.ok); dot(ctx,X(t),Y(f(t)),4,C.sob); }}); $('tag1').textContent='Ángulo de Marte respecto de Júpiter (en π rad)'; legend('leg1',[[C.sob,'θ_M − θ_J'],[C.ok,'alineados']]); $('cap1').textContent=`Cada ${cm(Ts,1)} días Marte le saca una vuelta a Júpiter y vuelven a alinearse.`; return; }
+  if(SY==='cadena'){ const v=P.nA*2*PI/60*P.rA, F=frame($('p1c'),{x0:0,x1:3,y0:0,y1:v*v/P.rA*1.2,xt:[],xlab:''}), {ctx,X,Y}=F; [['X',v*v/P.rA],['Y',0],['Z',v*v/P.rB]].forEach(([n,a],i)=>{ ctx.fillStyle=C.sob; ctx.globalAlpha=0.85; ctx.fillRect(X(i+0.25),Y(a),X(i+0.75)-X(i+0.25),Y(0)-Y(a)); ctx.globalAlpha=1; txt(ctx,n,X(i+0.5),Y(0)+14,C.fg,{size:12,align:'center'}); txt(ctx,cm(a,1),X(i+0.5),Y(a)-5,C.sob,{size:11,align:'center'}); }); $('tag1').textContent='Aceleración del eslabón (cm/s²)'; legend('leg1',[]); $('cap1').textContent='Misma rapidez en X, Y y Z; la aceleración es mayor en la rueda chica.'; return; }
+  if(SY==='variable'){ plot('p1c',0,0.6,0,Math.max(w23(0.6),th23(0.6))*1.1,[[curva(w23,0,0.6),C.v],[curva(th23,0,0.6),C.sys,[6,4]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(t),Y(w23(t)),4,C.v); dot(ctx,X(t),Y(th23(t)),4,C.sys); line(ctx,[[X(0.3),Y(0)],[X(0.3),Y(w23(0.6))]],C.faint,1,[2,3]); }}); $('tag1').textContent='ω (1/s) y θ (rad) según el tiempo'; legend('leg1',[[C.v,'ω'],[C.sys,'θ','dashed']]); $('cap1').textContent='En t = 0,3 s: θ = 0,585 rad y ω = 3,72 1/s.'; return; }
+  if(SY==='frenos'){ plot('p1c',0,16,-4*PI*0.4*1.1,0,[[curva(t=>wA(t)*0.2,0,16),C.sys],[curva(t=>wB(t)*0.4,0,16),C.v,[6,4]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(48/7),Y(wA(48/7)*0.2),5,C.ok,true); dot(ctx,X(t),Y(wA(t)*0.2),4,C.sys); dot(ctx,X(t),Y(wB(t)*0.4),4,C.v); }}); $('tag1').textContent='Velocidad de la periferia (m/s, negativa: horario)'; legend('leg1',[[C.sys,'rueda A'],[C.v,'rueda B','dashed'],[C.ok,'igual v']]); $('cap1').textContent='B frena más rápido y la periferia de A la alcanza a los 48/7 s; las ω se igualan antes, a los 16/3 s.'; return; }
+  plot('p1c',0,2,thM(2)*1.05,PI*0.6,[[curva(thG,0,2),C.sys],[curva(thM,0,2),C.v,[6,4]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(1),Y(-PI),5,C.ok,true); dot(ctx,X(t),Y(thG(t)),4,C.sys); dot(ctx,X(t),Y(thM(t)),4,C.v); }}); $('tag1').textContent='θ (rad) de cada moto'; legend('leg1',[[C.sys,'Gino'],[C.v,'Miguel','dashed'],[C.ok,'encuentro']]); $('cap1').textContent='Las curvas se cortan en t = 1 s, θ = −π.'; }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'2.14: si el período de un MCU se triplica (mismo radio), la aceleración centrípeta…',
+  opts:[['tercio','se divide por 3'],['noveno','se divide por 9'],['igual','no cambia']], right:'noveno', go:'Probalo',
+  run(){ pickChip('mcu',setMode); P.rpm=Math.round(P.rpm/3); refresh(); return 'Se divide por 9: a_c = ω² R y ω se divide por 3. (2.26: en la espiral con rapidez constante, la aceleración es perpendicular a v y crece al cerrarse la curva, porque a = v²/r.)'; } };
+const CHAL=[{txt:'2.13: un avión a 2300 km/h con 8 g. Probá R para que a_c = 80 m/s² (cargá el botón del 2.13).',chk(){ if(SY!=='mcu') return [false,'Elegí MCU']; const a=w()**2*P.R; return Math.abs(a-80)<1?[true,`Logrado: R ≈ ${mil(P.R,0)} m.`]:[false,`a_c = ${cm(a,1)} m/s²`]; }}];
+function cuentas(){ return {title:'Movimiento circular', finLbl:'Respuestas', steps:[
+  ['2.11) CD de 6 cm a 2500 rpm', `\\[\\omega=83{,}3\\pi\\ \\tfrac{\\text{rad}}{\\text{s}}\\quad v=15{,}7\\ \\tfrac{\\text{m}}{\\text{s}}\\quad f=41{,}7\\ \\text{Hz}\\]`,true],
+  ['2.12) 60 rpm', `\\[T=1\\ \\text{s},\\ 30\\text{ vueltas}\\quad v=0{,}2\\pi;\\ 0{,}4\\pi;\\ 0{,}6\\pi\\ \\tfrac{\\text{m}}{\\text{s}}\\]`],
+  ['2.13) 2300 km/h = 638,9 m/s', `\\[R=\\frac{v^2}{8g}=\\frac{638{,}9^2}{80}\\simeq5102\\ \\text{m}\\]`,true],
+  ['2.15) y 2.16)', `\\[v_E\\simeq463\\ \\tfrac{\\text{m}}{\\text{s}}\\quad v_T\\simeq425\\ \\tfrac{\\text{m}}{\\text{s}}\\quad a_c=0{,}034\\ \\tfrac{\\text{m}}{\\text{s}^2}\\quad T=2\\pi\\sqrt{R/g}\\simeq1{,}4\\ \\text{h}\\]`],
+  ['2.17) 18 km/h = 5 m/s en R = 1 m (el peso no importa)', `\\[\\omega=5\\ \\tfrac{\\text{rad}}{\\text{s}}\\quad a_c=25\\ \\tfrac{\\text{m}}{\\text{s}^2}\\]`],
+  ['2.18) y 2.19)', `\\[\\omega=0{,}0172\\ \\tfrac{\\text{rad}}{\\text{día}}\\quad v\\simeq29\\,861\\ \\tfrac{\\text{m}}{\\text{s}}\\quad\\theta_{30}=0{,}516\\ \\text{rad}\\quad T_\\text{sin}=\\frac{1}{\\frac1{687}-\\frac1{4332}}\\simeq816\\ \\text{días}\\]`,true],
+  ['2.20) y 2.21)', `\\[\\omega_{EEI}=\\frac{\\pi}{2700}\\ \\tfrac{\\text{rad}}{\\text{s}},\\ v\\simeq7760\\ \\tfrac{\\text{m}}{\\text{s}}\\qquad\\omega=2{,}2\\ \\tfrac{\\text{rad}}{\\text{s}},\\ T\\simeq2{,}86\\ \\text{s}\\]`],
+  ['2.22) v = ω_A r_A', `\\[v=31{,}4\\ \\tfrac{\\text{cm}}{\\text{s}}\\quad f_B=0{,}56\\ \\text{Hz}\\quad a_X=329,\\ a_Y=0,\\ a_Z=109{,}7\\ \\tfrac{\\text{cm}}{\\text{s}^2}\\]`,true],
+  ['2.23) Integrando γ', `\\[\\theta=10t^4-8t^3+8t^2\\quad\\omega=40t^3-24t^2+16t\\quad\\vec v(0{,}3)=(-2{,}68;4{,}02)\\quad\\vec a(0{,}3)=(-23{,}9;3{,}4)\\]`,true],
+  ['2.24) y 2.25)', `\\[t_\\omega=\\tfrac{16}3\\ \\text{s}\\quad t_v=\\tfrac{48}7\\ \\text{s}\\qquad t_E=1\\ \\text{s},\\ \\theta=-\\pi\\]`,true],
+], fin:`\\[v=\\omega R\\qquad a_c=\\omega^2R\\]`}; }
+
+// ================= Arranque =================
+const PRES={mcu:[['2.11 · CD',()=>Object.assign(P,{R:0.06,rpm:2500})],['2.12 · varilla',()=>Object.assign(P,{R:0.3,rpm:60})],['2.13 · avión',()=>Object.assign(P,{R:5102,rpm:Math.round(ms(2300)/5102*60/(2*PI)*1e4)/1e4})],['2.17 · patinadora',()=>Object.assign(P,{R:1,rpm:5*60/(2*PI)})],['2.21 · disco',()=>Object.assign(P,{R:1,rpm:2.2*60/(2*PI)})]],
+  tierra:[['ecuador',()=>Object.assign(P,{lat:0,Th:24})],['trópico',()=>Object.assign(P,{lat:23.45,Th:24})],['polo',()=>Object.assign(P,{lat:90,Th:24})]],planetas:[['2.19',()=>Object.assign(P,PS0.planetas)]],cadena:[['2.22',()=>Object.assign(P,PS0.cadena)]],variable:[],frenos:[],motos:[]};
+const NOTE={mcu:'Un punto en MCU. Los botones cargan el CD, la varilla, el avión, la patinadora y el disco del 2.21.',tierra:'Rotación de la Tierra (R = 6378 km). Mové la latitud o el período.',planetas:'Marte y Júpiter en órbitas circulares; el tiempo corre en días.',cadena:'La rueda A gira a 100 rpm y arrastra a B con la cadena.',variable:'θ(0) = 0 y ω(0) = 0 en una circunferencia de 1,3 m.',frenos:'A (20 cm, 120 rpm) se detiene en 16 s; B (40 cm, 240 rpm), en 8 s.',motos:'Pista de 7,5 m de radio; Gino sale de A y Miguel de B, los dos en sentido horario.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); S.t=0; DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('mcu',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Yo-yo G12-P2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 12 · Dinámica del cuerpo rígido</span>
+  <h1>El yo-yo <i>· cae mucho más despacio que g y la cuerda casi sostiene todo su peso</i></h1>
+  <a class="mq-back" href="../../simuladores-cuerpo-rigido.html">← Cuerpo rígido</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 12">
+    <h2>Guía 12</h2>
+    <ol>
+      <li><a href="p1-atwood-polea.html"><b class="code">P1</b>Atwood con polea</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P2</b>Yo-yo</a></li>
+      <li><a href="p3-disco-tirado.html"><b class="code">P3</b>Disco tirado</a></li>
+      <li><a href="p4-pendulo-fisico.html"><b class="code">P4, 6</b>Péndulo físico</a></li>
+      <li><a href="p5-varilla-en-cavidad.html"><b class="code">P5, 10</b>Varilla que resbala</a></li>
+      <li><a href="p7-carrera.html"><b class="code">P7</b>Carrera de rodadura</a></li>
+      <li><a href="p8-deslizar-a-rodar.html"><b class="code">P8</b>De deslizar a rodar</a></li>
+      <li><a href="p9-cilindro-en-cavidad.html"><b class="code">P9, 10</b>Cilindro en una cavidad</a></li>
+      <li><a href="p11-rodillos-plataforma.html"><b class="code">P11, 12</b>Rodillos y plataforma</a></li>
+      <li><a href="p13-tablon-y-cilindro.html"><b class="code">P13</b>Tablón y cilindro</a></li>
+      <li><a href="p14-choque-cilindros.html"><b class="code">P14</b>Choque de cilindros</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:380px" aria-label="Un yo-yo que baja desenrollándose de una cuerda atada al techo; la cuerda sale del radio interior. Se ven la tensión, el peso y el giro."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">a y T según R/r</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Energías</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:270px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:270px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G12-P2</summary>
+      <p><b>2.</b> Considere un yo-yo con radio exterior R igual a 10 veces su radio interior r. El momento de inercia I₀ del yo-yo respecto de su centro de masa está dado por I₀ = ½MR², donde M es la masa total del yo-yo. El extremo final de la cuerda se mantiene en reposo y ésta no desliza respecto del yo-yo.</p>
+      <p>a) Calcule la aceleración del centro de masa del yo-yo. ¿Cómo es comparada con g?<br>b) Encuentre la tensión en la cuerda a medida que el yo-yo desciende. ¿Cómo es comparada con Mg?</p>
+      <p class="src">Física 1, Guía 12 (Dinámica del cuerpo rígido). Enunciado textual de la guía. La página usa M = 0,2 kg y R = 5 cm (el resultado no depende de M ni de R, solo de R/r) y deja variar R/r. g = 9,8 m/s².</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Movimiento con aceleración constante desde el reposo, hasta que se desenrollan 1,5 m de cuerda. Colores: celeste, el yo-yo; verde, la tensión; violeta, el peso; amarillo, las energías.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G12-P2 · El yo-yo =================
+const G0=9.8, sq=Math.sqrt, PI=Math.PI;
+const DEF=[
+  {id:'M',lab:'M',unit:'kg',min:0.05,max:1,step:0.01,dec:2},
+  {id:'R',lab:'R (radio exterior)',unit:'cm',min:2,max:10,step:0.1,dec:1},
+  {id:'k',lab:'R / r',unit:'',min:1,max:20,step:0.1,dec:1},
+];
+const P0={M:0.2,R:5,k:10}, P={...P0};
+const acel=(k=P.k)=>G0/(1+0.5*k*k);            // I/(Mr²) = ½(R/r)²
+const ten=(k=P.k)=>P.M*(G0-acel(k));
+const LMAX=1.5, tFin=()=>sq(2*LMAX/acel());
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; if(S.t>tFin()+1) S.t=0; }
+
+// ================= Escena =================
+const scene=$('scene');
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const a=acel(), t=Math.min(S.t,tFin()), y=0.5*a*t*t, v=a*t, R=P.R/100, r=R/P.k, nar=w<560;
+  const sc=(h-90)/(LMAX+0.25), Rp=Math.max(22,Math.min(60,R*sc*4)), rp=Rp/P.k, cx=w/2-rp, top=22, cy=top+30+y*sc;
+  line(ctx,[[cx+rp-60,top],[cx+rp+60,top]],C.muted,2); for(let x=cx+rp-55;x<cx+rp+60;x+=12) line(ctx,[[x,top],[x-8,top-8]],C.line,1);
+  line(ctx,[[cx+rp,top],[cx+rp,cy]],C.fg,1.4);
+  // yo-yo: gira antihorario con ω = v/r (ángulo = y/r)
+  ctx.beginPath(); ctx.arc(cx,cy,Rp,0,7); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.sys; ctx.lineWidth=1.8; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,Math.max(rp,2),0,7); ctx.strokeStyle=C.sys; ctx.lineWidth=1.2; ctx.stroke();
+  const th=-y/r; for(let k=0;k<4;k++){ const g=th+k*PI/2; line(ctx,[[cx+rp*Math.cos(g),cy+rp*Math.sin(g)],[cx+Rp*Math.cos(g),cy+Rp*Math.sin(g)]],C.sys,1,null,0.6); }
+  dot(ctx,cx,cy,3,C.fg);
+  const k=60/(P.M*G0); arrow(ctx,cx+rp+8,cy,cx+rp+8,cy-ten()*k,C.ok,2,7); arrow(ctx,cx-8,cy,cx-8,cy+P.M*G0*k,C.lin,2,7);
+  if(!nar){ txt(ctx,'T',cx+rp+14,cy-ten()*k*0.6,C.ok,{size:12}); txt(ctx,'Mg',cx-14,cy+P.M*G0*k*0.8,C.lin,{size:12,align:'right'}); }
+  txt(ctx,`a = g/${cm(G0/a,1)}`,12,18,C.muted,{size:11.5}); $('clock').textContent='t = '+cm(t,2)+' s';
+  readout([['a',cm(a,4)+' m/s²',C.sys],['a/g',cm(a/G0,4)],['T',cm(ten(),4)+' N',C.ok],['T/Mg',cm(ten()/(P.M*G0),4),C.ok],['v',cm(v,3)+' m/s'],['ω',cm(v/r,1)+' rad/s']]);
+  $('formula').innerHTML=`<b>traslación:</b> Mg − T = Ma · <b>rotación</b> (respecto del CM): T r = I₀ α · <b>no desliza:</b> a = α r → <b>a = g/(1 + I₀/Mr²) = g/(1 + ½(R/r)²)</b> · T = Mg · ½(R/r)²/(1 + ½(R/r)²)`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl}); const {ctx,X,Y}=F; F.clip();
+  series.forEach(([pts,col,dash,wd])=>line(ctx,pts.map(p=>[X(p[0]),Y(p[1])]),col,wd||2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function drawV1(){ const A=[], B=[]; for(let i=0;i<=200;i++){ const k=1+19*i/200; A.push([k,acel(k)/G0]); B.push([k,ten(k)/(P.M*G0)]); }
+  plot('p1c',1,20,0,1.05,[[A,C.sys],[B,C.ok,[6,4]]],'R / r',{mark:(ctx,X,Y)=>{ dot(ctx,X(P.k),Y(acel()/G0),4.5,C.sys); dot(ctx,X(P.k),Y(ten()/(P.M*G0)),4.5,C.ok); }});
+  $('tag1').textContent='a/g y T/Mg según R/r'; legend('leg1',[[C.sys,'a / g'],[C.ok,'T / Mg','dashed']]);
+  $('cap1').textContent=`Con R = 10r, a = g/51 ≈ ${cm(G0/51,3)} m/s² y T = (50/51)Mg: el yo-yo casi flota. Cuanto más chico el eje, más energía va al giro y más despacio baja. Con R = r (un cilindro que se desenrolla de su borde) sería g/1,5.`; }
+function drawV2(){ const tf=tFin(), a=acel(), R=P.R/100, r=R/P.k, I=0.5*P.M*R*R, A=[], B=[], E=[]; for(let i=0;i<=200;i++){ const t=tf*i/200, v=a*t, y=0.5*a*t*t; A.push([t,0.5*P.M*v*v]); B.push([t,0.5*I*(v/r)**2]); E.push([t,P.M*G0*y]); }
+  const m=Math.max(...E.map(p=>p[1]))*1.08||1;
+  plot('p2c',0,tf,0,m,[[E,C.v,[6,4]],[B,C.lin],[A,C.sys]],'t (s)',{mark:(ctx,X,Y)=>{ ctx.strokeStyle=C.faint; ctx.beginPath(); ctx.moveTo(X(Math.min(S.t,tf)),Y(0)); ctx.lineTo(X(Math.min(S.t,tf)),Y(m)); ctx.stroke(); }});
+  $('tag2').textContent='Energías (J) según t'; legend('leg2',[[C.v,'Mg h perdida','dashed'],[C.lin,'cinética de rotación'],[C.sys,'cinética de traslación']]);
+  $('cap2').textContent=`Casi toda la energía potencial que pierde va al giro: la de traslación es solo 1/(1 + ½(R/r)²) = ${cm(100*acel()/G0,2)} % del total. La tensión no trabaja (su punto de aplicación está quieto), así que la energía se conserva.`; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'Con R = 10r, la aceleración del yo-yo comparada con g es…',
+  opts:[['g2','más o menos g/2'],['g10','más o menos g/10'],['g50','más o menos g/50']], right:'g50', go:'Probalo',
+  run(){ Object.assign(P,P0); guiaOff(); restart(); refresh(); return 'Más o menos g/50: a = g/(1 + ½ · 100) = g/51. El torque de la tensión tiene un brazo chiquito (r) y tiene que hacer girar un momento de inercia grande (½MR²): la cuerda frena casi todo.'; } };
+const CHAL=[
+  {txt:'Elegí R/r para que el yo-yo baje con a = g/3 (± 1 %).',
+   chk(){ const q=acel()/(G0/3); return Math.abs(q-1)<=0.01?[true,'Logrado: R/r = 2, porque 1 + ½ · 4 = 3.']:[false,`a = g/${cm(G0/acel(),2)}`]; }},
+  {txt:'¿Por qué la tensión no hace trabajo sobre el yo-yo, si tiene fuerza y el yo-yo se mueve?'},
+];
+function cuentas(){ const k=P.k;
+  return {title:'Yo-yo', finLbl:'Resultados', steps:[
+    ['Traslación del CM (positivo hacia abajo)', `\\[Mg-T=Ma\\]`],
+    ['Rotación respecto del CM: la tensión actúa a distancia r', `\\[Tr=I_0\\alpha=\\tfrac12MR^2\\alpha\\]`],
+    ['La cuerda no desliza y su extremo está quieto: el punto del eje donde sale la cuerda no se mueve', `\\[a=\\alpha r\\]`],
+    ['a) Eliminando T y α', `\\[a=\\frac{g}{1+\\frac{I_0}{Mr^2}}=\\frac{g}{1+\\frac12\\left(\\frac Rr\\right)^2}\\]`,true],
+    ['Con R/r = '+cm(k,1), `\\[a=\\frac{g}{${tx(1+0.5*k*k,2)}}=${tx(acel(),4)}\\ \\text{m/s}^2\\]`],
+    ['b) Tensión', `\\[T=M(g-a)=Mg\\,\\frac{\\frac12(R/r)^2}{1+\\frac12(R/r)^2}=${tx(ten()/(P.M*G0),4)}\\,Mg\\]`,true],
+  ], fin:`\\[a=\\frac{g}{51}\\qquad T=\\frac{50}{51}Mg\\quad (R=10r)\\]`}; }
+
+// ================= Arranque =================
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+(function(){ const el=$('guia'); el.innerHTML='<span class="lbl">Valores de partida</span>';
+  [['R = 10r (la guía)',{}],['R = 2r',{k:2}],['R = r',{k:1}]].forEach(([l,v])=>{ const b=document.createElement('button'); b.textContent=l; b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{ Object.assign(P,P0,v); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); })();
+$('note').textContent='La guía fija R = 10r; la página usa M = 0,2 kg y R = 5 cm. La animación baja 1,5 m de cuerda; con R = 10r tarda casi 4 s.';
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('hint').hidden=true;
+wireCommon(restart);
+buildPred(PRED); buildChal(CHAL); refresh();
+startLoop(step,draw);
+</script>
+</body>
+</html>

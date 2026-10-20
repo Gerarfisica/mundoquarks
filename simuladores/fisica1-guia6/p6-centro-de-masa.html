@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Centro de masa G6-P6 a P9</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 6 · Cantidad de movimiento</span>
+  <h1>El centro de masa <i>· sin fuerzas externas horizontales, no se mueve</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 6">
+    <h2>Guía 6</h2>
+    <ol>
+      <li><a href="p1-choques.html"><b class="code">P1, 2</b>Choques</a></li>
+      <li><a href="p3-explosiones.html"><b class="code">P3, 4, 10</b>Explosiones</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6–9</b>Centro de masa</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="La Tierra y la Luna girando alrededor de su centro de masa, un hombre que camina sobre un tablón apoyado en hielo, una barra con dos bolas que cae sobre un piso sin rozamiento, o un hombre en un lago helado que arroja una piedra."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p6" aria-pressed="true">P6 · Tierra y Luna</button>
+        <button data-sy="p7" aria-pressed="false">P7 · hombre en el tablón</button>
+        <button data-sy="p8" aria-pressed="false">P8 · barra que cae</button>
+        <button data-sy="p9" aria-pressed="false">P9 · lago helado</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Vista 1</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Vista 2</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G6-P6 a P9</summary>
+      <p><b>6.</b> Hallar la posición del centro de masa del sistema Tierra-Luna para un instante dado. La masa de la Tierra es unas 82 veces la de la Luna y la distancia entre los centros de la Tierra y de la Luna es de unos 60 radios terrestres. Expresar la respuesta en función de los radios terrestres.</p>
+      <p><b>7.</b> Según puede verse en la figura un hombre de masa M y altura H está de pie en un extremo de un tablón homogéneo de longitud L y masa m apoyado sobre una superficie sin rozamiento. Inicialmente el hombre y el tablón están en reposo y luego el hombre camina hacia el otro extremo del tablón.</p>
+      <p>a) Si el hombre se supone homogéneo, hallar la ubicación del centro de masa del sistema.<br>b) Hallar la velocidad del centro de masa para todo instante.<br>c) ¿Qué distancia habrá recorrido el hombre respecto a la superficie cuando llega al otro extremo del tablón?</p>
+      <p><b>8.</b> Dos bolas de masas m₁ y m₂ están unidas por una barra de masa despreciable y longitud L. Inicialmente el sistema se halla en equilibrio inestable, estando la barra en posición vertical y m₂ en contacto con una superficie horizontal, libre de rozamiento (ver figura). Se aparta el sistema de la posición de equilibrio inclinando levemente la barra. El sistema evoluciona de modo que en el estado final las dos bolas están en contacto con la superficie. (En la figura, m₁ arriba y m₂ abajo, apoyada en el punto P.)</p>
+      <p>a) Hallar la posición del centro de masa en el estado inicial.<br>b) Hallar la componente horizontal de la velocidad del centro de masa.<br>c) ¿A qué distancia de P quedará cada bola en el estado final?</p>
+      <p><b>9.</b> Un hombre que pesa 100 kgf se encuentra en reposo sobre un lago helado (considere rozamiento nulo). Para salir arroja horizontalmente una piedra que pesa 1 kgf con velocidad de 10 m/s en dirección contraria a la de costa más cercana, que está a 20 m de distancia. ¿Cuánto tarda el hombre en llegar a la costa?</p>
+      <p class="src">Física 1, Guía 6 (Cantidad de movimiento). Enunciado textual de la guía; entre paréntesis, lo que muestra la figura. En el P7 y el P8 la guía da solo símbolos: la página elige valores de partida. En el P7 se desprecia el espesor del tablón. En el P9, 100 kgf y 1 kgf son masas de 100 kg y 1 kg, y la velocidad de la piedra se toma respecto del hielo.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Soluciones analíticas exactas, salvo la caída de la barra del P8, que se integra numéricamente (Runge-Kutta de cuarto orden) a partir de una inclinación inicial pequeña. Colores: celeste, la Tierra, el hombre o m₁; rosa, la Luna, el tablón, m₂ o la piedra; amarillo, el centro de masa.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G6-P6 a P9 · El centro de masa =================
+const G0=9.8, sq=Math.sqrt;
+const DEF=[
+  {id:'q',lab:'masa de la Tierra / masa de la Luna',unit:'',min:1,max:200,step:0.5,dec:1},
+  {id:'d',lab:'distancia entre centros',unit:'R_T',min:2,max:100,step:0.5,dec:1},
+  {id:'M',lab:'M (hombre)',unit:'kg',min:10,max:150,step:1,dec:0},
+  {id:'H',lab:'H',unit:'m',min:0.5,max:2.2,step:0.01,dec:2},
+  {id:'m',lab:'m (tablón)',unit:'kg',min:1,max:150,step:1,dec:0},
+  {id:'L',lab:'L',unit:'m',min:1,max:8,step:0.1,dec:1},
+  {id:'m1',lab:'m₁ (arriba)',unit:'kg',min:0.1,max:10,step:0.05,dec:2},
+  {id:'m2',lab:'m₂ (abajo)',unit:'kg',min:0.1,max:10,step:0.05,dec:2},
+  {id:'Lb',lab:'L',unit:'m',min:0.2,max:3,step:0.01,dec:2},
+  {id:'t0',lab:'inclinación inicial',unit:'°',min:0.2,max:20,step:0.1,dec:1},
+  {id:'Mh',lab:'masa del hombre',unit:'kg',min:20,max:200,step:1,dec:0},
+  {id:'ms',lab:'masa de la piedra',unit:'kg',min:0.1,max:10,step:0.1,dec:1},
+  {id:'vs',lab:'velocidad de la piedra',unit:'m/s',min:1,max:50,step:0.1,dec:1},
+  {id:'D',lab:'distancia a la costa',unit:'m',min:1,max:100,step:0.5,dec:1},
+];
+const PS={p6:{q:82,d:60}, p7:{M:70,H:1.8,m:30,L:4}, p8:{m1:1,m2:1,Lb:1,t0:1}, p9:{Mh:100,ms:1,vs:10,D:20}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p6:['q','d'],p7:['M','H','m','L'],p8:['m1','m2','Lb','t0'],p9:['Mh','ms','vs','D']};
+const P=Object.assign({},PS.p6,PS.p7,PS.p8,PS.p9); let SY='p6';
+
+// ---- P6: distancias en radios terrestres, desde el centro de la Tierra ----
+const xcm6=(q=P.q,d=P.d)=>d/(1+q);
+// ---- P7: s = posición del hombre medida desde el extremo izquierdo del tablón; x = 0 en la posición inicial del hombre ----
+const TW=4, TS=0.5;
+function s7(t){ const u=Math.min(Math.max(t-TS,0),TW); return {s:P.L*(1-Math.cos(Math.PI*u/TW))/2, sd:(t>TS&&t<TS+TW)?P.L*Math.PI/(2*TW)*Math.sin(Math.PI*u/TW):0}; }
+function pos7(t){ const k=s7(t), Mt=P.M+P.m, xp=-P.M*k.s/Mt; return {xh:xp+k.s, xp, xc:xp+P.L/2, vh:P.m*k.sd/Mt, vp:-P.M*k.sd/Mt, xcm:P.m*P.L/2/Mt, ycm:P.M*P.H/2/Mt}; }
+// ---- P8: θ desde la vertical; m₂ sobre el piso; x medido desde P ----
+let __c8=null;
+function fall8(){ const key=[P.m1,P.m2,P.Lb,P.t0].join(); if(__c8&&__c8.key===key) return __c8;
+  const m1=P.m1, m2=P.m2, M=m1+m2, mu=m1*m2/M, L=P.Lb, A=t=>mu*Math.cos(t)**2+m1*Math.sin(t)**2, Ap=t=>2*(m1-mu)*Math.sin(t)*Math.cos(t);
+  const acc=(t,w)=>(m1*G0*Math.sin(t)/L-0.5*Ap(t)*w*w)/A(t);
+  let th=rad(P.t0), w=0, t=0; const dt=2e-4, T=[0], TH=[th], W=[0];
+  while(th<Math.PI/2&&t<60){ const k1t=w, k1w=acc(th,w), k2t=w+dt/2*k1w, k2w=acc(th+dt/2*k1t,w+dt/2*k1w), k3t=w+dt/2*k2w, k3w=acc(th+dt/2*k2t,w+dt/2*k2w), k4t=w+dt*k3w, k4w=acc(th+dt*k3t,w+dt*k3w);
+    th+=dt/6*(k1t+2*k2t+2*k3t+k4t); w+=dt/6*(k1w+2*k2w+2*k3w+k4w); t+=dt; T.push(t); TH.push(Math.min(th,Math.PI/2)); W.push(w); }
+  const N=t=>{ const w2=2*m1*G0*(Math.cos(rad(P.t0))-Math.cos(t))/(L*A(t)), a=acc(t,sq(Math.max(w2,0))); return (M*G0-m1*L*(Math.sin(t)*a+Math.cos(t)*w2))/(M*G0); };
+  return __c8={key,T,TH,W,tf:t,N,M,mu}; }
+function th8(t){ const c=fall8(); if(t<=0) return c.TH[0]; if(t>=c.tf) return Math.PI/2; const i=Math.min(c.T.length-2,Math.floor(t/2e-4)), f=(t-c.T[i])/(c.T[i+1]-c.T[i]); return c.TH[i]+(c.TH[i+1]-c.TH[i])*f; }
+function pos8(th){ const M=P.m1+P.m2;   // x_cm queda donde empezó: m₁L sen θ₀/(m₁ + m₂) desde P
+  const xc=P.m1/M*P.Lb*Math.sin(rad(P.t0)), x1=xc+P.m2/M*P.Lb*Math.sin(th), x2=xc-P.m1/M*P.Lb*Math.sin(th); return {x1,y1:P.Lb*Math.cos(th),x2,xc,ycm:P.m1/M*P.Lb*Math.cos(th)}; }
+// ---- P9: el hombre parte de x = 0 hacia la costa (x = D); la piedra sale hacia −x ----
+function s9(){ const vh=P.ms*P.vs/P.Mh, T=P.D/vh; return {vh,T,xs:-P.vs*T}; }
+const T9=6;      // segundos de animación que dura el viaje
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return SY==='p6'?2*Math.PI/0.6:SY==='p7'?TS+TW+0.6:SY==='p8'?Math.min(fall8().tf,30)+0.3:0.5+T9; }
+function step(dt){ S.t+=dt; if(S.t>tEnd()+0.8) S.t=0; }
+function lbl(ctx,s,x,y,col,al='center'){ txt(ctx,s,x,y,col,{align:al,size:11.5}); }
+function cross(ctx,x,y,col){ line(ctx,[[x-6,y],[x+6,y]],col,2); line(ctx,[[x,y-6],[x,y+6]],col,2); }
+function drawP6(ctx,w,h){ const t=S.t, ph=0.6*t, xc=xcm6(), hb=h*0.42;
+  // arriba: vista general a escala
+  const k=(w-60)/(P.d+1.6), cx=30+k*(1+xc), cy=hb/2+8, E=[cx-xc*k,cy], Lm=[cx+(P.d-xc)*k,cy];
+  line(ctx,[E,Lm],C.line,1,[3,4]); dot(ctx,E[0],E[1],Math.max(2.5,k),C.sys); dot(ctx,Lm[0],Lm[1],Math.max(2,0.27*k),C.sob); cross(ctx,cx,cy,C.v);
+  lbl(ctx,'Tierra',E[0],E[1]+Math.max(2.5,k)+14,C.sys); lbl(ctx,'Luna',Lm[0],Lm[1]-10,C.sob); txt(ctx,'CM',cx,cy-10,C.v,{align:'center',size:11});
+  txt(ctx,'a escala',12,18,C.muted,{size:11.5});
+  line(ctx,[[10,hb+14],[w-10,hb+14]],C.line,1);
+  // abajo: ampliación de la Tierra con el centro de masa fijo
+  const R=Math.min(58,(h-hb-60)/2.4), zx=w/2, zy=hb+30+(h-hb-30)/2, ec=[zx-xc*R*Math.cos(ph),zy+xc*R*Math.sin(ph)];
+  ctx.beginPath(); ctx.arc(zx,zy,xc*R,0,7); ctx.strokeStyle=C.faint; ctx.setLineDash([3,4]); ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(ec[0],ec[1],R,0,7); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.sys; ctx.lineWidth=2; ctx.stroke(); dot(ctx,ec[0],ec[1],3,C.sys);
+  cross(ctx,zx,zy,C.v); txt(ctx,'centro de masa',zx+10,zy-8,C.v,{size:11.5});
+  txt(ctx,'ampliado: la Tierra gira alrededor del CM',12,hb+34,C.muted,{size:11.5}); txt(ctx,xc<1?'el centro de masa queda dentro de la Tierra':'el centro de masa queda fuera de la Tierra',w-12,h-10,xc<1?C.ok:C.a,{align:'right',size:11.5});
+  readout([['distancia al centro de la Tierra',cm(xc,4)+' R_T',C.v],['profundidad bajo la superficie',xc<1?cm(1-xc,4)+' R_T':'—'],['distancia al centro de la Luna',cm(P.d-xc,3)+' R_T',C.sob]]);
+  $('formula').innerHTML=`<b>con el origen en la Tierra:</b> x_cm = (M_T·0 + M_L·d)/(M_T + M_L) = d/(1 + M_T/M_L) = ${cm(P.d,1)}/${cm(1+P.q,1)} R_T`; }
+function drawP7(ctx,w,h){ const t=Math.min(S.t,tEnd()), q=pos7(t), gy=h-40, k=Math.min((w-40)/(2*P.L+0.8),(h-90)/(P.H+0.4)), ox=20+k*(P.L+0.4)-k*P.L/2, X=x=>ox+x*k, th=8;
+  line(ctx,[[10,gy],[w-10,gy]],C.muted,1.5); for(let x=14;x<w;x+=18) line(ctx,[[x,gy+3],[x+8,gy+3]],C.faint,1);
+  ctx.fillStyle=C['panel-2']; ctx.fillRect(X(q.xp),gy-th,P.L*k,th); ctx.strokeStyle=C.sob; ctx.lineWidth=2; ctx.strokeRect(X(q.xp),gy-th,P.L*k,th);
+  const bw=Math.max(8,0.35*k), hx=X(q.xh), top=gy-th-P.H*k; ctx.fillStyle=C.sys; ctx.globalAlpha=0.85; ctx.fillRect(hx-bw/2,top+0.25*P.H*k*0.5,bw,P.H*k*0.875); ctx.globalAlpha=1; dot(ctx,hx,top+0.06*P.H*k,0.06*P.H*k+2,C.sys);
+  // marcas iniciales
+  line(ctx,[[X(0),gy+8],[X(0),gy+16]],C.sys,2); line(ctx,[[X(P.L/2),gy+8],[X(P.L/2),gy+16]],C.sob,2);
+  cross(ctx,X(q.xcm),gy-th-q.ycm*k,C.v); txt(ctx,'CM',X(q.xcm)+8,gy-th-q.ycm*k-6,C.v,{size:11.5});
+  if(Math.abs(q.vh)>1e-3){ arrow(ctx,hx,top-8,hx+q.vh*k*0.8,top-8,C.sys,2.2,7); arrow(ctx,X(q.xc),gy-th-10,X(q.xc)+q.vp*k*0.8,gy-th-10,C.sob,2.2,7); }
+  txt(ctx,`t = ${cm(t,2)} s · hielo sin rozamiento`,12,18,C.muted,{size:11.5});
+  readout([['desplazamiento del hombre',cm(q.xh,3)+' m',C.sys],['desplazamiento del tablón',cm(q.xp,3)+' m',C.sob],['centro de masa (x; y)',`${cm(q.xcm,3)}; ${cm(q.ycm,3)} m`,C.v],['v del centro de masa','0 m/s',C.v]]);
+  $('formula').innerHTML=`<b>sin fuerzas horizontales externas:</b> M Δx_h + m Δx_t = 0 y Δx_h − Δx_t = L → Δx_h = mL/(M + m), Δx_t = −ML/(M + m)`; }
+function drawP8(ctx,w,h){ const t=Math.min(S.t,tEnd()), th=th8(t), q=pos8(th), gy=h-34, L=P.Lb, k=Math.min((w-60)/(2*L*1.1),(h-70)/L), X=x=>w/2+x*k, Y=y=>gy-y*k, r=m=>5+4*Math.cbrt(m);
+  line(ctx,[[10,gy],[w-10,gy]],C.muted,1.5); for(let x=14;x<w;x+=18) line(ctx,[[x,gy+3],[x+8,gy+3]],C.faint,1);
+  line(ctx,[[X(0),gy+6],[X(0),gy+16]],C.muted,2); txt(ctx,'P',X(0),gy+28,C.muted,{align:'center',size:11.5});
+  const M=P.m1+P.m2, f1=q.xc+P.m2/M*L, f2=q.xc-P.m1/M*L; line(ctx,[[X(f1),gy-4],[X(f1),gy+4]],C.sys,1.5,[2,2]); line(ctx,[[X(f2),gy-4],[X(f2),gy+4]],C.sob,1.5,[2,2]);
+  line(ctx,[[X(q.xc),gy],[X(q.xc),Y(L)]],C.v,1,[3,4],0.6);
+  line(ctx,[[X(q.x2),Y(0)+0],[X(q.x1),Y(q.y1)]],C.muted,3);
+  dot(ctx,X(q.x1),Y(q.y1)-0,r(P.m1),C.sys); dot(ctx,X(q.x2),Y(0)-r(P.m2)*0,r(P.m2),C.sob); lbl(ctx,'m₁',X(q.x1)+r(P.m1)+10,Y(q.y1)-6,C.sys); lbl(ctx,'m₂',X(q.x2)-r(P.m2)-10,Y(0)-8,C.sob);
+  cross(ctx,X(q.xc),Y(q.ycm),C.v);
+  txt(ctx,`t = ${cm(t,2)} s · θ = ${cm(deg(th),1)}°`,12,18,C.muted,{size:11.5});
+  readout([['x del centro de masa',cm(q.xc*100,2)+' cm (no cambia)',C.v],['altura del centro de masa',cm(q.ycm,3)+' m',C.v],['m₂ al final, desde P (con la inclinación inicial)',cm((q.xc-P.m1/M*L)*100,1)+' cm',C.sob],['m₁ al final, desde P',cm((q.xc+P.m2/M*L)*100,1)+' cm',C.sys]]);
+  $('formula').innerHTML=`<b>el piso no tiene rozamiento:</b> la única fuerza horizontal es cero → el centro de masa cae en línea vertical · al final m₂ queda a m₁L/(m₁ + m₂) de la vertical y m₁ a m₂L/(m₁ + m₂) del otro lado`; }
+function drawP9(ctx,w,h){ const s=s9(), t=Math.min(S.t,tEnd()), tr=Math.max(0,t-0.5)*s.T/T9, gy=h*0.62, x0=P.D*0.3, k=(w-50)/(P.D*1.35), X=x=>20+(x+x0)*k, xh=Math.min(P.D,s.vh*tr), xs=-P.vs*tr;
+  ctx.fillStyle=C['panel-2']; ctx.fillRect(10,gy,X(P.D)-10,8); ctx.fillStyle=C.ok; ctx.globalAlpha=0.35; ctx.fillRect(X(P.D),gy-6,w-10-X(P.D),20); ctx.globalAlpha=1; txt(ctx,'costa',w-12,gy-12,C.ok,{align:'right',size:11.5});
+  const hx=X(xh), hh=56; ctx.fillStyle=C.sys; ctx.fillRect(hx-7,gy-hh,14,hh); dot(ctx,hx,gy-hh-8,7,C.sys);
+  if(t<0.5) dot(ctx,hx-12,gy-hh+18,4,C.sob); else if(X(xs)>12){ dot(ctx,X(xs),gy-hh+18,4,C.sob); } else { arrow(ctx,40,gy-hh+18,14,gy-hh+18,C.sob,2,7); txt(ctx,`piedra a ${cm(-xs,0)} m`,44,gy-hh+22,C.sob,{size:11}); }
+  if(t>=0.5&&xh<P.D) arrow(ctx,hx,gy-hh-24,hx+34,gy-hh-24,C.sys,2.2,7);
+  cross(ctx,X(0)+0,gy+24,C.v); txt(ctx,'centro de masa',X(0)+8,gy+40,C.v,{size:11});
+  txt(ctx,`tiempo real ${cm(tr,1)} s · acelerado × ${cm(s.T/T9,0)}`,12,18,C.muted,{size:11.5});
+  readout([['velocidad del hombre',cm(s.vh,3)+' m/s',C.sys],['tiempo hasta la costa',cm(s.T,1)+' s',C.sys],['posición de la piedra',cm(xs,0)+' m',C.sob]]);
+  $('formula').innerHTML=`<b>sin rozamiento:</b> 0 = M v_h − m_p v_p → v_h = m_p v_p/M · el hombre llega en t = D/v_h; el centro de masa del hombre y la piedra no se mueve`; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); ({p6:drawP6,p7:drawP7,p8:drawP8,p9:drawP9})[SY](ctx,w,h); }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const samp=(f,a,b,N=300)=>Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; });
+function bars(id,items,d=2){ const m=Math.max(1e-9,...items.map(i=>Math.abs(i[1])))*1.25, F=frame($(id),{x0:0,x1:items.length,y0:-m,y1:m,xt:[]}); const {ctx,X,Y}=F;
+  items.forEach(([l,v,c],i)=>{ const x=X(i+0.5); ctx.fillStyle=c; ctx.fillRect(x-18,Math.min(Y(0),Y(v)),36,Math.max(1,Math.abs(Y(v)-Y(0)))); txt(ctx,l,x,Y(-m)+2,c,{align:'center',base:'top',size:11.5,font:UI}); txt(ctx,cm(v,d),x,v>=0?Y(v)-6:Y(v)+14,C.fg,{align:'center',size:11}); }); line(ctx,[[X(0),Y(0)],[X(items.length),Y(0)]],C.muted,1.2); }
+function drawV1(){ const te=tEnd(), t=Math.min(S.t,te);
+  if(SY==='p6'){ plot('p1c',1,200,[[samp(q=>xcm6(q),1,200),C.v],[samp(()=>1,1,200),C.sys,[5,4]]],'M_T/M_L',{y0:0,y1:Math.min(P.d/2,Math.max(2,xcm6()*3)),mark:(ctx,X,Y)=>dot(ctx,X(P.q),Y(xcm6()),4.5,C.v)});
+    $('tag1').textContent='Distancia del centro de masa al centro de la Tierra (R_T)'; legend('leg1',[[C.v,'x_cm'],[C.sys,'superficie','dashed']]);
+    $('cap1').textContent=`Con M_T = ${cm(P.q,1)} M_L el centro de masa está a ${cm(xcm6(),3)} R_T del centro: ${xcm6()<1?'adentro de la Tierra':'afuera de la Tierra'}. Queda adentro mientras M_T/M_L > d/R_T − 1 = ${cm(P.d-1,1)}.`; return; }
+  if(SY==='p7'){ plot('p1c',0,te,[[samp(x=>pos7(x).xh,0,te),C.sys],[samp(x=>pos7(x).xc,0,te),C.sob],[samp(x=>pos7(x).xcm,0,te),C.v,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>{ const q=pos7(t); dot(ctx,X(t),Y(q.xh),4.5,C.sys); dot(ctx,X(t),Y(q.xc),4.5,C.sob); }});
+    $('tag1').textContent='Posición horizontal respecto del hielo (m)'; legend('leg1',[[C.sys,'hombre'],[C.sob,'centro del tablón'],[C.v,'centro de masa','dashed']]);
+    $('cap1').textContent=`El hombre avanza ${cm(P.m*P.L/(P.M+P.m),3)} m y el tablón retrocede ${cm(P.M*P.L/(P.M+P.m),3)} m: entre los dos suman L = ${cm(P.L,1)} m. El centro de masa no se mueve.`; return; }
+  if(SY==='p8'){ const c=fall8(), tf=Math.min(c.tf,30), Lb=P.Lb; plot('p1c',0,tf,[[samp(x=>pos8(th8(x)).x1*100,0,tf),C.sys],[samp(x=>pos8(th8(x)).x2*100,0,tf),C.sob],[samp(x=>pos8(th8(x)).xc*100,0,tf),C.v,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>{ const q=pos8(th8(t)); dot(ctx,X(Math.min(t,tf)),Y(q.x1*100),4.5,C.sys); dot(ctx,X(Math.min(t,tf)),Y(q.x2*100),4.5,C.sob); }});
+    $('tag1').textContent='Posición horizontal desde P (cm)'; legend('leg1',[[C.sys,'m₁'],[C.sob,'m₂'],[C.v,'centro de masa','dashed']]);
+    $('cap1').textContent=`La barra tarda en arrancar (estaba casi en equilibrio) y después cae rápido: toca el piso a los ${cm(c.tf,2)} s. Mientras tanto m₂ se desliza hacia atrás y el centro de masa baja en línea recta.`; return; }
+  const s=s9(); plot('p1c',0,s.T,[[samp(x=>s.vh*x,0,s.T),C.sys],[samp(()=>0,0,s.T),C.v,[5,4]],[samp(()=>P.D,0,s.T),C.ok,[2,3]]],'t real (s)',{mark:(ctx,X,Y)=>{ const tr=Math.max(0,t-0.5)*s.T/T9; dot(ctx,X(tr),Y(Math.min(P.D,s.vh*tr)),4.5,C.sys); }});
+  $('tag1').textContent='Posición del hombre (m)'; legend('leg1',[[C.sys,'hombre'],[C.v,'centro de masa','dashed'],[C.ok,'costa','dotted']]);
+  $('cap1').textContent=`El hombre se desliza a ${cm(s.vh,3)} m/s y tarda ${cm(s.T,0)} s en llegar. El centro de masa (hombre + piedra) se queda en el punto de partida: la piedra ya está a ${cm(-s.xs,0)} m del otro lado.`; }
+function drawV2(){ const te=tEnd(), t=Math.min(S.t,te);
+  if(SY==='p6'){ plot('p2c',2,100,[[samp(d=>xcm6(P.q,d),2,100),C.v],[samp(()=>1,2,100),C.sys,[5,4]]],'d (R_T)',{y0:0,mark:(ctx,X,Y)=>dot(ctx,X(P.d),Y(xcm6()),4.5,C.v)});
+    $('tag2').textContent='Distancia del centro de masa al centro de la Tierra (R_T)'; legend('leg2',[[C.v,'x_cm'],[C.sys,'superficie','dashed']]); $('cap2').textContent='x_cm crece en proporción a la distancia: si la Luna estuviera más lejos, el centro de masa saldría de la Tierra.'; return; }
+  if(SY==='p7'){ plot('p2c',0,te,[[samp(x=>P.M*pos7(x).vh,0,te),C.sys],[samp(x=>P.m*pos7(x).vp,0,te),C.sob],[samp(()=>0,0,te),C.v,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>{ const q=pos7(t); dot(ctx,X(t),Y(P.M*q.vh),4.5,C.sys); dot(ctx,X(t),Y(P.m*q.vp),4.5,C.sob); }});
+    $('tag2').textContent='Cantidad de movimiento (kg·m/s)'; legend('leg2',[[C.sys,'hombre'],[C.sob,'tablón'],[C.v,'total','dashed']]); $('cap2').textContent='El rozamiento entre los pies y el tablón empuja al hombre hacia adelante y al tablón hacia atrás: las dos cantidades de movimiento son iguales y opuestas en todo instante, y la total es cero.'; return; }
+  if(SY==='p8'){ const c=fall8(); plot('p2c',0,90,[[samp(a=>a<P.t0?NaN:c.N(rad(a)),0,90,400),C.ok],[samp(()=>1,0,90),C.faint,[4,4]]],'θ (°)',{y0:0,y1:1.15,mark:(ctx,X,Y)=>{ const a=deg(th8(t)); if(a>=P.t0) dot(ctx,X(a),Y(c.N(rad(a))),4.5,C.ok); }});
+    $('tag2').textContent='Normal sobre m₂ dividida por el peso total'; legend('leg2',[[C.ok,'N/(m₁ + m₂)g'],[C.faint,'1','dashed']]);
+    $('cap2').textContent='La normal baja mientras el centro de masa acelera hacia abajo, pero no llega a cero: m₂ no se despega del piso y el enunciado es consistente. La única fuerza externa horizontal sigue siendo nula.'; return; }
+  const s=s9(); bars('p2c',[['hombre',P.Mh*s.vh,C.sys],['piedra',-P.ms*P.vs,C.sob],['total',0,C.v]],2);
+  $('tag2').textContent='Cantidad de movimiento después del tiro (kg·m/s, + hacia la costa)'; legend('leg2',[]); $('cap2').textContent='Antes del tiro la cantidad de movimiento era cero, y sigue siéndolo: lo que la piedra se lleva hacia atrás, el hombre lo gana hacia la costa.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p6:{ q:'El centro de masa de la Tierra y la Luna está…',
+    opts:[['centro','en el centro de la Tierra'],['dentro','dentro de la Tierra, fuera del centro'],['fuera','entre la Tierra y la Luna, fuera de la Tierra']], right:'dentro', go:'Probalo con los datos de la guía',
+    run(){ Object.assign(P,PS0.p6); restart(); refresh(); return `Está a 60/83 = ${cm(xcm6(),3)} R_T del centro: dentro de la Tierra, a un cuarto de radio de la superficie. Alrededor de ese punto giran las dos.`; } },
+  p7:{ q:'Cuando el hombre llega al otro extremo, respecto del hielo recorrió…',
+    opts:[['L','toda la longitud L'],['menos','menos que L'],['cero','nada']], right:'menos', go:'Probalo',
+    run(){ Object.assign(P,PS0.p7); restart(); refresh(); return `Recorrió mL/(M + m) = ${cm(P.m*P.L/(P.M+P.m),2)} m: el tablón retrocede debajo de él. Solo con un tablón infinitamente pesado avanzaría L.`; } },
+  p8:{ q:'Mientras la barra cae, el centro de masa…',
+    opts:[['lado','se corre hacia el lado al que cae la barra'],['vertical','baja en línea vertical'],['opuesto','se corre hacia el lado opuesto']], right:'vertical', go:'Probalo',
+    run(){ restart(); setView('v1'); return 'Baja en línea vertical: el piso sin rozamiento solo empuja hacia arriba, y la componente horizontal de la velocidad del centro de masa, que empieza en cero, sigue en cero.'; } },
+  p9:{ q:'¿Cuánto tarda el hombre en llegar a la costa?',
+    opts:[['2','unos 2 s'],['20','unos 20 s'],['200','unos 200 s']], right:'200', go:'Probalo con los datos de la guía',
+    run(){ Object.assign(P,PS0.p9); restart(); refresh(); return 'Unos 200 s: la piedra tiene la centésima parte de su masa, así que el hombre sale a 0,1 m/s. Llega, pero sin apuro.'; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p6:[
+    {txt:'Con d = 60 R_T, elegí la relación de masas para que el centro de masa quede justo en la superficie de la Tierra (±0,01 R_T).',
+     chk(){ if(P.d!==60) return [false,'Primero poné d = 60 R_T']; const x=xcm6(); return Math.abs(x-1)<=0.01?[true,`Logrado: M_T/M_L = ${cm(P.q,1)}. Exacto: d/(1 + q) = 1 → q = 59.`]:[false,`Ahora x_cm = ${cm(x,3)} R_T`]; }},
+    {txt:'Si la Tierra gira alrededor del centro de masa una vez por mes, ¿qué radio tiene la circunferencia que describe su centro?'},
+  ],
+  p7:[
+    {txt:'Con m = 30 kg y L = 4 m, elegí la masa del hombre para que el tablón retroceda 3 m (±2 cm).',
+     chk(){ if(P.m!==30||P.L!==4) return [false,'Primero poné m = 30 kg y L = 4 m']; const d=P.M*P.L/(P.M+P.m); return Math.abs(d-3)<=0.02?[true,`Logrado: M = ${cm(P.M,0)} kg. Exacto: ML/(M + m) = 3 → M = 3m/(L − 3) = 90 kg.`]:[false,`Ahora el tablón retrocede ${cm(d,3)} m`]; }},
+    {txt:'¿Cambia algo si el hombre corre en lugar de caminar? ¿Y si se detiene a mitad de camino?'},
+  ],
+  p8:[
+    {txt:'Con m₂ = 1 kg y L = 1 m, elegí m₁ para que m₂ termine a 75 cm de P (±1 cm).',
+     chk(){ if(P.m2!==1||P.Lb!==1) return [false,'Primero poné m₂ = 1 kg y L = 1 m']; const d=P.m1*P.Lb/(P.m1+P.m2)*100; return Math.abs(d-75)<=1?[true,`Logrado: m₁ = ${cm(P.m1,2)} kg. Exacto: m₁L/(m₁ + m₂) = 0,75 L → m₁ = 3 m₂ (con inclinación inicial chica).`]:[false,`Ahora m₂ termina a ${cm(d,1)} cm`]; }},
+    {txt:'Si el piso tuviera rozamiento, ¿seguiría bajando en vertical el centro de masa?'},
+  ],
+  p9:[
+    {txt:'Con los datos de la guía, elegí la velocidad de la piedra para que el hombre llegue a la costa en 1 minuto (±1 s).',
+     chk(){ if(P.Mh!==100||P.ms!==1||P.D!==20) return [false,'Primero tocá «Datos de la guía» y cambiá solo la velocidad']; const T=s9().T; return Math.abs(T-60)<=1?[true,`Logrado: v = ${cm(P.vs,1)} m/s. Exacto: v_h = 1/3 m/s → v_p = 100·(1/3)/1 = 33,3 m/s.`]:[false,`Ahora tarda ${cm(T,1)} s`]; }},
+    {txt:'¿Le conviene arrojar la piedra de una sola vez o partirla en dos y arrojar cada mitad por separado, con la misma velocidad respecto del hielo?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p6'){ const x=xcm6(); return {title:'Centro de masa Tierra-Luna', finLbl:'Posición del centro de masa', steps:[
+    ['Origen en el centro de la Tierra, eje hacia la Luna', `\\[x_{cm}=\\frac{M_T\\cdot0+M_L\\,d}{M_T+M_L}\\]`],
+    ['Con M_T = q M_L', `\\[x_{cm}=\\frac{d}{1+q}=\\frac{${tx(P.d,1)}}{${tx(1+P.q,1)}}\\,R_T\\]`],
+    ['Resultado', `\\[x_{cm}=${tx(x,4)}\\,R_T\\]`,true],
+    ['Comparado con el radio', x<1?`\\[x_{cm}<R_T:\\ \\text{dentro de la Tierra}\\]`:`\\[x_{cm}>R_T:\\ \\text{fuera de la Tierra}\\]`],
+  ], fin:`\\[x_{cm}=\\frac{60}{83}\\,R_T\\approx0{,}72\\,R_T\\]`}; }
+  if(SY==='p7'){ const Mt=P.M+P.m; return {title:'Hombre en el tablón', finLbl:'Desplazamiento del hombre', steps:[
+    ['a) Origen en el extremo donde está el hombre, sobre el tablón; el hombre homogéneo tiene su centro a H/2', `\\[x_{cm}=\\frac{m\\,L/2}{M+m}=${tx(P.m*P.L/2/Mt,3)}\\ \\text{m},\\qquad y_{cm}=\\frac{M\\,H/2}{M+m}=${tx(P.M*P.H/2/Mt,3)}\\ \\text{m}\\]`],
+    ['b) No hay fuerzas externas horizontales y todo parte del reposo; la altura del hombre no cambia', `\\[\\vec v_{cm}=0\\ \\text{en todo instante}\\]`,true],
+    ['c) El centro de masa no se mueve y el hombre avanza L respecto del tablón', `\\[M\\,\\Delta x_h+m\\,\\Delta x_t=0,\\qquad \\Delta x_h-\\Delta x_t=L\\]`],
+    ['Resolviendo', `\\[\\Delta x_h=\\frac{mL}{M+m}=${tx(P.m*P.L/Mt,3)}\\ \\text{m},\\qquad \\Delta x_t=-\\frac{ML}{M+m}=${tx(-P.M*P.L/Mt,3)}\\ \\text{m}\\]`,true],
+  ], fin:`\\[\\Delta x_h=\\frac{m}{M+m}\\,L\\]`}; }
+  if(SY==='p8'){ const M=P.m1+P.m2; return {title:'Barra que cae', finLbl:'Posiciones finales (desde P)', steps:[
+    ['a) En el estado inicial, sobre la vertical de P', `\\[x_{cm}=0,\\qquad y_{cm}=\\frac{m_1L}{m_1+m_2}=${tx(P.m1*P.Lb/M,3)}\\ \\text{m}\\]`],
+    ['b) El piso sin rozamiento solo ejerce fuerza vertical, y el sistema parte del reposo', `\\[(m_1+m_2)\\,\\dot x_{cm}=0\\ \\Rightarrow\\ \\dot x_{cm}=0\\]`,true],
+    ['c) Al final las dos bolas están en el piso y x_cm sigue en P (inclinación inicial despreciable)', `\\[m_1x_1+m_2x_2=0,\\qquad x_1-x_2=L\\]`],
+    ['Resolviendo', `\\[x_1=\\frac{m_2L}{m_1+m_2}=${tx(P.m2*P.Lb/M,3)},\\qquad x_2=-\\frac{m_1L}{m_1+m_2}=${tx(-P.m1*P.Lb/M,3)}\\ \\text{m}\\]`,true],
+  ], fin:`\\[d_1=\\frac{m_2L}{m_1+m_2},\\qquad d_2=\\frac{m_1L}{m_1+m_2}\\]`}; }
+  const s=s9(); return {title:'Hombre en el lago helado', finLbl:'Tiempo hasta la costa', steps:[
+    ['Sin rozamiento la cantidad de movimiento horizontal se conserva; antes del tiro es cero', `\\[0=M\\,v_h-m_p\\,v_p\\]`],
+    ['Velocidad del hombre, hacia la costa', `\\[v_h=\\frac{m_p\\,v_p}{M}=${tx(s.vh,3)}\\ \\text{m/s}\\]`],
+    ['Después del tiro no hay fuerzas horizontales: el hombre sigue con velocidad constante', `\\[t=\\frac{D}{v_h}=${tx(s.T,1)}\\ \\text{s}\\]`,true],
+  ], fin:`\\[t=\\frac{M\\,D}{m_p\\,v_p}=${tx(s.T,0)}\\ \\text{s}\\]`};
+}
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Datos de la guía</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const GUIA={p6:[['M_T = 82 M_L, d = 60 R_T',()=>Object.assign(P,PS0.p6)]], p7:[], p8:[], p9:[['100 kg, piedra de 1 kg a 10 m/s, costa a 20 m',()=>Object.assign(P,PS0.p9)]]};
+const NOTE={p6:'Arriba, el sistema a escala; abajo, la Tierra ampliada con el centro de masa fijo.', p7:'La guía da solo símbolos: la página arranca con M = 70 kg, H = 1,8 m, m = 30 kg y L = 4 m. La cruz amarilla es el centro de masa.', p8:'La guía da solo símbolos. Las marcas cortas en el piso indican dónde van a quedar las bolas.', p9:'El tiempo de la escena está acelerado. El hielo no tiene rozamiento.'};
+const VB={p6:['Según las masas','Según la distancia'],p7:['Posiciones','Cantidad de movimiento'],p8:['Posiciones','Normal'],p9:['Posición','Cantidad de movimiento']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]); $('guia').hidden=!GUIA[SY].length;
+  $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p6',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

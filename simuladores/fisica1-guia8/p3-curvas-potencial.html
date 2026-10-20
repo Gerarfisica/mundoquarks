@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Curvas de potencial G8-P3, P5 y P6</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 8 · Trabajo y energía</span>
+  <h1>Curvas de potencial <i>· con la energía y V(x) se lee todo el movimiento</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 8">
+    <h2>Guía 8</h2>
+    <ol>
+      <li><a href="p1-trabajo-camino.html"><b class="code">P1, 2</b>Trabajo y camino</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P3, 5, 6</b>Curvas de potencial</a></li>
+      <li><a href="p4-pendulo-grande.html"><b class="code">P4</b>Péndulo grande</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:320px" aria-label="Una partícula representada como una bolita sobre la curva de energía potencial, con la línea de energía total, los puntos de retorno y la energía cinética."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p3" aria-pressed="true">P3 · F = −a x³</button>
+        <button data-sy="p5" aria-pressed="false">P5 · potencial nuclear</button>
+        <button data-sy="p6" aria-pressed="false">P6 · F = −a x³ + b x</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">x(t) y v(t)</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Espacio de fases</button>
+          <button data-view="v3" aria-pressed="false" id="vb3">Período</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+      <div data-vpanel="v3" hidden>
+        <div class="plot"><canvas id="p3c" style="height:300px"></canvas><div class="tag" id="tag3" style="color:var(--fg)"></div><div class="legend" id="leg3"></div></div>
+        <div class="pcap" id="cap3"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G8-P3, P5 y P6</summary>
+      <p><b>3.</b> Considere una partícula de masa m que se mueve en una dimensión bajo la acción de una fuerza F = −a x³ x̂.</p>
+      <p>a) Demuestre que dicha fuerza es conservativa y calcule el potencial.<br>b) Grafique el potencial y analice los posibles movimientos de la partícula.<br>*c) Elija valores para m y a y obtenga gráficos para x(t) y ẋ(t) variando las condiciones iniciales (obtenga también gráficos de ẋ en función de x). ¿Qué tipo de movimiento se obtiene? Estudie numéricamente la dependencia entre la frecuencia del movimiento y su amplitud. Verifique que, con muy buena aproximación, se cumple que la frecuencia del movimiento es proporcional a la amplitud.</p>
+      <p><b>5.</b> El potencial nuclear para un protón es de la forma de la figura (1 MeV = 10⁶ eV, 1 eV = 1,6 10⁻¹² erg). (En la figura, V(x) vale −20 MeV en x = 0, tiene máximos de 10 MeV en ±x₀ y tiende a cero lejos del núcleo.)</p>
+      <p>a) Analizar qué le pasa a un protón que incide desde x = ∞ sobre el núcleo y a uno que está en la zona −x₀ &lt; x &lt; x₀.<br>b) ¿Qué significan valores negativos de energía potencial?<br>c) Sea un protón que está en el interior del núcleo con energía total nula. ¿Cuál es la máxima velocidad que puede tener el protón? (m_p = 1,67 10⁻²⁴ g). ¿Qué energía mínima se le debe entregar para que pueda escapar del núcleo? ¿Qué velocidad tendrá entonces una vez alejado totalmente del núcleo?</p>
+      <p><b>6.</b> Considere una partícula de masa m que se mueve en una dimensión bajo la acción de una fuerza F = (−a x³ + b x) x̂.</p>
+      <p>a) Grafique el potencial y analice los posibles movimientos de la partícula para los diferentes valores de su energía total.<br>b) Encuentre las posiciones de equilibrio y determine si son estables o inestables.<br>*c) Elija valores para m, a y b y obtenga gráficos para x(t) y ẋ(t) variando las condiciones iniciales (obtenga también gráficos de ẋ en función de x). Analice los movimientos posibles para alguna de las siguientes situaciones: (1) a &gt; 0, b &gt; 0, (2) a &gt; 0, b &lt; 0.</p>
+      <p class="src">Física 1, Guía 8 (Trabajo y energía). Enunciado textual de la guía; entre paréntesis, lo que muestra la figura del P5. Para el P5 la página usa una curva suave con esos valores: −20 + 30(3u² − 2|u|³) MeV para |u| = |x|/x₀ ≤ 1 y 10·exp(−(|u| − 1)²/1,44) MeV afuera. La guía no da x₀: las velocidades no dependen de él, y el tiempo se mide en T₀ = x₀·√(m_p/1 MeV). En SI: m_p = 1,67 × 10⁻²⁷ kg y 1 MeV = 1,6 × 10⁻¹³ J. En el P3 y el P6 la página elige m, a y b.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Las trayectorias se integran numéricamente (Runge-Kutta de cuarto orden, paso 0,002) y la energía se conserva en menos de una parte en un millón. El período se mide entre dos pasos sucesivos por el punto de retorno izquierdo. El P5 es un análisis clásico: no incluye el efecto túnel ni correcciones relativistas (a 20 MeV el protón va a 0,2 c). Colores: amarillo, la energía total; rosa, V(x); celeste, la partícula y x(t); verde, la energía cinética y v(t).</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G8-P3, P5 y P6 · Curvas de potencial =================
+const sq=Math.sqrt, VU=sq(1.6e-13/1.67e-27);    // P5: unidad de velocidad √(1 MeV/m_p) en m/s
+const DEF=[
+  {id:'m',lab:'m',unit:'kg',min:0.1,max:5,step:0.05,dec:2},
+  {id:'a',lab:'a',unit:'N/m³',min:0.1,max:5,step:0.05,dec:2},
+  {id:'b',lab:'b',unit:'N/m',min:-5,max:5,step:0.05,dec:2},
+  {id:'x0',lab:'x inicial',unit:'m',min:-3,max:3,step:0.01,dec:2},
+  {id:'v0',lab:'v inicial',unit:'m/s',min:-5,max:5,step:0.01,dec:2},
+  {id:'E',lab:'energía total',unit:'MeV',min:-20,max:25,step:0.1,dec:1},
+  {id:'u0',lab:'posición inicial x/x₀',unit:'',min:-4,max:4,step:0.01,dec:2},
+  {id:'dir',lab:'sentido inicial',unit:'(−1 o +1)',min:-1,max:1,step:2,dec:0},
+];
+const PS={p3:{m:1,a:1,x0:1,v0:0}, p5:{E:0,u0:0,dir:1}, p6:{m:1,a:1,b:2,x0:0.5,v0:0}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p3:['m','a','x0','v0'],p5:['E','u0','dir'],p6:['m','a','b','x0','v0']};
+const P=Object.assign({},PS.p6,PS.p5,PS.p3); let SY='p3';
+
+// ---- potenciales (en P5: V en MeV, x en unidades de x₀, masa 1) ----
+const W5=1.2;
+function V5(u){ const s=Math.abs(u); return s<=1?-20+30*(3*s*s-2*s*s*s):10*Math.exp(-((s-1)**2)/(W5*W5)); }
+function F5(u){ const s=Math.abs(u), g=Math.sign(u); return s<=1?-180*u*(1-s):g*20*(s-1)/(W5*W5)*Math.exp(-((s-1)**2)/(W5*W5)); }
+const MOD={
+  p3:{V:x=>P.a*x**4/4, F:x=>-P.a*x**3, m:()=>P.m},
+  p5:{V:V5, F:F5, m:()=>1},
+  p6:{V:x=>P.a*x**4/4-P.b*x*x/2, F:x=>-P.a*x**3+P.b*x, m:()=>P.m},
+};
+const Vf=x=>MOD[SY].V(x), Ff=x=>MOD[SY].F(x), Mf=()=>MOD[SY].m();
+// condiciones iniciales y energía
+function init(){ if(SY!=='p5') return {x:P.x0,v:P.v0,E:Mf()*P.v0*P.v0/2+Vf(P.x0),ok:true};
+  const K=P.E-V5(P.u0); return K>=0?{x:P.u0,v:P.dir*sq(2*K),E:P.E,ok:true}:{x:P.u0,v:0,E:V5(P.u0),ok:false}; }
+// RK4 hasta TMAX o hasta que la partícula se aleja
+const DT=0.002, TMAX=40;
+function integ(x,v,tmax=TMAX,lim=8){ const m=Mf(), T=[0], X=[x], Vv=[v]; let t=0;
+  const acc=x=>Ff(x)/m;
+  while(t<tmax&&Math.abs(x)<lim){ const k1x=v, k1v=acc(x), k2x=v+DT/2*k1v, k2v=acc(x+DT/2*k1x), k3x=v+DT/2*k2v, k3v=acc(x+DT/2*k2x), k4x=v+DT*k3v, k4v=acc(x+DT*k3x);
+    x+=DT/6*(k1x+2*k2x+2*k3x+k4x); v+=DT/6*(k1v+2*k2v+2*k3v+k4v); t+=DT; T.push(t); X.push(x); Vv.push(v); }
+  return {T,X,V:Vv,te:t}; }
+// período: entre dos pasos sucesivos de v de negativa a positiva (punto de retorno izquierdo)
+function period(tr){ const c=[]; for(let i=1;i<tr.T.length;i++){ if(tr.V[i-1]<0&&tr.V[i]>=0){ const f=-tr.V[i-1]/(tr.V[i]-tr.V[i-1]); c.push(tr.T[i-1]+f*DT); if(c.length===3) break; } } return c.length>=2?c[1]-c[0]:null; }
+let __tr=null;
+function traj(){ const q=init(), key=[SY,P.m,P.a,P.b,q.x,q.v].join(); if(__tr&&__tr.key===key) return __tr; const tr=integ(q.x,q.v); tr.key=key; tr.E=q.E; tr.ok=q.ok; tr.P=period(tr); tr.xmin=Math.min(...tr.X); tr.xmax=Math.max(...tr.X); return __tr=tr; }
+function at(t){ const tr=traj(), i=Math.min(tr.T.length-1,Math.max(0,Math.round(t/DT))); return {x:tr.X[i],v:tr.V[i],t:tr.T[i]}; }
+// tiempo visual: en P5 1 s de animación = 1 T₀
+const TV=()=>Math.min(traj().te,SY==='p5'?24:20);
+function xr(){ if(SY==='p5') return [-4.2,4.2]; const tr=traj(); const m=Math.max(Math.abs(tr.xmin),Math.abs(tr.xmax),SY==='p6'&&P.b>0?1.25*sq(2*P.b/P.a):1,0.5)*1.2; return [-m,m]; }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return TV(); }
+function step(dt){ S.t+=dt; if(S.t>tEnd()+0.6) S.t=0; }
+function lbl(ctx,s,x,y,col,al='center'){ txt(ctx,s,x,y,col,{align:al,size:11.5}); }
+function vrange(){ const [a,b]=xr(), tr=traj(); let lo=Infinity, hi=-Infinity; for(let i=0;i<=200;i++){ const v=Vf(a+(b-a)*i/200); lo=Math.min(lo,v); hi=Math.max(hi,v); }
+  if(SY==='p5') return [-22,Math.max(13,tr.E+3)]; const top=Math.max(tr.E,lo)+Math.max(0.6*(Math.max(tr.E,lo)-lo),0.5); return [lo-(top-lo)*0.08,top]; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const tr=traj(), q=at(Math.min(S.t,TV())), [a,b]=xr(), [v0,v1]=vrange(), L=44, R=14, T=28, B=40;
+  const X=x=>L+(x-a)/(b-a)*(w-L-R), Y=v=>T+(v1-v)/(v1-v0)*(h-T-B);
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; line(ctx,[[L,Y(0)],[w-R,Y(0)]],C.line,1); txt(ctx,'0',L-6,Y(0)+4,C.faint,{align:'right',size:11});
+  // región permitida
+  const N=300; ctx.fillStyle=C.v; ctx.globalAlpha=0.12; for(let i=0;i<N;i++){ const x=a+(b-a)*(i+0.5)/N; if(Vf(x)<=tr.E) ctx.fillRect(X(a+(b-a)*i/N),h-B+6,(w-L-R)/N+0.5,8); } ctx.globalAlpha=1;
+  line(ctx,samp(Vf,a,b,400).map(p=>[X(p[0]),Y(p[1])]),C.sob,2.4);
+  line(ctx,[[L,Y(tr.E)],[w-R,Y(tr.E)]],C.v,1.6,[6,4]); txt(ctx,'E',w-R-4,Y(tr.E)-6,C.v,{align:'right',size:12});
+  const vx=Vf(q.x); if(tr.E-vx>1e-9) line(ctx,[[X(q.x),Y(vx)],[X(q.x),Y(tr.E)]],C.ok,3);
+  dot(ctx,X(q.x),Y(vx),8,C.sys); dot(ctx,X(q.x),h-B+10,5,C.sys);
+  txt(ctx,SY==='p5'?'x/x₀':'x (m)',w-R,h-B-2,C.muted,{align:'right',size:11}); [a,0,b].forEach(v=>txt(ctx,axf(v),X(v),h-B+28,C.faint,{align:'center',size:10.5}));
+  if(SY==='p5'){ [-1,1].forEach(u=>{ line(ctx,[[X(u),Y(10)],[X(u),Y(0)]],C.faint,1,[2,3]); txt(ctx,u<0?'−x₀':'x₀',X(u),Y(0)+14,C.faint,{align:'center',size:10.5}); }); }
+  const uE=SY==='p5'?'MeV':'J', ut=SY==='p5'?'T₀':'s';
+  txt(ctx,`t = ${cm(q.t,2)} ${ut}${tr.ok?'':' · esa energía no alcanza para estar ahí: se usa E = V(x)'}`,12,18,tr.ok?C.muted:C.a,{size:11.5});
+  const vv=SY==='p5'?sci(Math.abs(q.v)*VU,3)+' m/s':cm(q.v,3)+' m/s';
+  readout([['E',cm(tr.E,3)+' '+uE,C.v],['V(x)',cm(vx,3)+' '+uE,C.sob],['K = E − V',cm(tr.E-vx,3)+' '+uE,C.ok],[SY==='p5'?'|v|':'v',vv,C.ok],['período',tr.P?cm(tr.P,3)+' '+ut:(tr.te<TMAX-1e-6?'se aleja':'—')]]);
+  $('formula').innerHTML=SY==='p3'?`<b>V(x) = a x⁴/4</b>: un pozo más chato que el armónico en el fondo y más empinado afuera → oscila entre ±A con período ∝ 1/A`:
+    SY==='p5'?`<b>K = E − V(x) ≥ 0:</b> el protón solo puede estar donde V ≤ E · E &lt; 0: atrapado en el pozo · 0 &lt; E &lt; 10 MeV: atrapado o rebotado según de qué lado esté · E &gt; 10 MeV: pasa`:
+    `<b>V(x) = a x⁴/4 − b x²/2</b> · equilibrios donde F = 0: x = 0 y, si b/a &gt; 0, x = ±√(b/a) · estable donde V tiene un mínimo`; }
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function sci(x,d=2){ if(x===0) return '0'; const e=Math.floor(Math.log10(Math.abs(x))), m=x/10**e; return `${cm(m,d)} × 10${String(e).split('').map(c=>SUP[c]).join('')}`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,wd||2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function samp(f,a,b,N=300){ return Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; }); }
+function drawV1(){ const tr=traj(), te=TV(), st=Math.max(1,Math.floor(tr.T.length/1500)), xs=[], vs=[]; for(let i=0;i<tr.T.length&&tr.T[i]<=te;i+=st){ xs.push([tr.T[i],tr.X[i]]); vs.push([tr.T[i],tr.V[i]]); }
+  const q=at(Math.min(S.t,te)); plot('p1c',0,te,[[xs,C.sys],[vs,C.ok,[5,4]]],SY==='p5'?'t (T₀)':'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(q.t),Y(q.x),4.5,C.sys); dot(ctx,X(q.t),Y(q.v),4.5,C.ok); }});
+  $('tag1').textContent=SY==='p5'?'x/x₀ y v (en unidades de √(1 MeV/m_p) ≈ 9,8 × 10⁶ m/s)':'x (m) y v (m/s)'; legend('leg1',[[C.sys,'x(t)'],[C.ok,'v(t)','dashed']]);
+  $('cap1').textContent=tr.P?`Movimiento periódico, de período ${cm(tr.P,3)} ${SY==='p5'?'T₀':'s'}. ${SY==='p3'?'No es armónico: x(t) tiene los extremos más chatos que una sinusoide, porque la fuerza es muy débil cerca de x = 0 y muy fuerte afuera.':SY==='p6'&&P.b>0?(tr.E<0?'Con E < 0 queda atrapada en uno de los dos pozos.':'Con E > 0 pasa de un pozo al otro por encima de la loma en x = 0.'):''}`:'La partícula no vuelve: se aleja sin cambiar más su energía cinética.'; }
+function drawV2(){ const tr=traj(), [a,b]=xr(), m=Mf(), Vmin=Math.min(...samp(Vf,a,b,300).map(p=>p[1])), es=[];
+  if(SY==='p5') es.push(-15,-5,0,5,10,14); else if(SY==='p6'&&P.b>0){ const vb=-P.b*P.b/(4*P.a); es.push(vb*0.5,vb*0.15,0,-vb*0.6,-vb*1.5); } else { const top=Math.max(tr.E,Vmin+1); for(let i=1;i<=5;i++) es.push(Vmin+(top-Vmin)*i/5*1.3); }
+  const curves=[]; es.forEach(E=>{ const up=[], dn=[]; for(let i=0;i<=400;i++){ const x=a+(b-a)*i/400, K=E-Vf(x); up.push([x,K>=0?sq(2*K/m):NaN]); dn.push([x,K>=0?-sq(2*K/m):NaN]); } curves.push([up,C.faint,null,1.2],[dn,C.faint,null,1.2]); });
+  const st=Math.max(1,Math.floor(tr.T.length/2000)), orb=[]; for(let i=0;i<tr.T.length;i+=st) orb.push([tr.X[i],tr.V[i]]);
+  const vm=Math.max(...orb.map(p=>Math.abs(p[1])),1)*1.25, q=at(Math.min(S.t,TV()));
+  plot('p2c',a,b,[...curves,[orb,C.sys,null,2.4]],SY==='p5'?'x/x₀':'x (m)',{y0:-vm,y1:vm,mark:(ctx,X,Y)=>dot(ctx,X(q.x),Y(q.v),4.5,C.sys)});
+  $('tag2').textContent=SY==='p5'?'v (unidades de √(1 MeV/m_p)) según x/x₀':'v (m/s) según x (m)'; legend('leg2',[[C.sys,'esta trayectoria'],[C.faint,'otras energías']]);
+  $('cap2').textContent=SY==='p6'&&P.b>0?'Las órbitas cerradas alrededor de ±√(b/a) son las de energía negativa; las que encierran a los dos pozos tienen E > 0. Las separa la curva de E = 0, que pasa por el equilibrio inestable x = 0.':SY==='p5'?'Las curvas cerradas son protones atrapados en el pozo. Las abiertas, protones que vienen de lejos: si E < 10 MeV rebotan en la barrera; si E > 10 MeV la cruzan.':'Cada órbita es una curva cerrada: v = ±√(2(E − V)/m). Para energías mayores la órbita es más grande y se recorre más rápido.'; }
+// barrido del período: P3 según la amplitud, P5 y P6 según la energía
+function sweep(){ const out=[]; const save={x0:P.x0,v0:P.v0,E:P.E,u0:P.u0,dir:P.dir};
+  if(SY==='p3'){ for(let i=1;i<=16;i++){ const A=0.2*i, tr=integ(A,0,Math.min(TMAX,80/A)); const T=period(tr); if(T) out.push([A,1/T]); } }
+  else if(SY==='p6'){ const vb=P.b>0?-P.b*P.b/(4*P.a):0, lo=vb+(P.b>0?0.02*Math.abs(vb):0.05), hi=P.b>0?3*Math.abs(vb)+1:5; for(let i=0;i<=30;i++){ const E=lo+(hi-lo)*i/30, x=P.b>0&&E<0?sq(P.b/P.a):0, K=E-Vf(x); if(K<0) continue; const tr=integ(x,sq(2*K/P.m),60); const T=period(tr); if(T) out.push([E,T]); } }
+  else { for(let i=0;i<=28;i++){ const E=-19.5+i*1.05; if(E>=9.95) break; const tr=integ(0,sq(2*(E+20)),80); const T=period(tr); if(T) out.push([E,T]); } }
+  Object.assign(P,save); return out; }
+let __sw=null;
+function drawV3(){ const key=[SY,P.m,P.a,P.b].join(); if(!__sw||__sw.key!==key) __sw={key,pts:sweep()}; const pts=__sw.pts, tr=traj();
+  if(SY==='p3'){ const c=pts.reduce((s,p)=>s+p[0]*p[1],0)/pts.reduce((s,p)=>s+p[0]*p[0],0), A=Math.max(Math.abs(tr.xmin),Math.abs(tr.xmax));
+    plot('p3c',0,3.3,[[samp(x=>c*x,0,3.3),C.faint,[5,4]],[pts,C.sys]],'amplitud A (m)',{y0:0,mark:(ctx,X,Y)=>{ pts.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),3.5,C.sys)); if(tr.P) dot(ctx,X(A),Y(1/tr.P),5,C.v); }});
+    const dev=Math.max(...pts.map(p=>Math.abs(p[1]/(c*p[0])-1)));
+    $('tag3').textContent='Frecuencia (Hz) según la amplitud'; legend('leg3',[[C.sys,'simulación'],[C.faint,'recta por el origen','dashed']]);
+    $('cap3').textContent=`Los puntos caen sobre una recta por el origen: f = ${cm(c,4)}·A (desvío máximo ${cm(100*dev,3)} %). No es solo una aproximación: cambiando x = A·u la ecuación queda igual con el tiempo reescalado por 1/A, así que f ∝ A exactamente.`; return; }
+  const xl=SY==='p5'?'E (MeV)':'E (J)', mx=SY==='p5'?[-20,10]:[pts.length?pts[0][0]:0,pts.length?pts[pts.length-1][0]:1];
+  plot('p3c',mx[0],mx[1],[[pts,C.sys]],xl,{y0:0,mark:(ctx,X,Y)=>{ pts.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),3,C.sys)); if(tr.P&&tr.E>=mx[0]&&tr.E<=mx[1]) dot(ctx,X(tr.E),Y(tr.P),5,C.v); if(SY==='p6'&&P.b>0) line(ctx,[[X(0),Y(-1e9)],[X(0),Y(1e9)]],C.a,1.2,[4,3]); if(SY==='p5') line(ctx,[[X(10),Y(-1e9)],[X(10),Y(1e9)]],C.a,1.2,[4,3]); }});
+  $('tag3').textContent=SY==='p5'?'Período dentro del pozo (T₀) según la energía':'Período (s) según la energía'; legend('leg3',[[C.sys,'simulación'],[C.a,SY==='p5'?'tope de la barrera':'E = 0','dashed']]);
+  $('cap3').textContent=SY==='p5'?'Atrapado en el pozo, el protón oscila con un período que crece al acercarse a 10 MeV: cerca del tope de la barrera se mueve muy despacio.':P.b>0?'El período crece sin límite cerca de E = 0: la partícula tarda cada vez más en pasar por la loma de x = 0, un equilibrio inestable. Lejos de E = 0 el período baja.':'Con b < 0 hay un solo pozo y el período baja a medida que sube la energía: las paredes del pozo cuártico son cada vez más empinadas.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else if(S.view==='v2') drawV2(); else drawV3(); }
+
+// ================= Predecí =================
+const PRED={
+  p3:{ q:'En el pozo V = a x⁴/4, si se duplica la amplitud, el período…',
+    opts:[['igual','no cambia, como en el oscilador armónico'],['doble','se duplica'],['mitad','se reduce a la mitad']], right:'mitad', go:'Probalo: x inicial 1 m y después 2 m',
+    run(){ Object.assign(P,{x0:2,v0:0}); restart(); setView('v3'); refresh(); return 'Se reduce a la mitad: la frecuencia es proporcional a la amplitud. Con amplitud mayor la partícula llega a zonas donde la fuerza crece como x³ y vuelve mucho más rápido.'; } },
+  p5:{ q:'Un protón que viene desde lejos con 5 MeV…',
+    opts:[['entra','entra al núcleo y queda atrapado'],['rebota','rebota en la barrera'],['pasa','atraviesa el núcleo']], right:'rebota', go:'Probalo',
+    run(){ Object.assign(P,{E:5,u0:4,dir:-1}); restart(); refresh(); return 'Rebota: con 5 MeV no alcanza a subir la barrera de 10 MeV. Clásicamente no puede entrar; la mecánica cuántica le daría una pequeña probabilidad de pasar por efecto túnel.'; } },
+  p6:{ q:'Con a > 0 y b > 0, el equilibrio en x = 0 es…',
+    opts:[['est','estable'],['inest','inestable'],['no','no es equilibrio']], right:'inest', go:'Probalo: x inicial apenas corrida de 0',
+    run(){ Object.assign(P,{a:1,b:2,x0:0.02,v0:0}); restart(); setView('v1'); refresh(); return 'Inestable: en x = 0 la fuerza es nula, pero V tiene un máximo (V″(0) = −b < 0). Corrida apenas, la partícula cae a un pozo y oscila entre los dos lados de la loma.'; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p3:[
+    {txt:'Con m = 1 kg y a = 1 N/m³, elegí la amplitud (x inicial, v inicial = 0) para que el período sea 3 s (±1 %).',
+     chk(){ if(P.m!==1||P.a!==1||P.v0!==0) return [false,'Primero poné m = 1 kg, a = 1 N/m³ y v inicial = 0']; const T=traj().P; return T&&Math.abs(T-3)<=0.03?[true,`Logrado: A = ${cm(Math.abs(P.x0),2)} m. Exacto: T = 7,416/A s con m = a = 1 → A = 2,47 m.`]:[false,T?`Ahora T = ${cm(T,3)} s`:'No hay período']; }},
+    {txt:'¿Por qué en este pozo no existe un período «propio» como en el resorte?'},
+  ],
+  p5:[
+    {txt:'Con el protón en el centro, elegí la menor energía total con la que escapa del núcleo (hasta 0,5 MeV por encima).',
+     chk(){ if(Math.abs(P.u0)>0.01) return [false,'Primero poné la posición inicial en 0']; const tr=traj(), esc=tr.te<TMAX-1e-6; return esc&&P.E<=10.5?[true,`Logrado: E = ${cm(P.E,1)} MeV. El mínimo es 10 MeV, el tope de la barrera. Desde E = 0 hay que entregarle 10 MeV, y lejos del núcleo le queda K = E.`]:[false,esc?`Escapa, pero con E = ${cm(P.E,1)} MeV podés bajar más`:'Con esa energía queda atrapado']; }},
+    {txt:'¿Qué significa que el protón dentro del núcleo tenga energía total negativa?'},
+  ],
+  p6:[
+    {txt:'Con m = 1 kg, a = 1 N/m³ y b = 2 N/m, elegí x inicial (v = 0) para que la partícula quede quieta en un equilibrio estable (|v| máxima menor que 0,01 m/s).',
+     chk(){ if(P.m!==1||P.a!==1||P.b!==2||P.v0!==0) return [false,'Primero poné m = 1, a = 1, b = 2 y v inicial = 0']; const tr=traj(), vm=Math.max(...tr.V.map(Math.abs)); return vm<0.01?[true,`Logrado: x = ${cm(P.x0,2)} m. Los equilibrios estables están en ±√(b/a) = ±1,414 m.`]:[false,`Ahora la rapidez llega a ${cm(vm,3)} m/s`]; }},
+    {txt:'Con b < 0, ¿cuántos equilibrios hay? ¿Qué cambia en el movimiento?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){ const tr=traj();
+  if(SY==='p3'){ const A=Math.max(Math.abs(tr.xmin),Math.abs(tr.xmax)), Tth=4*sq(2*P.m/P.a)/A*1.311028777; return {title:'Fuerza −a x³', finLbl:'Período', steps:[
+    ['a) La fuerza depende solo de x: en una dimensión es conservativa', `\\[V(x)=-\\int F\\,dx=\\frac{a\\,x^4}{4}\\]`],
+    ['b) Mínimo en x = 0: con E > 0 oscila entre los puntos de retorno ±A, donde V(A) = E', `\\[A=\\left(\\frac{4E}{a}\\right)^{1/4}=${tx(A,3)}\\ \\text{m}\\]`],
+    ['Período por energía', `\\[T=4\\int_0^A\\frac{dx}{\\sqrt{2(E-V)/m}}=\\frac4A\\sqrt{\\frac{2m}{a}}\\int_0^1\\frac{du}{\\sqrt{1-u^4}}\\]`],
+    ['La integral vale 1,31103: el período es inversamente proporcional a la amplitud', `\\[T=\\frac{7{,}416}{A}\\sqrt{\\frac ma}=${tx(Tth,4)}\\ \\text{s}\\]`,true],
+    ['c) La simulación da', `\\[T_{\\text{num}}=${tr.P?tx(tr.P,4):'-'}\\ \\text{s}\\]`],
+  ], fin:`\\[f=\\frac{A}{7{,}416}\\sqrt{\\frac am}\\ \\propto\\ A\\]`}; }
+  if(SY==='p5'){ const vm=sq(2*20*1.6e-13/1.67e-27), ve=sq(2*10*1.6e-13/1.67e-27); return {title:'Potencial nuclear', finLbl:'Respuestas del inciso c', steps:[
+    ['a) Desde lejos con E < 10 MeV: rebota en la barrera. Con E > 10 MeV: pasa sobre el núcleo y sigue. En −x₀ < x < x₀ con E < 10 MeV: queda atrapado, oscilando', `\\[K=E-V(x)\\ge0\\]`],
+    ['b) V < 0 significa que el protón está ligado: hay que darle energía para llevarlo lejos, donde V = 0', `\\[E<0\\ \\Rightarrow\\ \\text{estado ligado}\\]`],
+    ['c) Con E = 0, la mayor energía cinética está en el fondo del pozo', `\\[K_{\\max}=0-(-20\\ \\text{MeV})=20\\ \\text{MeV}=3{,}2\\times10^{-12}\\ \\text{J}\\]`],
+    ['Velocidad máxima (m_p = 1,67 × 10⁻²⁷ kg)', `\\[v_{\\max}=\\sqrt{\\frac{2K_{\\max}}{m_p}}=${txs(vm,3)}\\ \\text{m/s}\\]`,true],
+    ['Para escapar tiene que superar la barrera de 10 MeV', `\\[\\Delta E_{\\min}=10\\ \\text{MeV}\\]`,true],
+    ['Lejos del núcleo V = 0 y toda la energía es cinética', `\\[v_\\infty=\\sqrt{\\frac{2\\cdot10\\ \\text{MeV}}{m_p}}=${txs(ve,3)}\\ \\text{m/s}\\]`,true],
+  ], fin:`\\[v_{\\max}\\approx6{,}2\\times10^7\\ \\text{m/s},\\quad \\Delta E=10\\ \\text{MeV},\\quad v_\\infty\\approx4{,}4\\times10^7\\ \\text{m/s}\\]`}; }
+  const r=P.b/P.a; return {title:'Fuerza −a x³ + b x', finLbl:'Equilibrios', steps:[
+    ['a) Potencial', `\\[V(x)=\\frac{a\\,x^4}4-\\frac{b\\,x^2}2\\]`],
+    ['b) Equilibrios: F = 0', `\\[x(-a\\,x^2+b)=0\\ \\Rightarrow\\ x=0\\ \\text{y, si }b/a>0,\\ x=\\pm\\sqrt{b/a}${r>0?'=\\pm'+tx(sq(r),3)+'\\ \\text{m}':''}\\]`,true],
+    ['Estabilidad por la curvatura', `\\[V''(x)=3a\\,x^2-b:\\qquad V''(0)=-b,\\qquad V''(\\pm\\sqrt{b/a})=2b\\]`],
+    [r>0?'(1) a, b > 0: x = 0 inestable (máximo), ±√(b/a) estables (mínimos, V = −b²/4a)':'(2) a > 0, b < 0: un solo equilibrio, x = 0, estable', r>0?`\\[V_{\\min}=-\\frac{b^2}{4a}=${tx(-P.b*P.b/(4*P.a),3)}\\ \\text{J}\\]`:`\\[V''(0)=-b>0\\]`],
+    ['Movimientos (caso 1): E < 0 oscila en un pozo; E > 0 recorre los dos', `\\[E=${tx(tr.E,3)}\\ \\text{J}\\]`],
+  ], fin:r>0?`\\[x_{eq}=0\\ (\\text{inestable}),\\quad \\pm\\sqrt{b/a}\\ (\\text{estables})\\]`:`\\[x_{eq}=0\\ (\\text{estable})\\]`};
+}
+function txs(x,d=2){ const e=Math.floor(Math.log10(Math.abs(x))), m=x/10**e; return `${tx(m,d)}\\times10^{${e}}`; }
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Casos</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const GUIA={p3:[['A = 1 m',()=>Object.assign(P,{x0:1,v0:0})],['A = 2 m',()=>Object.assign(P,{x0:2,v0:0})]],
+  p5:[['a · llega desde lejos con 5 MeV',()=>Object.assign(P,{E:5,u0:4,dir:-1})],['a · llega con 15 MeV',()=>Object.assign(P,{E:15,u0:4,dir:-1})],['c · adentro con E = 0',()=>Object.assign(P,{E:0,u0:0,dir:1})],['c · adentro con 10,5 MeV',()=>Object.assign(P,{E:10.5,u0:0,dir:1})]],
+  p6:[['(1) a > 0, b > 0 · en un pozo',()=>Object.assign(P,{a:1,b:2,x0:0.5,v0:0})],['(1) · sobre la loma',()=>Object.assign(P,{a:1,b:2,x0:2.2,v0:0})],['(2) a > 0, b < 0',()=>Object.assign(P,{a:1,b:-2,x0:1.5,v0:0})]]};
+const NOTE={p3:'La guía pide elegir m y a: la página arranca con m = 1 kg y a = 1 N/m³.', p5:'Si la energía es menor que V en la posición inicial, la página usa E = V allí (el protón arranca quieto). Tiempo en unidades de T₀.', p6:'La guía pide elegir m, a y b: la página arranca con m = 1 kg, a = 1 N/m³ y b = 2 N/m.'};
+const VB={p3:'Frecuencia',p5:'Período',p6:'Período'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]);
+  $('note').textContent=NOTE[SY]; $('vb3').textContent=VB[SY]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p3',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

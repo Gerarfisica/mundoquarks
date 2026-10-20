@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Mesa con orificio G9-P6 y P8</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 9 · Teoremas de conservación</span>
+  <h1>Mesa con orificio <i>· la cuerda pasa por un punto fijo: cada impulso angular respecto de él se conserva</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 9">
+    <h2>Guía 9</h2>
+    <ol>
+      <li><a href="p1-choques-elasticos.html"><b class="code">P1, 2</b>Choques elásticos</a></li>
+      <li><a href="p3-pendulo-que-choca.html"><b class="code">P3</b>Péndulo que choca</a></li>
+      <li><a href="p4-osciladores-que-giran.html"><b class="code">P4, 7, 10</b>Osciladores que giran</a></li>
+      <li><a href="p5-varilla-en-el-plano.html"><b class="code">P5</b>Varilla en el plano</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P6, 8</b>Mesa con orificio</a></li>
+      <li><a href="p9-choque-con-barra.html"><b class="code">P9</b>Choque con barra</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="Vista desde arriba de una mesa con un orificio: una masa gira sobre la mesa unida por un hilo a otra que cuelga, o dos masas unidas por una soga que pasa por un anillo."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p6" aria-pressed="true">P6 · una masa cuelga</button>
+        <button data-sy="p8" aria-pressed="false">P8 · soga por un anillo</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Vista 1</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Vista 2</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G9-P6 y P8</summary>
+      <p><b>6.</b> El sistema de la figura consiste de dos masas (m₁ y m₂) unidas por un hilo inextensible que pasa por un orificio practicado en una mesa horizontal sin rozamiento. En cierto instante, la masa m₂ está en reposo y la masa m₁ se mueve con velocidad v₀ a una distancia r₀ del orificio. La masa m₂ puede, o no, continuar en reposo dependiendo de cierta relación matemática entre m₁, m₂, |v₀|, r₀ y g. (En la figura, v₀ es perpendicular al hilo.)</p>
+      <p>a) Determinar esa relación usando las ecuaciones de Newton.<br>b) Independientemente de que m₂ se mueva o no, diga qué magnitudes se conservan. Justifique su respuesta.<br>c) Calcular las velocidades v₁ y v₂ de ambas partículas y el ángulo que forma v₁ con el hilo, en el instante en que m₂ ha bajado una distancia d.<br>d) Grafique el potencial efectivo en función de la distancia de m₁ al orificio. Exprese en función de la energía la condición para que m₂ permanezca en reposo y compare con el resultado obtenido en a).<br>e) Considere condiciones tales que la energía mecánica es un poco mayor a la que corresponde la situación en la m₂ permanece quieta (y m₁ describe una órbita circular). En esas condiciones analice el movimiento radial y considere que r(t) oscila con una pequeña amplitud alrededor del radio de la órbita circular. Diga cual es la frecuencia y el período de este movimiento. Determine también la velocidad angular de m₁, describa cualitativamente la forma de la órbita de m₁ alrededor del orificio.<br>*f) Resuelva numéricamente el problema. Obtenga gráficos de z(t) y de las trayectorias de la partícula sobre la mesa.</p>
+      <p><b>8.</b> Dos partículas de masas m₁ y m₂ se hallan sobre una mesa horizontal, unidas entre sí por una soga de longitud L que pasa a través de un anillo pequeño fijo a la mesa en el punto O. La superficie de la mesa carece de rozamiento y la soga es inextensible y de masa despreciable. Inicialmente ambas partículas están en reposo a una distancia L/2 del punto O, de forma tal que ambos tramos de la soga forman un ángulo recto (ver figura). El sistema se pone en movimiento imprimiéndole a la partícula m₁ una velocidad v₀ perpendicular a la soga. Considere que las partículas nunca chocan entre sí y que la soga siempre se mantiene tensa.</p>
+      <p>a) Diga qué magnitudes se conservan para cada partícula por separado y para el sistema formado por ambas partículas y la soga. Justifique sus respuestas.<br>b) Calcule la velocidad de rotación alrededor de O de cada una de las partículas como función de la distancia de m₁ al punto O.<br>c) Encuentre la velocidad radial del cuerpo m₁ cuando se halla a una distancia d=3L/2 del punto O.</p>
+      <p class="src">Física 1, Guía 9 (Teoremas de conservación). Enunciado textual de la guía; entre paréntesis, lo que muestra la figura del P6. Las dos dan solo símbolos: la página elige valores de partida. En el P6 el hilo mide 3r₀ (m₂ cuelga 2r₀ debajo de la mesa) y z(t) es lo que bajó m₂. En el P8 c) la guía pide d = 3L/2, pero la soga mide L y m₁ no puede alejarse más que L de O: la página usa d = 3L/4, lo más probable es que sea una errata, y deja d ajustable entre L/2 y L. g = 9,8 m/s².</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Los movimientos se integran numéricamente (Runge-Kutta de cuarto orden, paso 0,0005 s) y se comparan con lo que dan la conservación de L y de E. Colores: celeste, m₁; rosa, m₂; amarillo, el potencial efectivo y la energía; verde, la velocidad radial.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G9-P6 y P8 · Mesa con orificio =================
+const G0=9.8, sq=Math.sqrt;
+const DEF=[
+  {id:'m1',lab:'m₁',unit:'kg',min:0.1,max:5,step:0.05,dec:2},
+  {id:'m2',lab:'m₂',unit:'kg',min:0.1,max:5,step:0.05,dec:2},
+  {id:'r0',lab:'r₀',unit:'m',min:0.1,max:1,step:0.01,dec:2},
+  {id:'v0',lab:'v₀',unit:'m/s',min:0,max:6,step:0.01,dec:2},
+  {id:'d',lab:'d (lo que bajó m₂)',unit:'m',min:0,max:1,step:0.005,dec:3},
+  {id:'L',lab:'L (soga)',unit:'m',min:0.2,max:3,step:0.01,dec:2},
+  {id:'dd',lab:'d / L (distancia de m₁ a O)',unit:'',min:0.5,max:1,step:0.005,dec:3},
+];
+const PS={p6:{m1:1,m2:1,r0:0.5,v0:1.8,d:0.05}, p8:{m1:1,m2:1,L:1,v0:2,dd:0.75}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p6:['m1','m2','r0','v0','d'],p8:['m1','m2','L','v0','dd']};
+const P=Object.assign({},PS.p8,PS.p6); let SY='p6';
+
+// ---- integración: (m₁ + m₂) r̈ = m₁ r ω² − F(r), con L = m₁ r² ω ----
+const DT=0.0005, TMAX=12;
+let __tr=null;
+function traj(){ const key=[SY,P.m1,P.m2,P.r0,P.v0,P.L].join(); if(__tr&&__tr.key===key) return __tr;
+  const M=P.m1+P.m2, r0=SY==='p6'?P.r0:P.L/2, h=r0*P.v0, Fg=SY==='p6'?P.m2*G0:0, rmax=SY==='p6'?3*P.r0:P.L;
+  const acc=r=>(P.m1*h*h/(r*r*r)-Fg)/M; let r=r0, v=0, f=0, t=0; const T=[0], R=[r], V=[v], F=[f]; let fin=null;
+  while(t<TMAX){ const k1r=v, k1v=acc(r), k2r=v+DT/2*k1v, k2v=acc(r+DT/2*k1r), k3r=v+DT/2*k2v, k3v=acc(r+DT/2*k2r), k4r=v+DT*k3v, k4v=acc(r+DT*k3r), w1=h/(r*r);
+    const rn=r+DT/6*(k1r+2*k2r+2*k3r+k4r), vn=v+DT/6*(k1v+2*k2v+2*k3v+k4v); f+=DT*(w1+h/(rn*rn))/2; r=rn; v=vn; t+=DT;
+    if(r>=rmax||r<=0.02*r0){ fin=r>=rmax?'tope':'centro'; break; } T.push(t); R.push(r); V.push(v); F.push(f); }
+  const E=P.m1*P.v0*P.v0/2;   // energía (con U = m₂ g r, el término constante se omite)
+  return __tr={key,T,R,V,F,h,r0,M,fin,rmax,E}; }
+function at(t){ const tr=traj(), i=Math.min(tr.T.length-1,Math.max(0,Math.round(t/DT))); return {t:tr.T[i],r:tr.R[i],v:tr.V[i],f:tr.F[i],w:tr.h/(tr.R[i]**2)}; }
+// ---- P6: valores analíticos ----
+function s6(){ const h=P.r0*P.v0, M=P.m1+P.m2, vc=sq(P.m2*G0*P.r0/P.m1), rc=Math.cbrt(P.m1*h*h/(P.m2*G0)), wr=sq(3*P.m2*G0/(M*rc)), wf=h/(rc*rc);
+  const r=P.r0-P.d, vt=h/r, rd2=(P.m1*P.v0*P.v0-P.m1*vt*vt+2*P.m2*G0*P.d)/M; return {h,M,vc,rc,wr,wf,Tr:2*Math.PI/wr,r,vt,rd2,rd:rd2>=0?-sq(rd2):NaN,beta:rd2>=0?deg(Math.atan2(vt,sq(rd2))):NaN}; }
+const Ueff=r=>{ const h=P.r0*P.v0; return P.m1*h*h/(2*r*r)+P.m2*G0*(r-P.r0); };
+// ---- P8 ----
+function s8(){ const r=P.dd*P.L, h=P.L*P.v0/2, w=h/(r*r), rd2=P.m1*P.v0*P.v0*(1-(P.L/(2*r))**2)/(P.m1+P.m2); return {r,w,rd:sq(Math.max(0,rd2))}; }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return Math.min(traj().T[traj().T.length-1],TMAX); }
+function step(dt){ S.t+=dt; if(S.t>tEnd()+0.8) S.t=0; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const tr=traj(), q=at(Math.min(S.t,tEnd())), nar=w<560;
+  if(SY==='p6'){ const s=s6(), side=nar?60:90, rm=Math.max(...tr.R)*1.1, k=Math.min((w-side-30)/(2*rm),(h-40)/(2*rm)), cx=(w-side)/2, cy=h/2+8;
+    // trayectoria de m₁
+    const pts=[]; const st=Math.max(1,Math.floor((S.t/DT)/600)); for(let i=0;i<=Math.min(tr.T.length-1,S.t/DT);i+=st) pts.push([cx+tr.R[i]*Math.cos(tr.F[i])*k,cy-tr.R[i]*Math.sin(tr.F[i])*k]); line(ctx,pts,C.sys,1.3,null,0.6);
+    ctx.beginPath(); ctx.arc(cx,cy,s.rc*k,0,7); ctx.strokeStyle=C.v; ctx.setLineDash([3,4]); ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]);
+    const x=cx+q.r*Math.cos(q.f)*k, y=cy-q.r*Math.sin(q.f)*k; line(ctx,[[cx,cy],[x,y]],C.muted,1.5); dot(ctx,cx,cy,4,C.fg,true); dot(ctx,x,y,7+2*Math.cbrt(P.m1),C.sys);
+    // de costado: m₂ colgando
+    const gx=w-side/2, gt=30, gl=h-60, z=(tr.rmax-q.r)/tr.rmax; line(ctx,[[gx-18,gt],[gx+18,gt]],C.muted,2); line(ctx,[[gx,gt],[gx,gt+z*gl]],C.muted,1.5); dot(ctx,gx,gt+z*gl,6+2*Math.cbrt(P.m2),C.sob); txt(ctx,'m₂',gx+12,gt+z*gl+4,C.sob,{size:11}); txt(ctx,'mesa',gx,gt-6,C.faint,{align:'center',size:10.5});
+    txt(ctx,`t = ${cm(q.t,2)} s · desde arriba${tr.fin==='tope'&&S.t>=tEnd()?' · m₂ llegó al orificio':''}`,12,18,C.muted,{size:11.5});
+    readout([['r',cm(q.r,3)+' m',C.sys],['z: bajó m₂',cm(P.r0-q.r,3)+' m',C.sob],['ω de m₁',cm(q.w,3)+' rad/s'],['v circular (m₂ quieta)',cm(s.vc,3)+' m/s',C.v],['período radial (e)',cm(s.Tr,3)+' s']]);
+    $('formula').innerHTML=`<b>radial:</b> (m₁ + m₂) r̈ = m₁ r ω² − m₂ g · <b>L = m₁ r² ω</b> constante (la tensión apunta al orificio) · m₂ quieta si m₁v₀²/r₀ = m₂g`; return; }
+  const s=s8(), k=Math.min(w,h-30)/(2.3*P.L), cx=w/2, cy=h/2+8;
+  const pts=[]; const st=Math.max(1,Math.floor((S.t/DT)/600)); for(let i=0;i<=Math.min(tr.T.length-1,S.t/DT);i+=st) pts.push([cx+tr.R[i]*Math.cos(tr.F[i])*k,cy-tr.R[i]*Math.sin(tr.F[i])*k]); line(ctx,pts,C.sys,1.3,null,0.6);
+  ctx.beginPath(); ctx.arc(cx,cy,P.L*k,0,7); ctx.strokeStyle=C.faint; ctx.setLineDash([2,4]); ctx.lineWidth=1; ctx.stroke(); ctx.beginPath(); ctx.arc(cx,cy,s.r*k,0,7); ctx.strokeStyle=C.v; ctx.stroke(); ctx.setLineDash([]);
+  const x1=cx+q.r*Math.cos(q.f)*k, y1=cy-q.r*Math.sin(q.f)*k, r2=P.L-q.r, x2=cx, y2=cy+r2*k; line(ctx,[[x1,y1],[cx,cy],[x2,y2]],C.muted,1.5); dot(ctx,cx,cy,5,C.fg,true); txt(ctx,'O',cx-14,cy-6,C.fg,{size:11.5});
+  dot(ctx,x1,y1,7+2*Math.cbrt(P.m1),C.sys); dot(ctx,x2,y2,7+2*Math.cbrt(P.m2),C.sob); txt(ctx,'m₁',x1+12,y1-8,C.sys,{size:11.5}); txt(ctx,'m₂',x2+12,y2+4,C.sob,{size:11.5});
+  txt(ctx,`t = ${cm(q.t,2)} s · desde arriba${tr.fin==='tope'&&S.t>=tEnd()?' · m₂ llegó al anillo':''}`,12,18,C.muted,{size:11.5});
+  readout([['r₁',cm(q.r,3)+' m',C.sys],['ω₁',cm(q.w,3)+' rad/s'],['ω₂','0 (no gira)',C.sob],['ṙ₁',cm(q.v,3)+' m/s',C.ok],[`ṙ₁ en d = ${cm(P.dd,2)} L`,cm(s.rd,4)+' m/s',C.v]]);
+  $('formula').innerHTML=`<b>cada tensión apunta a O:</b> m₁r₁²ω₁ y m₂r₂²ω₂ se conservan por separado → m₂ (que arranca quieta) nunca gira · r₁ + r₂ = L · (m₁ + m₂) r̈₁ = m₁ r₁ ω₁²`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,wd||2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function samp(f,a,b,N=300){ return Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; }); }
+function drawV1(){ const tr=traj(), te=tEnd(), q=at(Math.min(S.t,te)), st=Math.max(1,Math.floor(tr.T.length/1500));
+  if(SY==='p6'){ const Z=[], W=[]; for(let i=0;i<tr.T.length;i+=st){ Z.push([tr.T[i],P.r0-tr.R[i]]); W.push([tr.T[i],tr.h/tr.R[i]**2/10]); }
+    plot('p1c',0,te,[[Z,C.sob],[W,C.sys,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(q.t),Y(P.r0-q.r),4.5,C.sob); }});
+    const s=s6(); $('tag1').textContent='z(t): lo que bajó m₂ (m) · ω de m₁ (en 10 rad/s)'; legend('leg1',[[C.sob,'z(t)'],[C.sys,'ω/10','dashed']]);
+    $('cap1').textContent=Math.abs(P.v0-s.vc)<0.005?'Con v₀ igual a la velocidad circular, m₂ queda quieta y m₁ gira en una circunferencia.':`m₂ sube y baja: el radio oscila alrededor del de la órbita circular con este L, r_c = ${cm(s.rc,3)} m, con un período de ${cm(s.Tr,3)} s para oscilaciones chicas (inciso e).`; return; }
+  const R=[], W=[]; for(let i=0;i<tr.T.length;i+=st){ R.push([tr.T[i],tr.R[i]]); W.push([tr.T[i],tr.h/tr.R[i]**2]); }
+  plot('p1c',0,te,[[R,C.sys],[W,C.v,[5,4]],[samp(()=>P.L,0,te),C.faint,[2,3]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(q.t),Y(q.r),4.5,C.sys); dot(ctx,X(q.t),Y(q.w),4.5,C.v); }});
+  $('tag1').textContent='r₁ (m) y ω₁ (rad/s)'; legend('leg1',[[C.sys,'r₁(t)'],[C.v,'ω₁(t)','dashed'],[C.faint,'L','dotted']]);
+  $('cap1').textContent='m₁ se aleja de O todo el tiempo: la soga le da la fuerza centrípeta, pero menor que la que necesitaría para seguir en círculo, porque también acelera a m₂. Al alejarse, ω₁ = L v₀/(2 r₁²) baja. Termina cuando m₂ llega al anillo.'; }
+function drawV2(){ const tr=traj(), q=at(Math.min(S.t,tEnd()));
+  if(SY==='p6'){ const s=s6(), a=Math.max(0.03,Math.min(...tr.R)*0.5), b=Math.min(3*P.r0,Math.max(...tr.R)*1.6), E=tr.E;
+    plot('p2c',a,b,[[samp(Ueff,a,b),C.v],[samp(()=>E,a,b),C.fg,[6,4]]],'r (m)',{y0:Math.min(Ueff(s.rc),E)-0.5,y1:E+Math.max(1,(E-Ueff(s.rc))*1.5),mark:(ctx,X,Y)=>{ dot(ctx,X(q.r),Y(Ueff(q.r)),5,C.sys); line(ctx,[[X(s.rc),Y(-1e9)],[X(s.rc),Y(1e9)]],C.faint,1,[2,3]); }});
+    $('tag2').textContent='Potencial efectivo U(r) = L²/2m₁r² + m₂ g (r − r₀) (J)'; legend('leg2',[[C.v,'U_ef'],[C.fg,'E','dashed']]);
+    $('cap2').textContent=`d) m₂ queda quieta si E coincide con el mínimo de U_ef, en r = r₀: L²/(m₁r₀³) = m₂g, que es la condición de a). e) Cerca del mínimo, el radio oscila con ω_r = √(3m₂g/((m₁ + m₂)r_c)) = ${cm(s.wr,3)} rad/s, mientras m₁ gira con ω = ${cm(s.wf,3)} rad/s. Como no son múltiplos simples, la órbita es una roseta que no se cierra.`; return; }
+  const f=r=>sq(Math.max(0,P.m1*P.v0*P.v0*(1-(P.L/(2*r))**2)/(P.m1+P.m2))), s=s8();
+  plot('p2c',P.L/2,P.L,[[samp(f,P.L/2,P.L),C.ok]],'r₁ (m)',{y0:0,mark:(ctx,X,Y)=>{ const pts=[]; for(let i=0;i<tr.T.length;i+=Math.max(1,Math.floor(tr.T.length/25))) dot(ctx,X(tr.R[i]),Y(tr.V[i]),3,C.sys); dot(ctx,X(s.r),Y(s.rd),5,C.v); }});
+  $('tag2').textContent='Velocidad radial de m₁ (m/s) según r₁'; legend('leg2',[[C.ok,'energía + L'],[C.sys,'simulación']]);
+  $('cap2').textContent=`c) Con d = ${cm(P.dd,3)} L, ṙ₁ = ${cm(s.rd,4)} m/s. La guía pide d = 3L/2, imposible porque la soga mide L; la página usa 3L/4. Con masas iguales, ṙ₁ = v₀√(5/18) ≈ 0,527 v₀.`; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p6:{ q:'Si v₀ es mayor que la necesaria para que m₂ quede quieta, al principio m₂…',
+    opts:[['baja','baja'],['quieta','queda quieta'],['sube','sube']], right:'sube', go:'Probalo',
+    run(){ P.v0=2.6; restart(); setView('v1'); refresh(); return 'Sube: la tensión m₂g no alcanza para curvar la trayectoria de m₁, que se aleja del orificio y tira de m₂ hacia arriba. Después vuelve: el radio oscila.'; } },
+  p8:{ q:'Mientras m₁ gira, m₂…',
+    opts:[['gira','también gira alrededor de O'],['radial','se mueve en línea recta hacia O'],['quieta','queda quieta']], right:'radial', go:'Probalo',
+    run(){ restart(); return 'Se mueve en línea recta hacia O: sobre m₂ solo actúa la tensión, que apunta a O. Su impulso angular respecto de O se conserva y era cero, así que nunca gira.'; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p6:[
+    {txt:'Con m₁ = m₂ = 1 kg y r₀ = 0,5 m, elegí v₀ para que m₂ quede quieta (que z no pase de 2 mm).',
+     chk(){ if(P.m1!==1||P.m2!==1||P.r0!==0.5) return [false,'Primero poné m₁ = m₂ = 1 kg y r₀ = 0,5 m']; const tr=traj(), z=Math.max(...tr.R.map(r=>Math.abs(r-P.r0))); return z<=0.002?[true,`Logrado: v₀ = ${cm(P.v0,2)} m/s. Exacto: v₀ = √(m₂gr₀/m₁) = 2,21 m/s.`]:[false,`Ahora z llega a ${cm(z*1000,1)} mm`]; }},
+    {txt:'¿Qué tendría que pasar con m₁ y m₂ para que la órbita de m₁ se cierre después de una vuelta?'},
+  ],
+  p8:[
+    {txt:'Con m₁ = 1 kg y v₀ = 2 m/s, elegí m₂ para que la velocidad radial de m₁ en d = 3L/4 sea 1 m/s (±1 %).',
+     chk(){ if(P.m1!==1||P.v0!==2||Math.abs(P.dd-0.75)>1e-9) return [false,'Primero poné m₁ = 1 kg, v₀ = 2 m/s y d/L = 0,75']; const v=s8().rd; return Math.abs(v-1)<=0.01?[true,`Logrado: m₂ = ${cm(P.m2,2)} kg. Exacto: 4·(5/9)/(1 + m₂) = 1 → m₂ = 11/9 = 1,22 kg.`]:[false,`Ahora ṙ₁ = ${cm(v,3)} m/s`]; }},
+    {txt:'¿Se conserva la cantidad de movimiento del sistema? ¿Quién hace fuerza sobre la soga en el anillo?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p6'){ const s=s6(); return {title:'Mesa con orificio', finLbl:'Condición y frecuencia radial', steps:[
+    ['a) m₂ en reposo: T = m₂g. Para m₁ en una circunferencia de radio r₀, T es la centrípeta', `\\[m_1\\frac{v_0^2}{r_0}=m_2g\\ \\Rightarrow\\ v_0=\\sqrt{\\frac{m_2gr_0}{m_1}}=${tx(s.vc,3)}\\ \\text{m/s}\\]`],
+    ['b) La tensión sobre m₁ apunta al orificio: L = m₁r²ω se conserva. Hilo ideal y sin rozamiento: se conserva la energía de m₁ + m₂', `\\[L=m_1r_0v_0=${tx(P.m1*s.h,4)},\\qquad E=\\tfrac12(m_1+m_2)\\dot r^2+\\frac{L^2}{2m_1r^2}+m_2g\\,r\\]`],
+    ['c) Cuando m₂ bajó d, r = r₀ − d', isFinite(s.rd)?`\\[v_t=\\frac{r_0v_0}{r}=${tx(s.vt,3)},\\quad |\\dot r|=|v_2|=${tx(-s.rd,3)}\\ \\text{m/s},\\quad \\beta=${tx(s.beta,2)}^\\circ\\ \\text{(entre }\\vec v_1\\text{ y el hilo)}\\]`:`\\[\\text{con estos valores m₂ no llega a bajar }d\\]`],
+    ['d) Potencial efectivo; mínimo en r_c', `\\[U_{ef}=\\frac{L^2}{2m_1r^2}+m_2g\\,r,\\qquad \\frac{L^2}{m_1r_c^3}=m_2g\\ \\Rightarrow\\ r_c=${tx(s.rc,3)}\\ \\text{m}\\]`],
+    ['e) Pequeñas oscilaciones radiales (masa total m₁ + m₂ en la dirección radial)', `\\[\\omega_r=\\sqrt{\\frac{3m_2g}{(m_1+m_2)\\,r_c}}=${tx(s.wr,3)},\\quad T_r=${tx(s.Tr,3)}\\ \\text{s},\\quad \\dot\\varphi=${tx(s.wf,3)}\\ \\text{rad/s}\\]`,true],
+  ], fin:`\\[\\frac{\\omega_r}{\\dot\\varphi}=\\sqrt{\\frac{3m_1}{m_1+m_2}}=${tx(s.wr/s.wf,3)}\\]`}; }
+  const s=s8(); return {title:'Soga por un anillo', finLbl:'Velocidad radial de m₁', steps:[
+    ['a) Sobre cada partícula la soga tira hacia O: cada impulso angular respecto de O se conserva por separado. El sistema conserva la energía (anillo sin rozamiento); p no, porque el anillo hace fuerza', `\\[L_1=m_1\\frac L2v_0,\\qquad L_2=0\\]`],
+    ['b) Velocidades de rotación', `\\[\\dot\\varphi_1=\\frac{L\\,v_0}{2r_1^2},\\qquad \\dot\\varphi_2=0\\]`],
+    ['Energía, con r₂ = L − r₁ (ṙ₂ = −ṙ₁)', `\\[\\tfrac12(m_1+m_2)\\dot r_1^2+\\tfrac12m_1r_1^2\\dot\\varphi_1^2=\\tfrac12m_1v_0^2\\]`],
+    ['c) La guía pide d = 3L/2, imposible (m₁ no puede estar a más de L de O). Con d = 3L/4', `\\[\\dot r_1=v_0\\sqrt{\\frac{m_1}{m_1+m_2}\\Big(1-\\frac{L^2}{4d^2}\\Big)}=v_0\\sqrt{\\frac{5\\,m_1}{9(m_1+m_2)}}\\]`],
+    ['Con los valores de la página', `\\[d=${tx(P.dd,3)}\\,L:\\qquad \\dot r_1=${tx(s.rd,4)}\\ \\text{m/s}\\]`,true],
+  ], fin:`\\[\\dot r_1\\big|_{3L/4}=v_0\\sqrt{\\frac{5m_1}{9(m_1+m_2)}}\\]`};
+}
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Valores de partida</span>'; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+const GUIA={p6:[['v₀ = 1,8 m/s · m₂ baja',()=>Object.assign(P,PS0.p6)],['órbita circular',()=>Object.assign(P,{v0:sq(P.m2*G0*P.r0/P.m1)})],['e · un poco más de energía',()=>Object.assign(P,{v0:1.05*sq(P.m2*G0*P.r0/P.m1)})]], p8:[['d = 3L/4',()=>Object.assign(P,PS0.p8)]]};
+const NOTE={p6:'La guía da solo símbolos: la página arranca con m₁ = m₂ = 1 kg, r₀ = 0,5 m, v₀ = 1,8 m/s y d = 5 cm. A la derecha, m₂ colgando. La circunferencia punteada es la órbita circular con este L.', p8:'La guía da solo símbolos: la página arranca con m₁ = m₂ = 1 kg, L = 1 m y v₀ = 2 m/s. La circunferencia de puntos marca d; la exterior, la distancia máxima L.'};
+const VB={p6:['z(t) y ω','Potencial efectivo'],p8:['r₁ y ω₁','ṙ₁ según r₁']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]);
+  DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]);
+  $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p6',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

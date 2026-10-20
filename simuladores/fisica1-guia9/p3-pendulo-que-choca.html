@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Péndulo que choca G9-P3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 9 · Teoremas de conservación</span>
+  <h1>Péndulo que choca <i>· la energía baja la masa, el choque reparte la cantidad de movimiento</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 9">
+    <h2>Guía 9</h2>
+    <ol>
+      <li><a href="p1-choques-elasticos.html"><b class="code">P1, 2</b>Choques elásticos</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P3</b>Péndulo que choca</a></li>
+      <li><a href="p4-osciladores-que-giran.html"><b class="code">P4, 7, 10</b>Osciladores que giran</a></li>
+      <li><a href="p5-varilla-en-el-plano.html"><b class="code">P5</b>Varilla en el plano</a></li>
+      <li><a href="p6-mesa-con-orificio.html"><b class="code">P6, 8</b>Mesa con orificio</a></li>
+      <li><a href="p9-choque-con-barra.html"><b class="code">P9</b>Choque con barra</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:320px" aria-label="Dos péndulos de igual longitud: el primero se suelta desde un ángulo, choca elásticamente con el segundo en el punto más bajo y los dos suben hasta sus alturas máximas."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Velocidades y alturas</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Según m₁/m₂</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G9-P3</summary>
+      <p><b>3.</b> Una masa m₁ se halla atada al extremo de una cuerda inextensible de longitud L y masa despreciable. Cuando la cuerda forma un ángulo α con la vertical se suelta la masa m₁ con velocidad nula. Al pasar por el punto más bajo de la trayectoria la masa m₁ choca elásticamente con una masa m₂ que cuelga de una cuerda igual a la anterior y que se halla inicialmente en reposo.</p>
+      <p>a) Calcular la velocidad de ambas masas un instante después del choque.<br>b) Calcular la altura máxima alcanzada por ambas masas después del choque.<br>c) Discutir los resultados anteriores para los casos: m₁ &gt;&gt; m₂, m₁ = m₂ y m₁ &lt;&lt; m₂.</p>
+      <p class="src">Física 1, Guía 9 (Teoremas de conservación). Enunciado textual de la guía. La guía da solo símbolos: la página elige valores de partida. g = 9,8 m/s². El ángulo α llega hasta 40°: así ninguna masa sube más que L y las cuerdas siguen tensas (con α mayor que 41,4° y m₁ ≫ m₂, m₂ pasaría la horizontal y la cuerda se aflojaría).</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Soluciones analíticas exactas para velocidades y alturas; el movimiento de los péndulos se integra numéricamente (Runge-Kutta, paso 0,001 s), sin aproximar sen θ ≈ θ. Colores: celeste, m₁; rosa, m₂; amarillo, las alturas.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G9-P3 · Péndulo que choca =================
+const G0=9.8, sq=Math.sqrt;
+const DEF=[
+  {id:'m1',lab:'m₁',unit:'kg',min:0.05,max:10,step:0.05,dec:2},
+  {id:'m2',lab:'m₂',unit:'kg',min:0.05,max:10,step:0.05,dec:2},
+  {id:'L',lab:'L',unit:'m',min:0.2,max:3,step:0.01,dec:2},
+  {id:'al',lab:'α',unit:'°',min:2,max:40,step:0.5,dec:1},
+];
+const P0={m1:2,m2:1,L:1,al:30}, P={...P0};
+function sol(){ const h=P.L*(1-Math.cos(rad(P.al))), v=sq(2*G0*h), M=P.m1+P.m2, w1=(P.m1-P.m2)/M*v, w2=2*P.m1/M*v, h1=w1*w1/(2*G0), h2=w2*w2/(2*G0);
+  return {h,v,w1,w2,h1,h2,a1:deg(Math.acos(1-h1/P.L)),a2:deg(Math.acos(1-h2/P.L))}; }
+// péndulo: θ″ = −(g/L) sen θ, de θ₀ con ω₀, durante tmax
+function swing(th,w,tmax){ const k=G0/P.L, dt=0.001, T=[0], TH=[th]; let t=0; const acc=x=>-k*Math.sin(x);
+  while(t<tmax){ const k1t=w, k1w=acc(th), k2t=w+dt/2*k1w, k2w=acc(th+dt/2*k1t), k3t=w+dt/2*k2w, k3w=acc(th+dt/2*k2t), k4t=w+dt*k3w, k4w=acc(th+dt*k3t);
+    th+=dt/6*(k1t+2*k2t+2*k3t+k4t); w+=dt/6*(k1w+2*k2w+2*k3w+k4w); t+=dt; T.push(t); TH.push(th); } return TH; }
+let __c=null;
+function anim(){ const s=sol(), key=[P.m1,P.m2,P.L,P.al].join(); if(__c&&__c.key===key) return __c;
+  // bajada de m₁ (θ negativo: m₁ viene desde la izquierda) hasta θ = 0
+  const k=G0/P.L, dt=0.001; let th=-rad(P.al), w=0, t=0; const D=[th]; while(th<0&&t<20){ const k1t=w, k1w=-k*Math.sin(th), k2t=w+dt/2*k1w, k2w=-k*Math.sin(th+dt/2*k1t), k3t=w+dt/2*k2w, k3w=-k*Math.sin(th+dt/2*k2t), k4t=w+dt*k3w, k4w=-k*Math.sin(th+dt*k3t);
+    th+=dt/6*(k1t+2*k2t+2*k3t+k4t); w+=dt/6*(k1w+2*k2w+2*k3w+k4w); t+=dt; D.push(Math.min(th,0)); }
+  const t1=t, tu=2.36*sq(P.L/G0), A=swing(0,s.w1/P.L,tu), B=swing(0,s.w2/P.L,tu);
+  return __c={key,D,t1,A,B,tu,wbot:w}; }
+function state(t){ const c=anim(); if(t<c.t1) return {th1:c.D[Math.min(c.D.length-1,Math.round(t/0.001))],th2:0,pre:true};
+  const i=Math.min(c.A.length-1,Math.round((t-c.t1)/0.001)); return {th1:c.A[i],th2:c.B[i],pre:false}; }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ const c=anim(); return c.t1+c.tu; }
+function step(dt){ S.t+=dt; if(S.t>tEnd()+0.5) S.t=0; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const s=sol(), q=state(Math.min(S.t,tEnd())), k=Math.min((h-60)/P.L,(w-60)/(2.2*P.L*Math.sin(rad(70)))), r1=6+3*Math.cbrt(P.m1), r2=6+3*Math.cbrt(P.m2), cx=w/2, oy=28;
+  const o1=[cx-r1,oy], o2=[cx+r2,oy]; line(ctx,[[cx-P.L*k*0.9,oy],[cx+P.L*k*0.9,oy]],C.line,2);
+  const p=(o,th)=>[o[0]+P.L*k*Math.sin(th),o[1]+P.L*k*Math.cos(th)];
+  // alturas: inicial y máximas
+  const yb=oy+P.L*k; [[s.h,C.faint,'h'],[s.h1,C.sys,'h₁'],[s.h2,C.sob,'h₂']].forEach(([hh,col,l],i)=>{ const y=yb-hh*k; line(ctx,[[cx-P.L*k*0.95,y],[cx+P.L*k*0.95,y]],col,1,[3,4],0.6); txt(ctx,l,i===2?cx+P.L*k*0.95+4:cx-P.L*k*0.95-4,y+4,col,{align:i===2?'left':'right',size:11}); });
+  const a=p(o1,q.th1), b=p(o2,q.th2); line(ctx,[o1,a],C.muted,1.5); line(ctx,[o2,b],C.muted,1.5); dot(ctx,a[0],a[1],r1,C.sys); dot(ctx,b[0],b[1],r2,C.sob);
+  txt(ctx,q.pre?'m₁ baja desde α':'después del choque',12,18,C.muted,{size:11.5});
+  readout([['v₁ al llegar abajo',cm(s.v,3)+' m/s'],['v₁′',cm(s.w1,3)+' m/s',C.sys],['v₂′',cm(s.w2,3)+' m/s',C.sob],['alturas h₁ · h₂',`${cm(s.h1*100,2)} · ${cm(s.h2*100,2)} cm`,C.v]]);
+  $('formula').innerHTML=`<b>bajada:</b> v₁ = √(2gL(1 − cos α)) · <b>choque elástico (P1 con v₂ = 0):</b> v₁′ = (m₁ − m₂)v₁/(m₁ + m₂), v₂′ = 2m₁v₁/(m₁ + m₂) · <b>subida:</b> h = v′²/2g`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,xf:o.xf}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,wd||2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function samp(f,a,b,N=300){ return Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; }); }
+function bars(id,items,d=2){ const m=Math.max(1e-9,...items.map(i=>Math.abs(i[1])))*1.25, F=frame($(id),{x0:0,x1:items.length,y0:-m,y1:m,xt:[]}); const {ctx,X,Y}=F;
+  items.forEach(([l,v,c],i)=>{ const x=X(i+0.5); ctx.fillStyle=c; ctx.fillRect(x-16,Math.min(Y(0),Y(v)),32,Math.max(1,Math.abs(Y(v)-Y(0)))); txt(ctx,l,x,Y(-m)+2,c,{align:'center',base:'top',size:11.5,font:UI}); txt(ctx,cm(v,d),x,v>=0?Y(v)-6:Y(v)+14,C.fg,{align:'center',size:11}); }); line(ctx,[[X(0),Y(0)],[X(items.length),Y(0)]],C.muted,1.2); }
+function drawV1(){ const s=sol(); bars('p1c',[['v₁',s.v,C.faint],['v₁′',s.w1,C.sys],['v₂′',s.w2,C.sob],['h/h₀ de m₁',s.h1/s.h,C.sys],['h/h₀ de m₂',s.h2/s.h,C.sob]],3);
+  $('tag1').textContent='Velocidades (m/s, + hacia m₂) y alturas relativas a la inicial'; legend('leg1',[]);
+  $('cap1').textContent=`m₂ sube a ${cm(s.h2/s.h,3)} veces la altura desde la que se soltó m₁, y m₁ a ${cm(s.h1/s.h,3)}${s.w1<0?' (rebota hacia atrás)':''}. Las dos fracciones suman 1 si se pesan con las masas: h₁m₁ + h₂m₂ = h m₁, porque la energía se conserva.`; }
+function drawV2(){ const s=sol(), f1=r=>((r-1)/(r+1))**2, f2=r=>(2*r/(r+1))**2, lr=Math.log10(P.m1/P.m2);
+  plot('p2c',-2,2,[[samp(x=>f1(10**x),-2,2),C.sys],[samp(x=>f2(10**x),-2,2),C.sob]],'m₁/m₂',{y0:0,y1:4.2,xt:[-2,-1,0,1,2],xf:v=>v===0?'1':v>0?'10'+(v===1?'':'²'):'10⁻'+(v===-1?'¹':'²'),mark:(ctx,X,Y)=>{ if(lr>=-2&&lr<=2){ dot(ctx,X(lr),Y(s.h1/s.h),4.5,C.sys); dot(ctx,X(lr),Y(s.h2/s.h),4.5,C.sob); } line(ctx,[[X(-2),Y(1)],[X(2),Y(1)]],C.faint,1,[3,4]); }});
+  $('tag2').textContent='Altura máxima / altura inicial, según m₁/m₂'; legend('leg2',[[C.sys,'m₁'],[C.sob,'m₂']]);
+  $('cap2').textContent='c) m₁ ≫ m₂: m₁ sigue casi igual y m₂ sube hasta 4 veces la altura inicial. m₁ = m₂: m₁ se detiene y m₂ sube justo a la altura inicial. m₁ ≪ m₂: m₁ rebota y vuelve a subir casi hasta su altura; m₂ casi no se mueve.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={ q:'Si m₁ es mucho más pesada que m₂, m₂ sube…',
+  opts:[['igual','hasta la altura desde la que se soltó m₁'],['doble','hasta el doble'],['cuad','hasta casi 4 veces esa altura']], right:'cuad', go:'Probalo con m₁ = 10 kg y m₂ = 0,05 kg',
+  run(){ Object.assign(P,{m1:10,m2:0.05}); restart(); refresh(); const s=sol(); return `Sube a ${cm(s.h2/s.h,2)} veces: sale casi al doble de la velocidad de m₁, y la altura va con el cuadrado de la velocidad. Por eso α está limitado: con más de 41,4° m₂ pasaría la horizontal.`; } };
+
+// ================= Desafíos =================
+const CHAL=[
+  {txt:'Con m₂ = 1 kg, elegí m₁ para que m₂ suba exactamente al doble de la altura desde la que se soltó m₁ (±1 %).',
+   chk(){ if(P.m2!==1) return [false,'Primero poné m₂ = 1 kg']; const s=sol(), r=s.h2/s.h; return Math.abs(r-2)<=0.02?[true,`Logrado: m₁ = ${cm(P.m1,2)} kg. Exacto: (2x/(1 + x))² = 2 → x = √2/(2 − √2) = 2,41.`]:[false,`Ahora h₂/h = ${cm(r,3)}`]; }},
+  {txt:'Después de subir, los péndulos vuelven a bajar y chocan de nuevo en el mismo punto. ¿Con qué velocidades salen de ese segundo choque?'},
+];
+
+// ================= Cuentas =================
+function cuentas(){ const s=sol(); return {title:'Péndulo que choca', finLbl:'Alturas máximas', steps:[
+  ['Bajada: la tensión no trabaja, se conserva la energía', `\\[v_1=\\sqrt{2gL(1-\\cos\\alpha)}=${tx(s.v,3)}\\ \\text{m/s}\\]`],
+  ['a) Choque elástico con m₂ quieta (resultados del P1)', `\\[v_1'=\\frac{m_1-m_2}{m_1+m_2}v_1=${tx(s.w1,3)},\\qquad v_2'=\\frac{2m_1}{m_1+m_2}v_1=${tx(s.w2,3)}\\ \\text{m/s}\\]`,true],
+  ['b) Cada una sube conservando su energía', `\\[h_1=\\frac{v_1'^2}{2g}=\\left(\\frac{m_1-m_2}{m_1+m_2}\\right)^2h,\\qquad h_2=\\left(\\frac{2m_1}{m_1+m_2}\\right)^2h\\]`],
+  ['Con h = L(1 − cos α)', `\\[h=${tx(s.h*100,2)},\\quad h_1=${tx(s.h1*100,2)},\\quad h_2=${tx(s.h2*100,2)}\\ \\text{cm}\\]`,true],
+  ['c) Límites', `\\[m_1\\gg m_2:\\ h_1\\to h,\\ h_2\\to4h;\\quad m_1=m_2:\\ h_1=0,\\ h_2=h;\\quad m_1\\ll m_2:\\ h_1\\to h,\\ h_2\\to0\\]`],
+], fin:`\\[h_2=\\frac{4m_1^2}{(m_1+m_2)^2}\\,L(1-\\cos\\alpha)\\]`}; }
+
+// ================= Arranque =================
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+(function(){ const el=$('guia'); el.innerHTML='<span class="lbl">Casos del inciso c</span>'; [['m₁ ≫ m₂',{m1:10,m2:0.05}],['m₁ = m₂',{m1:1,m2:1}],['m₁ ≪ m₂',{m1:0.05,m2:10}]].forEach(([l,v])=>{ const b=document.createElement('button'); b.textContent=l; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ Object.assign(P,v); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); })();
+$('note').textContent='La guía da solo símbolos: la página arranca con m₁ = 2 kg, m₂ = 1 kg, L = 1 m y α = 30°. Las líneas punteadas marcan la altura inicial h y las máximas h₁ y h₂.';
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart);
+buildPred(PRED); buildChal(CHAL); refresh();
+startLoop(step,draw);
+</script>
+</body>
+</html>

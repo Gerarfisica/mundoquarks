@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Trabajo y camino G8-P1 y P2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 8 · Trabajo y energía</span>
+  <h1>Trabajo y camino <i>· el trabajo es el área bajo la fuerza a lo largo del recorrido</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 8">
+    <h2>Guía 8</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P1, 2</b>Trabajo y camino</a></li>
+      <li><a href="p3-curvas-potencial.html"><b class="code">P3, 5, 6</b>Curvas de potencial</a></li>
+      <li><a href="p4-pendulo-grande.html"><b class="code">P4</b>Péndulo grande</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:320px" aria-label="Una partícula que va de A a B y de B a C sobre el eje x bajo tres fuerzas distintas, o un péndulo llevado de la posición más baja a la horizontal por una fuerza horizontal o tangente."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="p1" aria-pressed="true">P1 · fuerzas en una dimensión</button>
+        <button data-sy="p2" aria-pressed="false">P2 · péndulo de A a B</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Vista 1</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Vista 2</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G8-P1 y P2</summary>
+      <p><b>1.</b> Una partícula de masa m se desplaza horizontalmente desde la posición x_A = 0 hasta la posición x_B = d, y luego desde x_B hasta la posición x_C = −2d con d &gt; 0 (ver figura), bajo la acción de una fuerza F. Para los siguientes valores de F: (i) F = −kx, (ii) F = kx², (iii) F = −k|x|x, (k &gt; 0), calcule:</p>
+      <p>a) el trabajo realizado por la fuerza F entre A y B, entre B y C y entre A y C.<br>b) en el caso en que esto sea posible, la energía potencial asociada a la fuerza F. Grafíquela.</p>
+      <p><b>2.</b> Considere un cuerpo de masa m que cuelga de una cuerda de longitud L y masa despreciable, cuyo otro extremo se halla fijo al punto O. Sobre el cuerpo actúa una fuerza F = F₀ cos θ que produce su desplazamiento desde el punto A hasta el punto B (ver figura, θ es el ángulo con respecto a la dirección OA). (En la figura, A está debajo de O y B a la altura de O, a 90°.)</p>
+      <p>a) Calcular, utilizando coordenadas polares, el trabajo ejercido por la fuerza F para elevar la masa desde A hasta B, en los casos en que:<br>i. F es una fuerza horizontal.<br>ii. F es una fuerza tangente a la trayectoria.<br>b) Repetir el cálculo en el caso de que la partícula recorra el camino en sentido inverso (desde B hasta A). Compare con el valor obtenido en a).</p>
+      <p class="src">Física 1, Guía 8 (Trabajo y energía). Enunciado textual de la guía; entre paréntesis, lo que muestran las figuras. La guía da solo símbolos: la página elige valores de partida. En el P2 la fuerza tangente apunta siempre hacia B, como en la figura, también en el camino de vuelta. g = 9,8 m/s².</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Soluciones analíticas exactas. La escena recorre el camino a ritmo constante: el trabajo de una fuerza depende solo de la fuerza y del camino, no de cómo se lo recorre. Colores: celeste, la partícula; verde, la fuerza F y el trabajo positivo; rojo, el trabajo negativo; amarillo, la energía potencial; lila, el peso.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G8-P1 y P2 · Trabajo y camino =================
+const G0=9.8;
+const DEF=[
+  {id:'k',lab:'k',unit:'N/mⁿ',min:0.1,max:10,step:0.1,dec:1},
+  {id:'d',lab:'d',unit:'m',min:0.2,max:3,step:0.05,dec:2},
+  {id:'m',lab:'m',unit:'kg',min:0.1,max:5,step:0.1,dec:1},
+  {id:'L',lab:'L',unit:'m',min:0.2,max:3,step:0.05,dec:2},
+  {id:'F0',lab:'F₀',unit:'N',min:0,max:50,step:0.1,dec:1},
+];
+const PS={p1:{k:2,d:1,fz:1}, p2:{m:1,L:1,F0:20,caso:1,dir:1}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p1:['k','d'],p2:['m','L','F0']};
+const P=Object.assign({},PS.p2,PS.p1); let SY='p1';
+const FN=['','F = −kx','F = kx²','F = −k|x|x'], UN=['','N/m','N/m²','N/m²'];
+
+// ---- P1 ----
+const F1=x=>P.fz===1?-P.k*x:P.fz===2?P.k*x*x:-P.k*Math.abs(x)*x;
+const V1=x=>P.fz===1?P.k*x*x/2:P.fz===2?-P.k*x*x*x/3:P.k*Math.abs(x)**3/3;
+const W1=(a,b)=>V1(a)-V1(b);
+const TA=1.5, TB=6;      // A→B en 1,5 s y B→C hasta los 6 s
+function x1(t){ if(t<=TA) return P.d*t/TA; if(t<=TB) return P.d-3*P.d*(t-TA)/(TB-TA); return -2*P.d; }
+function Wacc1(t){ const x=x1(t); return t<=TA?W1(0,x):W1(0,P.d)+W1(P.d,x); }
+// ---- P2: θ desde OA; x hacia B, y hacia arriba; posición (L sen θ, −L cos θ) ----
+const TP=4;
+const th2=t=>{ const u=Math.min(Math.max(t/TP,0),1); return P.dir>0?u*Math.PI/2:(1-u)*Math.PI/2; };
+const Fdot=th=>P.caso===1?P.F0*Math.cos(th)**2:P.F0*Math.cos(th);           // F·e_θ (e_θ hacia B)
+const Wida=th=>P.caso===1?P.F0*P.L*(th/2+Math.sin(2*th)/4):P.F0*P.L*Math.sin(th);   // de A (0) a θ
+const WidaOtro=th=>P.caso===1?P.F0*P.L*Math.sin(th):P.F0*P.L*(th/2+Math.sin(2*th)/4);
+const Wacc2=t=>{ const th=th2(t); return P.dir>0?Wida(th):Wida(th)-Wida(Math.PI/2); };
+const Wg2=t=>{ const th=th2(t); return P.dir>0?-P.m*G0*P.L*(1-Math.cos(th)):P.m*G0*P.L*Math.cos(th); };
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return SY==='p1'?TB:TP; }
+function step(dt){ S.t+=dt; if(S.t>tEnd()+1.2) S.t=0; }
+function lbl(ctx,s,x,y,col,al='center'){ txt(ctx,s,x,y,col,{align:al,size:11.5}); }
+function drawP1(ctx,w,h){ const t=Math.min(S.t,TB), x=x1(t), k=(w-60)/(3.6*P.d), X=v=>30+(v+2.3*P.d)*k, ay=h*0.55;
+  line(ctx,[[20,ay],[w-14,ay]],C.muted,1.5); arrow(ctx,w-30,ay,w-12,ay,C.muted,1.5,7); txt(ctx,'x',w-14,ay-8,C.muted,{size:11});
+  [['C',-2*P.d],['A',0],['B',P.d]].forEach(([n,v])=>{ line(ctx,[[X(v),ay-6],[X(v),ay+6]],C.fg,1.5); lbl(ctx,n,X(v),ay-14,C.fg); lbl(ctx,(v===0?'0':cm(v,2))+' m',X(v),ay+22,C.faint); });
+  // camino recorrido
+  if(t>0){ const yA=ay-34; line(ctx,[[X(0),yA],[X(t<=TA?x:P.d),yA]],C.sys,2,[4,3],0.7); if(t>TA) line(ctx,[[X(P.d),yA-8],[X(x),yA-8]],C.sys,2,[4,3],0.7); }
+  const F=F1(x), fk=Math.min(70,w*0.15)/Math.max(Math.abs(F1(-2*P.d)),Math.abs(F1(P.d)),1e-9);
+  dot(ctx,X(x),ay,9,C.sys); if(Math.abs(F)>1e-9){ arrow(ctx,X(x),ay+40,X(x)+F*fk,ay+40,C.ok,2.4,8); lbl(ctx,'F',X(x)+F*fk/2,ay+58,C.ok); }
+  const W=Wacc1(t); txt(ctx,`${FN[P.fz]} · t = ${cm(t,2)} s · ${t<=TA?'de A a B':t<TB?'de B a C':'llegó a C'}`,12,18,C.muted,{size:11.5});
+  readout([['W de A a B',cm(W1(0,P.d),3)+' J'],['W de B a C',cm(W1(P.d,-2*P.d),3)+' J'],['W de A a C',cm(W1(0,-2*P.d),3)+' J',C.v],['W acumulado',cm(W,3)+' J',W>=0?C.ok:C.a]]);
+  $('formula').innerHTML=`<b>trabajo:</b> W = ∫ F dx · con F = F(x) existe V(x) = −∫F dx y W(1→2) = V(1) − V(2): el trabajo por A→B→C es igual al de A→C directo`; }
+function drawP2(ctx,w,h){ const t=Math.min(S.t,TP), th=th2(t), k=Math.min((h-60),(w-60)*0.55)/P.L, ox=w*0.28, oy=34, X=v=>[ox+v[0]*k,oy-v[1]*k];
+  line(ctx,[[ox-20,oy],[ox+P.L*k+30,oy]],C.line,1,[3,4]); dot(ctx,ox,oy,4,C.fg); lbl(ctx,'O',ox-12,oy+4,C.fg);
+  const arc=[]; for(let i=0;i<=40;i++){ const a=Math.PI/2*i/40; arc.push(X([P.L*Math.sin(a),-P.L*Math.cos(a)])); } line(ctx,arc,C.faint,1,[3,4]);
+  const pA=X([0,-P.L]), pB=X([P.L,0]); dot(ctx,pA[0],pA[1],3,C.fg); lbl(ctx,'A',pA[0]-12,pA[1]+4,C.fg); dot(ctx,pB[0],pB[1],3,C.fg); lbl(ctx,'B',pB[0]+10,pB[1]-8,C.fg);
+  const p=X([P.L*Math.sin(th),-P.L*Math.cos(th)]); line(ctx,[[ox,oy],p],C.muted,1.5);
+  const Fm=P.F0*Math.cos(th), fk=60/Math.max(P.F0,1e-9), dirv=P.caso===1?[1,0]:[Math.cos(th),Math.sin(th)];
+  if(Fm>1e-6){ arrow(ctx,p[0],p[1],p[0]+dirv[0]*Fm*fk,p[1]-dirv[1]*Fm*fk,C.ok,2.4,8); lbl(ctx,'F',p[0]+dirv[0]*Fm*fk+10,p[1]-dirv[1]*Fm*fk-6,C.ok); }
+  arrow(ctx,p[0],p[1],p[0],p[1]+Math.min(50,P.m*G0*fk),C.lin,2,7); dot(ctx,p[0],p[1],9,C.sys);
+  txt(ctx,`${P.caso===1?'i · F horizontal':'ii · F tangente'} · ${P.dir>0?'de A a B':'de B a A'} · θ = ${cm(deg(th),1)}°`,12,18,C.muted,{size:11.5});
+  const Wt=P.dir>0?Wida(Math.PI/2):-Wida(Math.PI/2);
+  readout([['W de F en todo el camino',cm(Wt,3)+' J',Wt>=0?C.ok:C.a],['W de F acumulado',cm(Wacc2(t),3)+' J'],['W del peso acumulado',cm(Wg2(t),3)+' J',C.lin],['F·e_θ ahora',cm(Fdot(th),3)+' N']]);
+  $('formula').innerHTML=`<b>polares:</b> ds = L dθ e_θ → W = ∫ F·e_θ L dθ · (i) F·e_θ = F₀cos²θ → W = πF₀L/4 · (ii) F·e_θ = F₀cos θ → W = F₀L`; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); (SY==='p1'?drawP1:drawP2)(ctx,w,h); }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt}); const {ctx,X,Y}=F; F.clip(); if(o.under) o.under(ctx,X,Y); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const samp=(f,a,b,N=300)=>Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; });
+// área bajo f entre a y b, verde si el trabajo es positivo (según el sentido s del recorrido), roja si es negativo
+function area(ctx,X,Y,f,a,b,s,dy=0){ const lo=Math.min(a,b), hi=Math.max(a,b), N=120; for(let i=0;i<N;i++){ const x0=lo+(hi-lo)*i/N, x1=lo+(hi-lo)*(i+1)/N, y=f((x0+x1)/2); ctx.fillStyle=y*s>=0?C.ok:C.a; ctx.globalAlpha=0.28; ctx.fillRect(X(x0),Math.min(Y(0),Y(y))+dy,X(x1)-X(x0),Math.abs(Y(y)-Y(0))); } ctx.globalAlpha=1; }
+function drawV1(){
+  if(SY==='p1'){ const t=Math.min(S.t,TB), x=x1(t), a=-2.3*P.d, b=1.3*P.d;
+    plot('p1c',a,b,[[samp(F1,a,b),C.ok]],'x (m)',{under:(ctx,X,Y)=>{ area(ctx,X,Y,F1,0,Math.min(x1(Math.min(t,TA)),P.d),1); if(t>TA) area(ctx,X,Y,F1,P.d,x,-1); },
+      mark:(ctx,X,Y)=>{ dot(ctx,X(x),Y(F1(x)),4.5,C.sys); [[0,'A'],[P.d,'B'],[-2*P.d,'C']].forEach(([v,n])=>txt(ctx,n,X(v),Y(0)-6,C.fg,{align:'center',size:11})); }});
+    $('tag1').textContent=`Fuerza (N) según x · ${FN[P.fz]}`; legend('leg1',[[C.ok,'F(x)']]);
+    $('cap1').textContent=`El trabajo es el área bajo F(x) recorrida en el sentido del movimiento: verde suma, roja resta. De B a C se vuelve a pasar por [0, d] en sentido contrario y esa parte se cancela, así que W_AC = ${cm(W1(0,-2*P.d),3)} J, igual que yendo directo de A a C.`; return; }
+  const t=Math.min(S.t,TP), th=deg(th2(t)), Wt=Wida(Math.PI/2);
+  const sel=d=>P.dir>0?Wida(rad(d)):Wida(rad(d))-Wt, oth=d=>P.dir>0?WidaOtro(rad(d)):WidaOtro(rad(d))-WidaOtro(Math.PI/2), gw=d=>P.dir>0?-P.m*G0*P.L*(1-Math.cos(rad(d))):P.m*G0*P.L*Math.cos(rad(d));
+  plot('p1c',0,90,[[samp(sel,0,90),C.ok],[samp(oth,0,90),C.ok,[5,4]],[samp(gw,0,90),C.lin]],'θ (°)',{xt:[0,15,30,45,60,75,90],mark:(ctx,X,Y)=>{ dot(ctx,X(th),Y(sel(th)),4.5,C.ok); }});
+  $('tag1').textContent=P.dir>0?'Trabajo acumulado desde A (J)':'Trabajo acumulado desde B (J), según θ'; legend('leg1',[[C.ok,P.caso===1?'F horizontal':'F tangente'],[C.ok,P.caso===1?'F tangente':'F horizontal','dashed'],[C.lin,'peso']]);
+  $('cap1').textContent=P.dir>0?`De A a B la fuerza horizontal hace πF₀L/4 = ${cm(Math.PI*P.F0*P.L/4,3)} J y la tangente F₀L = ${cm(P.F0*P.L,3)} J: la horizontal aprovecha menos porque no apunta a lo largo del camino.`:`De B a A el recorrido se invierte y cada trabajo cambia de signo: la fuerza apunta hacia B y el cuerpo va hacia A.`; }
+function drawV2(){
+  if(SY==='p1'){ const a=-2.3*P.d, b=1.3*P.d;
+    plot('p2c',a,b,[[samp(V1,a,b),C.v]],'x (m)',{mark:(ctx,X,Y)=>{ [[0,'A'],[P.d,'B'],[-2*P.d,'C']].forEach(([v,n])=>{ dot(ctx,X(v),Y(V1(v)),4.5,C.v); txt(ctx,n,X(v)+8,Y(V1(v))-6,C.fg,{size:11}); }); const x=x1(Math.min(S.t,TB)); dot(ctx,X(x),Y(V1(x)),4,C.sys); }});
+    $('tag2').textContent=`Energía potencial V(x) (J) · V = ${['','kx²/2','−kx³/3','k|x|³/3'][P.fz]}`; legend('leg2',[[C.v,'V(x)']]);
+    $('cap2').textContent='Las tres fuerzas dependen solo de x: en una dimensión eso alcanza para que sean conservativas. El trabajo entre dos puntos es lo que baja V.'; return; }
+  const t=Math.min(S.t,TP), th=deg(th2(t));
+  plot('p2c',0,90,[[samp(d=>Fdot(rad(d)),0,90),C.ok]],'θ (°)',{y0:0,xt:[0,15,30,45,60,75,90],under:(ctx,X,Y)=>area(ctx,X,Y,d=>Fdot(rad(d)),P.dir>0?0:90,th,P.dir),mark:(ctx,X,Y)=>dot(ctx,X(th),Y(Fdot(rad(th))),4.5,C.ok)});
+  $('tag2').textContent='Componente de F a lo largo del camino, F·e_θ (N)'; legend('leg2',[[C.ok,'F·e_θ']]);
+  $('cap2').textContent='El trabajo es L por el área bajo F·e_θ en función de θ (en radianes). Las dos fuerzas valen F₀ en A y cero en B; la horizontal además se inclina respecto del camino, por eso F·e_θ = F₀cos²θ.'; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={
+  p1:{ q:'Con F = kx² (siempre positiva), el trabajo de A a C pasando por B es…',
+    opts:[['pos','positivo'],['neg','negativo'],['cero','cero']], right:'neg', go:'Probalo: caso ii',
+    run(){ P.fz=2; restart(); refresh(); return `Es negativo: −8kd³/3 = ${cm(W1(0,-2*P.d),3)} J. Aunque F apunte siempre hacia +x, el camino neto va hacia −x (de 0 a −2d), y el tramo de vuelta pesa más porque ahí F es mayor.`; } },
+  p2:{ q:'De A a B, comparado con la fuerza tangente (ii), el trabajo de la fuerza horizontal (i) es…',
+    opts:[['menor','menor'],['igual','igual'],['mayor','mayor']], right:'menor', go:'Probalo',
+    run(){ Object.assign(P,{caso:1,dir:1}); restart(); refresh(); return `Menor: π/4 ≈ 0,785 veces. Las dos tienen el mismo módulo F₀cos θ, pero la horizontal forma un ángulo θ con el camino y solo trabaja su componente F₀cos²θ.`; } },
+};
+
+// ================= Desafíos =================
+const CHAL={
+  p1:[
+    {txt:'Con la fuerza (i) y k = 2 N/m, elegí d para que el trabajo de A a C sea −16 J (±1 %).',
+     chk(){ if(P.fz!==1||P.k!==2) return [false,'Primero elegí la fuerza (i) y k = 2']; const W=W1(0,-2*P.d); return Math.abs(W+16)<=0.16?[true,`Logrado: d = ${cm(P.d,2)} m. Exacto: −2kd² = −16 → d = 2 m.`]:[false,`Ahora W_AC = ${cm(W,3)} J`]; }},
+    {txt:'¿Por qué en una dimensión toda fuerza que depende solo de x es conservativa? ¿Lo sería F = −b v?'},
+  ],
+  p2:[
+    {txt:'Con m = 1 kg y la fuerza tangente, elegí F₀ para que su trabajo de A a B sea igual al que hace falta para subir el cuerpo, mgL (±1 %).',
+     chk(){ if(P.caso!==2||P.dir<0||P.m!==1) return [false,'Primero elegí «ii · ida» y m = 1 kg']; const r=P.F0*P.L/(P.m*G0*P.L); return Math.abs(r-1)<=0.01?[true,`Logrado: F₀ = ${cm(P.F0,1)} N. Exacto: F₀L = mgL → F₀ = mg = 9,8 N. El cuerpo llega a B con la misma rapidez con la que salió de A.`]:[false,`Ahora W_F = ${cm(r,3)} mgL`]; }},
+    {txt:'Si en el camino de vuelta la fuerza tangente apuntara en el sentido del movimiento, ¿cuánto valdría su trabajo? ¿Sería conservativa?'},
+  ],
+};
+
+// ================= Cuentas =================
+function cuentas(){
+  if(SY==='p1'){ const Vs=['','\\tfrac12kx^2','-\\tfrac13kx^3','\\tfrac13k|x|^3'][P.fz];
+    return {title:'Fuerzas en una dimensión · '+FN[P.fz], finLbl:'Trabajo de A a C', steps:[
+    ['El trabajo en una dimensión es una integral; si F depende solo de x, tiene primitiva', `\\[W_{1\\to2}=\\int_{x_1}^{x_2}F\\,dx=V(x_1)-V(x_2),\\qquad V=${Vs}\\]`],
+    ['En general', [null,`\\[W_{AB}=-\\tfrac12kd^2,\\quad W_{BC}=-\\tfrac32kd^2,\\quad W_{AC}=-2kd^2\\]`,`\\[W_{AB}=\\tfrac13kd^3,\\quad W_{BC}=-3kd^3,\\quad W_{AC}=-\\tfrac83kd^3\\]`,`\\[W_{AB}=-\\tfrac13kd^3,\\quad W_{BC}=-\\tfrac73kd^3,\\quad W_{AC}=-\\tfrac83kd^3\\]`][P.fz]],
+    ['Con los valores de la página', `\\[W_{AB}=${tx(W1(0,P.d),3)},\\quad W_{BC}=${tx(W1(P.d,-2*P.d),3)}\\ \\text{J}\\]`],
+    ['a) W_AC = W_AB + W_BC: no depende del camino', `\\[W_{AC}=${tx(W1(0,-2*P.d),3)}\\ \\text{J}\\]`,true],
+    ['b) Las tres son conservativas; la energía potencial (con V(0) = 0) está en la vista 2', `\\[V(x)=${Vs}\\]`],
+  ], fin:`\\[W_{AC}=V(0)-V(-2d)=${tx(W1(0,-2*P.d),3)}\\ \\text{J}\\]`}; }
+  const Wi=Math.PI*P.F0*P.L/4, Wii=P.F0*P.L; return {title:'Péndulo de A a B', finLbl:'Trabajos', steps:[
+    ['En polares el desplazamiento es tangente: ds = L dθ e_θ, con e_θ = (cos θ, sen θ) apuntando hacia B', `\\[W=\\int\\vec F\\cdot d\\vec s=\\int_0^{\\pi/2}(\\vec F\\cdot\\hat\\theta)\\,L\\,d\\theta\\]`],
+    ['i) F = F₀cos θ x̂ → F·e_θ = F₀cos²θ', `\\[W_i=F_0L\\int_0^{\\pi/2}\\cos^2\\theta\\,d\\theta=\\frac{\\pi}{4}F_0L=${tx(Wi,3)}\\ \\text{J}\\]`,true],
+    ['ii) F = F₀cos θ e_θ → F·e_θ = F₀cos θ', `\\[W_{ii}=F_0L\\int_0^{\\pi/2}\\cos\\theta\\,d\\theta=F_0L=${tx(Wii,3)}\\ \\text{J}\\]`,true],
+    ['b) De B a A los límites se invierten (la fuerza sigue apuntando hacia B)', `\\[W_i^{B\\to A}=-${tx(Wi,3)},\\qquad W_{ii}^{B\\to A}=-${tx(Wii,3)}\\ \\text{J}\\]`],
+    ['El peso, en cambio, hace siempre lo mismo con signo opuesto: es conservativo', `\\[W_g^{A\\to B}=-mgL=${tx(-P.m*G0*P.L,3)}\\ \\text{J}\\]`],
+  ], fin:`\\[W_i=\\tfrac{\\pi}{4}F_0L,\\qquad W_{ii}=F_0L\\]`};
+}
+
+// ================= Arranque =================
+function guia(list){ const el=$('guia'); el.innerHTML='<span class="lbl">Casos de la guía</span>'; list.forEach(([lab,fn],i)=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed',i===0?'true':'false');
+  b.onclick=()=>{ fn(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function markGuia(){ const want=SY==='p1'?['i · F = −kx','ii · F = kx²','iii · F = −k|x|x'][P.fz-1]:`${P.caso===1?'i':'ii'} · ${P.dir>0?'ida':'vuelta'}`; document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed',x.textContent===want)); }
+const GUIA={p1:[['i · F = −kx',()=>P.fz=1],['ii · F = kx²',()=>P.fz=2],['iii · F = −k|x|x',()=>P.fz=3]],
+  p2:[['i · ida',()=>Object.assign(P,{caso:1,dir:1})],['ii · ida',()=>Object.assign(P,{caso:2,dir:1})],['i · vuelta',()=>Object.assign(P,{caso:1,dir:-1})],['ii · vuelta',()=>Object.assign(P,{caso:2,dir:-1})]]};
+const NOTE={p1:'La guía da solo símbolos: la página arranca con k = 2 y d = 1 m. Las unidades de k cambian según la fuerza (N/m o N/m²).', p2:'La guía da solo símbolos: la página arranca con m = 1 kg, L = 1 m y F₀ = 20 N. El cuerpo se lleva por el arco a ritmo constante.'};
+const VB={p1:['Fuerza y área','Energía potencial'],p2:['Trabajo acumulado','F a lo largo del camino']};
+function setMode(sy,init){ if(!init){ SHOW[SY].forEach(id=>PS[SY][id]=P[id]); if(SY==='p1') PS.p1.fz=P.fz; else Object.assign(PS.p2,{caso:P.caso,dir:P.dir}); }
+  SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); guia(GUIA[SY]); markGuia();
+  $('note').textContent=NOTE[SY]; $('vb1').textContent=VB[SY][0]; $('vb2').textContent=VB[SY][1]; restart(); buildPred(PRED[SY]); buildChal(CHAL[SY]); refresh(); }
+function refresh(){ syncParams(DEF,P); markGuia(); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+setMode('p1',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

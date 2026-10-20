@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Barra que gira G7-P1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 7 · Impulso angular</span>
+  <h1>Barra que gira alrededor de un eje fijo <i>· el impulso angular se conserva respecto de O, no respecto de cualquier punto</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 7">
+    <h2>Guía 7</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P1</b>Barra que gira</a></li>
+      <li><a href="p2-acortar-el-radio.html"><b class="code">P2, 3</b>Acortar el radio</a></li>
+      <li><a href="p4-dispersion.html"><b class="code">P4</b>Dispersión</a></li>
+      <li><a href="p5-barras-soldadas.html"><b class="code">P5</b>Barras soldadas</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="Vista desde arriba de una barra sin masa con dos masas en los extremos que gira alrededor de un eje fijo O sobre una mesa sin rozamiento, con el centro de masa, la cantidad de movimiento y otro punto O′ marcados."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Impulso angular</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Cantidad de movimiento</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G7-P1</summary>
+      <p><b>1.</b> Considere el sistema formado por una barra de longitud L y masa despreciable, en cuyos extremos se hallan fijas sendas masas, de valor m y M, tal como muestra la figura. El sistema se halla apoyado sobre una superficie horizontal libre de rozamiento, y es libre de girar alrededor de un eje fijo O. El sistema se pone en movimiento dándole a t = 0 una velocidad angular ω₀ a la barra. (En la figura, m en un extremo y M en el otro; O′ es un punto de la mesa.)</p>
+      <p>a) Indique qué fuerzas actúan sobre cada una de las partículas y diga si se conserva la cantidad de movimiento y el impulso angular del sistema con respecto a O.<br>b) Calcule el impulso angular con respecto a O y determine cómo varía la velocidad angular de las barras con el tiempo.<br>c) Calcule la posición y velocidad del centro de masa del sistema como función del tiempo.<br>d) Calcule el impulso angular con respecto al punto O′, situado a una distancia D del punto O.</p>
+      <p class="src">Física 1, Guía 7 (Impulso angular). Enunciado textual de la guía; entre paréntesis, lo que muestra la figura. La figura no marca dónde está O sobre la barra: la página lo deja ajustable y arranca con O en el extremo de M. La guía da solo símbolos: la página elige valores de partida. O′ se ubica sobre el eje x de la mesa.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Soluciones analíticas exactas. La barra gira en sentido antihorario visto desde arriba; los impulsos angulares son componentes z, hacia arriba de la mesa. Colores: celeste, m; rosa, M; amarillo, el centro de masa y la cantidad de movimiento; verde, las fuerzas que la barra hace sobre cada masa; lila, el punto O′.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G7-P1 · Barra que gira alrededor de un eje fijo =================
+const DEF=[
+  {id:'m',lab:'m',unit:'kg',min:0.1,max:5,step:0.05,dec:2},
+  {id:'M',lab:'M',unit:'kg',min:0.1,max:5,step:0.05,dec:2},
+  {id:'L',lab:'L',unit:'m',min:0.2,max:2,step:0.01,dec:2},
+  {id:'s',lab:'O, distancia a M / L',unit:'',min:0,max:1,step:0.01,dec:2},
+  {id:'w0',lab:'ω₀',unit:'rad/s',min:0.2,max:6,step:0.05,dec:2},
+  {id:'D',lab:'D (O′ sobre el eje x)',unit:'m',min:0,max:2,step:0.01,dec:2},
+];
+const P0={m:1,M:2,L:1,s:0,w0:2,D:0.5}, P={...P0};
+// u = dirección de O hacia m; m en +dm u, M en −dM u; ψ(0) = 90°
+function sol(t){ const dM=P.s*P.L, dm=(1-P.s)*P.L, Mt=P.m+P.M, I=P.m*dm*dm+P.M*dM*dM, ps=Math.PI/2+P.w0*t, u=[Math.cos(ps),Math.sin(ps)], rc=(P.m*dm-P.M*dM)/Mt;
+  const pv=[-Mt*P.w0*rc*u[1],Mt*P.w0*rc*u[0]], LO=I*P.w0, LOp=LO-P.D*pv[1];
+  return {dM,dm,Mt,I,ps,u,rc,pv,p:Mt*P.w0*Math.abs(rc),LO,LOp,Fm:P.m*P.w0*P.w0*dm,FM:P.M*P.w0*P.w0*dM,Fe:Mt*P.w0*P.w0*Math.abs(rc),T:2*Math.PI/P.w0}; }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return 2*sol(0).T; }
+function step(dt){ S.t+=dt; if(S.t>tEnd()) S.t-=tEnd(); }
+function lbl(ctx,s,x,y,col,al='center'){ txt(ctx,s,x,y,col,{align:al,size:11.5}); }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const t=S.t, s=sol(t), R=Math.max(s.dm,s.dM,P.D)+0.15, k=Math.min((w-40)/(2*R),(h-50)/(2*R)), cx=w/2, cy=h/2+10, X=v=>[cx+v[0]*k,cy-v[1]*k];
+  // trayectorias
+  [[s.dm,C.sys],[s.dM,C.sob],[Math.abs(s.rc),C.v]].forEach(([r,col])=>{ if(r>1e-6){ ctx.beginPath(); ctx.arc(cx,cy,r*k,0,7); ctx.strokeStyle=col; ctx.globalAlpha=0.35; ctx.setLineDash([3,4]); ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; } });
+  const pm=[s.dm*s.u[0],s.dm*s.u[1]], pM=[-s.dM*s.u[0],-s.dM*s.u[1]], pc=[s.rc*s.u[0],s.rc*s.u[1]], a=X(pm), b=X(pM), c=X(pc), o=X([0,0]), op=X([P.D,0]);
+  line(ctx,[a,b],C.muted,3);
+  // fuerzas de la barra sobre cada masa (centrípetas, hacia O)
+  const fk=Math.min(60,k*0.5)/Math.max(s.Fm,s.FM,1e-9);
+  if(s.dm>1e-6) arrow(ctx,a[0],a[1],a[0]-s.u[0]*s.Fm*fk,a[1]+s.u[1]*s.Fm*fk,C.ok,2.2,8);
+  if(s.dM>1e-6) arrow(ctx,b[0],b[1],b[0]+s.u[0]*s.FM*fk,b[1]-s.u[1]*s.FM*fk,C.ok,2.2,8);
+  dot(ctx,a[0],a[1],7+2*Math.cbrt(P.m),C.sys); dot(ctx,b[0],b[1],7+2*Math.cbrt(P.M),C.sob); lbl(ctx,'m',a[0]+16,a[1]-10,C.sys); lbl(ctx,'M',b[0]+16,b[1]-10,C.sob);
+  // eje O, punto O′, centro de masa y p
+  dot(ctx,o[0],o[1],5,C.fg,true); lbl(ctx,'O',o[0]-12,o[1]+16,C.fg);
+  if(P.D>1e-6){ dot(ctx,op[0],op[1],4,C.lin); lbl(ctx,'O′',op[0],op[1]+18,C.lin); line(ctx,[o,op],C.lin,1,[2,3],0.6); }
+  dot(ctx,c[0],c[1],4,C.v); const pk=Math.min(50,k*0.4)/Math.max(s.p,1e-9); if(s.p>1e-6) arrow(ctx,c[0],c[1],c[0]+s.pv[0]*pk,c[1]-s.pv[1]*pk,C.v,2.4,9);
+  if(s.p>1e-6) lbl(ctx,'p',c[0]+s.pv[0]*pk+10,c[1]-s.pv[1]*pk-6,C.v);
+  txt(ctx,`t = ${cm(t,2)} s · vista desde arriba`,12,18,C.muted,{size:11.5});
+  readout([['L respecto de O',cm(s.LO,3)+' kg·m²/s',C.fg],['L respecto de O′',cm(s.LOp,3)+' kg·m²/s',C.lin],['|p| del sistema',cm(s.p,3)+' kg·m/s',C.v],['ω',cm(P.w0,2)+' rad/s (constante)']]);
+  $('formula').innerHTML=`<b>respecto de O:</b> el eje empuja en O, sin torque → L_O = (m d_m² + M d_M²) ω₀ constante · <b>respecto de O′:</b> L_O′ = L_O + (r_O − r_O′) × p, y p gira: L_O′ oscila`; }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+const samp=(f,a,b,N=300)=>Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; });
+function drawV1(){ const te=tEnd(), t=S.t, s=sol(t);
+  plot('p1c',0,te,[[samp(x=>sol(x).LO,0,te),C.fg],[samp(x=>sol(x).LOp,0,te),C.lin]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(t),Y(s.LO),4.5,C.fg); dot(ctx,X(t),Y(s.LOp),4.5,C.lin); }});
+  $('tag1').textContent='Impulso angular, componente z (kg·m²/s)'; legend('leg1',[[C.fg,'respecto de O'],[C.lin,'respecto de O′']]);
+  $('cap1').textContent=Math.abs(s.rc)<1e-6?'Con O en el centro de masa, p = 0 y el impulso angular es el mismo respecto de cualquier punto.':P.D<1e-6?'O′ coincide con O.':`Respecto de O el impulso angular es constante. Respecto de O′ oscila entre ${cm(s.LO-P.D*s.p,3)} y ${cm(s.LO+P.D*s.p,3)}: la fuerza del eje pasa por O pero no por O′, y hace torque respecto de O′.`; }
+function drawV2(){ const te=tEnd(), t=S.t, s=sol(t);
+  plot('p2c',0,te,[[samp(x=>sol(x).pv[0],0,te),C.sys],[samp(x=>sol(x).pv[1],0,te),C.sob]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(t),Y(s.pv[0]),4.5,C.sys); dot(ctx,X(t),Y(s.pv[1]),4.5,C.sob); }});
+  $('tag2').textContent='Cantidad de movimiento del sistema (kg·m/s)'; legend('leg2',[[C.sys,'pₓ'],[C.sob,'pᵧ']]);
+  $('cap2').textContent=Math.abs(s.rc)<1e-6?'Con O en el centro de masa la cantidad de movimiento es cero todo el tiempo: el eje no hace fuerza neta.':`La cantidad de movimiento tiene módulo constante, ${cm(s.p,3)} kg·m/s, pero gira con la barra: no se conserva. El eje hace una fuerza neta de ${cm(s.Fe,3)} N hacia O, la centrípeta del centro de masa.`; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else drawV2(); }
+
+// ================= Predecí =================
+const PRED={ q:'Con el eje O en el extremo de M, la cantidad de movimiento del sistema…',
+  opts:[['cons','se conserva'],['gira','tiene módulo constante pero cambia de dirección'],['cero','es cero']], right:'gira', go:'Probalo',
+  run(){ Object.assign(P,P0); restart(); setView('v2'); refresh(); return 'Tiene módulo constante pero gira: p = (m + M) v_cm y el centro de masa da vueltas alrededor de O. Lo que se conserva es el impulso angular respecto de O, porque la fuerza del eje pasa por O.'; } };
+
+// ================= Desafíos =================
+const CHAL=[
+  {txt:'Con m = 1 kg y M = 2 kg, ubicá el eje O para que la cantidad de movimiento del sistema se conserve (|p| menor que 0,01 kg·m/s).',
+   chk(){ if(P.m!==1||P.M!==2) return [false,'Primero poné m = 1 kg y M = 2 kg']; const p=sol(0).p; return p<0.01?[true,`Logrado: O a ${cm(P.s,2)} L de M. Exacto: en el centro de masa, a mL/(m + M) = L/3 de M. Ahí el eje no hace fuerza.`]:[false,`Ahora |p| = ${cm(p,3)} kg·m/s`]; }},
+  {txt:'¿En qué dirección habría que mover O′ para que su impulso angular coincida con el de O en el instante en que p apunta hacia O′?'},
+];
+
+// ================= Cuentas =================
+function cuentas(){ const s=sol(0); return {title:'Barra con eje fijo', finLbl:'Impulsos angulares', steps:[
+  ['a) Sobre cada masa: peso y normal (se anulan) y la fuerza de la barra, que apunta a O. Sobre el sistema, además, la fuerza del eje en O', `\\[F_m=m\\,\\omega_0^2d_m=${tx(s.Fm,3)},\\qquad F_M=M\\,\\omega_0^2d_M=${tx(s.FM,3)}\\ \\text{N}\\]`],
+  ['La fuerza del eje pasa por O: no hace torque respecto de O, pero sí es una fuerza neta (salvo que O sea el centro de masa)', `\\[\\vec\\tau_O=0,\\qquad \\frac{d\\vec p}{dt}=\\vec F_{\\text{eje}}\\ne0\\]`],
+  ['b) Con d_M = sL y d_m = (1 − s)L', `\\[L_O=(m\\,d_m^2+M\\,d_M^2)\\,\\omega_0=${tx(s.LO,3)}\\ \\text{kg m}^2\\text{/s},\\qquad \\omega(t)=\\omega_0\\]`,true],
+  ['c) El centro de masa está sobre la barra, a r_cm de O (positivo hacia m), y gira con ella', `\\[r_{cm}=\\frac{m\\,d_m-M\\,d_M}{m+M}=${tx(s.rc,3)}\\ \\text{m},\\qquad v_{cm}=\\omega_0\\,|r_{cm}|=${tx(P.w0*Math.abs(s.rc),3)}\\ \\text{m/s}\\]`],
+  ['Con la barra a ψ = 90° + ω₀t', `\\[\\vec r_{cm}(t)=r_{cm}(\\cos\\psi,\\ \\sin\\psi),\\qquad \\vec v_{cm}(t)=\\omega_0r_{cm}(-\\sin\\psi,\\ \\cos\\psi)\\]`],
+  ['d) Con O′ en (D, 0); el valor numérico es el de t = 0', `\\[L_{O'}=L_O+[(\\vec r_O-\\vec r_{O'})\\times\\vec p]_z=L_O-D\\,p_y(t)=${tx(s.LOp,3)}\\]`,true],
+], fin:`\\[L_{O'}(t)=(m\\,d_m^2+M\\,d_M^2)\\,\\omega_0-D\\,(m+M)\\,\\omega_0r_{cm}\\cos\\psi\\]`}; }
+
+// ================= Arranque =================
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+(function(){ const el=$('guia'), b=document.createElement('button'); el.innerHTML='<span class="lbl">Valores de partida</span>'; b.textContent='m = 1 kg, M = 2 kg, L = 1 m, O en M'; b.setAttribute('aria-pressed','true');
+  b.onclick=()=>{ Object.assign(P,P0); restart(); refresh(); b.setAttribute('aria-pressed','true'); togglePlay(true); }; el.appendChild(b); })();
+$('note').textContent='La guía da solo símbolos. O se mueve a lo largo de la barra con el cursor: 0 es el extremo de M y 1 el de m.';
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart);
+buildPred(PRED); buildChal(CHAL); refresh();
+startLoop(step,draw);
+</script>
+</body>
+</html>

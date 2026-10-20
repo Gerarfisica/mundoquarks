@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Péndulo grande G8-P4</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 1 · Guía 8 · Trabajo y energía</span>
+  <h1>El péndulo con amplitudes grandes <i>· oscila, se detiene arriba o da vueltas, según la energía</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 8">
+    <h2>Guía 8</h2>
+    <ol>
+      <li><a href="p1-trabajo-camino.html"><b class="code">P1, 2</b>Trabajo y camino</a></li>
+      <li><a href="p3-curvas-potencial.html"><b class="code">P3, 5, 6</b>Curvas de potencial</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P4</b>Péndulo grande</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:320px" aria-label="Un péndulo de varilla rígida a la izquierda y, a la derecha, su energía potencial en función del ángulo con la línea de energía total y la bolita que la recorre."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">θ(t) y ω(t)</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">ω según θ</button>
+          <button data-view="v3" aria-pressed="false" id="vb3">Período</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:300px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:300px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+      <div data-vpanel="v3" hidden>
+        <div class="plot"><canvas id="p3c" style="height:300px"></canvas><div class="tag" id="tag3" style="color:var(--fg)"></div><div class="legend" id="leg3"></div></div>
+        <div class="pcap" id="cap3"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · G8-P4</summary>
+      <p><b>4.</b> Sea un péndulo simple, constituido por un cuerpo de masa m suspendido del extremo de una varilla sin masa de longitud l, que oscila en un plano.</p>
+      <p>a) Grafique la energía potencial del cuerpo, V, en función de θ, siendo θ el ángulo que forma el hilo con la vertical. Indique los valores máximos y mínimos del potencial.<br>b) Si E es la energía mecánica total, para los casos: E₁ &lt; V_MAX, E₂ = V_MAX, E₃ &gt; V_MAX<br>i) estudie cualitativamente el movimiento del cuerpo y diga cómo haría en la práctica para conseguir estos valores de E.<br>ii) a partir del gráfico V vs. θ obtenga el gráfico de velocidad en función de θ.<br>*c) Considere el movimiento del péndulo para amplitudes grandes. Elija algún valor de l y obtenga gráficos para θ(t), θ̇(t) y θ̇(θ). Estudie la dependencia entre la frecuencia del movimiento y su amplitud.</p>
+      <p class="src">Física 1, Guía 8 (Trabajo y energía). Enunciado textual de la guía. La guía da solo símbolos: la página arranca con m = 1 kg y l = 1 m. g = 9,8 m/s². El cero de V está en la posición más baja.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>La trayectoria se integra numéricamente (Runge-Kutta de cuarto orden, paso 0,001 s). El período se compara con el exacto, T = 4√(l/g)·K(sen(θ₀/2)), con K la integral elíptica completa de primera especie (calculada con la media aritmético-geométrica). En los gráficos, ω = θ̇ = dθ/dt. Colores: celeste, el péndulo, θ(t) y la órbita; verde, ω(t) y la energía cinética; rosa, V(θ); amarillo, la energía total.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+// ================= G8-P4 · El péndulo con amplitudes grandes =================
+const G0=9.8, sq=Math.sqrt, PI=Math.PI;
+const DEF=[
+  {id:'m',lab:'m',unit:'kg',min:0.1,max:5,step:0.1,dec:1},
+  {id:'l',lab:'l',unit:'m',min:0.2,max:3,step:0.01,dec:2},
+  {id:'th0',lab:'θ inicial',unit:'°',min:-179,max:179,step:0.5,dec:1},
+  {id:'w0',lab:'ω inicial',unit:'rad/s',min:-15,max:15,step:0.01,dec:3},
+];
+const P0={m:1,l:1,th0:90,w0:0}, P={...P0};
+const wc=()=>2*sq(G0/P.l);                         // ω en el fondo con E = V_máx
+const Vt=th=>P.m*G0*P.l*(1-Math.cos(th)), VM=()=>2*P.m*G0*P.l;
+const En=()=>P.m*P.l*P.l*P.w0*P.w0/2+Vt(rad(P.th0));
+const wrap=th=>{ let a=(th+PI)%(2*PI); if(a<0) a+=2*PI; return a-PI; };
+// integral elíptica completa K(k) por la media aritmético-geométrica
+function Kell(k){ let a=1, b=sq(1-k*k); for(let i=0;i<30;i++){ const c=(a+b)/2; b=sq(a*b); a=c; } return PI/(2*a); }
+const Tex=A=>4*sq(P.l/G0)*Kell(Math.sin(A/2));
+// RK4
+const DT=0.001, TMAX=20;
+function integ(th,w,tmax=TMAX){ const k=G0/P.l, T=[0], TH=[th], W=[w]; let t=0; const acc=x=>-k*Math.sin(x);
+  while(t<tmax-1e-12){ const k1t=w, k1w=acc(th), k2t=w+DT/2*k1w, k2w=acc(th+DT/2*k1t), k3t=w+DT/2*k2w, k3w=acc(th+DT/2*k2t), k4t=w+DT*k3w, k4w=acc(th+DT*k3t);
+    th+=DT/6*(k1t+2*k2t+2*k3t+k4t); w+=DT/6*(k1w+2*k2w+2*k3w+k4w); t+=DT; T.push(t); TH.push(th); W.push(w); }
+  return {T,TH,W}; }
+// período: oscilación, entre dos pasos de ω de negativa a positiva; rotación, entre dos pasos por el fondo
+function period(tr){ const c=[]; const rot=Math.abs(tr.TH[tr.TH.length-1]-tr.TH[0])>2*PI;
+  for(let i=1;i<tr.T.length&&c.length<3;i++){ if(rot){ const a=Math.floor(tr.TH[i-1]/(2*PI)+0.5), b=Math.floor(tr.TH[i]/(2*PI)+0.5); if(a!==b) c.push(tr.T[i]); } else if(tr.W[i-1]<0&&tr.W[i]>=0){ const f=-tr.W[i-1]/(tr.W[i]-tr.W[i-1]); c.push(tr.T[i-1]+f*DT); } }
+  return {T:c.length>=2?c[1]-c[0]:null,rot}; }
+let __tr=null;
+function traj(){ const key=[P.l,P.th0,P.w0].join(); if(__tr&&__tr.key===key) return __tr; const tr=integ(rad(P.th0),P.w0); const p=period(tr); tr.key=key; tr.P=p.T; tr.rot=p.rot; tr.A=tr.rot?null:Math.max(...tr.TH.map(Math.abs)); return __tr=tr; }
+function at(t){ const tr=traj(), i=Math.min(tr.T.length-1,Math.max(0,Math.round(t/DT))); return {th:tr.TH[i],w:tr.W[i],t:tr.T[i]}; }
+function regime(){ const r=En()/VM(); return Math.abs(r-1)<2e-3?'E₂ = V_máx':r<1?'E₁ < V_máx':'E₃ > V_máx'; }
+
+// ================= Escena =================
+const scene=$('scene');
+function restart(){ S.t=0; }
+function tEnd(){ return TMAX; }
+function step(dt){ S.t+=dt; if(S.t>TMAX) S.t=0; }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const q=at(S.t), th=q.th, E=En(), vm=VM();
+  const narrow=w<560, pw=narrow?w*0.42:w*0.36, R=Math.min(pw/2-14,h/2-26), ox=pw/2+6, oy=h/2+6;
+  ctx.beginPath(); ctx.arc(ox,oy,R,0,7); ctx.strokeStyle=C.line; ctx.setLineDash([3,4]); ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]);
+  const bx=ox+R*Math.sin(th), by=oy+R*Math.cos(th); line(ctx,[[ox,oy],[bx,by]],C.muted,2.5); dot(ctx,ox,oy,3.5,C.fg); dot(ctx,bx,by,9,C.sys);
+  txt(ctx,`θ = ${cm(deg(wrap(th)),1)}°`,10,18,C.muted,{size:11.5}); txt(ctx,regime(),10,h-10,C.v,{size:11.5});
+  // V(θ) a la derecha
+  const L=pw+30, Rr=12, T=26, B=30, X=a=>L+(a+PI)/(2*PI)*(w-L-Rr), Y=v=>T+(1-v/(Math.max(E,vm)*1.15))*(h-T-B);
+  line(ctx,[[L,Y(0)],[w-Rr,Y(0)]],C.line,1); line(ctx,samp(Vt,-PI,PI,200).map(p=>[X(p[0]),Y(p[1])]),C.sob,2.4);
+  line(ctx,[[L,Y(vm)],[w-Rr,Y(vm)]],C.faint,1,[2,4]); txt(ctx,'V_máx',L+2,Y(vm)-4,C.faint,{size:10.5});
+  line(ctx,[[L,Y(E)],[w-Rr,Y(E)]],C.v,1.6,[6,4]); txt(ctx,'E',w-Rr-2,Y(E)-5,C.v,{align:'right',size:12});
+  const a=wrap(th), va=Vt(a); if(E-va>1e-9) line(ctx,[[X(a),Y(va)],[X(a),Y(E)]],C.ok,3); dot(ctx,X(a),Y(va),7,C.sys);
+  [[-PI,'−180°','left'],[0,'0','center'],[PI,'180°','right']].forEach(([v,s,al])=>txt(ctx,s,X(v),h-12,C.faint,{align:al,size:10.5}));
+  const tr=traj();
+  readout([['E / V_máx',cm(E/vm,3),C.v],['V(θ)',cm(Vt(th),3)+' J',C.sob],['ω',cm(q.w,3)+' rad/s',C.ok],[tr.rot?'período de una vuelta':'período',tr.P?cm(tr.P,4)+' s':'—'],['pequeñas oscilaciones',cm(2*PI*sq(P.l/G0),4)+' s']]);
+  $('formula').innerHTML=`<b>V(θ) = mgl(1 − cos θ)</b>, mínimo 0 en θ = 0 y máximo 2mgl en θ = ±180° · <b>ω(θ) = ±√(2(E − V)/(m l²))</b> · E &lt; V_máx oscila; E = V_máx tiende a quedarse arriba; E &gt; V_máx da vueltas`; }
+function samp(f,a,b,N=300){ return Array.from({length:N+1},(_,i)=>{ const x=a+(b-a)*i/N; return [x,f(x)]; }); }
+
+// ================= Gráficos =================
+function plot(id,x0,x1,series,xl,o={}){ const all=series.flatMap(s=>s[0].map(p=>p[1])).filter(isFinite); let y0=o.y0??Math.min(0,...all), y1=o.y1??Math.max(...all,0); if(o.y1===undefined) y1=y1+(y1-y0)*0.08||1; if(o.y0===undefined&&y0<0) y0-=(y1-y0)*0.05;
+  const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt}); const {ctx,X,Y}=F; F.clip(); if(y0<0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>line(ctx,pts.filter(p=>isFinite(p[1])).map(p=>[X(p[0]),Y(p[1])]),col,wd||2.2,dash)); if(o.mark) o.mark(ctx,X,Y); F.unclip(); return F; }
+function drawV1(){ const tr=traj(), q=at(S.t), a=[], b=[]; for(let i=0;i<tr.T.length;i+=10){ a.push([tr.T[i],deg(tr.TH[i])/60]); b.push([tr.T[i],tr.W[i]]); }
+  plot('p1c',0,TMAX,[[a,C.sys],[b,C.ok,[5,4]]],'t (s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(q.t),Y(deg(q.th)/60),4.5,C.sys); dot(ctx,X(q.t),Y(q.w),4.5,C.ok); }});
+  $('tag1').textContent='θ (en unidades de 60°) y ω (rad/s)'; legend('leg1',[[C.sys,'θ(t)'],[C.ok,'ω(t)','dashed']]);
+  const r=regime(); $('cap1').textContent=r.startsWith('E₁')?`Oscila. Para amplitudes grandes θ(t) deja de ser sinusoidal: se aplana arriba porque cerca de los extremos el torque crece menos que el ángulo.`:r.startsWith('E₂')?'Sube hacia θ = 180° cada vez más despacio: en teoría tarda un tiempo infinito en llegar. En la simulación, el más mínimo error lo hace caer o pasar al cabo de un rato, como cualquier perturbación real.':'Da vueltas completas: θ crece sin parar y ω nunca se anula; es mínima arriba y máxima abajo.'; }
+function drawV2(){ const tr=traj(), k=sq(G0/P.l), ws=wc()*1.35, curves=[];
+  [0.25,0.6,0.9,1,1.15,1.45].forEach(r=>{ const E=r*VM(), up=[], dn=[]; for(let i=0;i<=360;i++){ const th=-PI+2*PI*i/360, K=E-Vt(th); up.push([deg(th),K>=0?sq(2*K/(P.m*P.l*P.l)):NaN]); dn.push([deg(th),K>=0?-sq(2*K/(P.m*P.l*P.l)):NaN]); } curves.push([up,r===1?C.a:C.faint,r===1?[5,4]:null,1.2],[dn,r===1?C.a:C.faint,r===1?[5,4]:null,1.2]); });
+  const orb=[]; let prev=null; for(let i=0;i<tr.T.length;i+=8){ const a=deg(wrap(tr.TH[i])); if(prev!==null&&Math.abs(a-prev)>180) orb.push([NaN,NaN]); orb.push([a,tr.W[i]]); prev=a; }
+  const segs=[]; let cur=[]; orb.forEach(p=>{ if(isNaN(p[0])){ if(cur.length) segs.push(cur); cur=[]; } else cur.push(p); }); if(cur.length) segs.push(cur);
+  const q=at(S.t), vm=Math.max(ws,...tr.W.map(Math.abs))*1.1;
+  plot('p2c',-180,180,[...curves,...segs.map(s=>[s,C.sys,null,2.4])],'θ (°)',{y0:-vm,y1:vm,xt:[-180,-90,0,90,180],mark:(ctx,X,Y)=>dot(ctx,X(deg(wrap(q.th))),Y(q.w),4.5,C.sys)});
+  $('tag2').textContent='ω (rad/s) según θ'; legend('leg2',[[C.sys,'esta trayectoria'],[C.a,'E = V_máx','dashed'],[C.faint,'otras energías']]);
+  $('cap2').textContent='Es el gráfico de velocidad en función de θ del inciso b.ii: ω = ±√(2(E − V)/(m l²)). Las curvas cerradas son oscilaciones (E < V_máx); las abiertas, vueltas completas (E > V_máx). Las separa la de E = V_máx, que llega a ±180° con ω = 0.'; }
+let __sw=null;
+function drawV3(){ const key=P.l; if(!__sw||__sw.key!==key){ const pts=[]; for(let A=10;A<=170;A+=10){ const tr=integ(rad(A),0,Math.max(6,1.5*Tex(rad(A)))); const p=period(tr).T; if(p) pts.push([A,p]); } __sw={key,pts}; }
+  const T0=2*PI*sq(P.l/G0), tr=traj();
+  plot('p3c',0,180,[[samp(A=>Tex(rad(Math.max(A,0.01))),0,178,300),C.v],[samp(()=>T0,0,180),C.faint,[5,4]],[__sw.pts,C.sys,null,0.01]],'amplitud (°)',{y0:0,y1:Tex(rad(178))*1.05,xt:[0,30,60,90,120,150,180],mark:(ctx,X,Y)=>{ __sw.pts.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),3.5,C.sys)); if(tr.A&&tr.P) dot(ctx,X(deg(tr.A)),Y(tr.P),5,C.a); }});
+  const dev=Math.max(...__sw.pts.map(p=>Math.abs(p[1]/Tex(rad(p[0]))-1)));
+  $('tag3').textContent='Período (s) según la amplitud'; legend('leg3',[[C.sys,'simulación'],[C.v,'exacto (integral elíptica)'],[C.faint,'2π√(l/g)','dashed']]);
+  $('cap3').textContent=`A diferencia del pozo x⁴, aquí el período crece con la amplitud y tiende a infinito cerca de 180°. Hasta unos 20° la fórmula de pequeñas oscilaciones anda bien (error menor que 1 %). La simulación coincide con el valor exacto en ${cm(100*dev,4)} % o menos.`; }
+function draw(){ drawScene(); if(S.view==='v1') drawV1(); else if(S.view==='v2') drawV2(); else drawV3(); }
+
+// ================= Predecí =================
+const PRED={ q:'Soltado desde 90°, el período del péndulo comparado con 2π√(l/g) es…',
+  opts:[['igual','igual: el período no depende de la amplitud'],['mayor','alrededor de 18 % mayor'],['menor','menor']], right:'mayor', go:'Probalo',
+  run(){ Object.assign(P,{th0:90,w0:0}); restart(); refresh(); const tr=traj(); return `Es ${cm(tr.P,3)} s contra ${cm(2*PI*sq(P.l/G0),3)} s: un ${cm(100*(tr.P/(2*PI*sq(P.l/G0))-1),1)} % mayor. El isocronismo es solo para ángulos chicos, donde sen θ ≈ θ.`; } };
+
+// ================= Desafíos =================
+const CHAL=[
+  {txt:'Soltándolo desde el reposo, elegí el ángulo inicial para que el período sea 10 % mayor que el de pequeñas oscilaciones (±0,5 %).',
+   chk(){ if(P.w0!==0) return [false,'Primero poné ω inicial = 0']; const tr=traj(), r=tr.P/(2*PI*sq(P.l/G0)); return tr.P&&Math.abs(r-1.1)<=0.005?[true,`Logrado: θ₀ = ${cm(Math.abs(P.th0),1)}°. Exacto: 2K(sen θ₀/2)/π = 1,1 → θ₀ ≈ 69,3°.`]:[false,tr.P?`Ahora T/T₀ = ${cm(r,4)}`:'No oscila']; }},
+  {txt:'¿Cómo harías en la práctica para lograr E₂ = V_máx? ¿Por qué nunca se observa al péndulo quedarse arriba?'},
+];
+
+// ================= Cuentas =================
+function cuentas(){ const tr=traj(), E=En(), vm=VM(); return {title:'Péndulo con amplitudes grandes', finLbl:'Período', steps:[
+  ['a) Con el cero en el punto más bajo', `\\[V(\\theta)=mgl\\,(1-\\cos\\theta),\\qquad V_{\\min}=0,\\qquad V_{\\max}=2mgl=${tx(vm,3)}\\ \\text{J}\\]`],
+  ['b.ii) La energía se conserva: la velocidad angular en cada θ', `\\[\\dot\\theta(\\theta)=\\pm\\sqrt{\\frac{2\\,(E-V(\\theta))}{m\\,l^2}},\\qquad E=${tx(E,3)}\\ \\text{J}\\]`],
+  ['b.i) E₁: se suelta desde θ₀ < 180°. E₂: se le da en el fondo exactamente ω = 2√(g/l). E₃: más que eso', `\\[\\omega_c=2\\sqrt{g/l}=${tx(wc(),3)}\\ \\text{rad/s}\\]`],
+  ['c) Período para amplitud θ₀ (K: integral elíptica completa)', `\\[T=4\\sqrt{\\frac lg}\\,K\\!\\left(\\sin\\frac{\\theta_0}2\\right)\\ \\xrightarrow{\\ \\theta_0\\to0\\ }\\ 2\\pi\\sqrt{\\frac lg}\\]`],
+  ['Con los valores de la página', tr.A?`\\[\\theta_0=${tx(deg(tr.A),2)}^\\circ:\\quad T_{\\text{exacto}}=${tx(Tex(tr.A),4)},\\quad T_{\\text{num}}=${tr.P?tx(tr.P,4):'-'}\\ \\text{s}\\]`:`\\[\\text{da vueltas: período de una vuelta}=${tr.P?tx(tr.P,4):'-'}\\ \\text{s}\\]`,true],
+], fin:`\\[T=4\\sqrt{l/g}\\,K(\\sin(\\theta_0/2))\\]`}; }
+
+// ================= Arranque =================
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+(function(){ const el=$('guia'); el.innerHTML='<span class="lbl">Casos del inciso b</span>'; [['E₁ < V_máx · se suelta desde 90°',()=>Object.assign(P,{th0:90,w0:0})],['E₂ = V_máx',()=>Object.assign(P,{th0:0,w0:wc()})],['E₃ > V_máx',()=>Object.assign(P,{th0:0,w0:1.15*wc()})]].forEach(([l,f],i)=>{ const b=document.createElement('button'); b.textContent=l; b.setAttribute('aria-pressed',i===0?'true':'false');
+  b.onclick=()=>{ f(); restart(); refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); })();
+$('note').textContent='La guía da solo símbolos: la página arranca con m = 1 kg y l = 1 m. ω es la velocidad angular θ̇; el caso E₂ usa ω = 2√(g/l) exacto.';
+buildParams(DEF,P,()=>{ guiaOff(); restart(); refresh(); if(!S.running) togglePlay(true); });
+$('clock').hidden=true; $('hint').hidden=true;
+wireCommon(restart);
+buildPred(PRED); buildChal(CHAL); refresh();
+startLoop(step,draw);
+</script>
+</body>
+</html>

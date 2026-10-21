@@ -523,11 +523,12 @@ function dibujaRed(ctx,red,sol,X,Y,o={}){
     if(e.lab||e.txt){ const vert=Math.abs(uy)>0.5, sd=e.ls??1, off=(e.t==='R'?12:e.t==='V'?19:e.t==='C'?16:15)*sd, al=vert?(sd>0?'left':'right'):'center', bx=mx+(vert?off:0), by=my+(vert?0:-off);
       if(e.lab) txt(ctx,e.lab,bx,vert?by+(e.txt?-3:4):by+(sd>0?-1:10),C.fg,{size:11,align:al}); if(e.txt) txt(ctx,e.txt,bx,vert?by+11:by+(sd>0?-14:23),e.tcol||C.v,{size:10.5,align:al}); }
     if(o.flujo&&sol&&e.t!=='M'){ const I=sol.I[k], sp=18; if(Math.abs(I)>(o.imin||1e-9)){ let tot=0; const seg=[]; for(let i=0;i+1<P.length;i++){ const l=Math.hypot(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1]); seg.push(l); tot+=l; }
-      const ph=((e._s||0)%sp+sp)%sp; ctx.fillStyle=C.v; for(let d=ph; d<tot; d+=sp){ let r=d, i=0; while(i<seg.length-1&&r>seg[i]){ r-=seg[i]; i++; } const t=r/(seg[i]||1); if('CAMI'.includes(e.t)&&i===s&&Math.abs(t-f)*seg[i]<(e.t==='C'?h+2:13)) continue; ctx.beginPath(); ctx.arc(P[i][0]+(P[i+1][0]-P[i][0])*t,P[i][1]+(P[i+1][1]-P[i][1])*t,2.3,0,7); ctx.fill(); } } } });
+      const ph=((FLUJO[claveF(red,e,k)]||0)%sp+sp)%sp; ctx.fillStyle=C.v; for(let d=ph; d<tot; d+=sp){ let r=d, i=0; while(i<seg.length-1&&r>seg[i]){ r-=seg[i]; i++; } const t=r/(seg[i]||1); if('CAMI'.includes(e.t)&&i===s&&Math.abs(t-f)*seg[i]<(e.t==='C'?h+2:13)) continue; ctx.beginPath(); ctx.arc(P[i][0]+(P[i+1][0]-P[i][0])*t,P[i][1]+(P[i+1][1]-P[i][1])*t,2.3,0,7); ctx.fill(); } } } });
   Object.entries(red.pts).forEach(([n,[u,v]])=>{ if((grado[n]||0)>=3) dot(ctx,X(u),Y(v),3.2,cv(n)); });
   Object.entries(red.rot||{}).forEach(([n,r])=>{ const [u,v]=red.pts[n], s=typeof r==='string'?{t:r}:r; dot(ctx,X(u),Y(v),4,C.fg,true); txt(ctx,s.t,X(u)+(s.dx??-7),Y(v)+(s.dy??-8),C.fg,{size:13,align:s.al||'right',weight:'bold'}); }); }
 // los puntos de corriente avanzan k px por ampere por segundo
-function avanzaFlujo(red,sol,dt,k){ if(!sol) return; red.el.forEach((e,i)=>{ e._s=((e._s||0)+sol.I[i]*k*dt)%1e6; }); }
+const FLUJO={}, claveF=(red,e,i)=>`${red.nombre||''}|${e.t}|${e.a}|${e.b}|${i}`;
+function avanzaFlujo(red,sol,dt,k){ if(!sol) return; red.el.forEach((e,i)=>{ const c=claveF(red,e,i); FLUJO[c]=((FLUJO[c]||0)+sol.I[i]*k*dt)%1e6; }); }
 // leyenda de colores del potencial
 function barraV(ctx,x,y,w,lo,hi,u='V'){ for(let i=0;i<w;i++){ ctx.fillStyle=colV(lo+(hi-lo)*i/w,lo,hi); ctx.fillRect(x+i,y,1.2,6); } txt(ctx,cm(lo,1)+' '+u,x,y+17,C.faint,{size:10}); txt(ctx,cm(hi,1)+' '+u,x+w,y+17,C.faint,{size:10,align:'right'}); txt(ctx,'potencial',x+w/2,y-4,C.faint,{size:10,align:'center'}); }
 // barras horizontales: items [[rótulo, valor, color, texto]]; valores con signo
@@ -577,7 +578,7 @@ function circuito(sy=SY,carga=true){ let pts, el, rot, bornes=['A','B'], tierra;
   return {pts,el,rot,tierra,bornes}; }
 function equivalente(sy=SY){ const c=circuito(sy,false); return thevenin(c,...c.bornes); }
 const RLact=()=>SY==='p11'?P.Rv:P.RL;
-function redTh(T){ const RL=RLact(); return {tierra:'b',pts:{t:[0.15,0.2],b:[0.15,0.8],m:[0.55,0.2],A:[0.82,0.2],B:[0.82,0.8]},rot:{A:{t:SY==='p9'?'C':'A',dx:8,dy:-8,al:'left'},B:{t:SY==='p9'?'D':'B',dx:8,dy:16,al:'left'}},
+function redTh(T){ const RL=RLact(); return {nombre:'th',tierra:'b',pts:{t:[0.15,0.2],b:[0.15,0.8],m:[0.55,0.2],A:[0.82,0.2],B:[0.82,0.8]},rot:{A:{t:SY==='p9'?'C':'A',dx:8,dy:-8,al:'left'},B:{t:SY==='p9'?'D':'B',dx:8,dy:16,al:'left'}},
   el:[{t:'V',a:'t',b:'b',val:T.Vth,lab:'V_th',txt:ing(T.Vth,'V'),tcol:C.lin},{...rr(T.Rth),a:'t',b:'A',lab:'R_th',txt:ing(T.Rth,'Ω'),tcol:C.lin},SY==='p11'?{t:'M',a:'A',b:'B',val:RL,id:'RL'}:{t:'R',a:'A',b:'B',val:RL,lab:'R_L',id:'RL'},{t:'W',a:'B',b:'b'}]}; }
 let RED=null, SOL=null, RT=null, ST=null, TH=null;
 function actual(){ RED=circuito(); SOL=mna(RED); TH=equivalente(); RT=redTh(TH); ST=mna(RT); }

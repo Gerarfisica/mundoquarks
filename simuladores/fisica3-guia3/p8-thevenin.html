@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Thevenin y máxima transferencia F3 G3-P8 a P11</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 3 · Guía 3 · Corrientes estacionarias</span>
+  <h1>Equivalente de Thevenin <i>· una red vista desde dos bornes</i></h1>
+  <a class="mq-back" href="../../simuladores-electricidad.html">← Electricidad</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 3">
+    <h2>Guía 3</h2>
+    <ol>
+      <li><a href="p1-drude.html"><b class="code">P1, 2, 3</b>Modelo de Drude</a></li>
+      <li><a href="p4-coaxial.html"><b class="code">P4</b>Medio conductor coaxial</a></li>
+      <li><a href="p5-diodo.html"><b class="code">P5</b>Diodo de vacío</a></li>
+      <li><a href="p6-kirchhoff.html"><b class="code">P6, 7, 14, 16</b>Redes de Kirchhoff</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P8 a 11</b>Thevenin y máxima potencia</a></li>
+      <li><a href="p12-medir.html"><b class="code">P12, 15</b>Medir resistencias</a></li>
+      <li><a href="p13-capacitores.html"><b class="code">P13</b>Capacitores en continua</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:400px" aria-label="A la izquierda (o arriba, en pantallas angostas), el circuito de la guía con una carga entre sus bornes; a la derecha, su equivalente de Thevenin con la misma carga. Los cables se colorean según el potencial y los puntos amarillos circulan con la corriente: en los dos circuitos la carga recibe la misma corriente."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Circuito">
+        <button data-sy="p8" aria-pressed="true">P8 · dos fuentes</button>
+        <button data-sy="p9" aria-pressed="false">P9 · escalera</button>
+        <button data-sy="p10a" aria-pressed="false">P10 · potenciómetro</button>
+        <button data-sy="p10b" aria-pressed="false">P10 · con otra fuente</button>
+        <button data-sy="p10c" aria-pressed="false">P10 · divisor</button>
+        <button data-sy="p10d" aria-pressed="false">P10 · cursor alimentado</button>
+        <button data-sy="p11" aria-pressed="false">P11 · fuente ideal y voltímetro</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Potencia en la carga</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Recta de carga</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:250px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:250px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · F3 G3-P8, 9, 10, 11</summary>
+      <p><b>8.</b> Hallar el equivalente de Thevenin del siguiente circuito desde los puntos A y B (fuentes de 15 V y 40 V con 5 Ω y 20 Ω). Determinar la potencia suministrada a una resistencia que se conecta entre A y B si su valor es: (i) R<sub>1</sub> = 1 Ω, R<sub>2</sub> = 5 Ω o R<sub>3</sub> = 10 Ω (ii) R<sub>4</sub> tal que la transferencia de potencia resulte máxima.</p>
+      <p><b>9.</b> Aplicando el teorema de Thevenin al siguiente circuito (escalera alimentada con 100 V, R = 2,5 Ω), calcular: a) La caída de tensión entre A y B. b) Si se conectara entre C y D una resistencia de 10 Ω, ¿qué potencia disiparía?</p>
+      <p><b>10.</b> Reemplazar los circuitos de las figuras por su equivalente Thevenin entre los terminales indicados.</p>
+      <p><b>11.</b> Calcular tensión y resistencia equivalente entre A y B en el circuito representado abajo (5 V con 8 Ω, una fuente de 3 V y 60 Ω). ¿Qué tensión mediría un voltímetro (R<sub>v</sub> = 1 Ω) conectado entre A y B? Justifique.</p>
+      <p class="src">Física 3, Guía 3 (Corrientes estacionarias, 2014). Enunciado textual de la guía; los circuitos se redibujan a partir de las figuras. En el P10 la guía da los circuitos con letras: la página usa valores numéricos que se pueden cambiar, y las cuentas muestran el resultado general. El equivalente se calcula con el circuito sin la carga: tensión a circuito abierto y resistencia vista con las fuentes apagadas (inyectando 1 A entre los bornes).</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Colores de los cables: potencial (celeste el más bajo, naranja el más alto). Los puntos amarillos avanzan en el sentido convencional de la corriente, con una velocidad proporcional a ella.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ if(!t) return ""; return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=9.8;   // g (no se usa en Física 3; la constante de gravitación es GN)
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+
+// ================= Cinemática (U2) =================
+// ceros de f en [a,b]: muestreo y bisección
+function ceros(f,a,b,N=2000){ const r=[]; let x0=a, f0=f(a); if(Math.abs(f0)<1e-12) r.push(a); for(let i=1;i<=N;i++){ const x1=a+(b-a)*i/N, f1=f(x1); if(Math.abs(f1)<1e-12){ if(!r.length||Math.abs(r[r.length-1]-x1)>1e-9) r.push(x1); } else if(f0*f1<0&&Math.abs(f0)>1e-12){ let lo=x0, hi=x1, flo=f0; for(let k=0;k<60;k++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } } r.push((lo+hi)/2); } x0=x1; f0=f1; } return r; }
+const kmh=v=>v*3.6, ms=v=>v/3.6;
+// motor 1D. M = {cuerpos:[{n,col,x:t=>,v:t=>,a:t=>}], t0,t1, a,b (rango de x), vert, ut, ux, marks:[[x,txt,col]], kv (px por unidad de v)}
+function encuentros1D(M){ const c=M.cuerpos; if(c.length<2) return []; const r=ceros(t=>c[0].x(t)-c[1].x(t),M.t0,M.t1).filter(t=>t>=M.t0-1e-9&&t<=M.t1+1e-9&&(!M.filtro||M.filtro(t))), o=[]; r.forEach(t=>{ if(!o.length||t-o[o.length-1]>(M.t1-M.t0)/100) o.push(t); }); return o; }
+function dibuja1D(cv,M,t){ const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h); const vert=!!M.vert, pad=vert?28:34, L=vert?(h-2*pad):(w-2*pad);
+  const P=x=>vert?h-pad-(x-M.a)/(M.b-M.a)*L:pad+(x-M.a)/(M.b-M.a)*L, c=vert?(M.cx??w*0.28):(M.cy??h*0.55);
+  const seg=(p,q,col,lw,d)=>vert?line(ctx,[[q,p[0]],[q,p[1]]],col,lw,d):line(ctx,[[p[0],q],[p[1],q]],col,lw,d);
+  seg([P(M.a),P(M.b)],c,C.muted,1.5); ticks(M.a,M.b,6).forEach(x=>{ const p=P(x); if(vert){ line(ctx,[[c-4,p],[c+4,p]],C.faint,1); txt(ctx,axf(x),c-8,p+4,C.faint,{size:10,align:'right'}); } else { line(ctx,[[p,c-4],[p,c+4]],C.faint,1); txt(ctx,axf(x),p,c+16,C.faint,{size:10,align:'center'}); } });
+  txt(ctx,M.ux||'',vert?c+8:P(M.b),vert?P(M.b)-8:c-8,C.faint,{size:10.5,align:vert?'left':'right'});
+  (M.marks||[]).forEach(([x,s,col])=>{ const p=P(x); if(vert){ line(ctx,[[c-14,p],[w-10,p]],col||C.faint,1,[3,4]); txt(ctx,s,w-12,p-4,col||C.faint,{size:10.5,align:'right'}); } else { line(ctx,[[p,c-34],[p,c+6]],col||C.faint,1,[3,4]); txt(ctx,s,p,c-38,col||C.faint,{size:10.5,align:'center'}); } });
+  M.cuerpos.forEach((b,i)=>{ const x=b.x(t); if(!isFinite(x)) return; const p=P(Math.max(M.a,Math.min(M.b,x))), off=(i-(M.cuerpos.length-1)/2)*(vert?34:22), q=c+(vert?off+36:-off-14);
+    const X0=vert?q:p, Y0=vert?p:q; ctx.beginPath(); ctx.arc(X0,Y0,7,0,7); ctx.fillStyle=b.col; ctx.fill(); txt(ctx,b.n,X0+(vert?11:0),Y0+(vert?4:-12),b.col,{size:11,align:vert?'left':'center'});
+    const v=b.v?b.v(t):0, k=M.kv??6; if(Math.abs(v)>1e-9){ const d=Math.max(-90,Math.min(90,v*k)); vert?arrow(ctx,X0,Y0,X0,Y0-d,b.col,2,7):arrow(ctx,X0,Y0,X0+d,Y0,b.col,2,7); } });
+  return P; }
+function graf1D(id,M,t,cual,o={}){ const c=M.cuerpos, f=b=>cual==='x'?b.x:cual==='v'?b.v:b.a, ser=c.map((b,i)=>[curva(f(b),M.t0,M.t1,400),b.col,i?[6,4]:null]);
+  let lo=Infinity, hi=-Infinity; ser.forEach(s=>s[0].forEach(p=>{ if(isFinite(p[1])){ lo=Math.min(lo,p[1]); hi=Math.max(hi,p[1]); } })); if(o.y0!==undefined){ lo=o.y0; hi=o.y1; } if(!(hi>lo)){ hi=lo+1; lo-=1; } const pd=(hi-lo)*0.08;
+  const E=cual==='x'?encuentros1D(M):[];
+  plot(id,M.t0,M.t1,lo-pd,hi+pd,ser,`t (${M.ut||'s'})`,{mark:(ctx,X,Y)=>{ line(ctx,[[X(t),Y(lo-pd)],[X(t),Y(hi+pd)]],C.faint,1,[2,3]); c.forEach(b=>{ const y=f(b)(t); if(isFinite(y)) dot(ctx,X(t),Y(y),4.5,b.col); }); E.forEach(te=>dot(ctx,X(te),Y(c[0].x(te)),5,C.ok,true)); (o.extra||(()=>{}))(ctx,X,Y); }}); return E; }
+
+// ================= Dinámica (U5) =================
+// bloque rectangular apoyado: (x, y) es el centro de la base; ang en radianes (antihorario)
+function bloque(ctx,x,y,w,h,col,lab,ang=0){ ctx.save(); ctx.translate(x,y); ctx.rotate(-ang); ctx.fillStyle=C['panel-2']; ctx.fillRect(-w/2,-h,w,h); ctx.strokeStyle=col; ctx.lineWidth=1.6; ctx.strokeRect(-w/2,-h,w,h); if(lab){ ctx.fillStyle=col; ctx.font=`12px ${NUM}`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(lab,0,-h/2); } ctx.restore(); }
+function polea(ctx,x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.6; ctx.stroke(); dot(ctx,x,y,2.5,C.muted); }
+function piso(ctx,x0,x1,y){ line(ctx,[[x0,y],[x1,y]],C.muted,2); for(let x=x0;x<x1;x+=10) line(ctx,[[x,y],[x-6,y+6]],C.faint,1); }
+// plano inclinado: vértice inferior izquierdo (x0, y0), largo horizontal L px, ángulo ang (rad), sube hacia la derecha si dir = 1
+function plano(ctx,x0,y0,L,ang,dir=1){ const x1=x0+L*dir, yt=y0-L*Math.tan(ang); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y0); ctx.lineTo(x1,yt); ctx.closePath(); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.6; ctx.stroke(); return {x1,yt}; }
+// flecha de fuerza (en newtons) con escala k px/N
+function fuerza(ctx,x,y,fx,fy,k,col,lab){ const ex=x+fx*k, ey=y-fy*k; if(Math.hypot(fx,fy)*k<2) return; arrow(ctx,x,y,ex,ey,col,2.2,8); if(lab) txt(ctx,lab,ex+(fx>=0?4:-4),ey+(fy>0?-4:12),col,{size:11,align:fx>=0?'left':'right'}); }
+// diagrama de cuerpo libre: fuerzas [[n, fx, fy, col]] dibujadas desde un punto, con la resultante punteada
+function dcl(ctx,cx,cy,R,F,tit){ const m=Math.max(...F.map(f=>Math.hypot(f[1],f[2])),1e-9), k=R/m; ctx.beginPath(); ctx.arc(cx,cy,R+18,0,7); ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.stroke(); dot(ctx,cx,cy,4,C.fg);
+  F.forEach(([n,fx,fy,col])=>fuerza(ctx,cx,cy,fx,fy,k,col,n)); const rx=F.reduce((s,f)=>s+f[1],0), ry=F.reduce((s,f)=>s+f[2],0); if(Math.hypot(rx,ry)>m*0.02) arrow(ctx,cx,cy,cx+rx*k,cy-ry*k,C.ok,1.6,7,[4,3]); if(tit) txt(ctx,tit,cx,cy-R-24,C.muted,{size:10.5,align:'center'}); return {rx,ry}; }
+
+// ================= Electrostática (Física 3) =================
+const KE=9e9, EPS0=1/(4*Math.PI*KE);   // k = 9 × 10⁹ N m²/C², como en los datos de la guía
+// notación científica con coma: 1,23 × 10⁻⁴
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function sci(x,d=2){ if(x===0) return '0'; if(!isFinite(x)) return '—'; const e=Math.floor(Math.log10(Math.abs(x))), m=x/10**e; if(e>=-2&&e<=3) return cm(x,Math.max(0,d-e)); return `${cm(m,d)} × 10${String(e).split('').map(c=>SUP[c]).join('')}`; }
+// campo y potencial de cargas puntuales (en unidades con k = 1), evaluados en el plano z = 0
+function eQ(Q,x,y){ let ex=0,ey=0,v=0; for(const c of Q){ const dx=x-c.x, dy=y-c.y, dz=-(c.z||0), r2=dx*dx+dy*dy+dz*dz; if(r2<1e-18) continue; const r=Math.sqrt(r2), s=c.q/(r2*r); ex+=s*dx; ey+=s*dy; v+=c.q/r; } return [ex,ey,v]; }
+// líneas de campo: Ef(x,y) → [ex,ey]; semillas [[x,y,sentido]]; B = {x0,x1,y0,y1}; fin(x,y) corta la línea
+function lineasCampo(Ef,semillas,B,o={}){ const ds=o.ds||(B.x1-B.x0)/350, n=o.n||1400, fin=o.fin||(()=>false), out=[];
+  for(const [sx,sy,dir] of semillas){ let x=sx,y=sy; const pts=[[x,y]]; let tope=null;
+    for(let i=0;i<n;i++){ let [ex,ey]=Ef(x,y), m=Math.hypot(ex,ey); if(!(m>0)) break; const mx=x+dir*ds/2*ex/m, my=y+dir*ds/2*ey/m; [ex,ey]=Ef(mx,my); m=Math.hypot(ex,ey); if(!(m>0)) break;
+      x+=dir*ds*ex/m; y+=dir*ds*ey/m; pts.push([x,y]); if(x<B.x0||x>B.x1||y<B.y0||y>B.y1){ tope='borde'; break; } const f=fin(x,y); if(f){ tope=f; break; } }
+    out.push({pts,dir,tope}); } return out; }
+// semillas alrededor de cargas puntuales del plano: desde las positivas hacia afuera y desde las negativas hacia atrás
+function semillasQ(Q,porQ,r0){ const s=[]; Q.forEach((c,i)=>{ if(c.z||!c.q) return; const n=Math.max(3,Math.round(porQ*Math.abs(c.q))); for(let j=0;j<n;j++){ const a=2*Math.PI*(j+0.5)/n+(c.q<0?Math.PI/n:0); s.push([c.x+r0*Math.cos(a),c.y+r0*Math.sin(a),c.q>0?1:-1,i]); } }); return s; }
+// isolíneas por cuadrados marchantes sobre la pantalla: V(px,py) en coordenadas de pantalla
+function isolineas(ctx,V,w,h,paso,niveles,col,lw=1,dash){ const nx=Math.ceil(w/paso)+1, ny=Math.ceil(h/paso)+1, g=new Float64Array(nx*ny);
+  for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) g[j*nx+i]=V(i*paso,j*paso);
+  ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.setLineDash(dash||[]); ctx.beginPath();
+  for(const L of niveles){ for(let j=0;j<ny-1;j++) for(let i=0;i<nx-1;i++){ const a=g[j*nx+i], b=g[j*nx+i+1], c=g[(j+1)*nx+i+1], d=g[(j+1)*nx+i]; if(!isFinite(a+b+c+d)) continue;
+    const P=[]; const e=(v1,v2,x1,y1,x2,y2)=>{ if((v1-L)*(v2-L)<0){ const t=(L-v1)/(v2-v1); P.push([x1+t*(x2-x1),y1+t*(y2-y1)]); } };
+    const x=i*paso, y=j*paso; e(a,b,x,y,x+paso,y); e(b,c,x+paso,y,x+paso,y+paso); e(c,d,x+paso,y+paso,x,y+paso); e(d,a,x,y+paso,x,y);
+    for(let k=0;k+1<P.length;k+=2){ ctx.moveTo(P[k][0],P[k][1]); ctx.lineTo(P[k+1][0],P[k+1][1]); } } }
+  ctx.stroke(); ctx.setLineDash([]); }
+// carga dibujada con su signo
+function carga(ctx,x,y,q,r=9){ const col=q>0?C.sob:q<0?C.sys:C.faint; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fillStyle=C.panel; ctx.fill(); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke(); txt(ctx,q>0?'+':q<0?'−':'0',x,y+4,col,{size:13,align:'center',weight:'bold'}); }
+// dibuja una lista de líneas en pantalla (con flechita al medio)
+function dibujaLineas(ctx,L,X,Y,col,alpha=0.7){ L.forEach(({pts,dir})=>{ if(pts.length<4) return; line(ctx,pts.map(p=>[X(p[0]),Y(p[1])]),col,1.1,null,alpha); const k=Math.floor(pts.length/2), p=pts[k], q=pts[Math.min(pts.length-1,k+2)]; const a=[X(p[0]),Y(p[1])], b=[X(q[0]),Y(q[1])]; if(dir<0) arrow(ctx,b[0],b[1],a[0],a[1],col,1.1,6); else arrow(ctx,a[0],a[1],b[0],b[1],col,1.1,6); }); }
+// integral de Simpson
+function simpson(f,a,b,n=200){ if(n%2) n++; const h=(b-a)/n; let s=f(a)+f(b); for(let i=1;i<n;i++) s+=(i%2?4:2)*f(a+i*h); return s*h/3; }
+// notación científica para MathJax
+function txsci(x,d=2){ if(x===0) return '0'; const e=Math.floor(Math.log10(Math.abs(x))), m=x/10**e; if(e>=-2&&e<=3) return tx(x,Math.max(0,d-e)); return `${tx(m,d)}\times10^{${e}}`; }
+// integrales elípticas completas K(m) y E(m) por la media aritmético-geométrica (m = k²)
+function elipticas(m){ let a=1, b=Math.sqrt(Math.max(0,1-m)), c2=m, s=c2/2, p=1; for(let i=0;i<30;i++){ const an=(a+b)/2, bn=Math.sqrt(a*b), cn=(a-b)/2; p*=2; s+=p*cn*cn/2; a=an; b=bn; if(Math.abs(cn)<1e-15) break; } const K=Math.PI/(2*a); return [K,K*(1-s)]; }
+// anillo de radio R y carga Q (k = 1) en el plano z = 0: campo [E_r, E_z] y potencial en (r ≥ 0, z)
+function anillo(R,Q,r,z){ const s2=(R+r)**2+z*z, d2=(R-r)**2+z*z; if(d2<1e-18) return [NaN,NaN,Infinity]; const m=4*R*r/s2, [K,E]=elipticas(m), s=Math.sqrt(s2);
+  const V=2*Q*K/(Math.PI*s), Ez=2*Q*z*E/(Math.PI*d2*s), Er=r<1e-12?0:Q/(Math.PI*r*s)*(K-(R*R-r*r+z*z)/d2*E); return [Er,Ez,V]; }
+// capa dibujada una sola vez por combinación de parámetros (líneas y equipotenciales costosas)
+const CAPAS={};
+function capa(nombre,clave,w,h,dibujo){ const dpr=Math.min(devicePixelRatio||1,2), W=Math.round(w*dpr), H=Math.round(h*dpr); let c=CAPAS[nombre]; if(!c||c.clave!==clave||c.cv.width!==W||c.cv.height!==H){ const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0); dibujo(x,w,h); c=CAPAS[nombre]={clave,cv}; } return c.cv; }
+// uso: ctx.drawImage(capa(...),0,0,w,h)
+
+// ================= Circuitos (Física 3, Guía 3) =================
+// red = {pts:{nombre:[u,v]}, el:[{t,a,b,val,lab,via,seg,on}], tierra, rot:{nombre:'A'}}; u y v van de 0 a 1 en la escena.
+// t: 'R' resistencia (Ω) · 'V' fuente ideal (V; borne + en a) · 'I' fuente de corriente (A; entrega en a) · 'W' cable
+//    'A' amperímetro (val = resistencia; 0 es ideal) · 'M' voltímetro (val = resistencia; Infinity es ideal) · 'C' capacitor (F) · 'S' llave (on)
+// I de cada elemento: corriente de a hacia b por adentro del elemento. o.dt: paso de integración de los capacitores (sin dt, abiertos).
+const esFuenteV=e=>e.t==='V'||e.t==='W'||(e.t==='A'&&!(e.val>0))||((e.t==='S'||e.t==='F')&&e.on!==false);
+function condEl(e,o){ if(e.t==='R') return 1/e.val; if((e.t==='A'||e.t==='M')&&e.val>0&&isFinite(e.val)) return 1/e.val; if(e.t==='C'&&o.dt) return e.val/o.dt; return 0; }
+function mna(red,o={}){
+  const nom=Object.keys(red.pts), tierra=red.tierra||nom[0], idx={}; let n=0; nom.forEach(k=>{ if(k!==tierra) idx[k]=n++; }); idx[tierra]=-1;
+  const fu=[]; red.el.forEach((e,k)=>{ if(esFuenteV(e)) fu.push(k); });
+  const N=n+fu.length, M=Array.from({length:N},()=>new Float64Array(N+1));
+  const add=(i,j,v)=>{ if(i>=0&&j>=0) M[i][j]+=v; }, rhs=(i,v)=>{ if(i>=0) M[i][N]+=v; };
+  for(let i=0;i<n;i++) M[i][i]+=1e-12;
+  red.el.forEach(e=>{ const a=idx[e.a], b=idx[e.b]; if(a===undefined||b===undefined) throw new Error('nodo desconocido '+e.a+'/'+e.b);
+    const g=condEl(e,o); if(g){ add(a,a,g); add(b,b,g); add(a,b,-g); add(b,a,-g); }
+    if(e.t==='C'&&o.dt){ const q=e.val/o.dt*(e.vc||0); rhs(a,q); rhs(b,-q); }
+    if(e.t==='I'){ rhs(a,e.val); rhs(b,-e.val); } });
+  fu.forEach((k,j)=>{ const e=red.el[k], a=idx[e.a], b=idx[e.b], m=n+j; if(a>=0){ M[a][m]+=1; M[m][a]+=1; } if(b>=0){ M[b][m]-=1; M[m][b]-=1; } M[m][N]=e.t==='V'?e.val:0; });
+  for(let c=0;c<N;c++){ let p=c; for(let r=c+1;r<N;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r; if(Math.abs(M[p][c])<1e-15) return null; [M[c],M[p]]=[M[p],M[c]];
+    for(let r=c+1;r<N;r++){ const f=M[r][c]/M[c][c]; if(f) for(let k=c;k<=N;k++) M[r][k]-=f*M[c][k]; } }
+  const x=new Float64Array(N); for(let r=N-1;r>=0;r--){ let s=M[r][N]; for(let k=r+1;k<N;k++) s-=M[r][k]*x[k]; x[r]=s/M[r][r]; }
+  const V={}; nom.forEach(k=>V[k]=idx[k]<0?0:x[idx[k]]);
+  const I=red.el.map((e,k)=>{ const j=fu.indexOf(k); if(j>=0) return x[n+j]; if(e.t==='I') return -e.val; const g=condEl(e,o), d=V[e.a]-V[e.b]; if(e.t==='C') return o.dt?g*d-e.val/o.dt*(e.vc||0):0; return g*d; });
+  return {V,I,P:red.el.map((e,k)=>(V[e.a]-V[e.b])*I[k])}; }
+// tensión de los capacitores después de un paso
+function cargaC(red,sol){ red.el.forEach(e=>{ if(e.t==='C') e.vc=sol.V[e.a]-sol.V[e.b]; }); }
+// equivalente de Thevenin entre A y B: tensión a circuito abierto y resistencia con las fuentes apagadas (1 A inyectado)
+function thevenin(red,A,B){ const s=mna(red); const r2={...red,el:red.el.map(e=>e.t==='V'||e.t==='I'?{...e,val:0}:e).concat([{t:'I',a:A,b:B,val:1}])}, s2=mna(r2);
+  return {Vth:s?s.V[A]-s.V[B]:NaN,Rth:s2?s2.V[A]-s2.V[B]:NaN,sol:s}; }
+// número con prefijo: 2,35 mA · 4,7 kΩ
+function ing(x,u,d=3){ if(!isFinite(x)) return x>0?'∞ '+u:'—'; if(Math.abs(x)<1e-15) return '0 '+u; const pf=[[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'μ'],[1e-9,'n'],[1e-12,'p']], a=Math.abs(x); const [f,p]=pf.find(([f])=>a>=f*0.9995)||pf[pf.length-1];
+  const m=x/f, dd=Math.max(0,d-1-Math.floor(Math.log10(Math.abs(m)+1e-300))); let s=m.toFixed(dd); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−')+' '+p+u; }
+// color de un potencial: celeste (lo), gris (medio), naranja (hi)
+function hexRGB(h){ h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); return [0,2,4].map(i=>parseInt(h.substr(i,2),16)); }
+function colV(v,lo,hi){ const t=hi-lo>1e-12?Math.min(1,Math.max(0,(v-lo)/(hi-lo))):0.5, a=hexRGB(C.sys), b=hexRGB(C.a), m=hexRGB(C.muted), w=t<0.5?t*2:(t-0.5)*2, p=t<0.5?a:m, q=t<0.5?m:b; return `rgb(${[0,1,2].map(i=>Math.round(p[i]+(q[i]-p[i])*w)).join(',')})`; }
+// recorrido de un elemento en pantalla y el tramo donde va el símbolo
+function caminoEl(red,e,X,Y){ const P=[red.pts[e.a],...(e.via||[]),red.pts[e.b]].map(([u,v])=>[X(u),Y(v)]); let s=e.seg; if(s===undefined){ let best=-1; P.forEach((p,i)=>{ if(i===P.length-1) return; const L=Math.hypot(P[i+1][0]-p[0],P[i+1][1]-p[1]); if(L>best){ best=L; s=i; } }); } return {P,s}; }
+const LSIM={R:38,V:14,C:12,A:24,M:24,S:30,I:24,W:0,F:22};
+function dibujaRed(ctx,red,sol,X,Y,o={}){
+  const vs=sol?Object.values(sol.V):[0], lo=o.lo??Math.min(...vs), hi=o.hi??Math.max(...vs), cv=n=>sol?colV(sol.V[n],lo,hi):C.muted, grado={};
+  red.el.forEach(e=>{ if(e.oculto) return; [e.a,e.b].forEach(n=>grado[n]=(grado[n]||0)+1); });
+  red.el.forEach((e,k)=>{ if(e.oculto) return; const {P,s}=caminoEl(red,e,X,Y), ca=cv(e.a), cb=cv(e.b), Ls=LSIM[e.t]??20;
+    const A=P[s], B=P[s+1], L=Math.hypot(B[0]-A[0],B[1]-A[1])||1, ux=(B[0]-A[0])/L, uy=(B[1]-A[1])/L, f=e.pos??0.5, mx=A[0]+(B[0]-A[0])*f, my=A[1]+(B[1]-A[1])*f, h=Math.max(1,Math.min(Ls,L-4)/2);
+    const s0=[mx-ux*h,my-uy*h], s1=[mx+ux*h,my+uy*h], nx=-uy, ny=ux, mismo=e.t==='W'||e.t==='S'||e.t==='F'||(e.t==='A'&&!(e.val>0));
+    line(ctx,P.slice(0,s+1).concat([s0]),ca,2); line(ctx,[s1].concat(P.slice(s+1)),mismo?ca:cb,2);
+    const g=ctx.createLinearGradient(s0[0],s0[1],s1[0]+0.01,s1[1]+0.01); g.addColorStop(0,ca); g.addColorStop(1,cb);
+    if(e.t==='R'){ const pts=[s0], nz=6; for(let i=1;i<=nz*2;i++){ const t=(i-0.5)/(nz*2), sg=i%2?1:-1; pts.push([s0[0]+ux*2*h*t+nx*6*sg,s0[1]+uy*2*h*t+ny*6*sg]); } pts.push(s1); line(ctx,pts,g,2); }
+    else if(e.t==='W') line(ctx,[s0,s1],ca,2);
+    else if(e.t==='V'){ const pl=(c,len,w,col)=>line(ctx,[[c[0]+nx*len,c[1]+ny*len],[c[0]-nx*len,c[1]-ny*len]],col,w); pl(s0,13,2,ca); pl(s1,7,4,cb); const sd=e.ps??1, pp=[s0[0]-ux*7+nx*16*sd,s0[1]-uy*7+ny*16*sd]; txt(ctx,'+',pp[0],pp[1]+4,C.a,{size:13,align:'center',weight:'bold'}); }
+    else if(e.t==='C'){ const pl=(c,col)=>line(ctx,[[c[0]+nx*11,c[1]+ny*11],[c[0]-nx*11,c[1]-ny*11]],col,2.6); pl(s0,ca); pl(s1,cb); }
+    else if(e.t==='A'||e.t==='M'||e.t==='I'){ line(ctx,[s0,s1],g,2); ctx.beginPath(); ctx.arc(mx,my,11,0,7); ctx.fillStyle=C.panel; ctx.fill(); ctx.strokeStyle=e.t==='I'?C.fg:C.v; ctx.lineWidth=1.8; ctx.stroke();
+      if(e.t==='I') arrow(ctx,mx-ux*6,my-uy*6,mx+ux*6,my+uy*6,C.fg,1.6,5); else txt(ctx,e.letra||(e.t==='A'?'A':'V'),mx,my+4.5,C.v,{size:12.5,align:'center',weight:'bold'}); }
+    else if(e.t==='F'){ ctx.strokeStyle=e.on===false?C.crit:C.muted; ctx.lineWidth=1.4; ctx.save(); ctx.translate(mx,my); ctx.rotate(Math.atan2(uy,ux)); ctx.strokeRect(-h,-4.5,2*h,9); ctx.restore(); if(e.on===false){ line(ctx,[[s0[0]+ux*h*0.2,s0[1]+uy*h*0.2],[mx-ux*3+nx*3,my-uy*3+ny*3]],ca,1.6); line(ctx,[[mx+ux*3-nx*3,my+uy*3-ny*3],[s1[0]-ux*h*0.2,s1[1]-uy*h*0.2]],cb,1.6); } else line(ctx,[s0,s1],ca,1.6); }
+    else if(e.t==='S'){ dot(ctx,s0[0],s0[1],2.6,ca); dot(ctx,s1[0],s1[1],2.6,cb); if(e.on===false){ const an=-0.5, ex=s0[0]+(ux*Math.cos(an)-nx*Math.sin(an))*2*h, ey=s0[1]+(uy*Math.cos(an)-ny*Math.sin(an))*2*h; line(ctx,[s0,[ex,ey]],ca,2); } else line(ctx,[s0,s1],ca,2); }
+    if(e.lab||e.txt){ const vert=Math.abs(uy)>0.5, sd=e.ls??1, off=(e.t==='R'?12:e.t==='V'?19:e.t==='C'?16:15)*sd, al=vert?(sd>0?'left':'right'):'center', bx=mx+(vert?off:0), by=my+(vert?0:-off);
+      if(e.lab) txt(ctx,e.lab,bx,vert?by+(e.txt?-3:4):by+(sd>0?-1:10),C.fg,{size:11,align:al}); if(e.txt) txt(ctx,e.txt,bx,vert?by+11:by+(sd>0?-14:23),e.tcol||C.v,{size:10.5,align:al}); }
+    if(o.flujo&&sol&&e.t!=='M'){ const I=sol.I[k], sp=18; if(Math.abs(I)>(o.imin||1e-9)){ let tot=0; const seg=[]; for(let i=0;i+1<P.length;i++){ const l=Math.hypot(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1]); seg.push(l); tot+=l; }
+      const ph=((e._s||0)%sp+sp)%sp; ctx.fillStyle=C.v; for(let d=ph; d<tot; d+=sp){ let r=d, i=0; while(i<seg.length-1&&r>seg[i]){ r-=seg[i]; i++; } const t=r/(seg[i]||1); if('CAMI'.includes(e.t)&&i===s&&Math.abs(t-f)*seg[i]<(e.t==='C'?h+2:13)) continue; ctx.beginPath(); ctx.arc(P[i][0]+(P[i+1][0]-P[i][0])*t,P[i][1]+(P[i+1][1]-P[i][1])*t,2.3,0,7); ctx.fill(); } } } });
+  Object.entries(red.pts).forEach(([n,[u,v]])=>{ if((grado[n]||0)>=3) dot(ctx,X(u),Y(v),3.2,cv(n)); });
+  Object.entries(red.rot||{}).forEach(([n,r])=>{ const [u,v]=red.pts[n], s=typeof r==='string'?{t:r}:r; dot(ctx,X(u),Y(v),4,C.fg,true); txt(ctx,s.t,X(u)+(s.dx??-7),Y(v)+(s.dy??-8),C.fg,{size:13,align:s.al||'right',weight:'bold'}); }); }
+// los puntos de corriente avanzan k px por ampere por segundo
+function avanzaFlujo(red,sol,dt,k){ if(!sol) return; red.el.forEach((e,i)=>{ e._s=((e._s||0)+sol.I[i]*k*dt)%1e6; }); }
+// leyenda de colores del potencial
+function barraV(ctx,x,y,w,lo,hi,u='V'){ for(let i=0;i<w;i++){ ctx.fillStyle=colV(lo+(hi-lo)*i/w,lo,hi); ctx.fillRect(x+i,y,1.2,6); } txt(ctx,cm(lo,1)+' '+u,x,y+17,C.faint,{size:10}); txt(ctx,cm(hi,1)+' '+u,x+w,y+17,C.faint,{size:10,align:'right'}); txt(ctx,'potencial',x+w/2,y-4,C.faint,{size:10,align:'center'}); }
+// barras horizontales: items [[rótulo, valor, color, texto]]; valores con signo
+function barras(id,items,o={}){ const {ctx,w,h}=fit($(id)); ctx.clearRect(0,0,w,h); if(!items.length) return; const T=o.T??(w<560?56:30), B=10, Lw=Math.min(o.Lw??150,w*0.36), R=12, n=items.length, bh=Math.min(26,(h-T-B)/n), vmax=Math.max(...items.map(i=>Math.abs(i[1])),1e-12), neg=items.some(i=>i[1]<-1e-12);
+  const x0=neg?Lw+(w-Lw-R)/2:Lw+4, sc=(neg?(w-Lw-R)/2-60:(w-Lw-R-70))/vmax; line(ctx,[[x0,T-4],[x0,T+n*bh]],C['line-2'],1);
+  items.forEach(([lab,v,col,s],i)=>{ const y=T+i*bh+bh/2; txt(ctx,lab,Lw-6,y+4,C.muted,{size:11,align:'right'}); ctx.fillStyle=col||C.lin; ctx.globalAlpha=0.85; ctx.fillRect(Math.min(x0,x0+v*sc),y-bh*0.32,Math.abs(v*sc),bh*0.64); ctx.globalAlpha=1; txt(ctx,s??cm(v,2),x0+v*sc+(v<0?-5:5),y+4,C.fg,{size:10.5,align:v<0?'right':'left'}); }); }
+// ================= F3 G3-P8, 9, 10, 11 · Thevenin y máxima transferencia =================
+const DEF=[
+  {id:'RL',lab:'carga R<sub>L</sub>',unit:'Ω',min:0.1,max:100,step:0.1,dec:2},
+  {id:'Rv',lab:'R del voltímetro',unit:'Ω',min:0.1,max:1000,step:0.1,dec:1},
+  {id:'V',lab:'V',unit:'V',min:1,max:50,step:0.5,dec:1},
+  {id:'V2',lab:'V₂',unit:'V',min:0,max:20,step:0.5,dec:1},
+  {id:'R',lab:'R',unit:'Ω',min:1,max:100,step:0.5,dec:1},
+  {id:'a',lab:'cursor a',unit:'',min:0.02,max:0.98,step:0.01,dec:2},
+  {id:'r',lab:'r',unit:'Ω',min:0,max:20,step:0.5,dec:1},
+  {id:'R1',lab:'R₁',unit:'Ω',min:1,max:100,step:0.5,dec:1},
+  {id:'R2',lab:'R₂',unit:'Ω',min:1,max:100,step:0.5,dec:1},
+  {id:'R9',lab:'R',unit:'Ω',min:0.5,max:20,step:0.5,dec:1},
+];
+const PS={p8:{RL:5},p9:{RL:10,R9:2.5},p10a:{V:10,R:10,a:0.3,RL:5},p10b:{V:10,V2:2,R:10,a:0.3,r:2,RL:5},p10c:{V:10,R1:4,R2:6,RL:5},p10d:{V:10,r:2,R:10,a:0.3,RL:5},p11:{Rv:1}}, PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p8:['RL'],p9:['RL','R9'],p10a:['V','R','a','RL'],p10b:['V','V2','R','a','r','RL'],p10c:['V','R1','R2','RL'],p10d:['V','r','R','a','RL'],p11:['Rv']};
+const P=Object.assign({},PS.p11,PS.p10d,PS.p10c,PS.p10b,PS.p10a,PS.p9,PS.p8); let SY='p8';
+const idEl=(red,id)=>red.el.findIndex(e=>e.id===id);
+const rr=(R)=>R>1e-9?{t:'R',val:R}:{t:'W'};   // resistencia que puede valer cero
+// ---------- circuitos (la carga lleva id 'RL'; los bornes son A y B, o C y D en el P9) ----------
+function circuito(sy=SY,carga=true){ let pts, el, rot, bornes=['A','B'], tierra;
+  const cargaEl=(a,b,via)=>sy==='p11'?{t:'M',a,b,val:P.Rv,id:'RL',lab:'',via,ls:-1}:{t:'R',a,b,val:P.RL,id:'RL',lab:'R_L',via,ls:sy==='p9'?1:-1};
+  if(sy==='p8'){ pts={T1:[0.06,0.15],B1:[0.06,0.85],A:[0.5,0.15],B:[0.5,0.85],T2:[0.94,0.15],B2:[0.94,0.85]}; rot={A:{t:'A',dx:0,dy:-10,al:'center'},B:{t:'B',dx:0,dy:22,al:'center'}};
+    el=[{t:'V',a:'T1',b:'B1',val:15,lab:'15 V'},{t:'R',a:'T1',b:'A',val:5,lab:'5 Ω'},{t:'R',a:'A',b:'T2',val:20,lab:'20 Ω'},{t:'V',a:'T2',b:'B2',val:40,lab:'40 V',ls:-1,ps:-1},{t:'W',a:'B1',b:'B'},{t:'W',a:'B',b:'B2'}];
+    if(carga) el.push(cargaEl('A','B')); tierra='B'; }
+  else if(sy==='p9'){ const R=P.R9, xs=[0.24,0.38,0.52,0.66,0.8]; pts={S:[0.05,0.15],G:[0.05,0.85],C:[0.95,0.15],D:[0.95,0.85]}; el=[{t:'V',a:'S',b:'G',val:100,lab:'100 V'}];
+    xs.forEach((x,k)=>{ pts['n'+k]=[x,0.15]; pts['b'+k]=[x,0.85]; el.push({t:'R',a:'n'+k,b:'b'+k,val:k===4?R/2:R,lab:k===4?'R/2':'R'}); el.push({t:'W',a:k?'b'+(k-1):'G',b:'b'+k}); el.push(k?{t:'R',a:'n'+(k-1),b:'n'+k,val:R/2,lab:'R/2'}:{t:'W',a:'S',b:'n0'}); });
+    el.push({t:'W',a:'n4',b:'C'},{t:'W',a:'b4',b:'D'}); if(carga) el.push(cargaEl('C','D')); rot={n2:{t:'A',dx:0,dy:-10,al:'center'},b2:{t:'B',dx:0,dy:22,al:'center'},C:{t:'C',dx:-8,dy:-8},D:{t:'D',dx:-8,dy:20}}; bornes=['C','D']; tierra='G'; }
+  else if(sy==='p10a'||sy==='p10b'){ const b=sy==='p10b', yw=0.85-0.7*P.a; pts={T:[0.08,0.15],G:[0.08,0.85],PT:[0.42,0.15],W:[0.42,yw],PB:[0.42,0.85],A:[0.92,yw],B:[0.92,0.85]};
+    el=[{t:'V',a:'T',b:'G',val:P.V,lab:b?`V₁ = ${cm(P.V,1)} V`:`V = ${cm(P.V,1)} V`},{t:'W',a:'T',b:'PT'},{...rr((1-P.a)*P.R),a:'PT',b:'W',lab:'(1−a)R'},{...rr(P.a*P.R),a:'W',b:'PB',lab:'aR'},{t:'W',a:'G',b:'PB'},{t:'W',a:'PB',b:'B'}];
+    if(b){ pts.X=[0.6,yw]; pts.Y=[0.76,yw]; el.push({t:'V',a:'W',b:'X',val:P.V2,lab:`V₂ = ${cm(P.V2,1)} V`,ps:-1},{...rr(P.r),a:'Y',b:'X',lab:'r'},{t:'W',a:'Y',b:'A'}); } else el.push({t:'W',a:'W',b:'A'});
+    if(carga) el.push(cargaEl('A','B')); rot={A:{t:'A',dx:8,dy:-8,al:'left'},B:{t:'B',dx:8,dy:16,al:'left'}}; tierra='G'; }
+  else if(sy==='p10c'){ pts={T:[0.08,0.15],G:[0.08,0.85],N:[0.5,0.15],NB:[0.5,0.85],A:[0.92,0.15],B:[0.92,0.85]};
+    el=[{t:'V',a:'T',b:'G',val:P.V,lab:`${cm(P.V,1)} V`},{t:'R',a:'T',b:'N',val:P.R1,lab:'R₁'},{t:'R',a:'N',b:'NB',val:P.R2,lab:'R₂'},{t:'R',a:'N',b:'A',val:P.R2,lab:'R₂'},{t:'W',a:'G',b:'NB'},{t:'W',a:'NB',b:'B'}];
+    if(carga) el.push(cargaEl('A','B')); rot={A:{t:'A',dx:8,dy:-8,al:'left'},B:{t:'B',dx:8,dy:16,al:'left'}}; tierra='G'; }
+  else if(sy==='p10d'){ const yw=0.85-0.7*P.a; pts={T:[0.08,0.15],G:[0.08,0.85],K:[0.36,0.15],W:[0.6,yw],PT:[0.6,0.15],PB:[0.6,0.85],A:[0.92,0.15],B:[0.92,0.85]};
+    el=[{t:'V',a:'T',b:'G',val:P.V,lab:`${cm(P.V,1)} V`},{...rr(P.r),a:'T',b:'K',lab:'r'},{t:'W',a:'K',b:'W',via:[[0.36,yw]]},{...rr((1-P.a)*P.R),a:'W',b:'PT',lab:'(1−a)R'},{...rr(P.a*P.R),a:'W',b:'PB',lab:'aR'},{t:'W',a:'PT',b:'A'},{t:'W',a:'G',b:'PB'},{t:'W',a:'PB',b:'B'}];
+    if(carga) el.push(cargaEl('A','B')); rot={A:{t:'A',dx:8,dy:-8,al:'left'},B:{t:'B',dx:8,dy:16,al:'left'}}; tierra='G'; }
+  else { pts={T:[0.06,0.15],G:[0.06,0.85],N:[0.38,0.15],NB:[0.38,0.85],M:[0.62,0.15],MB:[0.62,0.85],A:[0.9,0.15],B:[0.9,0.85]};
+    el=[{t:'V',a:'T',b:'G',val:5,lab:'5 V'},{t:'R',a:'T',b:'N',val:8,lab:'8 Ω'},{t:'V',a:'N',b:'NB',val:3,lab:'3 V',id:'V3'},{t:'W',a:'N',b:'M'},{t:'R',a:'M',b:'MB',val:60,lab:'60 Ω'},{t:'W',a:'M',b:'A'},{t:'W',a:'G',b:'NB'},{t:'W',a:'NB',b:'MB'},{t:'W',a:'MB',b:'B'}];
+    if(carga) el.push(cargaEl('A','B')); rot={A:{t:'A',dx:8,dy:-8,al:'left'},B:{t:'B',dx:8,dy:16,al:'left'}}; tierra='G'; }
+  return {pts,el,rot,tierra,bornes}; }
+function equivalente(sy=SY){ const c=circuito(sy,false); return thevenin(c,...c.bornes); }
+const RLact=()=>SY==='p11'?P.Rv:P.RL;
+function redTh(T){ const RL=RLact(); return {tierra:'b',pts:{t:[0.15,0.2],b:[0.15,0.8],m:[0.55,0.2],A:[0.82,0.2],B:[0.82,0.8]},rot:{A:{t:SY==='p9'?'C':'A',dx:8,dy:-8,al:'left'},B:{t:SY==='p9'?'D':'B',dx:8,dy:16,al:'left'}},
+  el:[{t:'V',a:'t',b:'b',val:T.Vth,lab:'V_th',txt:ing(T.Vth,'V'),tcol:C.lin},{...rr(T.Rth),a:'t',b:'A',lab:'R_th',txt:ing(T.Rth,'Ω'),tcol:C.lin},SY==='p11'?{t:'M',a:'A',b:'B',val:RL,id:'RL'}:{t:'R',a:'A',b:'B',val:RL,lab:'R_L',id:'RL'},{t:'W',a:'B',b:'b'}]}; }
+let RED=null, SOL=null, RT=null, ST=null, TH=null;
+function actual(){ RED=circuito(); SOL=mna(RED); TH=equivalente(); RT=redTh(TH); ST=mna(RT); }
+function restart(){ S.t=0; }
+function step(dt){ if(!SOL) return; S.t+=dt; const im=Math.max(...SOL.I.map(Math.abs),...ST.I.map(Math.abs),1e-12); avanzaFlujo(RED,SOL,dt,70/im); avanzaFlujo(RT,ST,dt,70/im); }
+
+// ================= Escena =================
+const scene=$('scene');
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); $('clock').textContent=''; actual(); const ang=w<640;
+  const X1=ang?u=>14+u*(w-28):u=>14+u*(w*0.62-28), Y1=ang?v=>26+v*(h*0.56-34):v=>30+v*(h-60), X2=ang?u=>w*0.12+u*(w*0.76):u=>w*0.62+u*(w*0.38-14), Y2=ang?v=>h*0.6+v*(h*0.4-26):v=>40+v*(h-80);
+  const iL=SOL.I[idEl(RED,'RL')], iT=ST.I[idEl(RT,'RL')]; RED.el[idEl(RED,'RL')].txt=ing(Math.abs(iL),'A'); RT.el[idEl(RT,'RL')].txt=ing(Math.abs(iT),'A'); if(ang&&SY==='p9') Object.assign(RED.el[idEl(RED,'RL')],{lab:'',txt:''});
+  const vs=Object.values(SOL.V).concat(Object.values(ST.V)), lo=Math.min(...vs), hi=Math.max(...vs);
+  dibujaRed(ctx,RED,SOL,X1,Y1,{flujo:true,imin:1e-9,lo,hi}); dibujaRed(ctx,RT,ST,X2,Y2,{flujo:true,imin:1e-9,lo,hi});
+  if(['p10a','p10b','p10d'].includes(SY)){ const [u,v]=RED.pts.W, x=X1(u), y=Y1(v), dx=SY==='p10d'?-1:1; arrow(ctx,x+dx*30,y,x+dx*9,y,C.fg,1.8,8); }
+  if(ang) line(ctx,[[14,h*0.57],[w-14,h*0.57]],C.line,1); else line(ctx,[[w*0.62,14],[w*0.62,h-14]],C.line,1);
+  txt(ctx,'circuito',X1(0),14,C.faint,{size:10.5}); txt(ctx,'equivalente de Thevenin',ang?14:w*0.62+12,ang?h*0.57+14:14+0,C.faint,{size:10.5});
+  barraV(ctx,w-130,h-26,110,lo,hi); info(); }
+function info(){ const iL=SOL.I[idEl(RED,'RL')], RL=RLact(), [A,B]=RED.bornes, VL=SOL.V[A]-SOL.V[B], Pmax=TH.Vth**2/(4*TH.Rth);
+  const it=[['V_th',ing(TH.Vth,'V'),C.lin],['R_th',ing(TH.Rth,'Ω'),C.lin],[SY==='p11'?'el voltímetro marca':'tensión en la carga',ing(VL,'V'),C.v],['corriente en la carga',ing(Math.abs(iL),'A')],['potencia en la carga',ing(iL*iL*RL,'W'),C.ok]];
+  if(SY!=='p11') it.push(['máxima (R_L = R_th)',ing(Pmax,'W')]);
+  if(SY==='p9'){ const s0=mna(circuito('p9',false)); it.splice(0,0,['V_AB sin carga',ing(s0.V.n2-s0.V.b2,'V'),C.a],['V_AB con la carga',ing(SOL.V.n2-SOL.V.b2,'V')]); }
+  if(SY==='p11') it.push(['corriente de la fuente de 3 V',ing(-SOL.I[idEl(RED,'V3')],'A')]);
+  readout(it);
+  const F={p8:'sin carga circula (40 − 15)/25 = 1 A: <b>V_th = 15 + 5·1 = 20 V</b> · fuentes apagadas: <b>R_th = 5 ∥ 20 = 4 Ω</b> · P = V_th² R_L/(R_th + R_L)², máxima en R_L = R_th',
+    p9:'cada nodo ve hacia la derecha 2,5 Ω (R ∥ 2,5 + R/2): la tensión se divide por 2 en cada tramo → <b>V_AB = 25 V</b>, V_CD = 6,25 V · R_th entre C y D con la fuente en corto',
+    p10a:'<b>V_th = aV</b> · <b>R_th = aR ∥ (1 − a)R = a(1 − a)R</b> (máxima en a = 1/2)',
+    p10b:'<b>V_th = aV₁ − V₂</b> (el + de V₂ mira al cursor) · <b>R_th = a(1 − a)R + r</b>',
+    p10c:'<b>V_th = V·R₂/(R₁ + R₂)</b> · <b>R_th = R₁ ∥ R₂ + R₂</b>',
+    p10d:'<b>V_th = V·aR/(r + aR)</b> · <b>R_th = (1 − a)R + r ∥ aR</b> (por la parte de arriba no circula corriente sin carga)',
+    p11:'la fuente ideal de 3 V fija V_AB: <b>V_th = 3 V</b> y <b>R_th = 0</b> (apagada es un cable). Cualquier voltímetro marca 3 V; la fuente pone la corriente que haga falta'};
+  $('formula').innerHTML=F[SY]; }
+
+// ================= Gráficos =================
+function draw(){ drawScene(); const v=S.view, id=v==='v1'?'p1c':'p2c', n=v==='v1'?1:2, {Vth,Rth}=TH, RL=RLact();
+  if(v==='v1'){ const x1=SY==='p11'?20:Math.max(10,Rth*5,RL*1.2), f=r=>Vth*Vth*r/(Rth+r)**2, ym=SY==='p11'?f(0.45):Math.max(f(Rth),f(RL))*1.15;
+    plot(id,0,x1,0,niceMax(ym),[[curva(f,x1/1000,x1,400),C.ok]],'R_L (Ω)',{mark:(ctx,X,Y)=>{ if(SY!=='p11'){ line(ctx,[[X(Rth),Y(0)],[X(Rth),Y(f(Rth))]],C.faint,1,[3,3]); dot(ctx,X(Rth),Y(f(Rth)),4,C.faint,true); } if(RL<=x1) dot(ctx,X(RL),Y(f(RL)),5,C.v); if(SY==='p8') [1,5,10].forEach(r=>dot(ctx,X(r),Y(f(r)),3,C.lin)); }});
+    $('tag'+n).textContent='Potencia en la carga (W)'; legend('leg'+n,[[C.ok,'V_th² R_L / (R_th + R_L)²']]);
+    $('cap'+n).textContent=SY==='p11'?'Con R_th = 0 no hay máximo: la potencia crece sin límite al bajar R_L (la fuente ideal entrega lo que haga falta).':SY==='p8'?`Los puntos violetas son R₁ = 1, R₂ = 5 y R₃ = 10 Ω: ${[1,5,10].map(r=>cm(f(r),1)+' W').join(', ')}. La máxima, ${cm(f(Rth),1)} W, es con R₄ = R_th = 4 Ω.`:`Máximo en R_L = R_th = ${ing(Rth,'Ω')}: ahí la carga se lleva la mitad de la potencia (la otra mitad se disipa en R_th).`; }
+  else { const Icc=Rth>1e-9?Vth/Rth:Infinity, I0=Math.abs(Vth/(Rth+RL)), imax=Math.min(isFinite(Icc)?Math.abs(Icc):Infinity,Math.max(I0*2.2,1e-6))*1.05||1, vmax=Math.abs(Vth)*1.15||1;
+    plot(id,0,imax,0,vmax,[[[[0,Math.abs(Vth)],[imax,Math.abs(Vth)-imax*Rth]],C.lin],[[[0,0],[imax,imax*RL]],C.v,[5,4]]],'corriente (A)',{mark:(ctx,X,Y)=>dot(ctx,X(I0),Y(I0*RL),5,C.ok)});
+    $('tag'+n).textContent='Tensión entre los bornes (V)'; legend('leg'+n,[[C.lin,'red: V = V_th − I R_th'],[C.v,'carga: V = I R_L','dashed']]); $('cap'+n).textContent='Toda la red, vista desde los bornes, es una recta: corta el eje de tensión en V_th y su pendiente es −R_th. La carga se cruza con ella en el punto de trabajo.'; } }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'P8: entre A y B se conecta 1 Ω, 5 Ω o 10 Ω. ¿Cuál recibe más potencia?',
+  opts:[['1','1 Ω (pasa más corriente)'],['5','5 Ω'],['10','10 Ω (tiene más tensión)']], right:'5', go:'Probalo',
+  run(){ pickChip('p8',setMode); P.RL=5; refresh(); return '5 Ω: 24,7 W, contra 16 W con 1 Ω y 20,4 W con 10 Ω. La máxima es con R_L = R_th = 4 Ω (25 W); 5 Ω es la más cercana.'; } };
+const CHAL=[
+  {txt:'P10 (potenciómetro): ubicá el cursor donde la resistencia de Thevenin es máxima.',chk(){ if(SY!=='p10a') return [false,'Elegí el potenciómetro']; return Math.abs(P.a-0.5)<0.011?[true,`Logrado: R_th = R/4 = ${ing(TH.Rth,'Ω')}.`]:[false,`R_th = ${ing(TH.Rth,'Ω')}`]; }},
+  {txt:'P9: elegí la carga entre C y D que recibe la máxima potencia.',chk(){ if(SY!=='p9') return [false,'Elegí el P9']; return Math.abs(P.RL-TH.Rth)<0.06?[true,`Logrado: R_L ≈ R_th = ${ing(TH.Rth,'Ω')}.`]:[false,`R_th = ${ing(TH.Rth,'Ω',2)}…`]; }},
+  {txt:'P11: ¿existe un voltímetro que entre A y B marque menos de 3 V? ¿Y si la fuente de 3 V tuviera una resistencia interna?'}];
+function cuentas(){ const T=TH, f=x=>tx(x,3);
+  if(SY==='p8') return {title:'Thevenin entre A y B', finLbl:'Equivalente', steps:[
+    ['Sin carga, una sola malla', `\\[I=\\frac{40-15}{5+20}=1\\ \\text{A}\\]`],
+    ['Tensión de A (B a 0 V)', `\\[V_\\text{th}=15+5\\cdot1=20\\ \\text{V}\\]`,true],
+    ['Fuentes en corto: 5 Ω y 20 Ω quedan en paralelo', `\\[R_\\text{th}=\\frac{5\\cdot20}{25}=4\\ \\Omega\\]`,true],
+    ['Potencia en la carga', `\\[P=\\frac{V_\\text{th}^2R_L}{(R_\\text{th}+R_L)^2}:\\ 16;\\ 24{,}7;\\ 20{,}4\\ \\text{W}\\]`],
+    ['Máxima con R₄ = R_th', `\\[P_\\text{max}=\\frac{V_\\text{th}^2}{4R_\\text{th}}=25\\ \\text{W}\\]`,true]], fin:`\\[20\\ \\text{V},\\ 4\\ \\Omega\\]`};
+  if(SY==='p9') return {title:'Escalera alimentada con 100 V', finLbl:'Resultados', steps:[
+    ['Desde el final: R/2 + R/2 = R; en paralelo con R da R/2; más R/2 vuelve a dar R', `\\[R\\parallel R+\\frac R2=R\\]`],
+    ['Así, en cada nodo la tensión se divide por 2', `\\[100\\to50\\to25\\to12{,}5\\to6{,}25\\ \\text{V}\\]`],
+    ['a) A es el tercer nodo', `\\[V_{AB}=25\\ \\text{V}\\]`,true],
+    ['b) Thevenin entre C y D (fuente en corto, de izquierda a derecha)', `\\[R_\\text{th}=${f(T.Rth)}\\ \\Omega\\qquad V_\\text{th}=${f(T.Vth)}\\ \\text{V}\\]`],
+    ['Con 10 Ω', `\\[P=\\frac{V_\\text{th}^2\\cdot10}{(R_\\text{th}+10)^2}=${f(T.Vth**2*10/(T.Rth+10)**2)}\\ \\text{W}\\]`,true]], fin:`\\[V_{AB}=25\\ \\text{V}\\]`};
+  const gen={p10a:[`V_\\text{th}=aV`,`R_\\text{th}=a(1-a)R`],p10b:[`V_\\text{th}=aV_1-V_2`,`R_\\text{th}=a(1-a)R+r`],p10c:[`V_\\text{th}=\\frac{R_2}{R_1+R_2}V`,`R_\\text{th}=\\frac{R_1R_2}{R_1+R_2}+R_2`],p10d:[`V_\\text{th}=\\frac{aR}{r+aR}V`,`R_\\text{th}=(1-a)R+\\frac{r\\,aR}{r+aR}`]};
+  if(gen[SY]) return {title:'Equivalente de Thevenin', finLbl:'Con los valores elegidos', steps:[
+    ['Tensión a circuito abierto: sin carga, por el borne A no circula corriente', `\\[${gen[SY][0]}\\]`,true],
+    ['Resistencia: fuentes de tensión en corto, vista desde A y B', `\\[${gen[SY][1]}\\]`,true],
+    ['Con los valores de la página', `\\[V_\\text{th}=${f(T.Vth)}\\ \\text{V}\\qquad R_\\text{th}=${f(T.Rth)}\\ \\Omega\\]`]], fin:`\\[${f(T.Vth)}\\ \\text{V},\\ ${f(T.Rth)}\\ \\Omega\\]`};
+  return {title:'Fuente ideal en paralelo', finLbl:'Respuesta', steps:[
+    ['La fuente de 3 V está directamente entre A y B (por los cables)', `\\[V_{AB}=3\\ \\text{V}\\]`,true],
+    ['Apagada, una fuente de tensión es un cortocircuito: todo lo demás queda en paralelo con un cable', `\\[R_\\text{th}=0\\]`,true],
+    ['Con el voltímetro de 1 Ω la tensión no cambia; cambia la corriente de la fuente de 3 V', `\\[I_{8\\Omega}=\\frac{5-3}{8}=0{,}25\\ \\text{A}\\qquad I_{60}=0{,}05\\ \\text{A}\\qquad I_v=3\\ \\text{A}\\]`],
+    ['La fuente de 3 V entrega', `\\[3+0{,}05-0{,}25=2{,}8\\ \\text{A}\\]`]], fin:`\\[V_v=3\\ \\text{V}\\]`}; }
+
+// ================= Arranque =================
+const PRES={p8:[['R₁ = 1 Ω',()=>{ P.RL=1; }],['R₂ = 5 Ω',()=>{ P.RL=5; }],['R₃ = 10 Ω',()=>{ P.RL=10; }],['R₄: máxima potencia',()=>{ P.RL=4; }]],
+  p9:[['datos de la guía (R = 2,5 Ω; 10 Ω entre C y D)',()=>{ P.R9=2.5; P.RL=10; }],['máxima potencia',()=>{ P.RL=+equivalente('p9').Rth.toFixed(2); }]],
+  p10a:[['cursor al medio',()=>{ P.a=0.5; }],['máxima potencia',()=>{ P.RL=+Math.max(0.1,equivalente('p10a').Rth).toFixed(2); }]],
+  p10b:[['máxima potencia',()=>{ P.RL=+Math.max(0.1,equivalente('p10b').Rth).toFixed(2); }]],
+  p10c:[['R₁ = R₂',()=>{ P.R1=P.R2; }],['máxima potencia',()=>{ P.RL=+Math.max(0.1,equivalente('p10c').Rth).toFixed(2); }]],
+  p10d:[['máxima potencia',()=>{ P.RL=+Math.max(0.1,equivalente('p10d').Rth).toFixed(2); }]],
+  p11:[['voltímetro de 1 Ω (guía)',()=>{ P.Rv=1; }],['voltímetro de 1 kΩ',()=>{ P.Rv=1000; }]]};
+const NOTE={p8:'Fuentes de 15 V y 40 V con 5 Ω y 20 Ω; la carga va entre A y B.',p9:'Escalera alimentada con 100 V; A y B en el tercer nodo, la carga entre C y D.',p10a:'Potenciómetro R alimentado con V; A es el cursor, a la fracción de R que queda abajo.',p10b:'Como el anterior, con una fuente V₂ y una resistencia r en el cable del cursor.',p10c:'Divisor R₁–R₂ con otra R₂ hasta el borne A.',p10d:'La fuente, a través de r, alimenta el cursor; A es el extremo de arriba del potenciómetro.',p11:'Fuente de 5 V con 8 Ω, una fuente ideal de 3 V y 60 Ω; entre A y B, un voltímetro.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy],'Casos'); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); actual(); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('p8',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

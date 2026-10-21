@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Redes de capacitores F3 G2-P14, P15 y P16</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">Física 3 · Guía 2 · Conductores y dieléctricos</span>
+  <h1>Redes de capacitores <i>· serie, paralelo y lo que no es ni una cosa ni la otra</i></h1>
+  <a class="mq-back" href="../../simuladores-electricidad.html">← Electricidad</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Guía 2">
+    <h2>Guía 2</h2>
+    <ol>
+      <li><a href="p1-conductores.html"><b class="code">P1, 2, 5</b>Conductores en equilibrio</a></li>
+      <li><a href="p3-esferas.html"><b class="code">P3, 4</b>Esferas a tierra y a baterías</a></li>
+      <li><a href="p6-imagenes.html"><b class="code">P6, 7, 8</b>Método de imágenes</a></li>
+      <li><a href="p9-capacidad.html"><b class="code">P9, 10, 11</b>Capacidad y relajación</a></li>
+      <li><a href="p12-coeficientes.html"><b class="code">P12, 13</b>Coeficientes de capacidad</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">P14, 15, 16</b>Redes de capacitores</a></li>
+      <li><a href="p17-fuerzas.html"><b class="code">P17, 19</b>Fuerzas por trabajos virtuales</a></li>
+      <li><a href="p18-dielectricos.html"><b class="code">P18, 20, 21</b>Dieléctricos</a></li>
+      <li><a href="p22-electretes.html"><b class="code">P22, 23, 24</b>Electretes y esfera dieléctrica</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="El circuito elegido dibujado con sus capacitores, el potencial de cada nodo y la carga de cada capacitor: dos en serie con su tensión máxima, el circuito con batería del problema 15 o las redes del problema 16 entre A y B."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Circuito">
+        <button data-sy="p14" aria-pressed="true">P14 · serie con límites</button>
+        <button data-sy="p15" aria-pressed="false">P15 · circuito con batería</button>
+        <button data-sy="p16a" aria-pressed="false">P16 · red 1</button>
+        <button data-sy="p16b" aria-pressed="false">P16 · red 2</button>
+        <button data-sy="p16c" aria-pressed="false">P16 · escalera</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Gráfico 1</button>
+          <button data-view="v2" aria-pressed="false" id="vb2">Gráfico 2</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:250px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+      <div data-vpanel="v2" hidden>
+        <div class="plot"><canvas id="p2c" style="height:250px"></canvas><div class="tag" id="tag2" style="color:var(--fg)"></div><div class="legend" id="leg2"></div></div>
+        <div class="pcap" id="cap2"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · F3 G2-P14, 15, 16</summary>
+      <p><b>14.</b> Un condensador de 1 μF soporta tensiones no mayores de 6 kV, y otro de 2 μF, no superiores a 4 kV. ¿Qué tensión soportan si se los conecta en serie?</p>
+      <p><b>15.</b> En el circuito de la figura (la batería V en paralelo con C₁ y con la serie de C₂ y C₃): a) Calcule la capacidad equivalente que se observa desde la batería. b) Encuentre las cargas de cada condensador y calcule la energía del sistema. c) Se desconecta la batería, ¿se redistribuyen las cargas?</p>
+      <p><b>16.</b> Hallar la capacidad equivalente entre los puntos A y B para los sistemas de las figuras.</p>
+      <p class="src">Física 3, Guía 2 (Conductores y dieléctricos, 2014). Enunciado textual de la guía; los circuitos se redibujan a partir de las figuras. En el P15 la guía no da valores: la página usa V = 12 V, C₁ = 1 μF, C₂ = 2 μF y C₃ = 3 μF y deja cambiarlos. En el P16 todos los capacitores valen C; la escalera (tercera figura, con A′ y B′ abiertos) se puede alargar. Las redes se resuelven planteando que cada nodo interior queda sin carga neta (Σ C(V_i − V_j) = 0).</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Sobre cada capacitor se indica su carga: en μC en el P15 y en unidades de CV (con V_AB = 1) en el P16. En el P14, las barras muestran qué fracción de su tensión máxima soporta cada capacitor.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ if(!t) return ""; return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=9.8;   // g (no se usa en Física 3; la constante de gravitación es GN)
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+
+// ================= Cinemática (U2) =================
+// ceros de f en [a,b]: muestreo y bisección
+function ceros(f,a,b,N=2000){ const r=[]; let x0=a, f0=f(a); if(Math.abs(f0)<1e-12) r.push(a); for(let i=1;i<=N;i++){ const x1=a+(b-a)*i/N, f1=f(x1); if(Math.abs(f1)<1e-12){ if(!r.length||Math.abs(r[r.length-1]-x1)>1e-9) r.push(x1); } else if(f0*f1<0&&Math.abs(f0)>1e-12){ let lo=x0, hi=x1, flo=f0; for(let k=0;k<60;k++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } } r.push((lo+hi)/2); } x0=x1; f0=f1; } return r; }
+const kmh=v=>v*3.6, ms=v=>v/3.6;
+// motor 1D. M = {cuerpos:[{n,col,x:t=>,v:t=>,a:t=>}], t0,t1, a,b (rango de x), vert, ut, ux, marks:[[x,txt,col]], kv (px por unidad de v)}
+function encuentros1D(M){ const c=M.cuerpos; if(c.length<2) return []; const r=ceros(t=>c[0].x(t)-c[1].x(t),M.t0,M.t1).filter(t=>t>=M.t0-1e-9&&t<=M.t1+1e-9&&(!M.filtro||M.filtro(t))), o=[]; r.forEach(t=>{ if(!o.length||t-o[o.length-1]>(M.t1-M.t0)/100) o.push(t); }); return o; }
+function dibuja1D(cv,M,t){ const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h); const vert=!!M.vert, pad=vert?28:34, L=vert?(h-2*pad):(w-2*pad);
+  const P=x=>vert?h-pad-(x-M.a)/(M.b-M.a)*L:pad+(x-M.a)/(M.b-M.a)*L, c=vert?(M.cx??w*0.28):(M.cy??h*0.55);
+  const seg=(p,q,col,lw,d)=>vert?line(ctx,[[q,p[0]],[q,p[1]]],col,lw,d):line(ctx,[[p[0],q],[p[1],q]],col,lw,d);
+  seg([P(M.a),P(M.b)],c,C.muted,1.5); ticks(M.a,M.b,6).forEach(x=>{ const p=P(x); if(vert){ line(ctx,[[c-4,p],[c+4,p]],C.faint,1); txt(ctx,axf(x),c-8,p+4,C.faint,{size:10,align:'right'}); } else { line(ctx,[[p,c-4],[p,c+4]],C.faint,1); txt(ctx,axf(x),p,c+16,C.faint,{size:10,align:'center'}); } });
+  txt(ctx,M.ux||'',vert?c+8:P(M.b),vert?P(M.b)-8:c-8,C.faint,{size:10.5,align:vert?'left':'right'});
+  (M.marks||[]).forEach(([x,s,col])=>{ const p=P(x); if(vert){ line(ctx,[[c-14,p],[w-10,p]],col||C.faint,1,[3,4]); txt(ctx,s,w-12,p-4,col||C.faint,{size:10.5,align:'right'}); } else { line(ctx,[[p,c-34],[p,c+6]],col||C.faint,1,[3,4]); txt(ctx,s,p,c-38,col||C.faint,{size:10.5,align:'center'}); } });
+  M.cuerpos.forEach((b,i)=>{ const x=b.x(t); if(!isFinite(x)) return; const p=P(Math.max(M.a,Math.min(M.b,x))), off=(i-(M.cuerpos.length-1)/2)*(vert?34:22), q=c+(vert?off+36:-off-14);
+    const X0=vert?q:p, Y0=vert?p:q; ctx.beginPath(); ctx.arc(X0,Y0,7,0,7); ctx.fillStyle=b.col; ctx.fill(); txt(ctx,b.n,X0+(vert?11:0),Y0+(vert?4:-12),b.col,{size:11,align:vert?'left':'center'});
+    const v=b.v?b.v(t):0, k=M.kv??6; if(Math.abs(v)>1e-9){ const d=Math.max(-90,Math.min(90,v*k)); vert?arrow(ctx,X0,Y0,X0,Y0-d,b.col,2,7):arrow(ctx,X0,Y0,X0+d,Y0,b.col,2,7); } });
+  return P; }
+function graf1D(id,M,t,cual,o={}){ const c=M.cuerpos, f=b=>cual==='x'?b.x:cual==='v'?b.v:b.a, ser=c.map((b,i)=>[curva(f(b),M.t0,M.t1,400),b.col,i?[6,4]:null]);
+  let lo=Infinity, hi=-Infinity; ser.forEach(s=>s[0].forEach(p=>{ if(isFinite(p[1])){ lo=Math.min(lo,p[1]); hi=Math.max(hi,p[1]); } })); if(o.y0!==undefined){ lo=o.y0; hi=o.y1; } if(!(hi>lo)){ hi=lo+1; lo-=1; } const pd=(hi-lo)*0.08;
+  const E=cual==='x'?encuentros1D(M):[];
+  plot(id,M.t0,M.t1,lo-pd,hi+pd,ser,`t (${M.ut||'s'})`,{mark:(ctx,X,Y)=>{ line(ctx,[[X(t),Y(lo-pd)],[X(t),Y(hi+pd)]],C.faint,1,[2,3]); c.forEach(b=>{ const y=f(b)(t); if(isFinite(y)) dot(ctx,X(t),Y(y),4.5,b.col); }); E.forEach(te=>dot(ctx,X(te),Y(c[0].x(te)),5,C.ok,true)); (o.extra||(()=>{}))(ctx,X,Y); }}); return E; }
+
+// ================= Dinámica (U5) =================
+// bloque rectangular apoyado: (x, y) es el centro de la base; ang en radianes (antihorario)
+function bloque(ctx,x,y,w,h,col,lab,ang=0){ ctx.save(); ctx.translate(x,y); ctx.rotate(-ang); ctx.fillStyle=C['panel-2']; ctx.fillRect(-w/2,-h,w,h); ctx.strokeStyle=col; ctx.lineWidth=1.6; ctx.strokeRect(-w/2,-h,w,h); if(lab){ ctx.fillStyle=col; ctx.font=`12px ${NUM}`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(lab,0,-h/2); } ctx.restore(); }
+function polea(ctx,x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.6; ctx.stroke(); dot(ctx,x,y,2.5,C.muted); }
+function piso(ctx,x0,x1,y){ line(ctx,[[x0,y],[x1,y]],C.muted,2); for(let x=x0;x<x1;x+=10) line(ctx,[[x,y],[x-6,y+6]],C.faint,1); }
+// plano inclinado: vértice inferior izquierdo (x0, y0), largo horizontal L px, ángulo ang (rad), sube hacia la derecha si dir = 1
+function plano(ctx,x0,y0,L,ang,dir=1){ const x1=x0+L*dir, yt=y0-L*Math.tan(ang); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y0); ctx.lineTo(x1,yt); ctx.closePath(); ctx.fillStyle=C['panel-2']; ctx.fill(); ctx.strokeStyle=C.muted; ctx.lineWidth=1.6; ctx.stroke(); return {x1,yt}; }
+// flecha de fuerza (en newtons) con escala k px/N
+function fuerza(ctx,x,y,fx,fy,k,col,lab){ const ex=x+fx*k, ey=y-fy*k; if(Math.hypot(fx,fy)*k<2) return; arrow(ctx,x,y,ex,ey,col,2.2,8); if(lab) txt(ctx,lab,ex+(fx>=0?4:-4),ey+(fy>0?-4:12),col,{size:11,align:fx>=0?'left':'right'}); }
+// diagrama de cuerpo libre: fuerzas [[n, fx, fy, col]] dibujadas desde un punto, con la resultante punteada
+function dcl(ctx,cx,cy,R,F,tit){ const m=Math.max(...F.map(f=>Math.hypot(f[1],f[2])),1e-9), k=R/m; ctx.beginPath(); ctx.arc(cx,cy,R+18,0,7); ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.stroke(); dot(ctx,cx,cy,4,C.fg);
+  F.forEach(([n,fx,fy,col])=>fuerza(ctx,cx,cy,fx,fy,k,col,n)); const rx=F.reduce((s,f)=>s+f[1],0), ry=F.reduce((s,f)=>s+f[2],0); if(Math.hypot(rx,ry)>m*0.02) arrow(ctx,cx,cy,cx+rx*k,cy-ry*k,C.ok,1.6,7,[4,3]); if(tit) txt(ctx,tit,cx,cy-R-24,C.muted,{size:10.5,align:'center'}); return {rx,ry}; }
+
+// ================= Electrostática (Física 3) =================
+const KE=9e9, EPS0=1/(4*Math.PI*KE);   // k = 9 × 10⁹ N m²/C², como en los datos de la guía
+// notación científica con coma: 1,23 × 10⁻⁴
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function sci(x,d=2){ if(x===0) return '0'; if(!isFinite(x)) return '—'; const e=Math.floor(Math.log10(Math.abs(x))), m=x/10**e; if(e>=-2&&e<=3) return cm(x,Math.max(0,d-e)); return `${cm(m,d)} × 10${String(e).split('').map(c=>SUP[c]).join('')}`; }
+// campo y potencial de cargas puntuales (en unidades con k = 1), evaluados en el plano z = 0
+function eQ(Q,x,y){ let ex=0,ey=0,v=0; for(const c of Q){ const dx=x-c.x, dy=y-c.y, dz=-(c.z||0), r2=dx*dx+dy*dy+dz*dz; if(r2<1e-18) continue; const r=Math.sqrt(r2), s=c.q/(r2*r); ex+=s*dx; ey+=s*dy; v+=c.q/r; } return [ex,ey,v]; }
+// líneas de campo: Ef(x,y) → [ex,ey]; semillas [[x,y,sentido]]; B = {x0,x1,y0,y1}; fin(x,y) corta la línea
+function lineasCampo(Ef,semillas,B,o={}){ const ds=o.ds||(B.x1-B.x0)/350, n=o.n||1400, fin=o.fin||(()=>false), out=[];
+  for(const [sx,sy,dir] of semillas){ let x=sx,y=sy; const pts=[[x,y]]; let tope=null;
+    for(let i=0;i<n;i++){ let [ex,ey]=Ef(x,y), m=Math.hypot(ex,ey); if(!(m>0)) break; const mx=x+dir*ds/2*ex/m, my=y+dir*ds/2*ey/m; [ex,ey]=Ef(mx,my); m=Math.hypot(ex,ey); if(!(m>0)) break;
+      x+=dir*ds*ex/m; y+=dir*ds*ey/m; pts.push([x,y]); if(x<B.x0||x>B.x1||y<B.y0||y>B.y1){ tope='borde'; break; } const f=fin(x,y); if(f){ tope=f; break; } }
+    out.push({pts,dir,tope}); } return out; }
+// semillas alrededor de cargas puntuales del plano: desde las positivas hacia afuera y desde las negativas hacia atrás
+function semillasQ(Q,porQ,r0){ const s=[]; Q.forEach((c,i)=>{ if(c.z||!c.q) return; const n=Math.max(3,Math.round(porQ*Math.abs(c.q))); for(let j=0;j<n;j++){ const a=2*Math.PI*(j+0.5)/n+(c.q<0?Math.PI/n:0); s.push([c.x+r0*Math.cos(a),c.y+r0*Math.sin(a),c.q>0?1:-1,i]); } }); return s; }
+// isolíneas por cuadrados marchantes sobre la pantalla: V(px,py) en coordenadas de pantalla
+function isolineas(ctx,V,w,h,paso,niveles,col,lw=1,dash){ const nx=Math.ceil(w/paso)+1, ny=Math.ceil(h/paso)+1, g=new Float64Array(nx*ny);
+  for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) g[j*nx+i]=V(i*paso,j*paso);
+  ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.setLineDash(dash||[]); ctx.beginPath();
+  for(const L of niveles){ for(let j=0;j<ny-1;j++) for(let i=0;i<nx-1;i++){ const a=g[j*nx+i], b=g[j*nx+i+1], c=g[(j+1)*nx+i+1], d=g[(j+1)*nx+i]; if(!isFinite(a+b+c+d)) continue;
+    const P=[]; const e=(v1,v2,x1,y1,x2,y2)=>{ if((v1-L)*(v2-L)<0){ const t=(L-v1)/(v2-v1); P.push([x1+t*(x2-x1),y1+t*(y2-y1)]); } };
+    const x=i*paso, y=j*paso; e(a,b,x,y,x+paso,y); e(b,c,x+paso,y,x+paso,y+paso); e(c,d,x+paso,y+paso,x,y+paso); e(d,a,x,y+paso,x,y);
+    for(let k=0;k+1<P.length;k+=2){ ctx.moveTo(P[k][0],P[k][1]); ctx.lineTo(P[k+1][0],P[k+1][1]); } } }
+  ctx.stroke(); ctx.setLineDash([]); }
+// carga dibujada con su signo
+function carga(ctx,x,y,q,r=9){ const col=q>0?C.sob:q<0?C.sys:C.faint; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fillStyle=C.panel; ctx.fill(); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke(); txt(ctx,q>0?'+':q<0?'−':'0',x,y+4,col,{size:13,align:'center',weight:'bold'}); }
+// dibuja una lista de líneas en pantalla (con flechita al medio)
+function dibujaLineas(ctx,L,X,Y,col,alpha=0.7){ L.forEach(({pts,dir})=>{ if(pts.length<4) return; line(ctx,pts.map(p=>[X(p[0]),Y(p[1])]),col,1.1,null,alpha); const k=Math.floor(pts.length/2), p=pts[k], q=pts[Math.min(pts.length-1,k+2)]; const a=[X(p[0]),Y(p[1])], b=[X(q[0]),Y(q[1])]; if(dir<0) arrow(ctx,b[0],b[1],a[0],a[1],col,1.1,6); else arrow(ctx,a[0],a[1],b[0],b[1],col,1.1,6); }); }
+// integral de Simpson
+function simpson(f,a,b,n=200){ if(n%2) n++; const h=(b-a)/n; let s=f(a)+f(b); for(let i=1;i<n;i++) s+=(i%2?4:2)*f(a+i*h); return s*h/3; }
+// notación científica para MathJax
+function txsci(x,d=2){ if(x===0) return '0'; const e=Math.floor(Math.log10(Math.abs(x))), m=x/10**e; if(e>=-2&&e<=3) return tx(x,Math.max(0,d-e)); return `${tx(m,d)}\times10^{${e}}`; }
+// integrales elípticas completas K(m) y E(m) por la media aritmético-geométrica (m = k²)
+function elipticas(m){ let a=1, b=Math.sqrt(Math.max(0,1-m)), c2=m, s=c2/2, p=1; for(let i=0;i<30;i++){ const an=(a+b)/2, bn=Math.sqrt(a*b), cn=(a-b)/2; p*=2; s+=p*cn*cn/2; a=an; b=bn; if(Math.abs(cn)<1e-15) break; } const K=Math.PI/(2*a); return [K,K*(1-s)]; }
+// anillo de radio R y carga Q (k = 1) en el plano z = 0: campo [E_r, E_z] y potencial en (r ≥ 0, z)
+function anillo(R,Q,r,z){ const s2=(R+r)**2+z*z, d2=(R-r)**2+z*z; if(d2<1e-18) return [NaN,NaN,Infinity]; const m=4*R*r/s2, [K,E]=elipticas(m), s=Math.sqrt(s2);
+  const V=2*Q*K/(Math.PI*s), Ez=2*Q*z*E/(Math.PI*d2*s), Er=r<1e-12?0:Q/(Math.PI*r*s)*(K-(R*R-r*r+z*z)/d2*E); return [Er,Ez,V]; }
+// capa dibujada una sola vez por combinación de parámetros (líneas y equipotenciales costosas)
+const CAPAS={};
+function capa(nombre,clave,w,h,dibujo){ const dpr=Math.min(devicePixelRatio||1,2), W=Math.round(w*dpr), H=Math.round(h*dpr); let c=CAPAS[nombre]; if(!c||c.clave!==clave||c.cv.width!==W||c.cv.height!==H){ const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0); dibujo(x,w,h); c=CAPAS[nombre]={clave,cv}; } return c.cv; }
+// uso: ctx.drawImage(capa(...),0,0,w,h)
+// ================= F3 G2-P14, 15, 16 · Redes de capacitores =================
+const DEF=[
+  {id:'C1',lab:'C₁',unit:'μF',min:0.1,max:10,step:0.1,dec:1},
+  {id:'V1m',lab:'tensión máxima de C₁',unit:'kV',min:0.5,max:20,step:0.5,dec:1},
+  {id:'C2',lab:'C₂',unit:'μF',min:0.1,max:10,step:0.1,dec:1},
+  {id:'V2m',lab:'tensión máxima de C₂',unit:'kV',min:0.5,max:20,step:0.5,dec:1},
+  {id:'C3',lab:'C₃',unit:'μF',min:0.1,max:10,step:0.1,dec:1},
+  {id:'V',lab:'batería V',unit:'V',min:1,max:50,step:1,dec:0},
+  {id:'N',lab:'eslabones de la escalera',unit:'',min:1,max:8,step:1,dec:0},
+];
+const PS={p14:{C1:1,V1m:6,C2:2,V2m:4},p15:{C1:1,C2:2,C3:3,V:12},p16a:{},p16b:{},p16c:{N:3}}, PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={p14:['C1','V1m','C2','V2m'],p15:['C1','C2','C3','V'],p16a:[],p16b:[],p16c:['N']};
+const P=Object.assign({},PS.p16c,PS.p15,PS.p14); let SY='p14';
+// ---------- redes: nodos 0 (A, fijo en 1) y 1 (B, fijo en 0); los demás libres ----------
+function red(){ const E=[], W=[]; let nn=2, bat=null;
+  if(SY==='p15'){ nn=3; bat=[[0.1,0.25],[0.1,0.75]]; W.push([[0.1,0.25],[0.4,0.25]],[[0.1,0.75],[0.9,0.75]]);
+    E.push({n:[0,1],C:P.C1,pts:[[0.4,0.25],[0.4,0.75]],lab:'C₁'},{n:[0,2],C:P.C2,pts:[[0.4,0.25],[0.9,0.25]],lab:'C₂'},{n:[2,1],C:P.C3,pts:[[0.9,0.25],[0.9,0.75]],lab:'C₃'}); }
+  else if(SY==='p16a'||SY==='p16b'){ const b=SY==='p16b'; nn=b?4:2; const a_=0, b_=b?2:1, c_=b?3:0, d_=1; W.push([[0.05,0.5],[0.25,0.5]],[[0.75,0.5],[0.95,0.5]]);
+    E.push({n:[a_,b_],C:1,pts:[[0.25,0.5],[0.42,0.5]],lab:'C'},{n:[b_,c_],C:1,pts:[[0.42,0.5],[0.58,0.5]],lab:'C'},{n:[c_,d_],C:1,pts:[[0.58,0.5],[0.75,0.5]],lab:'C'});
+    const top=[[0.25,0.5],[0.25,0.18],[0.58,0.18],[0.58,0.5]], bot=[[0.42,0.5],[0.42,0.82],[0.75,0.82],[0.75,0.5]];
+    if(b){ E.push({n:[a_,c_],C:1,pts:top,k:1,lab:'C'},{n:[b_,d_],C:1,pts:bot,k:1,lab:'C'}); } else W.push(top,bot); }
+  else if(SY==='p16c'){ const N=P.N; nn=2+N; W.push([[0.05,0.3],[0.1,0.3]],[[0.05,0.75],[0.95,0.75]]); let prev=0; for(let k=1;k<=N;k++){ const u0=0.1+0.8*(k-1)/N, u1=0.1+0.8*k/N, nd=1+k; E.push({n:[prev,nd],C:1,pts:[[u0,0.3],[u1,0.3]],lab:'C'},{n:[nd,1],C:1,pts:[[u1,0.3],[u1,0.75]],lab:'C'}); prev=nd; } W.push([[0.9,0.3],[0.95,0.3]]); }
+  return {E,W,nn,bat}; }
+function resolver(R,VA=1){ const n=R.nn, libres=[]; for(let i=2;i<n;i++) libres.push(i); const V=new Float64Array(n); V[0]=VA; V[1]=0; const m=libres.length;
+  if(m){ const M=libres.map(()=>new Float64Array(m+1)); R.E.forEach(e=>{ const [i,j]=e.n; [[i,j],[j,i]].forEach(([p,q])=>{ const ip=libres.indexOf(p); if(ip<0) return; M[ip][ip]+=e.C; const iq=libres.indexOf(q); if(iq<0) M[ip][m]+=e.C*V[q]; else M[ip][iq]-=e.C; }); });
+    for(let c=0;c<m;c++){ let pv=c; for(let r=c+1;r<m;r++) if(Math.abs(M[r][c])>Math.abs(M[pv][c])) pv=r; [M[c],M[pv]]=[M[pv],M[c]]; for(let r=0;r<m;r++){ if(r===c) continue; const f=M[r][c]/M[c][c]; for(let k=c;k<=m;k++) M[r][k]-=f*M[c][k]; } }
+    libres.forEach((p,i)=>V[p]=M[i][m]/M[i][i]); }
+  const Q=R.E.map(e=>e.C*(V[e.n[0]]-V[e.n[1]])); let QA=0; R.E.forEach((e,k)=>{ if(e.n[0]===0) QA+=Q[k]; if(e.n[1]===0) QA-=Q[k]; }); return {V,Q,Ceq:QA/VA}; }
+// ---------- P14 ----------
+function serie(){ const Q1=P.C1*P.V1m, Q2=P.C2*P.V2m, Q=Math.min(Q1,Q2), Vt=Q/P.C1+Q/P.C2; return {Q1,Q2,Q,Vt,lim:Q1<Q2?1:2}; }   // μC, kV
+function restart(){ S.t=0; } function step(){}
+
+// ================= Escena =================
+const scene=$('scene');
+function capSym(ctx,a,b,lab,txtQ){ const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2, L=Math.hypot(b[0]-a[0],b[1]-a[1]), ux=(b[0]-a[0])/L, uy=(b[1]-a[1])/L, g=5, pl=11;
+  line(ctx,[a,[mx-ux*g,my-uy*g]],C.muted,1.8); line(ctx,[[mx+ux*g,my+uy*g],b],C.muted,1.8);
+  [-g,g].forEach(s=>line(ctx,[[mx+ux*s-uy*pl,my+uy*s+ux*pl],[mx+ux*s+uy*pl,my+uy*s-ux*pl]],C.fg,2.4));
+  const vert=Math.abs(uy)>0.5, der=vert&&mx>ctx.canvas.clientWidth-110, ox=vert?(der?-16:16):0, oy=vert?0:-18, al=vert?(der?"right":"left"):"center"; txt(ctx,lab,mx+ox,my+oy+4,C.fg,{size:11,align:al}); if(txtQ) txt(ctx,txtQ,mx+ox,my+oy+(vert?18:-12),C.v,{size:10.5,align:al}); }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); $('clock').textContent=''; const X=u=>12+u*(w-24), Y=v=>10+v*(h-20);
+  if(SY==='p14'){ const S2=serie(), y=h*0.45, xs=[w*0.1,w*0.4,w*0.6,w*0.9]; line(ctx,[[xs[0],y],[xs[1]-30,y]],C.muted,1.8); capSym(ctx,[xs[1]-30,y],[xs[1]+30,y],`C₁ = ${cm(P.C1,1)} μF`,`${cm(S2.Q/P.C1,2)} kV de ${cm(P.V1m,1)}`); line(ctx,[[xs[1]+30,y],[xs[2]-30,y]],C.muted,1.8); capSym(ctx,[xs[2]-30,y],[xs[2]+30,y],`C₂ = ${cm(P.C2,1)} μF`,`${cm(S2.Q/P.C2,2)} kV de ${cm(P.V2m,1)}`); line(ctx,[[xs[2]+30,y],[xs[3],y]],C.muted,1.8);
+    [[xs[1],S2.Q/P.C1/P.V1m],[xs[2],S2.Q/P.C2/P.V2m]].forEach(([x,f])=>{ ctx.fillStyle=C.faint; ctx.fillRect(x-30,y+40,60,10); ctx.fillStyle=f>0.999?C.crit:C.ok; ctx.fillRect(x-30,y+40,60*Math.min(1,f),10); });
+    txt(ctx,'A',xs[0]-4,y-10,C.fg,{size:12}); txt(ctx,'B',xs[3]-4,y-10,C.fg,{size:12}); txt(ctx,'barras: fracción de la tensión máxima de cada uno',10,h-12,C.muted,{size:10.5});
+    readout([['carga máxima de cada uno',`C₁V₁ = ${cm(S2.Q1,0)} μC · C₂V₂ = ${cm(S2.Q2,0)} μC`],['en serie tienen la misma carga',`Q = ${cm(S2.Q,0)} μC (limita C${S2.lim})`,C.v],['tensión máxima de la serie',`V = Q/C₁ + Q/C₂ = ${cm(S2.Vt,2)} kV`,C.lin],['(no es la suma de las máximas)',`${cm(P.V1m+P.V2m,1)} kV`]]);
+    $('formula').innerHTML='en serie la carga es la misma: <b>Q = mín(C₁V₁max, C₂V₂max)</b> y <b>V = Q(1/C₁ + 1/C₂)</b> → 6 mC y 9 kV'; return; }
+  const R=red(), VA=SY==='p15'?P.V:1, sol=resolver(R,VA);
+  R.W.forEach(p=>line(ctx,p.map(([u,v])=>[X(u),Y(v)]),C.muted,1.8));
+  R.E.forEach((e,k)=>{ const pts=e.pts.map(([u,v])=>[X(u),Y(v)]), kk=e.k??0; for(let i=0;i<pts.length-1;i++){ if(i===kk) continue; line(ctx,[pts[i],pts[i+1]],C.muted,1.8); } const q=sol.Q[k]; capSym(ctx,pts[kk],pts[kk+1],SY==="p15"?(w<560?e.lab:`${e.lab} = ${cm(e.C,1)} μF`):"C",SY==='p15'?`${cm(q,2)} μC`:`${cm(q,3)} CV`); });
+  if(R.bat){ const [a,b]=R.bat.map(([u,v])=>[X(u),Y(v)]), m=(a[1]+b[1])/2; line(ctx,[a,[a[0],m-6]],C.muted,1.8); line(ctx,[[a[0],m+6],b],C.muted,1.8); line(ctx,[[a[0]-14,m-6],[a[0]+14,m-6]],C.fg,2); line(ctx,[[a[0]-7,m+6],[a[0]+7,m+6]],C.fg,3.5); txt(ctx,'+',a[0]+18,m-8,C.sob,{size:13}); txt(ctx,`V = ${cm(P.V,0)} V`,a[0]+18,m+12,C.fg,{size:11}); }
+  if(SY!=='p15'){ txt(ctx,'A',X(0.03),Y(SY==='p16c'?0.3:0.5)-10,C.sob,{size:13}); txt(ctx,'B',SY==='p16c'?X(0.03):X(0.95),Y(SY==='p16c'?0.75:0.5)-10,C.sys,{size:13}); if(SY==='p16c'){ txt(ctx,'A′',X(0.95),Y(0.3)-10,C.faint,{size:12}); txt(ctx,'B′',X(0.95),Y(0.75)-10,C.faint,{size:12}); } }
+  if(SY==='p15'){ const C23=P.C2*P.C3/(P.C2+P.C3), Ce=P.C1+C23; readout([['capacidad equivalente',`C₁ + C₂C₃/(C₂ + C₃) = ${cm(Ce,4)} μF`,C.lin],['cargas',`Q₁ = ${cm(sol.Q[0],3)} μC · Q₂ = Q₃ = ${cm(sol.Q[1],3)} μC`],['tensiones',`C₂: ${cm(sol.Q[1]/P.C2,3)} V · C₃: ${cm(sol.Q[2]/P.C3,3)} V`],['energía',`½C_eq V² = ${cm(0.5*Ce*P.V*P.V,2)} μJ`,C.ok],['al desconectar la batería','nada cambia: cada rama ya tiene V en sus extremos']]);
+    $('formula').innerHTML='C₁ y la serie C₂–C₃ están las dos entre los bornes de la batería: <b>C_eq = C₁ + C₂C₃/(C₂ + C₃)</b> · sin la batería, las cargas quedan donde estaban (no hay diferencia de potencial que las mueva)'; }
+  else { const tex={p16a:'el cable de arriba une el primer nodo con el tercero y el de abajo el segundo con el cuarto: los tres C quedan entre A y B → <b>3C</b>',p16b:'puente simétrico: los nodos interiores quedan a V/2 → <b>C_eq = C</b>',p16c:`de atrás para adelante: cada eslabón es C en serie con (C ∥ lo que sigue) → <b>${frac()}</b>; con infinitos eslabones, C(√5 − 1)/2 ≈ 0,618C`}[SY];
+    readout([['capacidad equivalente entre A y B',cm(sol.Ceq,5)+' C',C.lin],['potenciales de los nodos',Array.from(sol.V).map(v=>cm(v,3)).join(' · ')+' (V_AB = 1)']]); $('formula').innerHTML=tex; } }
+function frac(){ // C_eq como fracción exacta (los C son iguales)
+  const R=red(), s=resolver(R); let best=''; for(let d=1;d<=2000;d++){ const n=Math.round(s.Ceq*d); if(Math.abs(n/d-s.Ceq)<1e-9){ best=`${n}C/${d}`; break; } } return 'C_eq = '+best; }
+
+// ================= Gráficos =================
+function draw(){ drawScene(); const v=S.view, id=v==='v1'?'p1c':'p2c', n=v==='v1'?1:2;
+  if(SY==='p14'){ const f=x=>{ const o=P.C2; P.C2=x; const s=serie().Vt; P.C2=o; return s; }; plot(id,0.1,10,0,Math.max(f(0.1),f(10),P.V1m+P.V2m)*1.1,[[curva(f,0.1,10,300),C.lin],[[[0.1,P.V1m+P.V2m],[10,P.V1m+P.V2m]],C.faint,[3,3],1]],'C₂ (μF)',{mark:(ctx,X,Y)=>dot(ctx,X(P.C2),Y(serie().Vt),4.5,C.lin)}); $('tag'+n).textContent='Tensión máxima de la serie (kV)'; legend('leg'+n,[[C.lin,'V máx'],[C.faint,'suma de las máximas','dotted']]); $('cap'+n).textContent='Solo se alcanza la suma de las máximas si C₁V₁max = C₂V₂max.'; return; }
+  if(SY==='p16c'){ if(v==='v1'){ const vals=[]; for(let N=1;N<=8;N++){ const o=P.N; P.N=N; vals.push([N,resolver(red()).Ceq]); P.N=o; } plot(id,0.5,8.5,0.4,0.75,[[vals,C.lin],[[[0.5,(Math.sqrt(5)-1)/2],[8.5,(Math.sqrt(5)-1)/2]],C.faint,[3,3],1]],'eslabones',{mark:(ctx,X,Y)=>vals.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),p[0]===P.N?5:3,C.lin))}); $('tag'+n).textContent='C_eq (C)'; legend('leg'+n,[[C.lin,'escalera'],[C.faint,'(√5 − 1)/2','dotted']]); $('cap'+n).textContent='1/2, 3/5, 8/13, 21/34…: cocientes de Fibonacci que tienden a la razón áurea menos uno.'; }
+    else { const s=resolver(red()), pts=[]; for(let k=1;k<=P.N;k++) pts.push([k,s.V[1+k]]); plot(id,0,P.N+0.5,0,1,[[[[0,1]].concat(pts),C.ok]],'nodo de la escalera',{mark:(ctx,X,Y)=>pts.forEach(p=>dot(ctx,X(p[0]),Y(p[1]),4,C.ok))}); $('tag'+n).textContent='Potencial de cada nodo (V_AB)'; legend('leg'+n,[[C.ok,'V']]); $('cap'+n).textContent='El potencial cae geométricamente a lo largo de la escalera.'; } return; }
+  const nets=['p16a','p16b','p16c'], o=SY, vals=nets.map(s=>{ SY=s; const r=resolver(red()).Ceq; return r; }); SY=o;
+  if(SY==='p15'){ const f=x=>{ const q=P.C1; P.C1=x; const c=P.C1+P.C2*P.C3/(P.C2+P.C3); P.C1=q; return c; }; plot(id,0.1,10,0,f(10)*1.1,[[curva(f,0.1,10),C.lin]],'C₁ (μF)',{mark:(ctx,X,Y)=>dot(ctx,X(P.C1),Y(f(P.C1)),4.5,C.lin)}); $('tag'+n).textContent='C_eq (μF)'; legend('leg'+n,[[C.lin,'C₁ + C₂C₃/(C₂ + C₃)']]); $('cap'+n).textContent='C₁ suma directamente: está en paralelo con la serie.'; return; }
+  const F=frame($(id),{x0:0,x1:3.6,y0:0,y1:3.4,xlab:''}), {ctx,X,Y}=F; vals.forEach((v2,i)=>{ ctx.fillStyle=nets[i]===SY?C.lin:C.faint; ctx.fillRect(X(i+0.4),Y(v2),X(i+1.2)-X(i+0.4),Y(0)-Y(v2)); txt(ctx,['red 1','red 2','escalera'][i]+` · ${cm(v2,3)}C`,X(i+0.8),Y(v2)-6,C.fg,{size:10.5,align:'center'}); });
+  $('tag'+n).textContent='Capacidad equivalente de las tres redes (C)'; legend('leg'+n,[]); $('cap'+n).textContent='Los cables pueden juntar capacitores que parecían en serie: la red 1 tiene 3C.'; }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'P14: en serie, el conjunto de 1 μF (6 kV) y 2 μF (4 kV) soporta…',
+  opts:[['10','10 kV (la suma)'],['9','9 kV'],['4','4 kV (la menor)']], right:'9', go:'Probalo',
+  run(){ pickChip('p14',setMode); return '9 kV: los dos llevan la misma carga y el de 1 μF llega primero a su límite (6 mC); en ese momento el de 2 μF tiene solo 3 kV.'; } };
+const CHAL=[{txt:'P15: elegí C₁ para que la energía del sistema sea 200 μJ con la batería de 12 V.',chk(){ if(SY!=='p15') return [false,'Elegí el P15']; const Ce=P.C1+P.C2*P.C3/(P.C2+P.C3), U=0.5*Ce*P.V*P.V; return Math.abs(U-200)<4?[true,`Logrado: C_eq ≈ ${cm(Ce,2)} μF.`]:[false,`U = ${cm(U,1)} μJ`]; }}];
+function cuentas(){ if(SY==='p14') return {title:'Serie con tensiones máximas', finLbl:'Resultado', steps:[
+    ['Carga máxima de cada uno', `\\[Q_1=C_1V_1=6\\ \\text{mC}\\qquad Q_2=C_2V_2=8\\ \\text{mC}\\]`],
+    ['En serie llevan la misma carga: manda la menor', `\\[Q=6\\ \\text{mC}\\]`],
+    ['Tensión total', `\\[V=\\frac{Q}{C_1}+\\frac{Q}{C_2}=6+3=9\\ \\text{kV}\\]`,true]], fin:`\\[V_\\text{max}=9\\ \\text{kV}\\]`};
+  if(SY==='p15') return {title:'Circuito del P15', finLbl:'Resultados', steps:[
+    ['C₂ y C₃ en serie, en paralelo con C₁', `\\[C_\\text{eq}=C_1+\\frac{C_2C_3}{C_2+C_3}\\]`,true],
+    ['Cargas', `\\[Q_1=C_1V\\qquad Q_2=Q_3=\\frac{C_2C_3}{C_2+C_3}V\\]`,true],
+    ['Energía', `\\[U=\\tfrac12C_\\text{eq}V^2\\]`],
+    ['Al desconectar: cada rama ya está a la tensión V; no hay flujo de carga']], fin:`\\[C_\\text{eq}=C_1+C_2C_3/(C_2+C_3)\\]`};
+  return {title:'Capacidad equivalente', finLbl:'Resultados', steps:[
+    ['Red 1: los cables dejan los tres capacitores entre A y B', `\\[C_\\text{eq}=3C\\]`,true],
+    ['Red 2: puente simétrico (por simetría, los dos nodos interiores están a V/2)', `\\[C_\\text{eq}=C\\]`,true],
+    ['Escalera de tres eslabones, desde el final', `\\[C\\parallel\\left(C\\text{ serie }C\\right)=\\tfrac32C\\to\\tfrac35C\\to\\tfrac85C\\to\\tfrac{8}{13}C\\]`,true]], fin:`\\[\\textstyle\\sum_jC(V_i-V_j)=0\\ \\text{en cada nodo libre}\\]`}; }
+
+// ================= Arranque =================
+const PRES={p14:[['datos de la guía',()=>Object.assign(P,PS0.p14)]],p15:[['valores de la página',()=>Object.assign(P,PS0.p15)]],p16a:[],p16b:[],p16c:[['tres eslabones (figura)',()=>Object.assign(P,{N:3})],['ocho eslabones',()=>Object.assign(P,{N:8})]]};
+const NOTE={p14:'Dos capacitores en serie entre A y B, cada uno con su tensión máxima.',p15:'Batería V con C₁ en paralelo y la serie C₂–C₃.',p16a:'Primera red de la figura: tres C en línea con dos cables que puentean.',p16b:'Segunda red: los cables reemplazados por capacitores C.',p16c:'Escalera de la tercera figura, entre A y B (A′ y B′ abiertos).'};
+const VNAME={p14:['V máx según C₂',''],p15:['C_eq según C₁',''],p16a:['Las tres redes',''],p16b:['Las tres redes',''],p16c:['Según los eslabones','Potencial de los nodos']};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy],'Casos'); $('note').textContent=NOTE[sy]; $('vb1').textContent=VNAME[sy][0]; $('vb2').hidden=!VNAME[sy][1]; $('vb2').textContent=VNAME[sy][1]; if(!VNAME[sy][1]) setView('v1'); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('p14',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

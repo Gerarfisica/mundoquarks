@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Bernoulli, Venturi y Pitot U2 20 a 23, 25 a 27, 37</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Biofísica 53 · Unidad 2 · Hidrodinámica</span>
+  <h1>Bernoulli, Venturi y Pitot <i>· donde el fluido va más rápido, la presión es menor</i></h1>
+  <a class="mq-back" href="../../simuladores-hidrodinamica.html">← Hidrodinámica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Hidrodinámica">
+    <h2>Hidrodinámica</h2>
+    <ol>
+      <li><a href="p1-continuidad.html"><b class="code">19, 31, 32</b>Continuidad y caudal</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">20 a 23, 25 a 27, 37</b>Bernoulli, Venturi y Pitot</a></li>
+      <li><a href="p3-torricelli.html"><b class="code">29, 30</b>Torricelli y vaciado</a></li>
+      <li><a href="p4-poiseuille.html"><b class="code">34 a 36, 39, 45</b>Viscosidad y Poiseuille</a></li>
+      <li><a href="p5-resistencias.html"><b class="code">38, 41, 42, 46</b>Resistencias en serie y en paralelo</a></li>
+      <li><a href="p6-stokes.html"><b class="code">compl.</b>Stokes y velocidad terminal</a></li>
+      <li><a href="p7-reynolds.html"><b class="code">49, 50</b>Experimento de Reynolds</a></li>
+      <li><a href="p8-capilaridad.html"><b class="code">compl.</b>Tensión superficial y capilaridad</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:360px" aria-label="Según el caso: un caño inclinado que baja y se ensancha; un tubo inclinado con tres secciones A, B y C y la presión en cada una; un tubo de Venturi con dos columnas manométricas; o un tubo de Pitot en una corriente de aire con un manómetro de agua."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="b20" aria-pressed="true">20 · caño que baja</button>
+        <button data-sy="b22" aria-pressed="false">21, 22, 37 · tubo A, B, C</button>
+        <button data-sy="ven" aria-pressed="false">25 a 27 · Venturi</button>
+        <button data-sy="pit" aria-pressed="false">Pitot</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Presión</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:260px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U2 · 20 a 23, 25 a 27, 37</summary>
+      <p><b>20.</b> Por una tubería con un área de la sección transversal de 4,20 cm² circula el agua, considerada fluido ideal, a una velocidad de 5,18 m/s. El agua desciende gradualmente 9,66 m mientras que el área del tubo aumenta a 7,60 cm². a) ¿Cuál es su velocidad en el nivel inferior? b) Si la presión en el nivel superior es de 152 kPa, ¿cuál es la presión en el nivel inferior?</p>
+      <p><b>21.</b> Un líquido de viscosidad insignificante fluye por un caño horizontal en régimen estacionario y laminar. En cierto lugar del caño el fluido tiene presión p y velocidad v. En otro lugar del caño, donde la sección es menor, la presión p’ y la velocidad v’ cumplen: p’ &lt; p y v’ &gt; v · p’ &lt; p y v’ &lt; v · p’ &gt; p y v’ &gt; v · p’ &gt; p y v’ &lt; v · p’ = p y v’ &gt; v · p’ = p y v’ &lt; v.</p>
+      <p><b>22.</b> Un líquido ideal fluye con caudal constante por un tubo como el de la figura. 22.1 ¿Cuál es la única afirmación, entre las seis que siguen, que es siempre correcta?: la presión en A es la menor de las tres · la presión en A es menor que en B · la presión en C es la menor de las tres · la presión en A es mayor que en C · la presión en C es la mayor de las tres · ninguna de las afirmaciones anteriores es siempre correcta. 22.2 Ídem en el caso de que el fluido circulara en el sentido contrario. (En la figura, el tubo está inclinado: A, arriba, tiene una sección intermedia; B, en el medio, es la parte más ancha; C, abajo, la más angosta. El líquido entra por A.)</p>
+      <p><b>23.</b> a) ¿A qué se debe que bajo los efectos del viento los techos de chapa tienden a volarse hacia arriba? b) ¿Por qué es peligroso pararse muy cerca del borde de un andén? c) Explique el funcionamiento de un aerógrafo, que pulveriza pintura mediante aire a presión.</p>
+      <p><b>25.</b> Un líquido de viscosidad insignificante de densidad 1 kg/l se mueve a razón de 3 mm/s por un tubo horizontal de 2 cm de diámetro. En cierta parte, el tubo reduce su diámetro a 0,5 cm. ¿Cuál es la diferencia de presión del líquido entre ambas secciones? Indique cuál es mayor.</p>
+      <p><b>26.</b> Por un caño horizontal de sección variable fluye un líquido de viscosidad insignificante. Calcule la diferencia de presión entre los extremos del caño (indique cuál es mayor) en función de la velocidad de entrada v y la densidad del líquido δ si: a) la sección a la salida del caño es el triple que la de entrada, b) el diámetro a la salida del caño es el triple que el de la entrada.</p>
+      <p><b>27.</b> Una bomba permite regular el caudal circulante de un fluido ideal dentro de una tubería horizontal que tiene un estrechamiento. a) ¿La diferencia de presión entre la parte ancha y la parte angosta depende o no del caudal circulante? b) Si el fluido no circula, ¿cuál es la diferencia de presión entre la parte ancha y la estrecha? c) Si aumenta el caudal, ¿la diferencia de presión es mayor o menor? d) Si el caudal aumenta al doble, encuentre la relación entre la nueva y la antigua diferencia de presión.</p>
+      <p><b>37.</b> Resuelva el problema 22 considerando que la viscosidad del líquido no es despreciable.</p>
+      <p class="src">CBC, Biofísica 53 (Física e introducción a la Biofísica), Unidad 2 (Fluidos), edición de febrero de 2020. Enunciados textuales de la guía (en el 21, 22 y 23 se resumen las opciones y la figura). g = 10 m/s²; agua 1000 kg/m³. En el 22, las secciones (A 2 cm², B 8 cm², C 1 cm²) y la inclinación son ilustrativas: la figura no da números. El tubo de Pitot no está en la guía: es un complemento.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Bernoulli: p + ½ ρ v² + ρ g y se mantiene a lo largo de una línea de corriente en un fluido ideal. Colores: celeste, el líquido; amarillo, las velocidades; rosa, las presiones; violeta, los desniveles.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+// ================= U2 · 20 a 23, 25 a 27, 37 · Bernoulli, Venturi y Pitot =================
+const RHO=1000, RAIRE=1.2;
+const DEF=[
+  {id:'A1',lab:'sección arriba',unit:'cm²',min:1,max:12,step:0.1,dec:2},
+  {id:'A2',lab:'sección abajo',unit:'cm²',min:1,max:12,step:0.1,dec:2},
+  {id:'v1',lab:'velocidad arriba',unit:'m/s',min:0,max:10,step:0.01,dec:2},
+  {id:'h',lab:'desnivel',unit:'m',min:0,max:20,step:0.01,dec:2},
+  {id:'p1',lab:'presión arriba',unit:'kPa',min:100,max:300,step:1,dec:0},
+  {id:'Q',lab:'caudal',unit:'cm³/s',min:0,max:2000,step:10,dec:0},
+  {id:'H',lab:'desnivel entre A y C',unit:'cm',min:0,max:100,step:1,dec:0},
+  {id:'sent',lab:'sentido (1: de A a C · −1: de C a A)',unit:'',min:-1,max:1,step:2,dec:0},
+  {id:'visc',lab:'viscosidad (0: ideal · 1: viscoso)',unit:'',min:0,max:1,step:1,dec:0},
+  {id:'d1',lab:'diámetro de entrada',unit:'cm',min:0.2,max:4,step:0.05,dec:2},
+  {id:'d2',lab:'diámetro de salida',unit:'cm',min:0.2,max:8,step:0.05,dec:2},
+  {id:'ve',lab:'velocidad de entrada',unit:'mm/s',min:0,max:12,step:0.1,dec:1},
+  {id:'vp',lab:'velocidad del aire',unit:'m/s',min:0,max:100,step:1,dec:0},
+];
+const PS={b20:{A1:4.2,A2:7.6,v1:5.18,h:9.66,p1:152}, b22:{Q:600,H:30,sent:1,visc:0}, ven:{d1:2,d2:0.5,ve:3}, pit:{vp:40}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={b20:['A1','A2','v1','h','p1'], b22:['Q','H','sent','visc'], ven:['d1','d2','ve'], pit:['vp']};
+const P=Object.assign({},PS.pit,PS.ven,PS.b22,PS.b20); let SY='b20';
+// 20
+const v2_20=()=>P.v1*P.A1/P.A2;
+const p2_20=()=>P.p1*1000+0.5*RHO*(P.v1**2-v2_20()**2)+RHO*G*P.h;      // Pa
+// 22 y 37: secciones (cm²) y alturas (respecto de B); presiones relativas a la de B
+const SEC={A:2,B:8,C:1};
+const y22=k=>k==='A'?P.H/200:k==='C'?-P.H/200:0;                          // m
+const v22=k=>P.Q/SEC[k]/100;                                              // m/s
+const KV=3;                                                               // pérdida viscosa ilustrativa por tramo: KV · Q (Pa por cm³/s)
+function p22(k){ // p_k − p_B
+  let d=0.5*RHO*(v22('B')**2-v22(k)**2)+RHO*G*(y22('B')-y22(k));
+  if(P.visc){ const perd=KV*P.Q, ord=['A','B','C'], ib=1, ik=ord.indexOf(k), aguas=P.sent>0?ik<ib:ik>ib; if(k!=='B') d+=aguas?perd:-perd; }
+  return d; }
+// Venturi (25 a 27)
+const A_d=d=>PI*(d/100)**2/4;
+const vs_v=()=>P.ve/1000*A_d(P.d1)/A_d(P.d2);                             // m/s
+const dp_v=()=>0.5*RHO*((P.ve/1000)**2-vs_v()**2);                        // p_salida − p_entrada (Pa)
+const Qv=()=>P.ve/1000*A_d(P.d1)*1e6;                                     // cm³/s
+// Pitot
+const dp_p=()=>0.5*RAIRE*P.vp**2, hp=()=>dp_p()/(RHO*G);
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+
+// ================= Escena =================
+const scene=$('scene');
+function tuboVar(ctx,x0,y0,x1,y1,w0,w1,wm){ // tubo de x0 a x1 con ancho que pasa de w0 a w1 (opcional wm en el medio)
+  const N=40, top=[], bot=[]; for(let i=0;i<=N;i++){ const s=i/N, x=x0+(x1-x0)*s, y=y0+(y1-y0)*s; let ww=wm!==undefined? (s<0.5? w0+(wm-w0)*(0.5-0.5*Math.cos(2*PI*s)) : wm+(w1-wm)*(0.5-0.5*Math.cos(2*PI*(s-0.5)))) : w0+(w1-w0)*(0.5-0.5*Math.cos(PI*s));
+    const nx=-(y1-y0), ny=(x1-x0), L=Math.hypot(nx,ny); top.push([x+nx/L*ww/2,y+ny/L*ww/2]); bot.push([x-nx/L*ww/2,y-ny/L*ww/2]); }
+  ctx.beginPath(); top.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); bot.slice().reverse().forEach(([x,y])=>ctx.lineTo(x,y)); ctx.closePath(); ctx.fillStyle='rgba(54,212,255,0.25)'; ctx.fill(); line(ctx,top,C['line-2'],2); line(ctx,bot,C['line-2'],2);
+  return s=>{ const i=Math.round(s*N); return [top[i],bot[i]]; }; }
+function particulas(ctx,x0,y0,x1,y1,anchoEn,velEn,sentido=1){ // velEn(s): velocidad relativa en s∈[0,1]
+  const L=Math.hypot(x1-x0,y1-y0), M=60; for(let k=0;k<5;k++){ const off=(k-2)/5;
+    for(let j=0;j<14;j++){ // posición por integración aproximada: la fase avanza con 1/ancho²
+      let s=((j/14+S.t*0.06*sentido*velEn(0)/1)%1+1)%1; s=Math.pow(s,1);
+      const x=x0+(x1-x0)*s, y=y0+(y1-y0)*s, ww=anchoEn(s), nx=-(y1-y0)/L, ny=(x1-x0)/L; dot(ctx,x+nx*off*ww,y+ny*off*ww,1.6,C.fg); } } }
+function columna(ctx,x,yb,alto,col,lab){ line(ctx,[[x-5,yb],[x-5,yb-alto-14]],C.muted,1.2); line(ctx,[[x+5,yb],[x+5,yb-alto-14]],C.muted,1.2); ctx.fillStyle=col; ctx.globalAlpha=0.45; ctx.fillRect(x-5,yb-alto,10,alto); ctx.globalAlpha=1; if(lab) txt(ctx,lab,x,yb-alto-20,col,{size:11,align:'center'}); }
+function flujo(ctx,pts,vel,ancho){ // puntos que avanzan por una polilínea con velocidad «vel» (px/s)
+  let L=0; const seg=[]; for(let i=1;i<pts.length;i++){ const l=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]); seg.push(l); L+=l; }
+  const sep=22; for(let s=((S.t*vel)%sep+sep)%sep; s<L; s+=sep){ let r=s, i=0; while(i<seg.length-1&&r>seg[i]){ r-=seg[i]; i++; } const f=r/seg[i]; const x=pts[i][0]+(pts[i+1][0]-pts[i][0])*f, y=pts[i][1]+(pts[i+1][1]-pts[i][1])*f; dot(ctx,x,y,1.8,C.fg); } }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560;
+  if(SY==='b20'){ const x0=nar?30:70, x1=w-(nar?30:70), y0=70, y1=h-70, k=nar?5:7, w0=Math.sqrt(P.A1)*k*2, w1=Math.sqrt(P.A2)*k*2;
+    tuboVar(ctx,x0,y0,x1,y1,w0,w1); const L=Math.hypot(x1-x0,y1-y0);
+    const N=10; for(let j=0;j<N;j++){ // la fase avanza más lento donde el caño es ancho (continuidad)
+      const ph=((j/N+S.t*0.05*Math.max(0.2,P.v1)/5.18)%1+1)%1, s=ph<0.5?ph*(P.A1/(P.A1+P.A2))*2:P.A1/(P.A1+P.A2)+(ph-0.5)*2*(P.A2/(P.A1+P.A2)); const x=x0+(x1-x0)*s, y=y0+(y1-y0)*s; dot(ctx,x,y,2,C.fg); }
+    line(ctx,[[x1+20,y0],[x1+20,y1]],C.lin,1.4); line(ctx,[[x1+12,y0],[x0+w0,y0]],C.lin,1,[3,3]); txt(ctx,`${cm(P.h,2)} m`,x1+16,(y0+y1)/2,C.lin,{size:11,align:'right'});
+    txt(ctx,`arriba: ${cm(P.v1,2)} m/s · ${cm(P.p1,0)} kPa`,x0,y0-w0/2-10,C.muted,{size:11.5}); txt(ctx,`abajo: ${cm(v2_20(),2)} m/s · ${cm(p2_20()/1000,1)} kPa`,x1,y1+w1/2+20,C.muted,{size:11.5,align:'right'});
+    readout([['v abajo',cm(v2_20(),2)+' m/s',C.v],['p abajo',cm(p2_20()/1000,1)+' kPa',C.sob],['por bajar',cm(RHO*G*P.h/1000,1)+' kPa'],['por frenar',cm(0.5*RHO*(P.v1**2-v2_20()**2)/1000,2)+' kPa']]);
+    $('formula').innerHTML='<b>v₂ = v₁ A₁/A₂</b> · <b>p₂ = p₁ + ½ ρ (v₁² − v₂²) + ρ g h</b>: baja y frena, las dos cosas aumentan la presión'; }
+  else if(SY==='b22'){ const xA=w*0.82, xC=w*0.16, yA=80-P.H*0.3, yC=h-120+P.H*0.3, k=nar?7:9;
+    const wA=Math.sqrt(SEC.A)*k*2, wB=Math.sqrt(SEC.B)*k*2, wC=Math.sqrt(SEC.C)*k*2;
+    const yAp=h/2-50-P.H*0.6, yCp=h/2+30+P.H*0.6; tuboVar(ctx,xA,yAp,xC,yCp,wA,wC,wB);
+    const pts=[[xA,yAp],[xC,yCp]]; flujo(ctx,P.sent>0?pts:[pts[1],pts[0]],Math.min(120,P.Q/8),0);
+    const pos={A:[xA-10,yAp],B:[(xA+xC)/2,(yAp+yCp)/2],C:[xC+10,yCp]}; const pmax=Math.max(1,...['A','B','C'].map(k=>Math.abs(p22(k))));
+    ['A','B','C'].forEach(k=>{ const [x,y]=pos[k], pr=p22(k); dot(ctx,x,y,3.5,C.sob); txt(ctx,k,x,y-14,C.sob,{size:12,weight:'bold',align:'center'});
+      const bx=w*(k==='A'?0.86:k==='B'?0.5:0.14), by=h-14, alto=Math.max(2,(pr/pmax+1)*45); ctx.fillStyle=C.sob; ctx.globalAlpha=0.5; ctx.fillRect(bx-9,by-alto,18,alto); ctx.globalAlpha=1; txt(ctx,`p${k}−p_B ${cm(pr,0)} Pa`,bx,by-alto-6,C.sob,{size:10.5,align:'center'}); });
+    txt(ctx,P.sent>0?'entra por A, sale por C':'entra por C, sale por A',12,18,C.muted,{size:11.5}); txt(ctx,P.visc?'viscoso: la presión cae a lo largo del flujo':'ideal: Bernoulli',12,34,C.muted,{size:11.5});
+    const or=['A','B','C'].sort((a,b)=>p22(a)-p22(b)); readout([['v_A, v_B, v_C',`${cm(v22('A'),2)} · ${cm(v22('B'),2)} · ${cm(v22('C'),2)} m/s`,C.v],['de menor a mayor presión',or.join(' < '),C.sob]]);
+    $('formula').innerHTML='<b>p_X − p_B = ½ ρ (v_B² − v_X²) + ρ g (y_B − y_X)</b>' +(P.visc?' más la pérdida viscosa, que hace caer la presión en el sentido del flujo':' · en A el líquido va más rápido y está más alto: las dos cosas bajan la presión'); }
+  else if(SY==='ven'){ const x0=nar?20:50, x1=w-(nar?20:50), yc=h-90, k=nar?14:20, w1=Math.min(90,P.d1*k), w2=Math.min(110,P.d2*k);
+    tuboVar(ctx,x0,yc,x1,yc,w1,w1,w2); flujo(ctx,[[x0,yc],[x1,yc]],Math.min(80,P.ve*8),0);
+    const ha=110, pe=0, ps=dp_v(), sc=60/Math.max(0.5,Math.abs(ps)); columna(ctx,x0+50,yc-w1/2,ha,C.sys,'entrada'); columna(ctx,(x0+x1)/2,yc-w2/2,Math.max(2,ha+ps*sc),C.sys,'angosto');
+    txt(ctx,`Δp = ${cm(ps,3)} Pa`,(x0+x1)/2+16,yc-w2/2-ha/2,C.sob,{size:11.5});
+    readout([['v de salida',fN(vs_v()*1000)+' mm/s',C.v],['p_salida − p_entrada',cm(dp_v(),3)+' Pa',C.sob],['caudal',fN(Qv())+' cm³/s']]);
+    $('formula').innerHTML='continuidad: <b>v₂ = v₁ (d₁/d₂)²</b> · Bernoulli horizontal: <b>p₂ − p₁ = ½ ρ (v₁² − v₂²)</b> (las columnas no están a escala)'; }
+  else { const yc=h/2, x0=20, x1=w-20; ctx.fillStyle='rgba(201,182,255,0.07)'; ctx.fillRect(x0,yc-60,x1-x0,120); flujo(ctx,[[x0,yc-40],[x1,yc-40]],Math.min(200,P.vp*4),0); flujo(ctx,[[x0,yc+40],[x1,yc+40]],Math.min(200,P.vp*4),0);
+    const xp=w*0.42; line(ctx,[[xp-60,yc],[xp+40,yc]],C.fg,3); line(ctx,[[xp+40,yc],[xp+40,yc+70]],C.fg,3); txt(ctx,'tubo de Pitot',xp-60,yc-12,C.muted,{size:11});
+    const hh=Math.min(90,hp()*1000*3), xu=xp+120; line(ctx,[[xp+40,yc+70],[xu,yc+70]],C.fg,2); columna(ctx,xu,yc+150,40+hh/2,C.sys,''); columna(ctx,xu+40,yc+150,40-hh/2,C.sys,'');
+    txt(ctx,`Δh = ${cm(hp()*1000,1)} mm de agua`,xu+60,yc+110,C.lin,{size:11.5});
+    readout([['Δp = ½ ρ v²',cm(dp_p(),0)+' Pa',C.sob],['desnivel de agua',cm(hp()*1000,1)+' mm',C.lin],['velocidad',cm(P.vp,0)+' m/s · '+cm(P.vp*3.6,0)+' km/h',C.v]]);
+    $('formula').innerHTML='en la boca del Pitot el aire se frena: <b>p_total = p + ½ ρ v²</b>; el manómetro mide la diferencia → <b>v = √(2 Δp/ρ)</b>'; }
+  $('clock').textContent=''; }
+
+// ================= Gráfico =================
+function drawV1(){
+  if(SY==='b20'){ plot('p1c',0,20,0,niceMax(P.p1+0.5*RHO*P.v1**2/1000+RHO*G*20/1000),[[curva(hh=>(P.p1*1000+0.5*RHO*(P.v1**2-v2_20()**2)+RHO*G*hh)/1000,0,20),C.sob]],'desnivel (m)',{mark:(ctx,X,Y)=>dot(ctx,X(P.h),Y(p2_20()/1000),4.5,C.sob)});
+    $('tag1').textContent='Presión abajo (kPa)'; legend('leg1',[[C.sob,'p₂ según cuánto baja']]); $('cap1').textContent='Cada metro que baja el agua suma 10 kPa; frenarse de 5,18 a 2,86 m/s suma 9,3 kPa más. Con 9,66 m se llega a 258 kPa.'; }
+  else if(SY==='b22'){ const Qm=2000, f=(k,q)=>{ const s=P.Q; P.Q=q; const r=p22(k); P.Q=s; return r; };
+    const lo=Math.min(f('A',Qm),f('C',Qm),-RHO*G*P.H/100,-100), hi=Math.max(f('A',Qm),f('C',Qm),RHO*G*P.H/100,100);
+    plot('p1c',0,Qm,lo*1.1,hi*1.1,[[curva(q=>f('A',q),0,Qm),C.v],[curva(q=>f('C',q),0,Qm),C.lin,[6,4]]],'caudal (cm³/s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(P.Q),Y(p22('A')),4.5,C.v); dot(ctx,X(P.Q),Y(p22('C')),4.5,C.lin); }});
+    $('tag1').textContent='Presión respecto de B (Pa)'; legend('leg1',[[C.v,'p_A − p_B'],[C.lin,'p_C − p_B','dashed']]);
+    $('cap1').textContent=P.visc?'Con viscosidad, el tramo de entrada pierde menos presión que el de salida: según el sentido, A puede quedar por encima o por debajo de B. En el 37, solo con el flujo de C a A queda siempre p_A < p_B.':'En un fluido ideal, p_A − p_B es siempre negativa (A más rápido y más alto). En cambio p_C − p_B cambia de signo según el caudal: por eso «la presión en C es la menor» no es siempre cierta.'; }
+  else if(SY==='ven'){ const qm=Math.max(10,niceMax(Qv()*2)), f=q=>{ const v=q/1e6/A_d(P.d1); return 0.5*RHO*(v*v-(v*A_d(P.d1)/A_d(P.d2))**2); }, lo=Math.min(0,f(qm)), hi=Math.max(0,f(qm));
+    plot('p1c',0,qm,lo*1.1-0.01,hi*1.1+0.01,[[curva(f,0,qm),C.sob]],'caudal (cm³/s)',{mark:(ctx,X,Y)=>dot(ctx,X(Qv()),Y(dp_v()),4.5,C.sob)});
+    $('tag1').textContent='p_salida − p_entrada (Pa)'; legend('leg1',[[C.sob,'Δp ∝ Q²']]); $('cap1').textContent='La diferencia de presión crece con el cuadrado del caudal: sin flujo es cero y con el doble de caudal se cuadruplica (27). Por eso un Venturi sirve como caudalímetro.'; }
+  else { plot('p1c',0,100,0,niceMax(0.5*RAIRE*100**2/(RHO*G)*1000),[[curva(v=>0.5*RAIRE*v*v/(RHO*G)*1000,0,100),C.lin]],'velocidad del aire (m/s)',{mark:(ctx,X,Y)=>dot(ctx,X(P.vp),Y(hp()*1000),4.5,C.lin)});
+    $('tag1').textContent='Desnivel en el manómetro de agua (mm)'; legend('leg1',[[C.lin,'Δh = ρ_aire v² / (2 ρ_agua g)']]); $('cap1').textContent='El aire es 830 veces menos denso que el agua: a 40 m/s (144 km/h) el desnivel es de apenas 9,6 cm. Los aviones usan un manómetro electrónico, pero el principio es el mismo.'; } }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'En un caño horizontal, el líquido pasa de una parte ancha a una angosta. En la parte angosta, la presión…',
+  opts:[['mayor','es mayor'],['igual','es igual'],['menor','es menor']], right:'menor', go:'Probalo',
+  run(){ pickChip('ven',setMode); Object.assign(P,PS0.ven); refresh(); return 'Menor: en el angosto el líquido va más rápido, y en un caño horizontal ½ ρ v² + p se conserva (21: p’ < p y v’ > v). Es la razón por la que el viento levanta los techos y el andén es peligroso (23).'; } };
+const CHAL=[
+  {txt:'En el 22 ideal, buscá un caudal con el que C quede con más presión que B.',chk(){ if(SY!=='b22') return [false,'Elegí el caso 21, 22, 37']; if(P.visc) return [false,'Poné viscosidad 0']; return p22('C')>0?[true,`Logrado: con ${P.Q} cm³/s, bajar pesa más que acelerar.`]:[false,`p_C − p_B = ${cm(p22('C'),0)} Pa`]; }},
+  {txt:'En el 22 con viscosidad y flujo de A a C, buscá un caudal y un desnivel con los que A quede con más presión que B.',chk(){ if(SY!=='b22') return [false,'Elegí el caso 21, 22, 37']; if(!P.visc||P.sent<0) return [false,'Viscosidad 1 y sentido 1']; return p22('A')>0?[true,'Logrado: por eso en el 37 la afirmación «p_A < p_B» deja de ser siempre cierta.']:[false,`p_A − p_B = ${cm(p22('A'),0)} Pa`]; }},
+  {txt:'Con un Pitot, ¿a qué velocidad el manómetro de agua marca 5 cm?',chk(){ if(SY!=='pit') return [false,'Elegí Pitot']; return Math.abs(hp()-0.05)<0.0025?[true,`Logrado: v = √(2 · 1000 · 10 · 0,05 / 1,2) ≈ 29 m/s.`]:[false,`Δh = ${cm(hp()*1000,1)} mm`]; }},
+];
+function cuentas(){ return {title:'Bernoulli', finLbl:'Respuestas', steps:[
+  ['20 a) Continuidad', `\\[v_2=v_1\\frac{A_1}{A_2}=5{,}18\\cdot\\frac{4{,}20}{7{,}60}=2{,}86\\ \\text{m/s}\\]`,true],
+  ['20 b) Bernoulli, bajando 9,66 m', `\\[p_2=p_1+\\tfrac12\\rho\\,(v_1^2-v_2^2)+\\rho g h=152\\,000+9\\,330+96\\,600\\approx258\\ \\text{kPa}\\]`,true],
+  ['21) Sección menor ⇒ más velocidad ⇒ menos presión', `\\[p'<p\\qquad v'>v\\]`],
+  ['22) En A el líquido va más rápido y está más alto que en B: las dos cosas bajan la presión. C es más rápido pero más bajo: depende', `\\[p_A<p_B\\ \\text{siempre, en los dos sentidos}\\]`,true],
+  ['37) Con viscosidad, la presión además cae en el sentido del flujo', `\\[\\text{de A a C: ninguna es siempre correcta}\\qquad\\text{de C a A: }p_A<p_B\\]`],
+  ['25) v en el angosto y diferencia de presión', `\\[v_2=3\\cdot\\left(\\tfrac{2}{0{,}5}\\right)^2=48\\ \\text{mm/s}\\qquad\\Delta p=\\tfrac12\\cdot1000\\cdot(0{,}048^2-0{,}003^2)=1{,}15\\ \\text{Pa}\\]`],
+  ['Mayor en la parte ancha', `\\[p_\\text{ancha}>p_\\text{angosta}\\]`,true],
+  ['26) Sale más lento: la salida tiene más presión', `\\[\\text{a) }\\Delta p=\\tfrac12\\delta v^2\\left(1-\\tfrac19\\right)=\\tfrac49\\delta v^2\\qquad\\text{b) }\\tfrac12\\delta v^2\\left(1-\\tfrac1{81}\\right)=\\tfrac{40}{81}\\delta v^2\\]`,true],
+  ['27) Δp ∝ v² ∝ Q²', `\\[Q=0\\Rightarrow\\Delta p=0\\qquad 2Q\\Rightarrow4\\,\\Delta p\\]`,true],
+], fin:`\\[2{,}86\\ \\text{m/s};\\ 258\\ \\text{kPa}\\qquad1{,}15\\ \\text{Pa}\\qquad\\tfrac49\\delta v^2,\\ \\tfrac{40}{81}\\delta v^2\\qquad\\times4\\]`}; }
+
+// ================= Arranque =================
+const PRES={b20:[['20 · 4,20 → 7,60 cm², 9,66 m',()=>Object.assign(P,PS0.b20)]],
+  b22:[['22.1 · ideal, de A a C',()=>Object.assign(P,PS0.b22)],['22.2 · ideal, de C a A',()=>Object.assign(P,PS0.b22,{sent:-1})],['37 · viscoso, de A a C',()=>Object.assign(P,PS0.b22,{visc:1})],['37 · viscoso, de C a A',()=>Object.assign(P,PS0.b22,{visc:1,sent:-1})]],
+  ven:[['25 · 2 → 0,5 cm a 3 mm/s',()=>Object.assign(P,PS0.ven)],['26 a · sección triple',()=>Object.assign(P,{d1:1,d2:Math.sqrt(3),ve:3})],['26 b · diámetro triple',()=>Object.assign(P,{d1:1,d2:3,ve:3})],['27 · caudal doble',()=>Object.assign(P,PS0.ven,{ve:6})]],
+  pit:[['avión a 40 m/s',()=>Object.assign(P,PS0.pit)]]};
+const NOTE={b20:'El agua baja 9,66 m mientras el caño se ensancha. Se considera fluido ideal.',b22:'Las secciones (A 2, B 8 y C 1 cm²) y la inclinación son ilustrativas. Con viscosidad 1 se agrega una pérdida de presión en el sentido del flujo (37).',ven:'Con un diámetro de salida mayor que el de entrada el caño se ensancha (26). Las columnas muestran la presión, no a escala.',pit:'Complemento: el tubo de Pitot mide la velocidad del aire con la diferencia entre la presión total y la estática.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('b20',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

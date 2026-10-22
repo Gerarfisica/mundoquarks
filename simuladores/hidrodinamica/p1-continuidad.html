@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Continuidad y caudal U2 19, 31, 32</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Biofísica 53 · Unidad 2 · Hidrodinámica</span>
+  <h1>Continuidad y caudal <i>· lo que entra por un caño sale por sus ramas: Q = A · v se conserva</i></h1>
+  <a class="mq-back" href="../../simuladores-hidrodinamica.html">← Hidrodinámica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Hidrodinámica">
+    <h2>Hidrodinámica</h2>
+    <ol>
+      <li><a class="active" href="#" aria-current="page"><b class="code">19, 31, 32</b>Continuidad y caudal</a></li>
+      <li><a href="p2-bernoulli.html"><b class="code">20 a 23, 25 a 27, 37</b>Bernoulli, Venturi y Pitot</a></li>
+      <li><a href="p3-torricelli.html"><b class="code">29, 30</b>Torricelli y vaciado</a></li>
+      <li><a href="p4-poiseuille.html"><b class="code">34 a 36, 39, 45</b>Viscosidad y Poiseuille</a></li>
+      <li><a href="p5-resistencias.html"><b class="code">38, 41, 42, 46</b>Resistencias en serie y en paralelo</a></li>
+      <li><a href="p6-stokes.html"><b class="code">compl.</b>Stokes y velocidad terminal</a></li>
+      <li><a href="p7-reynolds.html"><b class="code">49, 50</b>Experimento de Reynolds</a></li>
+      <li><a href="p8-capilaridad.html"><b class="code">compl.</b>Tensión superficial y capilaridad</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="Un caño que se ramifica: en el 19, en dos ramas iguales; en el 31, en varios tubos iguales; en el 32, en dos caños en paralelo que se vuelven a juntar. Los puntos que viajan por el líquido se mueven con la velocidad de cada tramo."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="r19" aria-pressed="true">19 · una rama en dos</button>
+        <button data-sy="r31" aria-pressed="false">31 · varios tubitos</button>
+        <button data-sy="r32" aria-pressed="false">32 · caños en paralelo</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Velocidad en las ramas</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:260px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U2 · 19, 31, 32</summary>
+      <p><b>19.</b> Un caño de 4 cm² de sección por el que fluye un líquido con velocidad v y caudal Q se ramifica en dos caños iguales, de 1 cm² de sección cada uno. Entonces, en cada uno de esos caños la velocidad y el caudal de líquido son, respectivamente: v/2 y Q/2 · 2v y Q · v y Q/2 · v y Q · v/2 y Q · 2v y Q/2.</p>
+      <p><b>31.</b> Un líquido no viscoso viaja a 20 cm/s por un tubo horizontal de 2 cm de radio, siendo su presión de 8 Pa. Luego se ramifica en varios tubos horizontales iguales de 1 cm de radio; en cada uno de ellos la velocidad vale 10 cm/s. La densidad del líquido es de 1,8 kg/l. a) ¿En cuántos tubos se ramifica? b) ¿Cuál es la presión en cada conducto luego de la ramificación?</p>
+      <p><b>32.</b> Dos caños de igual longitud, apoyados en una misma superficie horizontal, están conectados como indica la figura. La sección del tubo [1] es de 6 mm², la del [2] es 2 mm² y la del tubo [3] es 3 mm². Por el conjunto circula un líquido no viscoso y la presión en A es la misma que en B. Si por el tubo [2] circula un caudal Q₂ de 10 ml/s, ¿cuánto vale el caudal Q₁ por [1]? (En la figura, el tubo [1] se abre en los caños [2], arriba, y [3], abajo, que se vuelven a juntar; A está al final del [2] y B al final del [3].)</p>
+      <p class="src">CBC, Biofísica 53 (Física e introducción a la Biofísica), Unidad 2 (Fluidos), edición de febrero de 2020. Enunciados textuales de la guía; entre paréntesis, lo que muestra la figura. Los puntos que viajan por el líquido se mueven con la velocidad de cada tramo, a escala.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>En régimen estacionario el caudal Q = A · v que entra a una ramificación es igual a la suma de los que salen. Colores: celeste, el líquido; amarillo, las velocidades; violeta, los caudales.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+// ================= U2 · 19, 31, 32 · Continuidad y caudal =================
+const DEF=[
+  {id:'A0',lab:'sección del caño',unit:'cm²',min:1,max:10,step:0.5,dec:1},
+  {id:'Ar',lab:'sección de cada rama',unit:'cm²',min:0.25,max:5,step:0.25,dec:2},
+  {id:'n',lab:'cantidad de ramas',unit:'',min:1,max:8,step:1,dec:0},
+  {id:'r0',lab:'radio del tubo',unit:'cm',min:0.5,max:4,step:0.1,dec:1},
+  {id:'r1',lab:'radio de cada tubito',unit:'cm',min:0.2,max:3,step:0.1,dec:1},
+  {id:'v0',lab:'velocidad en el tubo',unit:'cm/s',min:1,max:60,step:1,dec:0},
+  {id:'v1',lab:'velocidad en cada tubito',unit:'cm/s',min:1,max:60,step:1,dec:0},
+  {id:'A2',lab:'sección del caño [2]',unit:'mm²',min:0.5,max:6,step:0.5,dec:1},
+  {id:'A3',lab:'sección del caño [3]',unit:'mm²',min:0.5,max:6,step:0.5,dec:1},
+  {id:'Q2',lab:'caudal por [2]',unit:'ml/s',min:1,max:30,step:1,dec:0},
+];
+const PS={r19:{A0:4,Ar:1,n:2}, r31:{r0:2,r1:1,v0:20,v1:10}, r32:{A2:2,A3:3,Q2:10}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={r19:['A0','Ar','n'], r31:['r0','r1','v0','v1'], r32:['A2','A3','Q2']};
+const P=Object.assign({},PS.r32,PS.r31,PS.r19); let SY='r19';
+const RHO31=1800, P31=8, A1_32=6, VREF=10;   // 31: densidad y presión de la guía; 32: sección del tubo [1] (mm²); 19: velocidad de referencia (cm/s)
+// 19: velocidad y caudal en cada rama, en unidades de v y de Q
+const vr19=()=>P.A0/(P.n*P.Ar), qr19=()=>1/P.n;
+// 31: cantidad de tubitos y presión después
+const n31=()=>P.r0*P.r0*P.v0/(P.r1*P.r1*P.v1);
+const p31=()=>P31+0.5*RHO31*((P.v0/100)**2-(P.v1/100)**2);
+// 32: con p_A = p_B y el mismo punto de partida, Bernoulli da v₂ = v₃
+const v2_32=()=>P.Q2/P.A2;                 // ml/s / mm² = m/s
+const Q3_32=()=>v2_32()*P.A3, Q1_32=()=>P.Q2+Q3_32();
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+
+// ================= Escena =================
+const scene=$('scene');
+function tubo(ctx,pts,ancho){ ctx.lineJoin='round'; ctx.lineCap='butt'; line(ctx,pts,C['line-2'],ancho+4); line(ctx,pts,'rgba(54,212,255,0.28)',ancho); }
+function largo(pts){ let L=0; for(let i=1;i<pts.length;i++) L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]); return L; }
+function enS(pts,s){ for(let i=1;i<pts.length;i++){ const dx=pts[i][0]-pts[i-1][0], dy=pts[i][1]-pts[i-1][1], l=Math.hypot(dx,dy); if(s<=l) return [pts[i-1][0]+dx*s/l,pts[i-1][1]+dy*s/l]; s-=l; } return pts[pts.length-1]; }
+function puntos(ctx,pts,ancho,vel,fila=3){ const L=largo(pts), sep=26; for(let k=0;k<fila;k++){ const off=(k-(fila-1)/2)*ancho*0.28; for(let s=((S.t*vel)%sep+sep)%sep; s<L; s+=sep){ const [x,y]=enS(pts,s); const i=Math.min(pts.length-1,1); const dx=pts[i][0]-pts[0][0], dy=pts[i][1]-pts[0][1], l=Math.hypot(dx,dy)||1; dot(ctx,x-dy/l*off,y+dx/l*off,1.8,C.fg); } } }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560, cy=h/2+10, xs=nar?14:40, xm=w*0.38, xe=w-(nar?14:40);
+  const esc=px=>Math.max(4,Math.min(46,px));   // ancho del caño en píxeles
+  if(SY==='r19'||SY==='r31'){ const n=SY==='r19'?P.n:Math.max(1,Math.round(n31())), A0=SY==='r19'?P.A0:PI*P.r0*P.r0, Ar=SY==='r19'?P.Ar:PI*P.r1*P.r1;
+    const k=nar?6:8, w0=esc(Math.sqrt(A0)*k*2.2), wr=esc(Math.sqrt(Ar)*k*2.2), v0=SY==='r19'?VREF:P.v0, vr=SY==='r19'?VREF*vr19():(P.v1);
+    const tronco=[[xs,cy],[xm,cy]]; tubo(ctx,tronco,w0); puntos(ctx,tronco,w0,v0*3,3);
+    const sep=Math.min(46,(h-80)/Math.max(1,n-1||1));
+    for(let i=0;i<n;i++){ const y=n===1?cy:cy+(i-(n-1)/2)*sep; const rama=[[xm,cy],[xm+40,y],[xe,y]]; tubo(ctx,rama,wr); puntos(ctx,rama,wr,vr*3,1); }
+    txt(ctx,'tronco',xs,cy-w0/2-8,C.muted,{size:11}); txt(ctx,n+(n===1?' rama':' ramas'),xe,26,C.muted,{size:11,align:'right'});
+    if(SY==='r19'){ readout([['v en cada rama',cm(vr19(),2)+' v',C.v],['Q en cada rama',cm(qr19(),2)+' Q',C.lin],['sección total de las ramas',cm(P.n*P.Ar,2)+' cm²']]);
+      $('formula').innerHTML=`Q = A · v se conserva: <b>A₀ · v = n · A<sub>rama</sub> · v<sub>rama</sub></b> → v<sub>rama</sub> = ${cm(P.A0,1)} · v / (${P.n} · ${cm(P.Ar,2)}) = ${cm(vr19(),2)} v`; }
+    else { const nn=n31(); readout([['tubitos',cm(nn,2)+(Math.abs(nn-Math.round(nn))<0.01?'':' (no entero)'),C.lin],['Q del tubo',fN(PI*P.r0*P.r0*P.v0)+' cm³/s'],['p después',cm(p31(),1)+' Pa',C.v]]);
+      $('formula').innerHTML=`continuidad: <b>π r₀² v₀ = n π r₁² v₁</b> · Bernoulli horizontal: <b>p₁ = p₀ + ½ ρ (v₀² − v₁²)</b>`; } }
+  else { const q2=v2_32(), x1=w*0.32, x2=w*0.72, ya=cy-60, yb=cy+60, k=nar?3.4:4.4;
+    const w1=esc(Math.sqrt(A1_32)*k*3), w2=esc(Math.sqrt(P.A2)*k*3), w3=esc(Math.sqrt(P.A3)*k*3);
+    const t1=[[xs,cy],[x1,cy]], t2=[[x1,cy],[x1+30,ya],[x2-30,ya],[x2,cy]], t3=[[x1,cy],[x1+30,yb],[x2-30,yb],[x2,cy]], t4=[[x2,cy],[xe,cy]];
+    tubo(ctx,t1,w1); tubo(ctx,t4,w1); tubo(ctx,t2,w2); tubo(ctx,t3,w3);
+    const vis=12; puntos(ctx,t1,w1,Q1_32()/A1_32*vis,3); puntos(ctx,t4,w1,Q1_32()/A1_32*vis,3); puntos(ctx,t2,w2,q2*vis,1); puntos(ctx,t3,w3,q2*vis,1);
+    txt(ctx,'[1]',xs+4,cy-w1/2-8,C.muted,{size:11}); txt(ctx,'[2]',(x1+x2)/2,ya-w2/2-8,C.muted,{size:11,align:'center'}); txt(ctx,'[3]',(x1+x2)/2,yb+w3/2+16,C.muted,{size:11,align:'center'});
+    dot(ctx,x2-36,ya+2,3.5,C.sob); txt(ctx,'A',x2-30,ya-8,C.sob,{size:11}); dot(ctx,x2-36,yb-2,3.5,C.sob); txt(ctx,'B',x2-30,yb+16,C.sob,{size:11});
+    readout([['v₂ = v₃',cm(q2,2)+' m/s',C.v],['Q₃',cm(Q3_32(),1)+' ml/s',C.lin],['Q₁',cm(Q1_32(),1)+' ml/s',C.lin]]);
+    $('formula').innerHTML='p_A = p_B y el mismo punto de partida ⇒ Bernoulli da <b>v₂ = v₃</b> · <b>Q₁ = Q₂ + Q₃ = v₂ (A₂ + A₃)</b>'; }
+  $('clock').textContent=''; }
+
+// ================= Gráfico =================
+function drawV1(){ let F;
+  if(SY==='r19'){ F=plot('p1c',1,8,0,Math.max(4,niceMax(P.A0/P.Ar)),[[curva(n=>P.A0/(n*P.Ar),1,8),C.v],[[[1,1],[8,1]],C.sys,[6,4]]],'cantidad de ramas',{mark:(ctx,X,Y)=>dot(ctx,X(P.n),Y(vr19()),4.5,C.v)});
+    $('tag1').textContent='Velocidad en cada rama (en unidades de v)'; legend('leg1',[[C.v,'v de cada rama'],[C.sys,'v del caño','dashed']]);
+    $('cap1').textContent='Con más ramas, cada una lleva menos caudal. La velocidad baja solo si la sección total de las ramas supera a la del caño: con 4 cm² en dos ramas de 1 cm², la sección total es la mitad y la velocidad se duplica.'; }
+  else if(SY==='r31'){ F=plot('p1c',0,60,0,16,[[curva(v=>P.r0*P.r0*P.v0/(P.r1*P.r1*v),1,60),C.lin]],'velocidad en cada tubito (cm/s)',{mark:(ctx,X,Y)=>dot(ctx,X(P.v1),Y(n31()),4.5,C.lin)});
+    $('tag1').textContent='Cantidad de tubitos necesaria'; legend('leg1',[[C.lin,'n = r₀² v₀ / (r₁² v₁)']]);
+    $('cap1').textContent='Si los tubitos llevan el líquido más lento, hacen falta más para transportar el mismo caudal. Con 10 cm/s, la guía da 8 tubitos.'; }
+  else { F=plot('p1c',0.5,6,0,niceMax(P.Q2*(1+6/P.A2)),[[curva(a=>P.Q2*(1+a/P.A2),0.5,6),C.lin]],'sección del caño [3] (mm²)',{mark:(ctx,X,Y)=>dot(ctx,X(P.A3),Y(Q1_32()),4.5,C.lin)});
+    $('tag1').textContent='Caudal Q₁ (ml/s)'; legend('leg1',[[C.lin,'Q₁ = Q₂ (1 + A₃/A₂)']]);
+    $('cap1').textContent='Como las dos ramas arrancan y terminan con la misma presión, el líquido va igual de rápido por las dos: cada caño lleva un caudal proporcional a su sección.'; } }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'Un caño de 4 cm² se abre en dos ramas de 1 cm² cada una. En cada rama, el líquido va…',
+  opts:[['mitad','a la mitad de velocidad'],['igual','a la misma velocidad'],['doble','al doble de velocidad']], right:'doble', go:'Probalo',
+  run(){ pickChip('r19',setMode); Object.assign(P,PS0.r19); refresh(); return 'Al doble: la sección total de las ramas (2 cm²) es la mitad de la del caño, y el caudal total se conserva. Cada rama lleva Q/2 con velocidad 2v.'; } };
+const CHAL=[
+  {txt:'En el 19, ¿qué sección tendría que tener cada rama para que el líquido no cambie de velocidad?',chk(){ if(SY!=='r19') return [false,'Elegí el ejercicio 19']; return Math.abs(vr19()-1)<0.02?[true,`Logrado: n · A_rama = A₀ (${P.n} · ${cm(P.Ar,2)} = ${cm(P.A0,1)} cm²).`]:[false,`v en cada rama = ${cm(vr19(),2)} v`]; }},
+  {txt:'En el 31, ¿a qué velocidad tendría que ir el líquido en los tubitos para que la presión no cambie al ramificarse?',chk(){ if(SY!=='r31') return [false,'Elegí el ejercicio 31']; return Math.abs(P.v1-P.v0)<0.5?[true,'Logrado: con la misma velocidad, Bernoulli no cambia la presión (y hacen falta 4 tubitos).']:[false,`p después = ${cm(p31(),1)} Pa`]; }},
+  {txt:'En el 32, ¿qué sección tiene que tener el caño [3] para que Q₁ valga 30 ml/s?',chk(){ if(SY!=='r32') return [false,'Elegí el ejercicio 32']; return Math.abs(Q1_32()-30)<0.3?[true,`Logrado: A₃ = ${cm(P.A3,1)} mm².`]:[false,`Q₁ = ${cm(Q1_32(),1)} ml/s`]; }},
+];
+function cuentas(){ return {title:'Continuidad y caudal', finLbl:'Respuestas', steps:[
+  ['19) El caudal se reparte en dos ramas iguales', `\\[Q_\\text{rama}=\\frac{Q}{2}\\]`],
+  ['Con Q = A v en cada rama', `\\[v_\\text{rama}=\\frac{Q/2}{1\\ \\text{cm}^2}=\\frac{4\\ \\text{cm}^2\\cdot v/2}{1\\ \\text{cm}^2}=2v\\]`,true],
+  ['31 a) Continuidad entre el tubo y los n tubitos', `\\[n=\\frac{r_0^2\\,v_0}{r_1^2\\,v_1}=\\frac{2^2\\cdot20}{1^2\\cdot10}=8\\]`,true],
+  ['31 b) Bernoulli en un tubo horizontal', `\\[p_1=p_0+\\tfrac12\\rho\\,(v_0^2-v_1^2)=8+\\tfrac12\\cdot1800\\cdot(0{,}2^2-0{,}1^2)=35\\ \\text{Pa}\\]`,true],
+  ['32) Ideal, horizontal y p_A = p_B: las dos ramas tienen la misma velocidad', `\\[v_2=\\frac{Q_2}{A_2}=\\frac{10\\ \\text{ml/s}}{2\\ \\text{mm}^2}=5\\ \\text{m/s}=v_3\\]`],
+  ['Caudal por [3] y total', `\\[Q_3=v_3A_3=15\\ \\text{ml/s}\\qquad Q_1=Q_2+Q_3=25\\ \\text{ml/s}\\]`,true],
+], fin:`\\[2v\\ \\text{y}\\ Q/2\\qquad n=8,\\ p=35\\ \\text{Pa}\\qquad Q_1=25\\ \\text{ml/s}\\]`}; }
+
+// ================= Arranque =================
+const PRES={r19:[['19 · 4 cm² en dos de 1 cm²',()=>Object.assign(P,PS0.r19)]],r31:[['31 · 2 cm a 20 cm/s, tubitos de 1 cm a 10 cm/s',()=>Object.assign(P,PS0.r31)]],r32:[['32 · 2 y 3 mm², Q₂ = 10 ml/s',()=>Object.assign(P,PS0.r32)]]};
+const NOTE={r19:'Velocidad y caudal se expresan en unidades de los del caño (v y Q). Las ramas son iguales entre sí.',r31:'Si el cociente no es entero, no se puede armar con tubitos iguales a esa velocidad: la escena redondea.',r32:'El tubo [1] tiene 6 mm². Las presiones en A y en B son iguales, como dice el enunciado.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('r19',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

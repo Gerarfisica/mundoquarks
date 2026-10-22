@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Resistencias en serie y en paralelo U2 38, 41, 42, 46</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Biofísica 53 · Unidad 2 · Hidrodinámica</span>
+  <h1>Resistencias en serie y en paralelo <i>· los caños se combinan como las resistencias eléctricas: Δp = R · Q</i></h1>
+  <a class="mq-back" href="../../simuladores-hidrodinamica.html">← Hidrodinámica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Hidrodinámica">
+    <h2>Hidrodinámica</h2>
+    <ol>
+      <li><a href="p1-continuidad.html"><b class="code">19, 31, 32</b>Continuidad y caudal</a></li>
+      <li><a href="p2-bernoulli.html"><b class="code">20 a 23, 25 a 27, 37</b>Bernoulli, Venturi y Pitot</a></li>
+      <li><a href="p3-torricelli.html"><b class="code">29, 30</b>Torricelli y vaciado</a></li>
+      <li><a href="p4-poiseuille.html"><b class="code">34 a 36, 39, 45</b>Viscosidad y Poiseuille</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">38, 41, 42, 46</b>Resistencias en serie y en paralelo</a></li>
+      <li><a href="p6-stokes.html"><b class="code">compl.</b>Stokes y velocidad terminal</a></li>
+      <li><a href="p7-reynolds.html"><b class="code">49, 50</b>Experimento de Reynolds</a></li>
+      <li><a href="p8-capilaridad.html"><b class="code">compl.</b>Tensión superficial y capilaridad</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:340px" aria-label="Según el caso: dos caños de igual largo y distinta sección; tres caños iguales conectados en serie, en paralelo o combinados; dos caños en paralelo junto al caño único que los reemplaza; o dos caños iguales en paralelo y en serie. Los puntos que viajan por el líquido van más rápido donde el caudal es mayor."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="c38" aria-pressed="true">38 · dos secciones</button>
+        <button data-sy="c41" aria-pressed="false">41 · tres caños iguales</button>
+        <button data-sy="c42" aria-pressed="false">42 · caño equivalente</button>
+        <button data-sy="c46" aria-pressed="false">46 · de paralelo a serie</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Gráfico</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:260px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U2 · 38, 41, 42, 46</summary>
+      <p><b>38.</b> Por dos caños cilíndricos A y B, de igual longitud circula agua, ¿cuál es la relación entre sus resistencias hidrodinámicas si la sección de A es el doble que la de B? R<sub>A</sub> = 0,25 R<sub>B</sub> · R<sub>A</sub> = 2 R<sub>B</sub> · R<sub>A</sub> = 0,5 R<sub>B</sub> · R<sub>A</sub> = R<sub>B</sub> · R<sub>A</sub> = 4 R<sub>B</sub> · R<sub>A</sub> = 16 R<sub>B</sub>.</p>
+      <p><b>41.</b> Encuentre la resistencia equivalente que presentan tres caños que tienen la misma resistencia hidrodinámica R, cuando se conectan: a) En serie. b) En paralelo. c) Dos en serie y luego en paralelo con el tercero. d) Dos en paralelo y luego en serie con el tercero.</p>
+      <p><b>42.</b> Una sección de cañería, por donde circula un fluido viscoso, está formada por dos caños rectos de la misma longitud y material cuyas secciones son de 3 cm² y 4 cm² y colocados en paralelo. Se desea reemplazarlos por un único caño de la misma longitud. ¿Cuál debería ser su sección para que ofrezca la misma resistencia hidrodinámica al pasaje del mismo fluido?</p>
+      <p><b>46.</b> Dos caños idénticos presentan, cada uno, una resistencia hidrodinámica R al pasaje de agua. Cuando están conectados en paralelo a una bomba que provee una diferencia de presión Δp, circula por ellos un caudal total Q. Si esos mismos caños se conectan en serie a la misma diferencia de presión Δp, el caudal total Q’ a través de ellos cumplirá la relación: Q’ = 4 Q · Q’ = 2 Q · Q’ = ¼ Q · Q’ = Q · Q’ = ½ Q · Q’ = 16 Q.</p>
+      <p class="src">CBC, Biofísica 53 (Física e introducción a la Biofísica), Unidad 2 (Fluidos), edición de febrero de 2020. Enunciados textuales de la guía. En el 41 y el 46, los valores de R y de Δp son ilustrativos: la guía pide la respuesta en función de R. 1 URP = 1 mmHg·s/ml.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Ley de Poiseuille como ley de Ohm: Δp = R · Q, con R = 8 η L / (π r⁴). En serie las resistencias se suman; en paralelo se suman sus inversas. Colores: celeste, el líquido; rosa, los caños y las resistencias; violeta, los caudales.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+// ================= U2 · 38, 41, 42, 46 · Resistencias hidrodinámicas en serie y en paralelo =================
+const DEF=[
+  {id:'k',lab:'sección de A (× la de B)',unit:'',min:0.25,max:4,step:0.25,dec:2},
+  {id:'cfg',lab:'conexión (1: a · 2: b · 3: c · 4: d)',unit:'',min:1,max:4,step:1,dec:0},
+  {id:'R41',lab:'resistencia de cada caño',unit:'URP',min:0.5,max:5,step:0.5,dec:1},
+  {id:'dp41',lab:'diferencia de presión',unit:'mmHg',min:10,max:200,step:10,dec:0},
+  {id:'A1',lab:'sección del caño 1',unit:'cm²',min:0.5,max:15,step:0.5,dec:1},
+  {id:'A2',lab:'sección del caño 2',unit:'cm²',min:0.5,max:15,step:0.5,dec:1},
+  {id:'R46',lab:'resistencia de cada caño',unit:'URP',min:0.5,max:5,step:0.5,dec:1},
+  {id:'dp46',lab:'diferencia de presión',unit:'mmHg',min:10,max:200,step:10,dec:0},
+];
+const PS={c38:{k:2}, c41:{cfg:1,R41:1,dp41:100}, c42:{A1:3,A2:4}, c46:{R46:1,dp46:100}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={c38:['k'], c41:['cfg','R41','dp41'], c42:['A1','A2'], c46:['R46','dp46']};
+const P=Object.assign({},PS.c46,PS.c42,PS.c41,PS.c38); let SY='c38';
+const LET=['a','b','c','d'], REQ=[3,1/3,2/3,3/2], REQT=['3R','R/3','2R/3','3R/2'];
+const CFGT=['los tres en serie','los tres en paralelo','dos en serie, en paralelo con el tercero','dos en paralelo, en serie con el tercero'];
+// 38: R ∝ L/r⁴ ∝ L/A²
+const rAB=()=>1/(P.k*P.k);
+// 41: resistencia equivalente (URP) y caudal total (ml/s), con 1 URP = 1 mmHg·s/ml
+const Req41=()=>REQ[P.cfg-1]*P.R41, Q41=()=>P.dp41/Req41();
+// 42: en paralelo 1/R = 1/R₁ + 1/R₂ y R ∝ 1/A² ⇒ A² = A₁² + A₂²
+const Aeq42=()=>sq(P.A1*P.A1+P.A2*P.A2);
+// 46: paralelo R/2, serie 2R
+const Qpar=()=>P.dp46/(P.R46/2), Qser=()=>P.dp46/(2*P.R46);
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+
+// ================= Escena =================
+const scene=$('scene');
+function tubo(ctx,pts,ancho,col){ ctx.lineJoin='round'; ctx.lineCap='butt'; line(ctx,pts,C['line-2'],ancho+4); line(ctx,pts,col||'rgba(54,212,255,0.28)',ancho); }
+function largo(pts){ let L=0; for(let i=1;i<pts.length;i++) L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]); return L; }
+function enS(pts,s){ for(let i=1;i<pts.length;i++){ const dx=pts[i][0]-pts[i-1][0], dy=pts[i][1]-pts[i-1][1], l=Math.hypot(dx,dy); if(s<=l) return [pts[i-1][0]+dx*s/l,pts[i-1][1]+dy*s/l]; s-=l; } return pts[pts.length-1]; }
+// puntos que viajan: la separación es fija y la velocidad es proporcional al caudal del tramo
+function puntos(ctx,pts,vel){ const L=largo(pts), sep=22; if(vel<=0) return; for(let s=((S.t*vel)%sep+sep)%sep; s<L; s+=sep){ const [x,y]=enS(pts,s); dot(ctx,x,y,1.8,C.fg); } }
+// caño resistivo: tramo angosto con su rótulo
+function cano(ctx,x0,x1,y,etq,q,vis,ancho=9){ const t=[[x0,y],[x1,y]]; tubo(ctx,t,ancho,'rgba(255,122,217,0.28)'); puntos(ctx,t,q*vis); if(etq) txt(ctx,etq,(x0+x1)/2,y-ancho/2-6,C.sob,{size:11,align:'center'}); }
+function conector(ctx,pts,q,vis){ tubo(ctx,pts,5); puntos(ctx,pts,q*vis); }
+function bombas(ctx,xs,xe,y,lab){ txt(ctx,'p₁',xs,y-14,C.muted,{size:11}); txt(ctx,'p₂',xe,y-14,C.muted,{size:11,align:'right'}); if(lab) txt(ctx,lab,xs,26,C.muted,{size:11.5}); }
+function drawScene(){ const {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560, xs=nar?12:40, xe=w-(nar?12:40), cy=h/2+12, W=xe-xs;
+  if(SY==='c38'){ const yA=cy-55, yB=cy+55, kk=nar?7:9, wB=10, wA=Math.max(4,Math.min(44,wB*Math.sqrt(P.k))), vis=8, QB=1, QA=P.k*P.k;
+    const tA=[[xs,yA],[xe,yA]], tB=[[xs,yB],[xe,yB]]; tubo(ctx,tA,wA); tubo(ctx,tB,wB); puntos(ctx,tA,vis*QA/P.k*2.2); puntos(ctx,tB,vis*2.2);
+    txt(ctx,'A',xs,yA-wA/2-8,C.sob,{size:12,weight:'bold'}); txt(ctx,'B',xs,yB-wB/2-8,C.sob,{size:12,weight:'bold'});
+    txt(ctx,'misma longitud y misma Δp',(xs+xe)/2,26,C.muted,{size:11.5,align:'center'});
+    readout([['R_A / R_B',cm(rAB(),4),C.sob],['Q_A / Q_B (misma Δp)',cm(1/rAB(),2),C.lin],['v_A / v_B',cm(P.k,2),C.v]]);
+    $('formula').innerHTML=`<b>R = 8 η L / (π r⁴)</b> y A = π r² ⇒ <b>R ∝ L / A²</b> · con A_A = ${cm(P.k,2)} A_B: R_A = R_B / ${cm(P.k*P.k,4)}`; }
+  else if(SY==='c41'){ const c=P.cfg, R=P.R41, Q=Q41(), vis=60/Math.max(Q,1e-9)*0.9, x1=xs+W*0.18, x2=xe-W*0.18, seg=(x2-x1);
+    bombas(ctx,xs,xe,cy,`${LET[c-1]}) ${CFGT[c-1]}`);
+    if(c===1){ conector(ctx,[[xs,cy],[x1,cy]],Q,vis); conector(ctx,[[x2,cy],[xe,cy]],Q,vis); const l=seg/3; for(let i=0;i<3;i++){ cano(ctx,x1+l*i+6,x1+l*(i+1)-6,cy,'R',Q,vis); if(i<2) conector(ctx,[[x1+l*(i+1)-6,cy],[x1+l*(i+1)+6,cy]],Q,vis); } }
+    else if(c===2){ const ys=[cy-60,cy,cy+60]; conector(ctx,[[xs,cy],[x1-20,cy]],Q,vis); conector(ctx,[[x2+20,cy],[xe,cy]],Q,vis); ys.forEach(y=>{ conector(ctx,[[x1-20,cy],[x1,y]],Q/3,vis); cano(ctx,x1,x2,y,'R',Q/3,vis); conector(ctx,[[x2,y],[x2+20,cy]],Q/3,vis); }); }
+    else if(c===3){ const ya=cy-45, yb=cy+45, xm=(x1+x2)/2; conector(ctx,[[xs,cy],[x1-20,cy]],Q,vis); conector(ctx,[[x2+20,cy],[xe,cy]],Q,vis);
+      conector(ctx,[[x1-20,cy],[x1,ya]],Q/3,vis); cano(ctx,x1,xm-8,ya,'R',Q/3,vis); conector(ctx,[[xm-8,ya],[xm+8,ya]],Q/3,vis); cano(ctx,xm+8,x2,ya,'R',Q/3,vis); conector(ctx,[[x2,ya],[x2+20,cy]],Q/3,vis);
+      conector(ctx,[[x1-20,cy],[x1,yb]],2*Q/3,vis); cano(ctx,x1,x2,yb,'R',2*Q/3,vis); conector(ctx,[[x2,yb],[x2+20,cy]],2*Q/3,vis);
+      txt(ctx,'Q/3',(x1+x2)/2,ya+22,C.lin,{size:11,align:'center'}); txt(ctx,'2Q/3',(x1+x2)/2,yb+24,C.lin,{size:11,align:'center'}); }
+    else { const ya=cy-45, yb=cy+45, xm=x1+seg*0.55; conector(ctx,[[xs,cy],[x1-20,cy]],Q,vis);
+      [ya,yb].forEach(y=>{ conector(ctx,[[x1-20,cy],[x1,y]],Q/2,vis); cano(ctx,x1,xm,y,'R',Q/2,vis); conector(ctx,[[xm,y],[xm+20,cy]],Q/2,vis); });
+      cano(ctx,xm+28,x2,cy,'R',Q,vis); conector(ctx,[[xm+20,cy],[xm+28,cy]],Q,vis); conector(ctx,[[x2,cy],[xe,cy]],Q,vis);
+      txt(ctx,'Q/2',(x1+xm)/2,ya+22,C.lin,{size:11,align:'center'}); txt(ctx,'Q/2',(x1+xm)/2,yb+24,C.lin,{size:11,align:'center'}); }
+    readout([['R equivalente',REQT[c-1]+' = '+cm(Req41(),2)+' URP',C.sob],['caudal total',cm(Q,1)+' ml/s',C.lin]]);
+    $('formula').innerHTML='en serie se suman: <b>R = R₁ + R₂ + …</b> · en paralelo se suman las inversas: <b>1/R = 1/R₁ + 1/R₂ + …</b>'; }
+  else if(SY==='c42'){ const k=nar?3.2:4.2, w1=Math.max(4,Math.min(40,Math.sqrt(P.A1)*k*2)), w2=Math.max(4,Math.min(40,Math.sqrt(P.A2)*k*2)), we=Math.max(4,Math.min(48,Math.sqrt(Aeq42())*k*2)), vis=1.6;
+    const yt=cy-80, x1=xs+W*0.18, x2=xe-W*0.18, ya=yt-28, yb=yt+28, yq=cy+70;
+    // misma Δp: el caudal por cada caño es ∝ A²
+    const q1=P.A1*P.A1, q2=P.A2*P.A2, qt=q1+q2; tubo(ctx,[[xs,yt],[x1-20,yt]],we); puntos(ctx,[[xs,yt],[x1-20,yt]],qt/(Aeq42())*vis*4);
+    [[ya,w1,q1,P.A1],[yb,w2,q2,P.A2]].forEach(([y,ww,q,A])=>{ const t=[[x1-20,yt],[x1,y],[x2,y],[x2+20,yt]]; tubo(ctx,t,ww,'rgba(255,122,217,0.28)'); puntos(ctx,t,q/A*vis*4); });
+    tubo(ctx,[[x2+20,yt],[xe,yt]],we); puntos(ctx,[[x2+20,yt],[xe,yt]],qt/Aeq42()*vis*4);
+    txt(ctx,cm(P.A1,1)+' cm²',(x1+x2)/2,ya-w1/2-6,C.sob,{size:11,align:'center'}); txt(ctx,cm(P.A2,1)+' cm²',(x1+x2)/2,yb+w2/2+14,C.sob,{size:11,align:'center'});
+    const te=[[xs,yq],[xe,yq]]; tubo(ctx,te,we,'rgba(255,122,217,0.28)'); puntos(ctx,te,qt/Aeq42()*vis*4); txt(ctx,'un solo caño de '+cm(Aeq42(),2)+' cm², la misma resistencia',(xs+xe)/2,yq-we/2-8,C.sob,{size:11,align:'center'});
+    readout([['sección equivalente',cm(Aeq42(),2)+' cm²',C.sob],['suma de secciones (no sirve)',cm(P.A1+P.A2,1)+' cm²'],['caudal por 1 / por 2',cm(q1/qt*100,0)+' % / '+cm(q2/qt*100,0)+' %',C.lin]]);
+    $('formula').innerHTML='en paralelo <b>1/R = 1/R₁ + 1/R₂</b>, con <b>R ∝ 1/A²</b> ⇒ <b>A² = A₁² + A₂²</b> (como Pitágoras)'; }
+  else { const ya=cy-60, yb=cy+75, x1=xs+W*0.2, x2=xe-W*0.2, xm=(x1+x2)/2, vis=60/Qpar()*0.9, qp=Qpar(), qs=Qser();
+    txt(ctx,'en paralelo',xs,ya-46,C.muted,{size:11.5}); conector(ctx,[[xs,ya],[x1-20,ya]],qp,vis); conector(ctx,[[x2+20,ya],[xe,ya]],qp,vis);
+    [ya-22,ya+22].forEach(y=>{ conector(ctx,[[x1-20,ya],[x1,y]],qp/2,vis); cano(ctx,x1,x2,y,'R',qp/2,vis); conector(ctx,[[x2,y],[x2+20,ya]],qp/2,vis); });
+    txt(ctx,'en serie',xs,yb-24,C.muted,{size:11.5}); conector(ctx,[[xs,yb],[x1,yb]],qs,vis); cano(ctx,x1,xm-6,yb,'R',qs,vis); conector(ctx,[[xm-6,yb],[xm+6,yb]],qs,vis); cano(ctx,xm+6,x2,yb,'R',qs,vis); conector(ctx,[[x2,yb],[xe,yb]],qs,vis);
+    txt(ctx,'Q = '+cm(qp,0)+' ml/s',xe,ya+48,C.lin,{size:11,align:'right'}); txt(ctx,"Q' = "+cm(qs,1)+' ml/s',xe,yb+24,C.lin,{size:11,align:'right'});
+    readout([['paralelo: R/2',cm(P.R46/2,2)+' URP · Q = '+cm(qp,1)+' ml/s',C.lin],['serie: 2R',cm(2*P.R46,1)+" URP · Q' = "+cm(qs,1)+' ml/s',C.lin],["Q' / Q",cm(qs/qp,3),C.sob]]);
+    $('formula').innerHTML="misma Δp: <b>Q = Δp / R<sub>eq</sub></b> · la resistencia pasa de R/2 a 2R (× 4) ⇒ <b>Q' = Q/4</b>"; }
+  $('clock').textContent=''; }
+
+// ================= Gráfico =================
+function drawV1(){
+  if(SY==='c38'){ plot('p1c',0.25,4,0,16,[[curva(k=>1/(k*k),0.25,4),C.sob],[[[0.25,1],[4,1]],C.faint,[5,4]]],'sección de A (× la de B)',{mark:(ctx,X,Y)=>dot(ctx,X(P.k),Y(rAB()),4.5,C.sob)});
+    $('tag1').textContent='R_A / R_B'; legend('leg1',[[C.sob,'R_A / R_B = (A_B / A_A)²'],[C.faint,'iguales','dashed']]);
+    $('cap1').textContent='La resistencia depende de la sección al cuadrado (del radio a la cuarta). Con el doble de sección, A tiene la cuarta parte de la resistencia: R_A = 0,25 R_B.'; }
+  else if(SY==='c41'){ const F=frame($('p1c'),{x0:0,x1:4,y0:0,y1:3.5,xt:[],yt:[0,1,2,3],yf:v=>v?v+'R':'0'}); const {ctx,X,Y}=F;
+    REQ.forEach((r,i)=>{ const x=X(i+0.5), bw=(X(1)-X(0))*0.5, on=i===P.cfg-1; ctx.fillStyle=C.sob; ctx.globalAlpha=on?0.85:0.25; ctx.fillRect(x-bw/2,Y(r),bw,Y(0)-Y(r)); ctx.globalAlpha=1;
+      txt(ctx,REQT[i],x,Y(r)-6,on?C.fg:C.muted,{size:12,align:'center'}); txt(ctx,LET[i]+')',x,Y(0)+5,on?C.fg:C.muted,{size:12,align:'center',base:'top'}); });
+    $('tag1').textContent='Resistencia equivalente (en unidades de R)'; legend('leg1',[[C.sob,'R_eq']]);
+    $('cap1').textContent='En serie la resistencia crece (3R); en paralelo, el líquido tiene más caminos y la resistencia baja (R/3). Las combinaciones quedan en el medio: 2R/3 y 3R/2.'; }
+  else if(SY==='c42'){ plot('p1c',0.5,15,0,niceMax(P.A1+15),[[curva(a=>sq(P.A1*P.A1+a*a),0.5,15),C.sob],[curva(a=>P.A1+a,0.5,15),C.faint,[5,4]]],'sección del caño 2 (cm²)',{mark:(ctx,X,Y)=>dot(ctx,X(P.A2),Y(Aeq42()),4.5,C.sob)});
+    $('tag1').textContent='Sección del caño equivalente (cm²)'; legend('leg1',[[C.sob,'√(A₁² + A₂²)'],[C.faint,'A₁ + A₂','dashed']]);
+    $('cap1').textContent='Un caño único con la suma de las secciones (7 cm²) tendría menos resistencia que los dos juntos: la resistencia depende de A², no de A. El equivalente es de 5 cm².'; }
+  else { const qm=niceMax(2*200/P.R46); plot('p1c',0,200,0,qm,[[curva(d=>2*d/P.R46,0,200),C.lin],[curva(d=>d/(2*P.R46),0,200),C.lin,[6,4]]],'diferencia de presión (mmHg)',{mark:(ctx,X,Y)=>{ dot(ctx,X(P.dp46),Y(Qpar()),4.5,C.lin); dot(ctx,X(P.dp46),Y(Qser()),4.5,C.lin,true); }});
+    $('tag1').textContent='Caudal total (ml/s)'; legend('leg1',[[C.lin,'paralelo'],[C.lin,'serie','dashed']]);
+    $('cap1').textContent='Con la misma diferencia de presión, el caudal es Δp/R_eq. Al pasar de paralelo (R/2) a serie (2R), la resistencia se multiplica por 4 y el caudal se divide por 4.'; } }
+function draw(){ drawScene(); drawV1(); }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'Dos caños iguales están en paralelo, conectados a una bomba. Si se los reconecta en serie, con la misma diferencia de presión, el caudal total…',
+  opts:[['mitad','se reduce a la mitad'],['cuarto','se reduce a la cuarta parte'],['igual','no cambia: son los mismos caños']], right:'cuarto', go:'Probalo',
+  run(){ pickChip('c46',setMode); Object.assign(P,PS0.c46); refresh(); return "A la cuarta parte: en paralelo la resistencia es R/2 y en serie 2R, cuatro veces más. Con la misma Δp, Q' = Q/4."; } };
+const CHAL=[
+  {txt:'En el 41, ¿qué conexión deja pasar una vez y media el caudal de un solo caño?',chk(){ if(SY!=='c41') return [false,'Elegí el 41']; return P.cfg===3?[true,'Logrado: la c), con R_eq = 2R/3.']:[false,`R_eq = ${REQT[P.cfg-1]}: deja pasar ${cm(1/REQ[P.cfg-1],2)} veces el caudal de uno`]; }},
+  {txt:'En el 42, encontrá otros dos caños en paralelo (que no sean 3 y 4 cm²) equivalentes a uno solo de 13 cm².',chk(){ if(SY!=='c42') return [false,'Elegí el 42']; if((P.A1===3&&P.A2===4)||(P.A1===4&&P.A2===3)) return [false,'Esos son los de la guía']; return Math.abs(Aeq42()-13)<0.05?[true,`Logrado: ${cm(P.A1,1)}² + ${cm(P.A2,1)}² = 13².`]:[false,`A equivalente = ${cm(Aeq42(),2)} cm²`]; }},
+  {txt:'En el 38, ¿qué sección tiene que tener A para que su resistencia sea 16 veces la de B?',chk(){ if(SY!=='c38') return [false,'Elegí el 38']; return Math.abs(rAB()-16)<0.01?[true,'Logrado: A_A = A_B/4.']:[false,`R_A / R_B = ${cm(rAB(),3)}`]; }},
+];
+function cuentas(){ return {title:'Resistencias hidrodinámicas', finLbl:'Respuestas', steps:[
+  ['Poiseuille como «ley de Ohm» de los caños', `\\[\\Delta p=R\\,Q\\qquad R=\\frac{8\\eta L}{\\pi r^4}=\\frac{8\\pi\\eta L}{A^2}\\]`],
+  ['38) Igual longitud y A_A = 2 A_B', `\\[\\frac{R_A}{R_B}=\\left(\\frac{A_B}{A_A}\\right)^2=\\frac14\\ \\Rightarrow\\ R_A=0{,}25\\,R_B\\]`,true],
+  ['41 a) y b) Serie y paralelo', `\\[R_a=R+R+R=3R\\qquad\\frac1{R_b}=\\frac3R\\ \\Rightarrow\\ R_b=\\frac R3\\]`,true],
+  ['41 c) 2R en paralelo con R', `\\[R_c=\\frac{2R\\cdot R}{2R+R}=\\frac{2R}3\\]`,true],
+  ['41 d) R/2 en serie con R', `\\[R_d=\\frac R2+R=\\frac{3R}2\\]`,true],
+  ['42) En paralelo, con R ∝ 1/A²', `\\[\\frac1R=\\frac1{R_1}+\\frac1{R_2}\\ \\Rightarrow\\ A^2=A_1^2+A_2^2=9+16=25\\]`],
+  ['Sección del caño único', `\\[A=5\\ \\text{cm}^2\\]`,true],
+  ["46) Misma Δp, de R/2 a 2R", `\\[Q=\\frac{\\Delta p}{R/2}\\qquad Q'=\\frac{\\Delta p}{2R}=\\frac Q4\\]`,true],
+], fin:`\\[R_A=0{,}25\\,R_B\\qquad3R;\\ R/3;\\ 2R/3;\\ 3R/2\\qquad5\\ \\text{cm}^2\\qquad Q'=Q/4\\]`}; }
+
+// ================= Arranque =================
+const PRES={c38:[['38 · A con el doble de sección',()=>Object.assign(P,PS0.c38)]],
+  c41:[0,1,2,3].map(i=>[`41 ${LET[i]} · ${REQT[i]}`,()=>Object.assign(P,PS0.c41,{cfg:i+1})]),
+  c42:[['42 · 3 y 4 cm²',()=>Object.assign(P,PS0.c42)]], c46:[['46 · dos caños iguales',()=>Object.assign(P,PS0.c46)]]};
+const NOTE={c38:'Los dos caños tienen la misma longitud. Los puntos muestran el caudal que pasaría por cada uno con la misma diferencia de presión.',
+  c41:'1 URP (unidad de resistencia periférica) = 1 mmHg·s/ml. Los puntos van más rápido donde el caudal es mayor.',
+  c42:'Los dos caños tienen la misma longitud y son del mismo material que el caño que los reemplaza.',
+  c46:'Arriba, los caños en paralelo; abajo, los mismos caños en serie, con la misma bomba.'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('c38',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

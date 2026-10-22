@@ -1,6 +1,6 @@
 /* ================= Intro de Mundo Quarks =================
-   Pantalla de entrada con tres quarks unidos por tubos de flujo de gluones y un botón «INGRESAR».
-   Al pulsarlo, la escena se parte en dos mitades que se separan (arriba y abajo) y deja ver la portada.
+   Pantalla de entrada: espacio profundo, tres quarks luminosos unidos por hebras de energía y un botón «INGRESAR».
+   Al pulsarlo, la escena se parte en dos compuertas que se separan (arriba y abajo) y deja ver la portada.
    - Se muestra una vez por sesión del navegador; no aparece si la URL trae un ancla (#contacto, etc.).
    - Con «?intro» en la URL se fuerza (para probarla).
    - Sin JavaScript o si algo falla, la portada queda accesible: el telón tiene un tiempo límite. */
@@ -33,10 +33,11 @@
     ov.setAttribute('aria-modal', 'true');
     ov.setAttribute('aria-label', 'Bienvenida a Mundo Quarks');
     ov.innerHTML =
-      '<div class="mqi-half mqi-top"><canvas aria-hidden="true"></canvas></div>' +
-      '<div class="mqi-half mqi-bot"><canvas aria-hidden="true"></canvas></div>' +
+      '<div class="mqi-half mqi-top"><canvas aria-hidden="true"></canvas><div class="mqi-shade"></div><div class="mqi-edge"></div></div>' +
+      '<div class="mqi-half mqi-bot"><canvas aria-hidden="true"></canvas><div class="mqi-shade"></div><div class="mqi-edge"></div></div>' +
       '<div class="mqi-seam" aria-hidden="true"></div>' +
-      '<button type="button" class="mqi-enter">INGRESAR</button>' +
+      '<button type="button" class="mqi-enter"><span>INGRESAR</span>' +
+      '<svg class="mqi-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13.5 6.5 19 12l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
       '<button type="button" class="mqi-skip">Omitir intro</button>';
     // la portada queda inerte (ni foco ni lector de pantalla) mientras dura la intro
     var inertes = [];
@@ -52,100 +53,218 @@
     var btn = ov.querySelector('.mqi-enter'), skip = ov.querySelector('.mqi-skip'), bot = ov.querySelector('.mqi-bot');
     try { btn.focus({ preventScroll: true }); } catch (e) { btn.focus(); }
 
-    // ---------- escena ----------
-    var W = 0, H = 0, DPR = 1, fondo = null, estrellas = [], raf = 0, t0 = performance.now(), estado = 'idle', tGo = 0;
-    var QUARKS = [
-      { col: [61, 139, 255], fase: 0.0 },     // azul
-      { col: [255, 96, 40], fase: 2.1 },      // rojo anaranjado
-      { col: [54, 224, 138], fase: 4.2 }      // verde
-    ];
+    // ---------- utilidades ----------
+    var TAU = Math.PI * 2;
     function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
-    function azar(s) { var x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+    function mezcla(c, d, k) { return [Math.round(c[0] + (d[0] - c[0]) * k), Math.round(c[1] + (d[1] - c[1]) * k), Math.round(c[2] + (d[2] - c[2]) * k)]; }
+    var semilla = 7;
+    function azar() { semilla = (semilla * 16807) % 2147483647; return (semilla - 1) / 2147483646; }
+    function lienzo(w, h) { var c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; }
+    // resplandor radial pre-dibujado (se estampa con drawImage: mucho más barato que crear gradientes en cada cuadro)
+    function brillo(col, r, nucleo) {
+      var c = lienzo(2 * r, 2 * r), g = c.getContext('2d'), gr = g.createRadialGradient(r, r, 0, r, r, r);
+      gr.addColorStop(0, rgba(nucleo || col, 1)); gr.addColorStop(0.18, rgba(col, 0.55)); gr.addColorStop(0.5, rgba(col, 0.14)); gr.addColorStop(1, rgba(col, 0));
+      g.fillStyle = gr; g.fillRect(0, 0, 2 * r, 2 * r); return c;
+    }
+
+    // ---------- escena ----------
+    var W = 0, H = 0, DPR = 1, m = 0, fondo = null, raf = 0, t0 = performance.now(), estado = 'idle', tGo = 0;
+    var titilan = [], polvo = [], hebras = [], spLuz = null, spPolvo = null;
+    var QUARKS = [
+      { col: [70, 200, 255], fase: 0.0 },    // azul cian
+      { col: [255, 92, 38], fase: 2.3 },     // rojo anaranjado
+      { col: [40, 222, 140], fase: 4.4 }     // verde esmeralda
+    ];
+    // superficie de partículas: puntos repartidos sobre una esfera (espiral de Fibonacci)
+    var SUP = [];
+    (function () { var N = 90, ga = Math.PI * (3 - Math.sqrt(5)); for (var i = 0; i < N; i++) { var y = 1 - 2 * (i + 0.5) / N, r = Math.sqrt(1 - y * y); SUP.push([Math.cos(ga * i) * r, y, Math.sin(ga * i) * r]); } })();
 
     function medir() {
-      W = ov.clientWidth || innerWidth; H = ov.clientHeight || innerHeight; DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = ov.clientWidth || innerWidth; H = ov.clientHeight || innerHeight; m = Math.min(W, H);
+      DPR = Math.min(window.devicePixelRatio || 1, 1.75);
       [cTop, cBot].forEach(function (c) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); });
-      // fondo fijo: nebulosas tenues en un lienzo aparte, se dibuja una vez por tamaño
-      fondo = document.createElement('canvas'); fondo.width = cTop.width; fondo.height = cTop.height;
-      var f = fondo.getContext('2d'); f.scale(DPR, DPR);
-      f.fillStyle = '#02030a'; f.fillRect(0, 0, W, H);
-      [[0.22, 0.30, 0.55, [70, 40, 140], 0.20], [0.80, 0.68, 0.60, [20, 80, 150], 0.18], [0.62, 0.18, 0.35, [140, 40, 90], 0.10], [0.30, 0.85, 0.40, [20, 110, 110], 0.10]]
-        .forEach(function (n) {
-          var r = n[2] * Math.max(W, H), g = f.createRadialGradient(n[0] * W, n[1] * H, 0, n[0] * W, n[1] * H, r);
-          g.addColorStop(0, rgba(n[3], n[4])); g.addColorStop(1, rgba(n[3], 0)); f.fillStyle = g; f.fillRect(0, 0, W, H);
+      semilla = 7;
+      pintarFondo();
+      // estrellas brillantes que titilan, en tres profundidades
+      titilan = [];
+      var NT = Math.round(Math.min(90, W * H / 14000));
+      for (var i = 0; i < NT; i++) titilan.push({ x: azar() * W, y: azar() * H, z: 0.3 + azar() * 0.7, f: azar() * TAU, v: 0.3 + azar() * 1.2, r: 0.6 + azar() * 1.1, cruz: azar() < 0.12, tinte: azar() });
+      // polvo luminoso que flota delante y detrás (sensación de profundidad)
+      polvo = [];
+      var NP = Math.round(Math.min(46, W * H / 30000));
+      for (var j = 0; j < NP; j++) polvo.push({ x: azar() * W, y: azar() * H, z: azar(), f: azar() * TAU, vx: (azar() - 0.5) * 6, vy: -2 - azar() * 5 });
+      spLuz = brillo([200, 235, 255], 10, [255, 255, 255]);
+      spPolvo = brillo([120, 160, 255], 12, [190, 215, 255]);
+      // sprites de cada quark según su tamaño
+      var rq = Math.max(13, Math.min(26, m * 0.032));
+      QUARKS.forEach(function (q) { q.r = rq; q.sprite = esfera(q.col, rq); q.halo = brillo(q.col, rq * 7, mezcla(q.col, [255, 255, 255], 0.3)); });
+      // hebras de energía: varias por cada par de quarks
+      hebras = [];
+      [[0, 1], [1, 2], [2, 0]].forEach(function (p, k) {
+        [-0.16, 0.04, 0.2, 0.36].forEach(function (b, s) {
+          hebras.push({ a: p[0], b: p[1], bow: b, f: azar() * TAU, w: 0.25 + azar() * 0.35, vel: 0.05 + azar() * 0.07, u0: azar(), luces: s % 2 === 0 ? 2 : 1, k: k });
         });
-      var N = Math.min(420, Math.round(W * H / 2600)); estrellas = [];
-      for (var i = 0; i < N; i++) estrellas.push({ x: azar(i) * W, y: azar(i + 1e3) * H, r: 0.3 + azar(i + 2e3) * 1.1, f: azar(i + 3e3) * 6.28, v: 0.4 + azar(i + 4e3) * 1.6 });
-    }
-
-    // posición de cada quark: órbitas curvas alrededor del centro, con perspectiva
-    function posiciones(t, abre) {
-      var cx = W / 2, cy = H / 2, m = Math.min(W, H);
-      var R = Math.min(Math.max(m * 0.28, 140), m * 0.42) * (1 + abre * 0.9), giro = t * 0.32 * (1 + abre * 3);
-      return QUARKS.map(function (q, i) {
-        var a = giro + i * 2.094 + 0.38 * Math.sin(t * 0.83 + q.fase), rr = R * (1 + 0.16 * Math.sin(t * 1.21 + q.fase * 1.7));
-        var x = Math.cos(a) * rr, y = Math.sin(a) * rr * 0.62, z = Math.sin(a);
-        var inc = 0.35 * Math.sin(t * 0.17);                       // la órbita se inclina despacio
-        return { q: q, x: cx + x * Math.cos(inc) - y * Math.sin(inc), y: cy + x * Math.sin(inc) + y * Math.cos(inc), z: z, s: 1 + 0.22 * z };
       });
     }
 
-    // tubo de flujo de color: una cuerda ondulante y luminosa del quark al punto de unión
-    function tubo(g, a, b, col, t, k) {
-      var dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, N = 40, pts = [];
-      for (var i = 0; i <= N; i++) {
-        var u = i / N, amp = 5 * Math.sin(Math.PI * u) * (0.6 + 0.4 * Math.sin(t * 2 + k));
-        var w = amp * Math.sin(u * 14 - t * 6 + k);
-        pts.push([a.x + dx * u + nx * w, a.y + dy * u + ny * w]);
+    function pintarFondo() {
+      fondo = lienzo(W * DPR, H * DPR);
+      var f = fondo.getContext('2d'); f.scale(DPR, DPR);
+      // negro azulado de base, un poco más claro hacia los bordes
+      var base = f.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.hypot(W, H) / 2);
+      base.addColorStop(0, '#010208'); base.addColorStop(0.6, '#03061a'); base.addColorStop(1, '#050a22');
+      f.fillStyle = base; f.fillRect(0, 0, W, H);
+      // nebulosas: muchas nubes tenues superpuestas, lejos del centro
+      var PAL = [[40, 70, 190], [95, 55, 185], [60, 40, 150], [25, 110, 170], [140, 60, 170]];
+      f.globalCompositeOperation = 'lighter';
+      var focos = [[0.12, 0.2], [0.88, 0.78], [0.82, 0.12], [0.18, 0.88], [0.5, -0.05], [1.05, 0.45]];
+      focos.forEach(function (fo, n) {
+        var cx = fo[0] * W, cy = fo[1] * H, esc = Math.max(W, H) * (0.22 + azar() * 0.18), col = PAL[n % PAL.length];
+        for (var i = 0; i < 64; i++) {
+          var a = azar() * TAU, d = Math.pow(azar(), 0.7) * esc, x = cx + Math.cos(a) * d * 1.4, y = cy + Math.sin(a) * d * 0.8;
+          var r = esc * (0.14 + azar() * 0.42), c = mezcla(col, PAL[(n + 1 + (i % 3)) % PAL.length], azar() * 0.5);
+          var gr = f.createRadialGradient(x, y, 0, x, y, r);
+          gr.addColorStop(0, rgba(c, 0.022 + azar() * 0.022)); gr.addColorStop(0.5, rgba(c, 0.01)); gr.addColorStop(1, rgba(c, 0));
+          f.fillStyle = gr; f.fillRect(x - r, y - r, 2 * r, 2 * r);
+        }
+      });
+      // filamentos más brillantes en las nubes
+      for (var k = 0; k < 26; k++) {
+        var fo2 = focos[k % focos.length], x2 = fo2[0] * W + (azar() - 0.5) * W * 0.3, y2 = fo2[1] * H + (azar() - 0.5) * H * 0.25, r2 = 8 + azar() * 40;
+        var g2 = f.createRadialGradient(x2, y2, 0, x2, y2, r2), c2 = PAL[k % PAL.length];
+        g2.addColorStop(0, rgba(mezcla(c2, [200, 210, 255], 0.4), 0.06)); g2.addColorStop(1, rgba(c2, 0));
+        f.fillStyle = g2; f.fillRect(x2 - r2, y2 - r2, 2 * r2, 2 * r2);
       }
-      [[9, 0.07], [4, 0.18], [1.6, 0.75]].forEach(function (p) {
-        var gr = g.createLinearGradient(a.x, a.y, b.x, b.y);
-        gr.addColorStop(0, rgba(col, p[1])); gr.addColorStop(1, 'rgba(235,240,255,' + p[1] + ')');
-        g.strokeStyle = gr; g.lineWidth = p[0]; g.beginPath();
-        pts.forEach(function (q, i) { i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]); }); g.stroke();
-      });
+      f.globalCompositeOperation = 'source-over';
+      // el centro queda oscuro para que se destaquen los quarks y el botón
+      var cen = f.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, m * 0.62);
+      cen.addColorStop(0, 'rgba(1,2,8,0.88)'); cen.addColorStop(0.55, 'rgba(1,2,8,0.45)'); cen.addColorStop(1, 'rgba(1,2,8,0)');
+      f.fillStyle = cen; f.fillRect(0, 0, W, H);
+      // estrellas fijas: muchas y muy chicas, con algo de color
+      var NS = Math.round(Math.min(1400, W * H / 900));
+      for (var s = 0; s < NS; s++) {
+        var sx = azar() * W, sy = azar() * H, br = Math.pow(azar(), 3), dc = Math.hypot(sx - W / 2, sy - H / 2) / (m * 0.5);
+        var tono = azar(), sc = tono < 0.15 ? [255, 220, 200] : tono < 0.4 ? [190, 210, 255] : [235, 240, 255];
+        f.fillStyle = rgba(sc, (0.12 + br * 0.7) * Math.min(1, 0.35 + dc * 0.6));
+        var tam = 0.5 + br * 1.1; f.fillRect(sx, sy, tam, tam);
+      }
+      // viñeta suave en los bordes
+      var vi = f.createRadialGradient(W / 2, H / 2, m * 0.5, W / 2, H / 2, Math.hypot(W, H) * 0.62);
+      vi.addColorStop(0, 'rgba(0,0,0,0)'); vi.addColorStop(1, 'rgba(0,0,4,0.55)');
+      f.fillStyle = vi; f.fillRect(0, 0, W, H);
     }
 
-    function quark(g, p, t) {
-      var r = 15 * p.s, pul = 1 + 0.08 * Math.sin(t * 3 + p.q.fase);
-      var halo = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4.2 * pul);
-      halo.addColorStop(0, rgba(p.q.col, 0.55)); halo.addColorStop(0.35, rgba(p.q.col, 0.16)); halo.addColorStop(1, rgba(p.q.col, 0));
-      g.fillStyle = halo; g.beginPath(); g.arc(p.x, p.y, r * 4.2 * pul, 0, 6.2832); g.fill();
-      var nucleo = g.createRadialGradient(p.x - r * 0.3, p.y - r * 0.3, 0, p.x, p.y, r);
-      nucleo.addColorStop(0, '#ffffff'); nucleo.addColorStop(0.35, rgba(p.q.col.map(function (c) { return Math.min(255, c + 90); }), 1)); nucleo.addColorStop(1, rgba(p.q.col, 0.9));
-      g.fillStyle = nucleo; g.beginPath(); g.arc(p.x, p.y, r, 0, 6.2832); g.fill();
+    // esfera de energía: resplandor, cuerpo con relieve y núcleo blanco
+    function esfera(col, r) {
+      var R = r * 2.6, c = lienzo(2 * R * DPR, 2 * R * DPR), g = c.getContext('2d'); g.scale(DPR, DPR);
+      var claro = mezcla(col, [255, 255, 255], 0.55), oscuro = mezcla(col, [0, 0, 20], 0.45);
+      g.globalCompositeOperation = 'lighter';
+      var h = g.createRadialGradient(R, R, r * 0.6, R, R, R); h.addColorStop(0, rgba(col, 0.5)); h.addColorStop(0.4, rgba(col, 0.16)); h.addColorStop(1, rgba(col, 0));
+      g.fillStyle = h; g.fillRect(0, 0, 2 * R, 2 * R);
+      g.globalCompositeOperation = 'source-over';
+      var b = g.createRadialGradient(R - r * 0.35, R - r * 0.35, r * 0.05, R, R, r);
+      b.addColorStop(0, rgba(claro, 1)); b.addColorStop(0.45, rgba(col, 0.95)); b.addColorStop(0.85, rgba(oscuro, 0.9)); b.addColorStop(1, rgba(col, 0.6));
+      g.fillStyle = b; g.beginPath(); g.arc(R, R, r, 0, TAU); g.fill();
+      g.globalCompositeOperation = 'lighter';
+      var n = g.createRadialGradient(R, R, 0, R, R, r * 0.75); n.addColorStop(0, 'rgba(255,255,255,0.95)'); n.addColorStop(0.35, rgba(claro, 0.55)); n.addColorStop(1, rgba(col, 0));
+      g.fillStyle = n; g.beginPath(); g.arc(R, R, r * 0.75, 0, TAU); g.fill();
+      // borde iluminado (como una atmósfera)
+      g.strokeStyle = rgba(claro, 0.35); g.lineWidth = 1.2; g.beginPath(); g.arc(R, R, r - 0.6, 0, TAU); g.stroke();
+      c.R = R; return c;
+    }
+
+    // posición de cada quark: órbita lenta con variaciones suaves, nunca mecánica
+    function posiciones(t, abre) {
+      var cx = W / 2, cy = H / 2;
+      var rx = Math.max(Math.min(W * 0.3, 340), 140 + m * 0.07), ry = Math.min(H * 0.29, 270);
+      var k = 1 + abre * 1.1, giro = t * 0.11 + abre * abre * 1.4;
+      return QUARKS.map(function (q, i) {
+        var a = giro + i * TAU / 3 + 0.22 * Math.sin(t * 0.37 + q.fase) + 0.1 * Math.sin(t * 0.91 + 2 * q.fase);
+        var rr = k * (1 + 0.07 * Math.sin(t * 0.53 + q.fase));
+        var z = Math.sin(a + 0.6);
+        return { q: q, i: i, x: cx + Math.cos(a) * rx * rr + 8 * Math.sin(t * 0.7 + q.fase), y: cy + Math.sin(a) * ry * rr + 7 * Math.sin(t * 1.1 + q.fase * 1.3), z: z, s: 1 + 0.12 * z };
+      });
     }
 
     function cuadro(now) {
-      var t = (now - t0) / 1000, abre = estado === 'go' ? Math.min(1, (now - tGo) / 1400) : 0, g = gTop;
+      var t = reducido ? 8 : (now - t0) / 1000, abre = estado === 'go' ? Math.min(1, (now - tGo) / 1500) : 0, g = gTop;
       g.setTransform(DPR, 0, 0, DPR, 0, 0);
       g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
       g.drawImage(fondo, 0, 0, W, H);
-      // estrellas que titilan
-      g.fillStyle = '#dfe8ff';
-      for (var i = 0; i < estrellas.length; i++) {
-        var e = estrellas[i]; g.globalAlpha = reducido ? 0.6 : 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * e.v + e.f));
-        g.fillRect(e.x, e.y, e.r * 1.4, e.r * 1.4);
+      g.globalCompositeOperation = 'lighter';
+
+      // estrellas que titilan (las más cercanas se desplazan un poco: paralaje)
+      for (var i = 0; i < titilan.length; i++) {
+        var e = titilan[i], tw = 0.5 + 0.5 * Math.sin(t * e.v + e.f), x = e.x + Math.sin(t * 0.05) * 10 * e.z, y = e.y + Math.cos(t * 0.04) * 6 * e.z;
+        g.globalAlpha = (0.25 + 0.6 * tw) * e.z; g.fillStyle = e.tinte < 0.3 ? '#cfe0ff' : '#ffffff';
+        g.fillRect(x - e.r / 2, y - e.r / 2, e.r, e.r);
+        if (e.cruz) { g.globalAlpha *= 0.5; g.fillRect(x - e.r * 3, y - 0.3, e.r * 6, 0.6); g.fillRect(x - 0.3, y - e.r * 3, 0.6, e.r * 6); }
       }
-      g.globalAlpha = 1; g.globalCompositeOperation = 'lighter';
+      // polvo luminoso, desenfocado según la profundidad
+      for (var j = 0; j < polvo.length; j++) {
+        var p = polvo[j], px = ((p.x + p.vx * t * (0.4 + p.z)) % W + W) % W, py = ((p.y + p.vy * t * (0.4 + p.z)) % H + H) % H, s = 2 + p.z * 7;
+        g.globalAlpha = (0.05 + 0.12 * p.z) * (0.6 + 0.4 * Math.sin(t * 0.8 + p.f));
+        g.drawImage(spPolvo, px - s, py - s, 2 * s, 2 * s);
+      }
+      g.globalAlpha = 1;
+
       var P = posiciones(t, abre);
-      // punto de unión de los tres tubos (modelo «en Y» del barión)
-      var J = { x: (P[0].x + P[1].x + P[2].x) / 3, y: (P[0].y + P[1].y + P[2].y) / 3 };
-      P.forEach(function (p, i) { tubo(g, p, J, p.q.col, t, i * 2.1); });
-      var nj = g.createRadialGradient(J.x, J.y, 0, J.x, J.y, 22);
-      nj.addColorStop(0, 'rgba(235,240,255,.55)'); nj.addColorStop(1, 'rgba(235,240,255,0)'); g.fillStyle = nj; g.beginPath(); g.arc(J.x, J.y, 22, 0, 6.2832); g.fill();
-      // gluones que viajan entre pares de quarks por arcos curvos
-      for (var k = 0; k < 3; k++) {
-        var a = P[k], b = P[(k + 1) % 3], u = ((t * 0.55 + k / 3) % 1), mx = (a.x + b.x) / 2 + (J.x - (a.x + b.x) / 2) * -0.6, my = (a.y + b.y) / 2 + (J.y - (a.y + b.y) / 2) * -0.6;
-        var x = (1 - u) * (1 - u) * a.x + 2 * u * (1 - u) * mx + u * u * b.x, y = (1 - u) * (1 - u) * a.y + 2 * u * (1 - u) * my + u * u * b.y;
-        var gg = g.createRadialGradient(x, y, 0, x, y, 9); gg.addColorStop(0, 'rgba(255,255,255,.9)'); gg.addColorStop(1, 'rgba(255,255,255,0)');
-        g.globalAlpha = Math.sin(Math.PI * u); g.fillStyle = gg; g.beginPath(); g.arc(x, y, 9, 0, 6.2832); g.fill(); g.globalAlpha = 1;
+      var cx = W / 2, cy = H / 2;
+      // hebras de energía entre cada par de quarks
+      for (var h = 0; h < hebras.length; h++) {
+        var hb = hebras[h], A = P[hb.a], B = P[hb.b], mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2, dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1;
+        // la curva se arquea hacia afuera del centro (lejos del botón); el arco respira despacio
+        var nx = -dy / L, ny = dx / L; if ((mx - cx) * nx + (my - cy) * ny < 0) { nx = -nx; ny = -ny; }
+        var bow = (hb.bow + 0.05 * Math.sin(t * 0.4 + hb.f)) * L, qx = mx + nx * bow, qy = my + ny * bow;
+        var inten = hb.w * (0.65 + 0.35 * Math.sin(t * 0.55 + hb.f)) * (1 - abre * 0.6);
+        var gr = g.createLinearGradient(A.x, A.y, B.x, B.y);
+        gr.addColorStop(0, rgba(A.q.col, inten)); gr.addColorStop(0.5, 'rgba(210,225,255,' + inten * 0.7 + ')'); gr.addColorStop(1, rgba(B.q.col, inten));
+        g.strokeStyle = gr; g.lineWidth = 3.2; g.globalAlpha = 0.18; g.beginPath(); g.moveTo(A.x, A.y); g.quadraticCurveTo(qx, qy, B.x, B.y); g.stroke();
+        g.lineWidth = 0.9; g.globalAlpha = 1; g.stroke();
+        // luces que recorren la hebra
+        for (var l = 0; l < hb.luces; l++) {
+          var u = ((hb.u0 + l / hb.luces + t * hb.vel * (l % 2 ? -1 : 1)) % 1 + 1) % 1, w1 = (1 - u) * (1 - u), w2 = 2 * u * (1 - u), w3 = u * u;
+          var lx = w1 * A.x + w2 * qx + w3 * B.x, ly = w1 * A.y + w2 * qy + w3 * B.y, rr = 5 + 3 * Math.sin(Math.PI * u);
+          g.globalAlpha = Math.sin(Math.PI * u) * 0.85 * (1 - abre * 0.5); g.drawImage(spLuz, lx - rr, ly - rr, 2 * rr, 2 * rr);
+        }
       }
-      P.slice().sort(function (a, b) { return a.z - b.z; }).forEach(function (p) { quark(g, p, t); });
-      g.globalCompositeOperation = 'source-over';
+      g.globalAlpha = 1;
+
+      // quarks: primero los de atrás
+      P.slice().sort(function (a, b) { return a.z - b.z; }).forEach(function (p) { quark(g, p, t, abre); });
+      g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
       // la mitad de abajo muestra la misma escena
       gBot.setTransform(1, 0, 0, 1, 0, 0); gBot.drawImage(cTop, 0, 0);
       if (!reducido && estado !== 'fin') raf = requestAnimationFrame(cuadro);
+    }
+
+    function quark(g, p, t, abre) {
+      var q = p.q, r = q.r * p.s, pul = 1 + 0.05 * Math.sin(t * 2.2 + q.fase) + abre * 0.4, claro = mezcla(q.col, [255, 255, 255], 0.6);
+      // resplandor volumétrico (sprite grande y tenue)
+      var Hh = q.r * 7 * p.s * pul; g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.55; g.drawImage(q.halo, p.x - Hh, p.y - Hh, 2 * Hh, 2 * Hh);
+      // partículas en órbita alrededor de la esfera
+      g.globalAlpha = 1; g.fillStyle = rgba(claro, 1);
+      for (var i = 0; i < 26; i++) {
+        var ph = q.fase * 3 + i * 2.39996, ro = r * (1.45 + 1.4 * ((i * 0.6180339) % 1)), sp = 0.5 + ((i * 0.37) % 1) * 0.9, a = ph + t * sp * (i % 2 ? 1 : -0.8), inc = 0.5 + 0.9 * ((i * 0.27) % 1);
+        var ox = Math.cos(a) * ro, oz = Math.sin(a) * ro, oy = oz * Math.sin(inc) * 0.6 + Math.sin(t * 0.9 + ph) * r * 0.25;
+        var dep = oz / ro;                                // −1 atrás, 1 adelante
+        if (dep < -0.2 && Math.hypot(ox, oy) < r) continue;  // oculta por la esfera
+        g.globalAlpha = (0.25 + 0.55 * (0.5 + 0.5 * dep)) * (0.6 + 0.4 * Math.sin(t * 3 + i)); var sz = 0.8 + 0.9 * (0.5 + 0.5 * dep);
+        g.fillRect(p.x + ox - sz / 2, p.y + oy - sz / 2, sz, sz);
+      }
+      // la esfera
+      g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+      var R = q.sprite.R * p.s * pul; g.drawImage(q.sprite, p.x - R, p.y - R, 2 * R, 2 * R);
+      // textura de partículas en la superficie, que gira despacio
+      g.globalCompositeOperation = 'lighter'; g.fillStyle = rgba(claro, 1);
+      var ay = t * 0.35 + q.fase, ca = Math.cos(ay), sa = Math.sin(ay), ct = Math.cos(0.45), st = Math.sin(0.45), rs = r * pul;
+      for (var k = 0; k < SUP.length; k++) {
+        var v = SUP[k], x1 = v[0] * ca + v[2] * sa, z1 = -v[0] * sa + v[2] * ca, y1 = v[1] * ct - z1 * st, z2 = v[1] * st + z1 * ct;
+        if (z2 < 0.05) continue;
+        g.globalAlpha = 0.12 + 0.5 * z2 * (0.6 + 0.4 * Math.sin(t * 4 + k));
+        g.fillRect(p.x + x1 * rs - 0.6, p.y + y1 * rs - 0.6, 1.2, 1.2);
+      }
+      g.globalAlpha = 1;
     }
 
     medir(); cuadro(performance.now());
@@ -164,9 +283,13 @@
       if (estado !== 'idle') return;               // un solo clic cuenta
       btn.disabled = true; skip.disabled = true; marcar();
       if (reducido) { estado = 'fade'; ov.classList.add('mqi-fade'); setTimeout(terminar, 400); return; }
-      estado = 'go'; tGo = performance.now(); ov.classList.add('mqi-go');
-      bot.addEventListener('transitionend', function (e) { if (e.propertyName === 'transform') terminar(); });
-      setTimeout(terminar, 2400);                   // por si el navegador no avisa el fin de la transición
+      // respuesta breve del botón y después la apertura
+      estado = 'press'; ov.classList.add('mqi-press');
+      setTimeout(function () {
+        estado = 'go'; tGo = performance.now(); ov.classList.add('mqi-go');
+        bot.addEventListener('transitionend', function (e) { if (e.target === bot && e.propertyName === 'transform') terminar(); });
+        setTimeout(terminar, 2600);                 // por si el navegador no avisa el fin de la transición
+      }, 260);
     }
     function onKey(e) { if (e.key === 'Escape') terminar(); }
     btn.addEventListener('click', ingresar);

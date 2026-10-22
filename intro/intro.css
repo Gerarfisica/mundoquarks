@@ -1,0 +1,54 @@
+/* ================= Intro de Mundo Quarks =================
+   Solo actúa si intro.js puso la clase «mqi-on» en <html>: sin JavaScript, la portada se ve como siempre. */
+
+/* telón negro mientras el script arma la intro (evita ver la portada medio segundo antes) */
+html.mqi-wait::after{content:"";position:fixed;inset:0;background:#02030a;z-index:2147483000}
+html.mqi-on, html.mqi-on body{overflow:hidden}
+
+#mq-intro{position:fixed;inset:0;z-index:2147483001;height:100%;height:100dvh;color:#eef2ff;
+  font-family:'Space Mono',ui-monospace,Menlo,monospace;-webkit-tap-highlight-color:transparent}
+
+/* las dos mitades: cada una muestra su mitad de la misma escena y al entrar se separan */
+#mq-intro .mqi-half{position:absolute;left:0;width:100%;height:50%;overflow:hidden;background:#02030a;
+  transition:transform 1.15s cubic-bezier(.75,0,.2,1) .45s;will-change:transform}
+#mq-intro .mqi-top{top:0}
+#mq-intro .mqi-bot{top:50%}
+#mq-intro canvas{position:absolute;left:0;width:100%;height:200%;display:block}
+#mq-intro .mqi-top canvas{top:0}
+#mq-intro .mqi-bot canvas{top:-100%}
+
+/* línea de luz en la juntura de las dos mitades */
+#mq-intro .mqi-seam{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(120,200,255,.9) 30%,#fff 50%,rgba(120,200,255,.9) 70%,transparent);
+  box-shadow:0 0 18px 4px rgba(90,170,255,.55);transform:scaleX(0);opacity:0}
+
+/* botón central */
+#mq-intro .mqi-enter{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
+  font:700 clamp(.95rem,2.6vw,1.15rem)/1 'Space Mono',ui-monospace,Menlo,monospace;letter-spacing:.38em;text-indent:.38em;
+  color:#fff;background:rgba(6,10,28,.55);border:1px solid rgba(140,200,255,.75);border-radius:999px;
+  padding:1.05em 2.3em;cursor:pointer;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  box-shadow:0 0 24px rgba(80,160,255,.35),inset 0 0 18px rgba(80,160,255,.18);
+  transition:opacity .3s ease,transform .3s ease,box-shadow .25s ease,background .25s ease}
+#mq-intro .mqi-enter:hover{background:rgba(20,40,90,.6);box-shadow:0 0 34px rgba(110,190,255,.6),inset 0 0 22px rgba(110,190,255,.28)}
+#mq-intro .mqi-enter:focus-visible{outline:2px solid #00d4ff;outline-offset:5px}
+
+/* omitir */
+#mq-intro .mqi-skip{position:absolute;top:max(14px,env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));z-index:2;
+  font:400 .78rem/1 'Space Mono',ui-monospace,Menlo,monospace;letter-spacing:.12em;color:rgba(200,215,240,.75);
+  background:transparent;border:1px solid rgba(200,215,240,.25);border-radius:999px;padding:.65em 1.1em;cursor:pointer;transition:color .2s,border-color .2s,opacity .25s}
+#mq-intro .mqi-skip:hover{color:#fff;border-color:rgba(200,215,240,.6)}
+#mq-intro .mqi-skip:focus-visible{outline:2px solid #00d4ff;outline-offset:3px}
+
+/* al pulsar INGRESAR: se apaga el botón, se enciende la juntura y se abren las mitades */
+#mq-intro.mqi-go .mqi-enter{opacity:0;transform:translate(-50%,-50%) scale(.92);pointer-events:none}
+#mq-intro.mqi-go .mqi-skip{opacity:0;pointer-events:none}
+#mq-intro.mqi-go .mqi-seam{animation:mqi-seam 1.4s cubic-bezier(.3,0,.2,1) .1s both}
+#mq-intro.mqi-go .mqi-top{transform:translateY(-100%)}
+#mq-intro.mqi-go .mqi-bot{transform:translateY(100%)}
+@keyframes mqi-seam{0%{transform:scaleX(0);opacity:0}20%{opacity:1}35%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+
+/* movimiento reducido: sin separación; la intro se desvanece */
+#mq-intro.mqi-fade{transition:opacity .35s ease;opacity:0}
+@media (prefers-reduced-motion: reduce){
+  #mq-intro .mqi-half,#mq-intro .mqi-seam,#mq-intro .mqi-enter{transition:none}
+}

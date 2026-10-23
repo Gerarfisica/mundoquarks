@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Plano inclinado, trabajo y potencia U1 44 a 46, 50, 64 a 70</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#06080b; --panel:#0d1117; --panel-2:#121821; --line:#1f2833; --line-2:#2b3644;
+  --fg:#e3e9ef; --muted:#8693a1; --faint:#55616e;
+  --sys:#36d4ff; --x:#34e08a; --v:#ffcf3a; --a:#ff5c3a; --lin:#c9b6ff; --ok:#34e08a;
+  --sub:#36d4ff; --crit:#ffcf3a; --sob:#ff7ad9;
+  --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-title:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --r:8px;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:12px}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.brand{font-family:var(--font-num);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sys)}
+.crumb{color:var(--muted);font-size:13px}
+.top h1{font-family:var(--font-title);font-weight:400;font-size:28px;margin:0;line-height:1.1}
+.top h1 i{color:var(--muted)}
+
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+@media (max-width:1180px){.app{grid-template-columns:minmax(0,1fr) 330px}.nav{grid-column:1 / -1}}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+
+.nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.nav h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 4px 8px;font-weight:600}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav li a,.nav li span{display:grid;grid-template-columns:40px 1fr;gap:6px;align-items:baseline;padding:6px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:13px}
+.nav li a:hover{color:var(--fg);background:var(--panel-2)}
+.nav .code{font-family:var(--font-num);font-size:11px;color:var(--faint);font-weight:500}
+.nav li a.active{background:var(--panel-2);color:var(--fg);box-shadow:inset 2px 0 0 var(--sys)}
+.nav li a.active .code{color:var(--sys)}
+.nav li span{opacity:.5}
+@media (max-width:1180px){ .nav ol{flex-direction:row;overflow-x:auto;padding-bottom:4px} .nav li a,.nav li span{grid-template-columns:auto;white-space:nowrap} }
+
+.center{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.scene-wrap{position:relative}
+#scene{display:block;width:100%;height:170px;border-radius:var(--r) var(--r) 0 0;touch-action:none;cursor:grab}
+#scene.drag{cursor:grabbing}
+.hint{position:absolute;left:12px;top:10px;font-size:12px;color:var(--faint);pointer-events:none}
+.clock{position:absolute;right:12px;top:10px;font-size:12px;color:var(--muted)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;align-items:baseline}
+.readout .k{color:var(--muted)}
+.regime{font-family:var(--font-ui);font-weight:600;font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+
+.controls{padding:12px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--sys)}
+.btn.primary{background:var(--sys);color:#031018;border-color:var(--sys);font-weight:600;min-width:84px}
+.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.speed{display:flex;align-items:center;gap:8px;margin-left:auto}
+.speed input{width:100px;accent-color:var(--sys)}
+
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 18px}
+.param{display:grid;grid-template-columns:auto 1fr 74px;gap:8px;align-items:center}
+.param label{font-size:13px;min-width:24px}
+.param input[type=range]{width:100%;accent-color:var(--sys)}
+.param input[type=number]{width:74px;background:var(--bg);border:1px solid var(--line-2);border-radius:5px;padding:3px 5px;font-family:var(--font-num);font-size:12.5px;text-align:right}
+.unit{font-size:11px;color:var(--faint)}
+
+.plots-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--sys)}
+.toggles{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.toggles label{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggles input{accent-color:var(--sys)}
+.plot{position:relative}
+.plot canvas{display:block;width:100%;height:270px}
+.plot canvas.small{height:130px}
+.plot .tag{position:absolute;left:10px;top:6px;font-size:12px;font-weight:600;pointer-events:none}
+.legend{position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:72%}
+.legend i{display:inline-block;width:14px;height:0;vertical-align:3px;margin-right:4px;border-top:2px solid}
+.pcap{padding:8px 12px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{padding:12px 14px}
+.enun summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.enun p{margin:8px 0 0;font-size:13.5px}
+.enun .src{color:var(--faint);font-size:12px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:transparent;border:0;padding:10px 8px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sys)}
+.pane{padding:14px;font-size:13.5px}
+.pane h3{font-family:var(--font-title);font-weight:400;font-size:21px;margin:0 0 8px;line-height:1.15}
+.pane p{margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt{text-align:left;background:var(--panel-2);border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px}
+.opt[aria-pressed="true"]{border-color:var(--sys)}
+.opt.right{border-color:var(--ok)}
+.reveal{border-left:2px solid var(--sys);padding:6px 0 6px 10px;margin-top:10px}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--font-num);font-size:11px;color:var(--sys);border:1px solid var(--line-2);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;margin-top:1px}
+.steps li.hl::before{background:var(--sys);color:#031018;border-color:var(--sys)}
+.steps .t{color:var(--muted);font-size:12.5px;margin-bottom:3px}
+.mx{overflow-x:auto;overflow-y:hidden;max-width:100%}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.final{margin-top:14px;padding:10px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg)}
+.final .lbl{display:block;margin-bottom:4px}
+.chal{display:flex;flex-direction:column;gap:12px}
+.chal .item{border:1px solid var(--line-2);border-radius:6px;padding:10px}
+.chal .state{font-family:var(--font-num);font-size:12.5px;margin-top:6px;color:var(--muted)}
+.chal .state.done{color:var(--ok)}
+footer{color:var(--faint);font-size:12px;margin-top:14px;max-width:110ch}
+</style>
+<link rel="stylesheet" href="../tema-mq.css">
+</head>
+<body>
+
+<style>
+/* comunes a las guías de Física 1: chips de caso, línea de fórmula, subtítulos de parámetros */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--panel-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--sys);box-shadow:inset 0 0 0 1px var(--sys)}
+.chips .lbl{align-self:center;margin-right:2px}
+.formula{padding:7px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);font-family:var(--font-num);overflow-wrap:anywhere}
+.formula b{color:var(--fg);font-weight:500}
+.sub-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);grid-column:1/-1;margin-top:2px}
+.note{font-size:12px;color:var(--faint);margin-top:-6px}
+.param{grid-template-columns:minmax(0,9em) minmax(60px,1fr) 74px}
+.nav li a,.nav li span{grid-template-columns:64px 1fr}
+@media (max-width:1180px){.nav li a,.nav li span{grid-template-columns:auto}}
+@media (max-width:560px){.plot .legend{top:26px;left:10px;right:auto;justify-content:flex-start;max-width:calc(100% - 20px)}}
+.stack .plot+.plot{border-top:1px solid var(--line)}
+
+</style>
+
+<header class="top">
+  <a class="brand" href="../../index.html">Mundo<span>Quarks</span></a>
+  <span class="crumb">CBC · Biofísica 53 · Unidad 1 · Mecánica</span>
+  <h1>Plano inclinado, trabajo y potencia <i>· una fuerza trabaja con su componente a lo largo del camino</i></h1>
+  <a class="mq-back" href="../../simuladores-mecanica-puntual.html">← Mecánica</a>
+</header>
+
+<div class="app">
+  <nav class="nav" aria-label="Problemas de la Unidad 1">
+    <h2>Unidad 1</h2>
+    <ol>
+      <li><a href="p1-graficos.html"><b class="code">1 a 4, 6, 10, 22, 24</b>Del gráfico a la historia</a></li>
+      <li><a href="p2-mruv.html"><b class="code">7 a 9, 11 a 16</b>MRUV: tabla, gráfico y ecuación</a></li>
+      <li><a href="p3-caida.html"><b class="code">16 a 21</b>Caída libre y tiro vertical</a></li>
+      <li><a href="p4-newton.html"><b class="code">25 a 43, Int. 1 y 2</b>Fuerzas y leyes de Newton</a></li>
+      <li><a class="active" href="#" aria-current="page"><b class="code">44 a 46, 50, 64 a 70</b>Plano inclinado, trabajo y potencia</a></li>
+      <li><a href="p6-energia.html"><b class="code">47, 49, 54 a 63</b>Energía mecánica</a></li>
+      <li><a href="p7-area.html"><b class="code">48, 51 a 53, 71</b>Trabajo como área</a></li>
+    </ol>
+  </nav>
+
+  <main class="center">
+    <section class="card scene-wrap" aria-label="Escena">
+      <canvas id="scene" style="height:280px" aria-label="Según el caso: un mueble o una carreta empujados con una fuerza en ángulo; un cuerpo con ocho fuerzas posibles; una persona en un ascensor que baja; un cajón que sube por un plano inclinado; o una carga que se eleva con barras de energía."></canvas>
+      <div class="hint" id="hint"></div>
+      <div class="clock num" id="clock"></div>
+      <div class="readout num" id="readout"></div>
+      <div class="formula" id="formula"></div>
+    </section>
+
+    <section class="card controls" aria-label="Controles">
+      <div class="row">
+        <button class="btn primary" id="play">Pausar</button>
+        <button class="btn" id="reset">Reiniciar</button>
+        <div class="speed"><label class="lbl" for="speed">Velocidad visual</label><input id="speed" type="range" min="-2" max="2" step="1" value="0"><span class="num" id="speed-v">1×</span></div>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Caso">
+        <button data-sy="c44" aria-pressed="true">44 · trabajo y ángulo</button>
+        <button data-sy="c45" aria-pressed="false">45 · ocho fuerzas</button>
+        <button data-sy="c46" aria-pressed="false">46 · Claudia en el ascensor</button>
+        <button data-sy="c50" aria-pressed="false">50 · caballo y carreta</button>
+        <button data-sy="c64" aria-pressed="false">64, 70 · plano inclinado</button>
+        <button data-sy="c65" aria-pressed="false">65 a 69 · potencia</button>
+      </div>
+      <div class="chips" id="guia" role="group" aria-label="Datos de la guía"><span class="lbl">Datos de la guía</span></div>
+      <div class="params" id="params"></div>
+      <div class="note"><span id="note"></span></div>
+    </section>
+
+    <section class="card" aria-label="Gráficos">
+      <div class="plots-head">
+        <div class="seg" role="tablist" aria-label="Vista">
+          <button data-view="v1" aria-pressed="true" id="vb1">Gráfico</button>
+        </div>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <div data-vpanel="v1">
+        <div class="plot"><canvas id="p1c" style="height:260px"></canvas><div class="tag" id="tag1" style="color:var(--fg)"></div><div class="legend" id="leg1"></div></div>
+        <div class="pcap" id="cap1"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <details class="card enun">
+      <summary>Enunciado · U1 · 44 a 46, 50, 64 a 70</summary>
+      <p><b>44.</b> El empleado de una empresa de mudanzas desea transportar un mueble. Calcule el valor y el signo del trabajo entregado por el hombre al mueble en las cuatro situaciones que siguen: a) Lo empuja con una fuerza de 1000 N, paralela al piso, a lo largo de 8 metros. b) El mueble se venía moviendo por un plano horizontal y el empleado lo detiene aplicándole una fuerza de 1000 N, paralela al piso, a lo largo de 60 centímetros. c) Camina horizontalmente, con velocidad constante, cargando el mueble sobre sus hombros. d) Tira del mueble con una fuerza de 1000 N por medio de una soga que forma un ángulo de 30º con la horizontal a lo largo de 8 m.</p>
+      <p><b>45.</b> Un cuerpo de 12 kg se desplaza apoyado sobre un plano horizontal sin rozamiento. En la figura se muestran fuerzas de igual intensidad (30 N) y diferentes direcciones y sentidos. Se ejerce solo una de esas fuerzas mientras el cuerpo se desplaza 4 m desde A hasta B. Elija, en cada caso, la fuerza que: a) Aumenta más la energía cinética del cuerpo. ¿Cuánto aumenta? b) Disminuye más la energía cinética. ¿Cuánta energía pierde? c) No cambia la energía cinética. d) Si se aplicaran todas las fuerzas a la vez, ¿el cuerpo ganaría o perdería energía cinética? e) En esas condiciones, calcule la velocidad en B si la velocidad en A es de 5 m/s. (F₁ hacia arriba, F₂ a 37° sobre el avance, F₃ en el avance, F₄ a 37° por debajo, F₅ hacia abajo, F₆ a 143° por debajo, F₇ en contra del avance y F₈ a 127° por encima.)</p>
+      <p><b>46.</b> Claudia pesa 60 kgf, y viaja en un ascensor desde el piso 4° hasta planta baja. Calcule: a) El trabajo que realiza la fuerza que hace el piso del ascensor (la «normal») sobre ella, en los siguientes tramos de 4 m de longitud cada uno: 1) arranque con aceleración constante de 0,5 m/s²; 2) descenso con velocidad constante de 2 m/s; 3) frenado con aceleración constante de 0,5 m/s². b) La variación de energía cinética en cada tramo.</p>
+      <p><b>50.</b> Un caballo arrastra una carreta de 1000 kg, por un camino horizontal, a lo largo de 50 m. La lleva desde el reposo hasta que su velocidad es de 6 m/s. La fuerza que hace el caballo, que es de 500 N, forma un ángulo de 15º con la dirección de avance de la carreta. a) ¿Cuánto varía la energía cinética de la carreta? b) ¿Cuánto vale el trabajo realizado por la fuerza que ejerce el caballo? c) ¿Cuánto vale el trabajo de la fuerza de rozamiento carreta-piso?</p>
+      <p><b>64.</b> Para elevar un cajón hasta una terraza ubicada a 5 m de altura, un hombre utiliza un plano inclinado colocado entre el piso y la terraza. Apoya el cajón sobre el plano y lo empuja. El cajón parte del reposo y se detiene al alcanzar los 5 m de altura. Se desprecia el rozamiento entre el cajón y el plano. Indique cuál de las siguientes afirmaciones es verdadera: la energía que el hombre debe entregar depende de la inclinación · la energía mecánica del cajón no cambia · la energía mecánica que gana el cajón depende de su peso y de los 5 m de altura · la energía que pierde el hombre es igual a la que gana el cajón · el trabajo del hombre es mayor que la variación de energía mecánica del cajón · las fuerzas sobre el cajón son el peso y la del hombre.</p>
+      <p><b>65.</b> Una caja de 200 kg es elevada por una grúa. Parte del reposo y sube verticalmente durante 10 s, al cabo de los cuales su velocidad es 20 m/s. Mediante consideraciones energéticas, calcule: a) la fuerza media que aplicó la grúa; b) la potencia media.</p>
+      <p><b>66.</b> Un levantador de pesas eleva desde el piso hasta 2 m una barra de 150 kg en 10 s. a) ¿Qué fuerzas actúan sobre la barra y cuáles hacen trabajo? b) ¿Cuánta energía ganó la barra? c) ¿Cuál es la potencia media? d) Calcule la energía que pierde el hombre sabiendo que solo el 12 % se aprovecha en realizar trabajo sobre la barra. ¿A qué velocidad la pierde? e) ¿Dónde está la energía que el hombre perdió y la barra no ganó? f) ¿Cuáles respuestas cambian si demora 20 s?</p>
+      <p><b>67.</b> Calcule la potencia media en W y en HP (1 HP = 746 W): a) levantar un bloque de 50 kg a velocidad constante de 1 m/s; b) subir 10 litros de agua a 10 m en 20 s; c) generar 1 kWh de energía eléctrica en un día. <b>68.</b> ¿Cuánto cuesta mantener encendida 30 días una lámpara de 100 W, si el kWh cuesta 3,5 pesos? <b>69.</b> ¿Qué potencia media en HP desarrolla el motor de un auto de 1500 kg que parte del reposo y alcanza 30 m/s en 30 segundos?</p>
+      <p><b>70.</b> Tres cuerpos del mismo peso son elevados desde el suelo hasta 10 m por escaleras mecánicas que los suben con velocidad constante de igual módulo, inclinadas 30°, 45° y 60°. Con respecto al trabajo de las fuerzas que ejercen las escaleras y a la potencia, se cumple que: el trabajo es cero en los tres casos, pero las potencias no · la potencia es la misma pero los trabajos son distintos · las potencias son distintas y los trabajos también · la potencia es cero en los tres casos · los trabajos son iguales, pero las potencias son diferentes · la potencia y el trabajo son iguales.</p>
+      <p class="src">CBC, Biofísica 53 (Física e introducción a la Biofísica), Unidad 1 (Mecánica), edición de febrero de 2020. Enunciados de la guía (en el 66, 67 y 70, con las opciones resumidas); entre paréntesis, la figura del 45. En el 44 c y en el 64 las masas son ilustrativas. En el 66 d la guía responde 2500 J y 250 W; con el 12 % de rendimiento son 25 000 J y 2500 W.</p>
+    </details>
+
+    <section class="card" aria-label="Análisis">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="pred">Predecí</button>
+        <button role="tab" aria-selected="false" data-tab="cuentas">Cuentas</button>
+        <button role="tab" aria-selected="false" data-tab="desafio">Desafío</button>
+      </div>
+      <div class="pane" data-pane="pred">
+        <h3>Antes de mover nada</h3>
+        <p id="pred-q"></p>
+        <div class="opts" id="pred-opts"></div>
+        <button class="btn" id="pred-go" hidden>Probalo</button>
+        <div class="reveal" id="pred-reveal" hidden></div>
+      </div>
+      <div class="pane" data-pane="cuentas" hidden>
+        <h3 id="cu-title"></h3>
+        <ol class="steps" id="steps"></ol>
+        <div class="final"><span class="lbl" id="final-lbl"></span><div class="mx" id="final"></div></div>
+      </div>
+      <div class="pane" data-pane="desafio" hidden>
+        <h3>Desafíos</h3>
+        <div class="chal" id="chal"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<footer>Trabajo de una fuerza constante: L = F · d · cos θ. Teorema del trabajo y la energía: el trabajo de la resultante es la variación de energía cinética. Potencia media: Pot = L / Δt. Colores: amarillo, la fuerza y la energía cinética; verde, el trabajo; rosa, la energía potencial y los trabajos negativos; rojo, el peso.</footer>
+<p class="mq-licencia">© 2025–2026 Gerardo Pozzi — Mundo Quarks · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener">CC BY-NC-SA 4.0</a></p>
+
+<script>
+window.MathJax = { tex:{ inlineMath:[['\\(','\\)']], displayMath:[['\\[','\\]']] }, chtml:{ scale:0.95 }, startup:{ typeset:false, ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; renderCuentas(true); } } };
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<script>
+// ================= Kit común de los simuladores de Física 1 =================
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C={}; ['bg','panel','panel-2','line','line-2','fg','muted','faint','sys','x','v','a','lin','ok','sob','crit'].forEach(k=>C[k]=css('--'+k));
+const NUM=css('--font-num')||'monospace', UI=css('--font-ui')||'sans-serif';
+const CNS=0.299792458;               // c en m/ns
+const gam=b=>1/Math.sqrt(1-b*b);
+// números para mostrar: coma decimal
+const cm=(x,d=2)=>{ if(x===Infinity) return '∞'; if(x===-Infinity) return '−∞'; if(!isFinite(x)) return '—'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.',',').replace(/^-/,'−'); };
+// números para MathJax
+const tx=(x,d=3)=>{ if(!isFinite(x)) return '\\infty'; const v=Math.abs(x)<0.5*10**(-d)?0:x; return v.toFixed(d).replace('.','{,}'); };
+const deg=r=>r*180/Math.PI, rad=d=>d*Math.PI/180;
+const nt=(n,s,p)=>`${n} ${n===1?s:p}`;   // plural
+
+function fit(cv){ const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2); const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:r.width,h:r.height}; }
+function niceMax(v){ if(!(v>0)) return 1; const e=10**Math.floor(Math.log10(v)), m=v/e; return (m<=1?1:m<=2?2:m<=5?5:10)*e; }
+function axf(v){ const a=Math.abs(v); let s; if(a<1e-12) return '0'; s= a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); if(s.includes('.')) s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',',').replace(/^-/,'−'); }
+function ticks(a,b,n=5){ const st=niceMax((b-a)/n); const out=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+1e-9*st; v+=st) out.push(+v.toFixed(10)); return out; }
+function line(ctx,pts,col,w=1.8,dash,alpha=1){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.globalAlpha=alpha; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; }
+function arrow(ctx,x0,y0,x1,y1,col,w=2,head=8,dash){ const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy); if(L<2) return; const ux=dx/L, uy=dy/L, hd=Math.min(head,L*0.6); ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-ux*hd*0.8,y1-uy*hd*0.8); ctx.stroke(); ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-ux*hd-uy*hd*0.5,y1-uy*hd+ux*hd*0.5); ctx.lineTo(x1-ux*hd+uy*hd*0.5,y1-uy*hd-ux*hd*0.5); ctx.closePath(); ctx.fill(); }
+function txt(ctx,s,x,y,col,o={}){ ctx.fillStyle=col; ctx.font=`${o.weight||''} ${o.size||11}px ${o.font||NUM}`; ctx.textAlign=o.align||'left'; ctx.textBaseline=o.base||'alphabetic'; ctx.globalAlpha=o.alpha??1; ctx.fillText(s,x,y); ctx.globalAlpha=1; }
+function dot(ctx,x,y,r,col,hollow){ ctx.beginPath(); ctx.arc(x,y,r,0,7); if(hollow){ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); } }
+// marco de gráfico con grilla, rótulos y eje x
+function frame(cv,o){
+  const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h);
+  const L=o.L??48, R=o.R??14, T=o.T??(w<560?60:28), B=o.B??24, pw=Math.max(10,w-L-R), ph=Math.max(10,h-T-B);
+  const X=v=>L+(v-o.x0)/(o.x1-o.x0)*pw, Y=v=>T+(o.y1-v)/(o.y1-o.y0)*ph;
+  ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.font=`11px ${NUM}`; ctx.fillStyle=C.faint;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  (o.yt||ticks(o.y0,o.y1,4)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(L,Y(v)); ctx.lineTo(L+pw,Y(v)); ctx.stroke(); ctx.fillText((o.yf||axf)(v),L-6,Y(v)); });
+  if(o.yR){ ctx.textAlign='left'; o.yR.forEach(([v,s])=>ctx.fillText(s,L+pw+4,Y(v))); }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  (o.xt||ticks(o.x0,o.x1,5)).forEach(v=>{ ctx.beginPath(); ctx.moveTo(X(v),T); ctx.lineTo(X(v),T+ph); ctx.stroke(); ctx.fillText((o.xf||axf)(v),X(v),T+ph+4); });
+  if(o.xlab){ ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=C.muted; ctx.fillText(o.xlab,L+pw-3,T+ph-3); }
+  return {ctx,w,h,X,Y,L,T,pw,ph,clip(){ ctx.save(); ctx.beginPath(); ctx.rect(L,T,pw,ph); ctx.clip(); }, unclip(){ ctx.restore(); }};
+}
+function legend(id,items){ $(id).innerHTML=items.map(([col,t,st])=>`<span><i style="border-color:${col};${st?'border-top-style:'+st:''}"></i>${t}</span>`).join(''); }
+function readout(items){ $('readout').innerHTML=items.map(([k,v,col])=>`<span><span class="k">${k}</span> <span${col?` style="color:${col}"`:''}>${v}</span></span>`).join(''); }
+
+// ================= Parámetros =================
+function buildParams(DEF,P,onSet){
+  const el=$('params'); el.innerHTML='';
+  DEF.forEach(d=>{
+    if(d.head){ const h=document.createElement('div'); h.className='sub-lbl'; h.textContent=d.head; h.dataset.head=d.head; el.appendChild(h); return; }
+    const w=document.createElement('div'); w.className='param'; w.dataset.id=d.id;
+    w.innerHTML=`<label for="r-${d.id}"><b>${d.lab}</b></label><input type="range" id="r-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}"><span><input type="number" id="n-${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${P[d.id]}" aria-label="${d.lab.replace(/<[^>]+>/g,'')}${d.unit?' en '+d.unit:''}"> <span class="unit">${d.unit}</span></span>`;
+    el.appendChild(w);
+    const r=w.querySelector('input[type=range]'), n=w.querySelector('input[type=number]');
+    const set=v=>{ v=Math.min(d.max,Math.max(d.min,+v)); if(!isFinite(v)) return; P[d.id]=v; onSet(d.id); };
+    r.addEventListener('input',()=>set(r.value)); n.addEventListener('change',()=>set(n.value));
+  });
+}
+function syncParams(DEF,P){ DEF.forEach(d=>{ if(d.head) return; const r=$('r-'+d.id), n=$('n-'+d.id); if(!r) return; r.value=P[d.id]; if(document.activeElement!==n) n.value=+(+P[d.id]).toFixed(d.dec??3); }); }
+function showParam(id,on){ const r=$('r-'+id); if(r) r.closest('.param').hidden=!on; }
+
+// ================= Reproducción, vistas y pestañas =================
+const S={t:0,running:true,speed:1,view:null};
+function togglePlay(f){ S.running= f===undefined? !S.running : f; $('play').textContent=S.running?'Pausar':'Reproducir'; }
+function setView(v){ S.view=v; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.view===v)); document.querySelectorAll('[data-vpanel]').forEach(p=>p.hidden=p.dataset.vpanel!==v); if(window.onView) onView(); }
+function wireCommon(onReset){
+  $('play').onclick=()=>togglePlay();
+  $('reset').onclick=()=>{ onReset(); togglePlay(true); };
+  $('speed').addEventListener('input',e=>{ S.speed=2**(+e.target.value); $('speed-v').textContent=(S.speed<1?cm(S.speed,2):S.speed)+'×'; });
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab);
+    if(b.dataset.tab==='cuentas') renderCuentas(true);
+    if(b.dataset.tab==='desafio') updateChal();
+  });
+  const first=document.querySelector('[data-view]'); if(first) setView(first.dataset.view);
+}
+function wireChips(onPick){ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>pickChip(b.dataset.sy,onPick)); }
+function pickChip(sy,onPick){ document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sy===sy)); onPick(sy); }
+function startLoop(step,draw){
+  let last=performance.now();
+  function f(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(S.running) step(dt*S.speed); draw(); requestAnimationFrame(f); }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) togglePlay(false);
+  requestAnimationFrame(f);
+}
+
+// ================= Cuentas =================
+// cada \qquad (y cada «⇒» suelto) de una fórmula pasa a ser un renglón nuevo: la columna es angosta
+function brk(t){ return t.replace(/\\\[([\s\S]*?)\\\]/g,(m,inner)=>{ inner=inner.replace(/\\ \\Rightarrow\\ /g,'\\qquad\\Rightarrow '); return inner.includes('\\qquad')?`\\[\\begin{gathered}${inner.split('\\qquad').join('\\\\')}\\end{gathered}\\]`:m; }); }
+let __ct=null;
+function renderCuentas(now){
+  if(!window.__mjReady||typeof cuentas!=='function') return; const pane=document.querySelector('[data-pane=cuentas]'); if(pane.hidden&&!now) return;
+  clearTimeout(__ct); __ct=setTimeout(()=>{
+    const c=cuentas();
+    $('cu-title').textContent=c.title;
+    $('steps').innerHTML=c.steps.map(s=>`<li${s[2]?' class="hl"':''}><div style="min-width:0"><div class="t">${s[0]}</div><div class="mx">${brk(s[1])}</div></div></li>`).join('');
+    $('final-lbl').textContent=c.finLbl; $('final').innerHTML=brk(c.fin);
+    MathJax.typesetClear&&MathJax.typesetClear([pane]); MathJax.typesetPromise([pane]).catch(()=>{});
+  }, now?0:250);
+}
+
+// ================= Predecí =================
+let __pa=null;
+function buildPred(d){
+  __pa=null; $('pred-q').textContent=d.q;
+  const el=$('pred-opts'); el.innerHTML='';
+  d.opts.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='opt'; b.dataset.ans=k; b.textContent=t; el.appendChild(b);
+    b.onclick=()=>{ __pa=k; el.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('pred-go').hidden=false; }; });
+  const g=$('pred-go'); g.hidden=true; g.textContent=d.go; $('pred-reveal').hidden=true;
+  g.onclick=()=>{ const msg=d.run(); togglePlay(true);
+    el.querySelectorAll('.opt').forEach(x=>{ if(x.dataset.ans===d.right) x.classList.add('right'); });
+    const r=$('pred-reveal'); r.hidden=false; r.innerHTML=(__pa===d.right?'<b>Bien.</b> ':'<b>Mirá los números.</b> ')+msg; g.hidden=true; };
+}
+
+// ================= Desafíos =================
+let __chal=[];
+function buildChal(list){ __chal=list; const el=$('chal'); el.innerHTML=''; list.forEach((c,i)=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>${i+1}.</b> ${c.txt}<div class="state" id="ch${i}">—</div>`; el.appendChild(d); }); updateChal(); }
+function updateChal(){ __chal.forEach((c,i)=>{ const st=$('ch'+i); if(!st) return; if(!c.chk){ st.textContent='Pregunta abierta'; st.classList.remove('done'); return; } const [ok,m]=c.chk(); st.textContent=m; st.classList.toggle('done',ok); }); }
+
+
+// ================= Agregados para las guías del CBC =================
+const G=10;   // la guía del CBC usa |g| = 10 m/s² y 1 kgf = 10 N
+const sq=Math.sqrt, PI=Math.PI;
+const mil=(x,d=0)=>{ const s=cm(x,d), [e,f]=s.split(','); return e.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f!==undefined?','+f:''); };
+const sup=n=>[...String(n)].map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]??'⁻').join('');
+// número con unidades legibles: miles separados o notación científica
+const fN=(x,d=3)=>{ if(!isFinite(x)) return '—'; const a=Math.abs(x); if(a===0) return '0'; if(a>=1e6||a<1e-3){ const [m,e]=x.toExponential(2).split('e'); return m.replace('.',',').replace('-','−')+' × 10'+sup(+e); } if(a>=1000) return mil(x,0); if(a>=100) return cm(x,1); if(a>=1) return cm(x,d>2?2:d); return cm(x,d); };
+// gráfico con segmentos cortados en los NaN
+function plot(id,x0,x1,y0,y1,series,xl,o={}){ const F=frame($(id),{x0,x1,y0,y1,xlab:xl,xt:o.xt,yt:o.yt,xf:o.xf,yf:o.yf}); const {ctx,X,Y}=F; F.clip(); if(y0<0&&y1>0) line(ctx,[[X(x0),Y(0)],[X(x1),Y(0)]],C['line-2'],1);
+  series.forEach(([pts,col,dash,wd])=>{ let tr=[]; const fin=()=>{ line(ctx,tr,col,wd||2.2,dash); tr=[]; }; pts.forEach(p=>{ if(isFinite(p[1])) tr.push([X(p[0]),Y(p[1])]); else fin(); }); fin(); }); if(o.mark) o.mark(ctx,X,Y,F); F.unclip(); return F; }
+function curva(f,a,b,N=300){ const o=[]; for(let i=0;i<=N;i++){ const x=a+(b-a)*i/N; o.push([x,f(x)]); } return o; }
+// botones «Datos de la guía»: lista de [rótulo, función]
+function presets(list,titulo='Datos de la guía'){ const el=$('guia'); el.hidden=!list.length; el.innerHTML=`<span class="lbl">${titulo}</span>`; list.forEach(([lab,fn])=>{ const b=document.createElement('button'); b.textContent=lab; b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{ fn(); if(window.restart) restart(); if(window.refresh) refresh(); el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); togglePlay(true); }; el.appendChild(b); }); }
+function guiaOff(){ document.querySelectorAll('#guia button').forEach(x=>x.setAttribute('aria-pressed','false')); }
+// líquido con superficie y degradé suave
+function liquido(ctx,pts,col){ ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.fillStyle=col; ctx.globalAlpha=0.32; ctx.fill(); ctx.globalAlpha=1; }
+
+// ================= Cinemática (U2) =================
+// ceros de f en [a,b]: muestreo y bisección
+function ceros(f,a,b,N=2000){ const r=[]; let x0=a, f0=f(a); if(Math.abs(f0)<1e-12) r.push(a); for(let i=1;i<=N;i++){ const x1=a+(b-a)*i/N, f1=f(x1); if(Math.abs(f1)<1e-12){ if(!r.length||Math.abs(r[r.length-1]-x1)>1e-9) r.push(x1); } else if(f0*f1<0&&Math.abs(f0)>1e-12){ let lo=x0, hi=x1, flo=f0; for(let k=0;k<60;k++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0) hi=m; else { lo=m; flo=fm; } } r.push((lo+hi)/2); } x0=x1; f0=f1; } return r; }
+const kmh=v=>v*3.6, ms=v=>v/3.6;
+// motor 1D. M = {cuerpos:[{n,col,x:t=>,v:t=>,a:t=>}], t0,t1, a,b (rango de x), vert, ut, ux, marks:[[x,txt,col]], kv (px por unidad de v)}
+function encuentros1D(M){ const c=M.cuerpos; if(c.length<2) return []; const r=ceros(t=>c[0].x(t)-c[1].x(t),M.t0,M.t1).filter(t=>t>=M.t0-1e-9&&t<=M.t1+1e-9&&(!M.filtro||M.filtro(t))), o=[]; r.forEach(t=>{ if(!o.length||t-o[o.length-1]>(M.t1-M.t0)/100) o.push(t); }); return o; }
+function dibuja1D(cv,M,t){ const {ctx,w,h}=fit(cv); ctx.clearRect(0,0,w,h); const vert=!!M.vert, pad=vert?28:34, L=vert?(h-2*pad):(w-2*pad);
+  const P=x=>vert?h-pad-(x-M.a)/(M.b-M.a)*L:pad+(x-M.a)/(M.b-M.a)*L, c=vert?(M.cx??w*0.28):(M.cy??h*0.55);
+  const seg=(p,q,col,lw,d)=>vert?line(ctx,[[q,p[0]],[q,p[1]]],col,lw,d):line(ctx,[[p[0],q],[p[1],q]],col,lw,d);
+  seg([P(M.a),P(M.b)],c,C.muted,1.5); ticks(M.a,M.b,6).forEach(x=>{ const p=P(x); if(vert){ line(ctx,[[c-4,p],[c+4,p]],C.faint,1); txt(ctx,axf(x),c-8,p+4,C.faint,{size:10,align:'right'}); } else { line(ctx,[[p,c-4],[p,c+4]],C.faint,1); txt(ctx,axf(x),p,c+16,C.faint,{size:10,align:'center'}); } });
+  txt(ctx,M.ux||'',vert?c+8:P(M.b),vert?P(M.b)-8:c-8,C.faint,{size:10.5,align:vert?'left':'right'});
+  (M.marks||[]).forEach(([x,s,col])=>{ const p=P(x); if(vert){ line(ctx,[[c-14,p],[w-10,p]],col||C.faint,1,[3,4]); txt(ctx,s,w-12,p-4,col||C.faint,{size:10.5,align:'right'}); } else { line(ctx,[[p,c-34],[p,c+6]],col||C.faint,1,[3,4]); txt(ctx,s,p,c-38,col||C.faint,{size:10.5,align:'center'}); } });
+  M.cuerpos.forEach((b,i)=>{ const x=b.x(t); if(!isFinite(x)) return; const p=P(Math.max(M.a,Math.min(M.b,x))), off=(i-(M.cuerpos.length-1)/2)*(vert?34:22), q=c+(vert?off+36:-off-14);
+    const X0=vert?q:p, Y0=vert?p:q; ctx.beginPath(); ctx.arc(X0,Y0,7,0,7); ctx.fillStyle=b.col; ctx.fill(); txt(ctx,b.n,X0+(vert?11:0),Y0+(vert?4:-12),b.col,{size:11,align:vert?'left':'center'});
+    const v=b.v?b.v(t):0, k=M.kv??6; if(Math.abs(v)>1e-9){ const d=Math.max(-90,Math.min(90,v*k)); vert?arrow(ctx,X0,Y0,X0,Y0-d,b.col,2,7):arrow(ctx,X0,Y0,X0+d,Y0,b.col,2,7); } });
+  return P; }
+function graf1D(id,M,t,cual,o={}){ const c=M.cuerpos, f=b=>cual==='x'?b.x:cual==='v'?b.v:b.a, ser=c.map((b,i)=>[curva(f(b),M.t0,M.t1,400),b.col,i?[6,4]:null]);
+  let lo=Infinity, hi=-Infinity; ser.forEach(s=>s[0].forEach(p=>{ if(isFinite(p[1])){ lo=Math.min(lo,p[1]); hi=Math.max(hi,p[1]); } })); if(o.y0!==undefined){ lo=o.y0; hi=o.y1; } if(!(hi>lo)){ hi=lo+1; lo-=1; } const pd=(hi-lo)*0.08;
+  const E=cual==='x'?encuentros1D(M):[];
+  plot(id,M.t0,M.t1,lo-pd,hi+pd,ser,`t (${M.ut||'s'})`,{mark:(ctx,X,Y)=>{ line(ctx,[[X(t),Y(lo-pd)],[X(t),Y(hi+pd)]],C.faint,1,[2,3]); c.forEach(b=>{ const y=f(b)(t); if(isFinite(y)) dot(ctx,X(t),Y(y),4.5,b.col); }); E.forEach(te=>dot(ctx,X(te),Y(c[0].x(te)),5,C.ok,true)); (o.extra||(()=>{}))(ctx,X,Y); }}); return E; }
+
+// ================= Biofísica U1 =================
+// interpolación cúbica monótona (Fritsch-Carlson) por puntos [[t,y],...]: f(t) y su derivada d(t)
+function suave(pts){ const n=pts.length, X=pts.map(p=>p[0]), Y=pts.map(p=>p[1]), dl=[], m=new Array(n);
+  for(let i=0;i<n-1;i++) dl.push((Y[i+1]-Y[i])/(X[i+1]-X[i]));
+  m[0]=dl[0]; m[n-1]=dl[n-2]; for(let i=1;i<n-1;i++) m[i]=dl[i-1]*dl[i]<=0?0:(dl[i-1]+dl[i])/2;
+  for(let i=0;i<n-1;i++){ if(dl[i]===0){ m[i]=m[i+1]=0; continue; } const a=m[i]/dl[i], b=m[i+1]/dl[i], s=a*a+b*b; if(s>9){ const k=3/Math.sqrt(s); m[i]=k*a*dl[i]; m[i+1]=k*b*dl[i]; } }
+  const seg=t=>{ let i=0; if(t<=X[0]) return 0; if(t>=X[n-1]) return n-2; while(i<n-2&&t>X[i+1]) i++; return i; };
+  return { f(t){ if(t<=X[0]) return Y[0]+m[0]*(t-X[0]); if(t>=X[n-1]) return Y[n-1]+m[n-1]*(t-X[n-1]); const i=seg(t), h=X[i+1]-X[i], u=(t-X[i])/h, u2=u*u, u3=u2*u; return (2*u3-3*u2+1)*Y[i]+(u3-2*u2+u)*h*m[i]+(-2*u3+3*u2)*Y[i+1]+(u3-u2)*h*m[i+1]; },
+           d(t){ if(t<=X[0]) return m[0]; if(t>=X[n-1]) return m[n-1]; const i=seg(t), h=X[i+1]-X[i], u=(t-X[i])/h, u2=u*u; return ((6*u2-6*u)*Y[i]+(3*u2-4*u+1)*h*m[i]+(-6*u2+6*u)*Y[i+1]+(3*u2-2*u)*h*m[i+1])/h; } }; }
+// movimiento por tramos de aceleración constante: tramos [[t_fin, a],...] desde (t0, x0, v0)
+function tramos(t0,x0,v0,T){ const nod=[[t0,x0,v0]]; let t=t0,x=x0,v=v0; T.forEach(([tf,a])=>{ const d=tf-t; x+=v*d+a*d*d/2; v+=a*d; t=tf; nod.push([t,x,v]); });
+  const k=t=>{ let i=0; while(i<T.length-1&&t>T[i][0]) i++; return i; };
+  return { x(t){ const i=k(t), [ti,xi,vi]=nod[i], a=T[i][1], d=t-ti; return xi+vi*d+a*d*d/2; }, v(t){ const i=k(t), [ti,,vi]=nod[i]; return vi+T[i][1]*(t-ti); }, a(t){ return T[k(t)][1]; }, nod }; }
+// ================= U1 · 44 a 46, 50, 64 a 70 · Plano inclinado, trabajo y potencia =================
+const DEF=[
+  {id:'F',lab:'fuerza',unit:'N',min:0,max:2000,step:10,dec:0},
+  {id:'th',lab:'ángulo con el avance',unit:'°',min:0,max:180,step:1,dec:0},
+  {id:'d',lab:'desplazamiento',unit:'m',min:0.1,max:60,step:0.1,dec:1},
+  {id:'f8',lab:'fuerza (1 a 8; 9: todas)',unit:'',min:1,max:9,step:1,dec:0},
+  {id:'vA',lab:'velocidad en A',unit:'m/s',min:0,max:10,step:0.5,dec:1},
+  {id:'mc',lab:'masa de la carreta',unit:'kg',min:200,max:3000,step:100,dec:0},
+  {id:'vf',lab:'velocidad final',unit:'m/s',min:1,max:12,step:0.5,dec:1},
+  {id:'al',lab:'inclinación',unit:'°',min:10,max:80,step:1,dec:0},
+  {id:'mb',lab:'masa',unit:'kg',min:10,max:200,step:5,dec:0},
+  {id:'ve',lab:'velocidad de la escalera',unit:'m/s',min:0.2,max:2,step:0.1,dec:1},
+  {id:'mp',lab:'masa',unit:'kg',min:1,max:2000,step:1,dec:0},
+  {id:'hp',lab:'altura',unit:'m',min:0,max:200,step:1,dec:0},
+  {id:'vp',lab:'velocidad final',unit:'m/s',min:0,max:40,step:1,dec:0},
+  {id:'Tp',lab:'tiempo',unit:'s',min:1,max:60,step:1,dec:0},
+];
+const PS={c44:{F:1000,th:0,d:8}, c45:{f8:3,vA:5}, c46:{}, c50:{mc:1000,vf:6}, c64:{al:30,mb:60,ve:0.5}, c65:{mp:200,hp:100,vp:20,Tp:10}};
+const PS0=JSON.parse(JSON.stringify(PS));
+const SHOW={c44:['F','th','d'], c45:['f8','vA'], c46:[], c50:['mc','vf'], c64:['al','mb','ve'], c65:['mp','hp','vp','Tp']};
+const P=Object.assign({},...Object.values(PS).reverse()); let SY='c44';
+const W44=()=>P.F*P.d*Math.cos(rad(P.th));
+// 45: ocho fuerzas de 30 N; ángulos medidos desde el avance (de A hacia B)
+const ANG45=[null,90,37,0,-37,-90,-143,180,127], m45=12, d45=4;
+const COS45=[null,0,0.8,1,0.8,0,-0.8,-1,-0.6];   // con cos 37° = 0,8, como en la guía
+const W45=i=>i===9?[1,2,3,4,5,6,7,8].reduce((s,k)=>s+W45(k),0):30*d45*COS45[i];
+const vB45=()=>{ const e=0.5*m45*P.vA*P.vA+W45(P.f8); return e>=0?sq(2*e/m45):NaN; };
+// 46: Claudia (60 kg) baja 12 m en tres tramos de 4 m
+const m46=60, T46=[['arranque (a = 0,5 m/s² hacia abajo)',-0.5],['velocidad constante (2 m/s)',0],['frenado (a = 0,5 m/s² hacia arriba)',0.5]];
+const N46=a=>m46*(G+a), WN46=a=>-N46(a)*4, dEc46=a=>-m46*a*4;
+// 50: caballo y carreta
+const F50=500, ang50=15, d50=50;
+const dEc50=()=>0.5*P.mc*P.vf*P.vf, Wc50=()=>F50*d50*Math.cos(rad(ang50)), Wr50=()=>dEc50()-Wc50();
+// 64 y 70: subir 5 m (cajón) o 10 m (escalera) por un plano de inclinación α
+const h64=5, h70=10;
+function restart(){ S.t=0; }
+function step(dt){ S.t+=dt; }
+const tNow=()=>((S.t/4)%1+1)%1;   // fracción del recorrido
+
+// ================= Escena =================
+const scene=$('scene');
+function caja(ctx,x,y,s,col,ang=0,lbl){ ctx.save(); ctx.translate(x,y); ctx.rotate(-ang); ctx.fillStyle=col; ctx.globalAlpha=0.25; ctx.fillRect(-s/2,-s,s,s); ctx.globalAlpha=1; ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.strokeRect(-s/2,-s,s,s); if(lbl) txt(ctx,lbl,0,-s/2+4,C.fg,{size:10.5,align:'center'}); ctx.restore(); }
+function fl(ctx,x,y,L,ang,col,lbl,w=2.4){ const x2=x+L*Math.cos(ang), y2=y-L*Math.sin(ang); arrow(ctx,x,y,x2,y2,col,w,9); if(lbl) txt(ctx,lbl,x2+8*Math.cos(ang)+(Math.cos(ang)<-0.2?-4:2),y2-8*Math.sin(ang)+4,col,{size:11,align:Math.cos(ang)<-0.2?'right':'left'}); }
+function persona(ctx,x,yb,k,col){ ctx.lineCap='round'; line(ctx,[[x,yb-k*0.83],[x,yb-k*0.45]],col,2.6); line(ctx,[[x,yb-k*0.45],[x-k*0.08,yb]],col,2.4); line(ctx,[[x,yb-k*0.45],[x+k*0.08,yb]],col,2.4); line(ctx,[[x-k*0.12,yb-k*0.55],[x,yb-k*0.78],[x+k*0.12,yb-k*0.55]],col,2.2); ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,yb-k*0.91,k*0.07,0,7); ctx.fill(); }
+function drawScene(){ const u=tNow(), {ctx,w,h}=fit(scene); ctx.clearRect(0,0,w,h); const nar=w<560;
+  if(SY==='c44'||SY==='c50'){ const yb=h-40, x0=nar?30:60, x1=w-(nar?30:60); line(ctx,[[10,yb],[w-10,yb]],C['line-2'],2);
+    const F=SY==='c44'?P.F:F50, th=rad(SY==='c44'?P.th:ang50), bx=x0+40+(x1-x0-80)*u, L=Math.min(110,30+F/12);
+    caja(ctx,bx,yb,50,C.sys,0,SY==='c50'?'carreta':'mueble'); arrow(ctx,x0+40,yb+18,x1-40,yb+18,C.faint,1,7); txt(ctx,'desplazamiento '+cm(SY==='c44'?P.d:d50,1)+' m',(x0+x1)/2,yb+32,C.faint,{size:10.5,align:'center'});
+    fl(ctx,bx,yb-25,L,th,C.v,'F'); fl(ctx,bx,yb-25,L*Math.cos(th),0,C.ok,'',1.4); if(Math.abs(Math.sin(th))>0.05) line(ctx,[[bx+L*Math.cos(th),yb-25],[bx+L*Math.cos(th),yb-25-L*Math.sin(th)]],C.faint,1,[3,3]);
+    if(SY==='c44'){ readout([['trabajo de F',mil(W44())+' J',C.ok],['componente en el avance',cm(P.F*Math.cos(rad(P.th)),1)+' N'],['signo',W44()>1e-6?'positivo: entrega energía':W44()<-1e-6?'negativo: quita energía':'nulo: F perpendicular al avance']]); $('formula').innerHTML='<b>L = F · d · cos θ</b> · solo trabaja la componente de F en la dirección del desplazamiento'; }
+    else { readout([['ΔE cinética',mil(dEc50())+' J',C.v],['trabajo del caballo',mil(Wc50())+' J',C.ok],['trabajo del rozamiento',mil(Wr50())+' J',C.sob]]); $('formula').innerHTML='teorema del trabajo y la energía: <b>L<sub>caballo</sub> + L<sub>roz</sub> = ΔE<sub>c</sub></b> (el peso y la normal no trabajan)'; } }
+  else if(SY==='c45'){ const cx=w/2, cy=h/2+10, L=nar?60:75; caja(ctx,cx,cy+18,36,C.sys,0,'12 kg'); arrow(ctx,cx-120,cy+40,cx+120,cy+40,C.faint,1,7); txt(ctx,'A → B, 4 m',cx,cy+56,C.faint,{size:10.5,align:'center'});
+    for(let i=1;i<=8;i++){ const on=P.f8===9||P.f8===i, W=W45(i), col=!on?C.faint:W>1e-6?C.ok:W<-1e-6?C.sob:C.muted; fl(ctx,cx,cy,L,rad(ANG45[i]),col,'F'+'₁₂₃₄₅₆₇₈'[i-1],on?2.4:1.2); }
+    const vb=vB45(); readout([['trabajo',mil(W45(P.f8))+' J',C.ok],['ΔE cinética',mil(W45(P.f8))+' J'],['velocidad en B',isFinite(vb)?cm(vb,2)+' m/s':'se detiene antes de B',C.v]]);
+    $('formula').innerHTML='cada fuerza trabaja <b>30 N · 4 m · cos θ</b>: F₃ entrega 120 J, F₇ quita 120 J, F₁ y F₅ no trabajan · todas juntas: +24 J'; }
+  else if(SY==='c46'){ const k=Math.min(2.999,u*3), i=Math.floor(k), ex=w*0.3, ew=nar?90:110, eh=h-60, top=20+(k/3)*20, a=T46[i][1];
+    ctx.strokeStyle=C['line-2']; ctx.lineWidth=2; ctx.strokeRect(ex-ew/2,top,ew,eh); persona(ctx,ex,top+eh,eh*0.75,C.sys); fl(ctx,ex+30,top+eh-30,N46(a)*0.05,Math.PI/2,C.v,'N'); fl(ctx,ex-30,top+eh-30,m46*G*0.05,-Math.PI/2,C.a,'P');
+    const xr=nar?w*0.58:w*0.55; txt(ctx,'tramo '+(i+1)+': '+T46[i][0].split(' (')[0],xr,40,C.fg,{size:12}); txt(ctx,`N = ${mil(N46(a))} N`,xr,62,C.v,{size:12}); txt(ctx,`L de N = ${mil(WN46(a))} J`,xr,82,C.ok,{size:12});
+    readout(T46.map(([n,aa],j)=>['tramo '+(j+1),`N ${mil(N46(aa))} N · L ${mil(WN46(aa))} J · ΔEc ${mil(dEc46(aa))} J`,j===i?C.ok:null]));
+    $('formula').innerHTML='la normal apunta hacia arriba y Claudia baja: <b>L<sub>N</sub> = −N · 4 m</b>, con <b>N = m (g + a)</b> · ΔE<sub>c</sub> = L<sub>N</sub> + L<sub>P</sub>'; }
+  else if(SY==='c64'){ const yb=h-24, al=rad(P.al), Hp=h-70, Lp=Hp/Math.tan(al), x0=Math.max(20,w*0.5-Lp/2-30), x1=x0+Lp;
+    ctx.fillStyle=C['line-2']; ctx.globalAlpha=0.3; ctx.beginPath(); ctx.moveTo(x0,yb); ctx.lineTo(x1,yb); ctx.lineTo(x1,yb-Hp); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1; line(ctx,[[x0,yb],[x1,yb-Hp]],C.muted,2); line(ctx,[[x1,yb-Hp],[w-10,yb-Hp]],C.muted,2);
+    const px=x0+(x1-x0)*u, py=yb-Hp*u; caja(ctx,px,py,30,C.sys,al,''); fl(ctx,px,py-15,Math.min(80,20+P.mb*G*Math.sin(al)*0.08),al,C.v,'F');
+    txt(ctx,'5 m',x1+6,yb-Hp/2,C.faint,{size:11}); txt(ctx,`α = ${P.al}°`,x0+30,yb-6,C.faint,{size:11});
+    const F=P.mb*G*Math.sin(al), dd=h64/Math.sin(al); readout([['fuerza necesaria (sin rozamiento)',cm(F,1)+' N',C.v],['recorrido sobre el plano',cm(dd,2)+' m'],['trabajo = ΔE mecánica',mil(F*dd)+' J = m g h',C.ok],['70: potencia de la escalera',cm(P.mb*G*P.ve*Math.sin(al),1)+' W']]);
+    $('formula').innerHTML='un plano menos inclinado pide <b>menos fuerza</b> pero <b>más recorrido</b>: el trabajo es siempre <b>m g h</b> · la potencia, en cambio, es <b>m g v sen α</b>'; }
+  else { const yb=h-20, cx=w*0.3, Hp=h-70, z=P.hp?Hp*u:0; line(ctx,[[cx-60,yb],[cx+60,yb]],C['line-2'],2); line(ctx,[[cx,0],[cx,yb-z-30]],C.muted,1.5); caja(ctx,cx,yb-z,30,C.sys,0,'');
+    const Ep=P.mp*G*P.hp, Ec=0.5*P.mp*P.vp*P.vp, W=Ep+Ec, Pm=W/P.Tp, bx=nar?w*0.58:w*0.6, bw=nar?30:40, sc=(h-60)/Math.max(1,W);
+    [[Ep,C.sob,'Ep'],[Ec,C.v,'Ec'],[W,C.ok,'L']].forEach(([E,c,l],j)=>{ const x=bx+j*(bw+12), hh=E*sc*u; ctx.fillStyle=c; ctx.globalAlpha=0.5; ctx.fillRect(x,yb-hh,bw,hh); ctx.globalAlpha=1; txt(ctx,l,x+bw/2,yb+14,c,{size:11,align:'center'}); });
+    readout([['trabajo entregado',mil(W)+' J',C.ok],['potencia media',mil(Pm)+' W = '+cm(Pm/746,2)+' HP',C.v],['fuerza media (si sube)',P.hp?mil(W/P.hp)+' N':'—']]);
+    $('formula').innerHTML='<b>L = ΔE<sub>p</sub> + ΔE<sub>c</sub></b> · potencia media: <b>Pot = L / Δt</b> · 1 HP = 746 W'; }
+  $('clock').textContent=''; }
+
+// ================= Gráfico =================
+function draw(){ drawScene();
+  if(SY==='c44'){ plot('p1c',0,180,-niceMax(P.F*P.d),niceMax(P.F*P.d),[[curva(a=>P.F*P.d*Math.cos(rad(a)),0,180),C.ok]],'ángulo θ (°)',{xt:[0,30,60,90,120,150,180],mark:(ctx,X,Y)=>dot(ctx,X(P.th),Y(W44()),4.5,C.ok)});
+    $('tag1').textContent='Trabajo (J)'; legend('leg1',[[C.ok,'L = F d cos θ']]); $('cap1').textContent='Máximo con la fuerza a favor del avance, nulo a 90° y negativo si se opone (el empleado que frena el mueble).'; }
+  else if(SY==='c45'){ const F=C.ok; plot('p1c',0.5,8.5,-150,150,[],'fuerza',{xt:[1,2,3,4,5,6,7,8],xf:v=>'F'+v,mark:(ctx,X,Y)=>{ for(let i=1;i<=8;i++){ const W=W45(i), on=P.f8===9||P.f8===i; ctx.fillStyle=W>=0?C.ok:C.sob; ctx.globalAlpha=on?0.8:0.25; ctx.fillRect(X(i)-12,Math.min(Y(0),Y(W)),24,Math.abs(Y(W)-Y(0))); ctx.globalAlpha=1; txt(ctx,cm(W,0),X(i),W>=0?Y(W)-4:Y(W)+12,on?C.fg:C.muted,{size:10.5,align:'center'}); } }});
+    $('tag1').textContent='Trabajo de cada fuerza (J)'; legend('leg1',[[C.ok,'positivo'],[C.sob,'negativo']]); $('cap1').textContent='La suma de las ocho es +24 J: con 5 m/s en A, en B llega a 5,39 m/s.'; }
+  else if(SY==='c46'){ plot('p1c',0,12,-3000,0,[[[[0,WN46(-0.5)],[4,WN46(-0.5)]],C.ok],[[[4,WN46(0)],[8,WN46(0)]],C.ok],[[[8,WN46(0.5)],[12,WN46(0.5)]],C.ok]],'metros bajados',{mark:(ctx,X,Y)=>{ const k=tNow()*12; dot(ctx,X(k),Y(WN46(T46[Math.min(2,Math.floor(k/4))][1])),4.5,C.ok); }});
+    $('tag1').textContent='Trabajo de la normal en cada tramo (J)'; legend('leg1',[[C.ok,'L de N']]); $('cap1').textContent='−2280 J, −2400 J y −2520 J: la normal es menor que el peso al arrancar hacia abajo y mayor al frenar.'; }
+  else if(SY==='c50'){ const v=P.vf; plot('p1c',0,12,-20000,niceMax(Math.max(Wc50(),0.5*P.mc*144)),[[curva(x=>0.5*P.mc*x*x,0,12),C.v],[[[0,Wc50()],[12,Wc50()]],C.ok,[6,4]]],'velocidad final (m/s)',{mark:(ctx,X,Y)=>{ dot(ctx,X(v),Y(dEc50()),4.5,C.v); line(ctx,[[X(v),Y(dEc50())],[X(v),Y(Wc50())]],C.sob,2); }});
+    $('tag1').textContent='Energía (J)'; legend('leg1',[[C.v,'ΔEc'],[C.ok,'trabajo del caballo','dashed'],[C.sob,'trabajo del rozamiento']]); $('cap1').textContent='El caballo entrega 24 148 J; la carreta gana 18 000 J de energía cinética; los 6148 J que faltan los quita el rozamiento.'; }
+  else if(SY==='c64'){ plot('p1c',10,80,0,niceMax(Math.max(P.mb*G,300)),[[curva(a=>P.mb*G*Math.sin(rad(a)),10,80),C.v],[curva(a=>h64/Math.sin(rad(a))*10,10,80),C.faint,[5,4]]],'inclinación α (°)',{mark:(ctx,X,Y)=>{ dot(ctx,X(P.al),Y(P.mb*G*Math.sin(rad(P.al))),4.5,C.v); }});
+    $('tag1').textContent='Fuerza (N) y recorrido (× 10 m)'; legend('leg1',[[C.v,'fuerza m g sen α'],[C.faint,'recorrido 5 m / sen α','dashed']]); $('cap1').textContent='Fuerza por recorrido da siempre m g h: lo que se ahorra en fuerza se paga en distancia. El trabajo y la energía ganada no dependen de la inclinación.'; }
+  else { const W=P.mp*G*P.hp+0.5*P.mp*P.vp*P.vp; plot('p1c',1,60,0,niceMax(W),[[curva(T=>W/T,1,60),C.v]],'tiempo (s)',{mark:(ctx,X,Y)=>dot(ctx,X(P.Tp),Y(W/P.Tp),4.5,C.v)});
+    $('tag1').textContent='Potencia media (W)'; legend('leg1',[[C.v,'Pot = L / Δt']]); $('cap1').textContent='El mismo trabajo en el doble de tiempo es la mitad de potencia (66 f): por eso cambian solo las respuestas de potencia.'; } }
+
+// ================= Predecí, desafíos y cuentas =================
+const PRED={ q:'Para subir un cajón a 5 m por un plano inclinado sin rozamiento, ¿con qué plano hay que hacer menos trabajo?',
+  opts:[['poco','con el menos inclinado'],['mucho','con el más inclinado'],['igual','es el mismo trabajo']], right:'igual', go:'Probalo',
+  run(){ pickChip('c64',setMode); Object.assign(P,PS0.c64); refresh(); return 'Es el mismo: m g h. Con poca inclinación la fuerza es menor, pero el recorrido es mayor en la misma proporción.'; } };
+const CHAL=[
+  {txt:'En el 44, ¿con qué ángulo de la soga el trabajo es la mitad que empujando en la dirección del avance?',chk(){ if(SY!=='c44') return [false,'Elegí el 44']; return P.th===60?[true,'Logrado: 60°, porque cos 60° = 1/2.']:[false,`L = ${mil(W44())} J`]; }},
+  {txt:'En el 45, ¿qué fuerza deja el cuerpo en B con 3 m/s si pasa por A a 5 m/s?',chk(){ if(SY!=='c45') return [false,'Elegí el 45']; return Math.abs(vB45()-3)<0.05&&P.vA===5?[true,`Logrado: F${P.f8}, que quita 96 J.`]:[false,`v en B = ${cm(vB45(),2)} m/s`]; }},
+  {txt:'En el 70, ¿cuántas veces más potencia hace la escalera de 60° que la de 30°?',chk(){ if(SY!=='c64') return [false,'Elegí el plano inclinado']; return P.al===60?[true,`Logrado: ${cm(Math.sin(rad(60))/Math.sin(rad(30)),3)} veces (sen 60°/sen 30°).`]:[false,'Poné la inclinación en 60°']; }},
+];
+function cuentas(){ return {title:'Trabajo y potencia', finLbl:'Respuestas', steps:[
+  ['44) L = F d cos θ', `\\[8000\\ \\text{J}\\qquad-600\\ \\text{J}\\qquad0\\qquad1000\\cdot8\\cdot\\cos30°=6928\\ \\text{J}\\]`,true],
+  ['45) 30 N · 4 m · cos θ', `\\[F_3:+120\\ \\text{J}\\qquad F_7:-120\\ \\text{J}\\qquad F_1,F_5:0\\qquad\\text{todas}:+24\\ \\text{J}\\]`],
+  ['45 e) Desde 5 m/s', `\\[v_B=\\sqrt{25+\\frac{2\\cdot24}{12}}=5{,}39\\ \\text{m/s}\\]`,true],
+  ['46) Claudia, 60 kg, tramos de 4 m', `\\[L_N=-570\\cdot4=-2280\\qquad-2400\\qquad-630\\cdot4=-2520\\ \\text{J}\\qquad\\Delta E_c=120;\\ 0;\\ -120\\ \\text{J}\\]`,true],
+  ['50) Caballo y carreta', `\\[\\Delta E_c=18\\,000\\ \\text{J}\\qquad L_{caballo}=500\\cdot50\\cos15°=24\\,148\\ \\text{J}\\qquad L_{roz}=-6148\\ \\text{J}\\]`,true],
+  ['64) La energía que gana el cajón es m g h: no depende de la inclinación', `\\[F\\cdot d=mg\\,\\text{sen}\\,\\alpha\\cdot\\frac{h}{\\text{sen}\\,\\alpha}=mgh\\]`],
+  ['65) Grúa: 200 kg de 0 a 20 m/s en 10 s', `\\[F=m(g+a)=200\\cdot12=2400\\ \\text{N}\\qquad Pot=\\frac{240\\,000\\ \\text{J}}{10\\ \\text{s}}=24\\,000\\ \\text{W}\\]`,true],
+  ['66) Pesas: 150 kg a 2 m en 10 s (la guía da 2500 J y 250 W en d; con el 12 % son 25 000 J y 2500 W)', `\\[3000\\ \\text{J}\\qquad300\\ \\text{W}\\qquad\\frac{3000}{0{,}12}=25\\,000\\ \\text{J}\\]`,true],
+  ['67) Potencias medias', `\\[500\\ \\text{W}=0{,}67\\ \\text{HP}\\qquad50\\ \\text{W}\\qquad\\frac{3{,}6\\cdot10^6\\ \\text{J}}{86\\,400\\ \\text{s}}=41{,}7\\ \\text{W}\\]`],
+  ['68) y 69)', `\\[0{,}1\\ \\text{kW}\\cdot720\\ \\text{h}\\cdot\\$3{,}5=\\$252\\qquad\\frac{\\tfrac12\\,1500\\cdot30^2}{30}=22\\,500\\ \\text{W}=30{,}2\\ \\text{HP}\\]`,true],
+  ['70) Mismo peso, misma altura, misma rapidez', `\\[L=mgh\\ \\text{igual}\\qquad Pot=mg\\,v\\,\\text{sen}\\,\\alpha\\ \\text{distinta}\\]`],
+], fin:`\\[6928\\ \\text{J}\\qquad5{,}39\\ \\text{m/s}\\qquad24\\,148\\ \\text{y}\\ -6148\\ \\text{J}\\qquad2400\\ \\text{N};\\ 24\\ \\text{kW}\\qquad30{,}2\\ \\text{HP}\\]`}; }
+
+// ================= Arranque =================
+const PRES={c44:[['a) empuja 8 m',{F:1000,th:0,d:8}],['b) frena 60 cm',{F:1000,th:180,d:0.6}],['c) lo carga al hombro',{F:600,th:90,d:8}],['d) soga a 30°',{F:1000,th:30,d:8}]].map(([l,o])=>[l,()=>Object.assign(P,o)]),
+  c45:[1,2,3,4,5,6,7,8,9].map(n=>[n<9?'F'+n:'todas',()=>Object.assign(P,{f8:n,vA:5})]), c46:[], c50:[['50 · 1000 kg hasta 6 m/s',()=>Object.assign(P,PS0.c50)]],
+  c64:[['64 · cajón a 5 m',()=>Object.assign(P,{al:30,mb:60,ve:0.5})],['70 · escalera de 30°',()=>Object.assign(P,{al:30})],['45°',()=>Object.assign(P,{al:45})],['60°',()=>Object.assign(P,{al:60})]],
+  c65:[['65 · grúa',{mp:200,hp:100,vp:20,Tp:10}],['66 · pesas',{mp:150,hp:2,vp:0,Tp:10}],['66 f · en 20 s',{mp:150,hp:2,vp:0,Tp:20}],['67 a · 50 kg a 1 m/s',{mp:50,hp:1,vp:0,Tp:1}],['67 b · 10 l a 10 m',{mp:10,hp:10,vp:0,Tp:20}],['69 · auto a 30 m/s',{mp:1500,hp:0,vp:30,Tp:30}]].map(([l,o])=>[l,()=>Object.assign(P,o)])};
+const NOTE={c44:'Fuerza constante sobre un mueble que avanza en línea recta. En c) la fuerza del hombro es vertical (θ = 90°).',c45:'Cuerpo de 12 kg sobre un plano sin rozamiento; todas las fuerzas valen 30 N. Ángulos medidos desde el avance.',c46:'Claudia, 60 kg, baja del 4.º piso en tres tramos de 4 m.',c50:'La fuerza del caballo (500 N) forma 15° con el avance; el camino es de 50 m.',c64:'Plano sin rozamiento: el cajón sube a velocidad constante. La potencia de la escalera del 70 es con la velocidad elegida.',c65:'Trabajo para subir una masa una altura h y llevarla a una velocidad v; en el 65 la caja sube 100 m (velocidad media de 10 m/s durante 10 s).'};
+function setMode(sy,init){ if(!init) SHOW[SY].forEach(id=>PS[SY][id]=P[id]); SY=sy; Object.assign(P,PS[SY]); DEF.forEach(d=>showParam(d.id,SHOW[SY].includes(d.id))); presets(PRES[sy]); $('note').textContent=NOTE[sy]; restart(); refresh(); }
+function refresh(){ syncParams(DEF,P); updateChal(); renderCuentas(false); }
+buildParams(DEF,P,()=>{ guiaOff(); refresh(); });
+$('hint').hidden=true;
+wireCommon(restart); wireChips(setMode);
+buildPred(PRED); buildChal(CHAL); setMode('c44',true);
+startLoop(step,draw);
+</script>
+</body>
+</html>

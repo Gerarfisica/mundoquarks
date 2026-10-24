@@ -305,6 +305,14 @@
     footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
   }
 </style>
+<style id="mat-secciones">
+  /* Solo las tarjetas a la vista; cada tarjeta abre su sección */
+  .mat-js .content > .div-subsection[id] { display: none; }
+  .mat-js .content > .div-subsection[id].abierta { display: block; }
+  .mat-js.mat-abierta .mat-index { display: none; }
+  .mat-volver { display: inline-block; margin-bottom: 2rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(0,212,255,0.35); padding-bottom: 0.2rem; }
+  .mat-volver:hover { color: var(--white); border-bottom-color: var(--white); }
+</style>
 </head>
 <body>
 
@@ -658,5 +666,21 @@ const observer = new IntersectionObserver((entries) => {
 faders.forEach(fader => observer.observe(fader));
 </script>
 
+<script>
+// Solo las tarjetas a la vista: al elegir una, se muestra su sección y se ocultan las demás
+(function(){
+  const raiz=document.documentElement, idx=document.querySelector('.mat-index');
+  const secs=[...document.querySelectorAll('.content > .div-subsection[id]')];
+  if(!idx||!secs.length) return;
+  raiz.classList.add('mat-js');
+  secs.forEach(s=>{ const a=document.createElement('a'); a.href='#'; a.className='mat-volver'; a.textContent='← Volver al material'; a.addEventListener('click',e=>{ e.preventDefault(); history.pushState(null,'',location.pathname+location.search); mostrar(); }); s.insertBefore(a,s.firstChild); });
+  function mostrar(){ const id=decodeURIComponent(location.hash.slice(1)), s=secs.find(x=>x.id===id);
+    secs.forEach(x=>x.classList.toggle('abierta',x===s)); raiz.classList.toggle('mat-abierta',!!s);
+    if(s) s.classList.add('visible'); else idx.classList.add('visible');
+    window.scrollTo(0,0); setTimeout(()=>window.scrollTo(0,0),0); }
+  if('scrollRestoration' in history) history.scrollRestoration='manual';
+  addEventListener('hashchange',mostrar); addEventListener('load',()=>window.scrollTo(0,0)); mostrar();
+})();
+</script>
 </body>
 </html>

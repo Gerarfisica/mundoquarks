@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Los Tensores: De la Inercia a Einstein | Mundo Quarks</title>
+  <meta name="description" content="Qué es un tensor, por qué el tensor de inercia hace que un cuerpo no siempre gire alrededor del eje que uno espera y cómo los tensores llegaron a la relatividad general.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Álgebra Lineal y Geometría</div>
+  <h1>Los Tensores:<br><span class="hl">De la Inercia a Einstein</span></h1>
+  <p class="article-subtitle">Del tensor de inercia al de Einstein</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Tensores</span><span class="tag">Inercia</span><span class="tag">Relatividad general</span></div>
+</div>
+<div class="article-container">
+  <p>Un número alcanza para describir una masa o una temperatura. Un vector, para una fuerza o una velocidad: una flecha con tamaño y dirección. Pero hay magnitudes físicas que no caben en ninguno de los dos. El momento de inercia de un cuerpo que gira, por ejemplo, no es en general un número: relaciona la velocidad angular con el momento angular, y esas dos flechas no siempre apuntan en la misma dirección. Para describirlo hace falta un <strong>tensor</strong>.</p>
+
+  <p>Un tensor es, en esencia, una regla lineal que relaciona vectores con vectores, o varios vectores con un número, de una manera que no depende del sistema de coordenadas que se elija. Los escalares y los vectores son casos particulares. Y los tensores son el lenguaje en que Einstein escribió la relatividad general.</p>
+
+  <div class="math-block">Momento angular y velocidad angular: L = I ω, con I el tensor de inercia (una matriz simétrica de 3 × 3)<br>En los ejes principales, I es diagonal: L<sub>x</sub> = I<sub>1</sub> ω<sub>x</sub>, L<sub>y</sub> = I<sub>2</sub> ω<sub>y</sub>, L<sub>z</sub> = I<sub>3</sub> ω<sub>z</sub><br>Un tensor no depende de las coordenadas; sus componentes sí, y cambian según una regla fija</div>
+
+  <h2>El Tensor de Inercia</h2>
+
+  <p>Si un cuerpo gira con velocidad angular ω, su momento angular L se obtiene multiplicando ω por el tensor de inercia: L = I ω. Según MathWorld, el tensor de inercia es simétrico y relaciona el vector momento angular con el vector velocidad angular. En coordenadas cartesianas se escribe como una matriz de 3 × 3. Cuando esa matriz es diagonal, cada componente de L es proporcional a la componente correspondiente de ω; si no lo es, el momento angular tiene componentes en direcciones distintas de la del giro.</p>
+
+  <p>Por eso un objeto asimétrico que se hace girar alrededor de un eje cualquiera puede bambolear: su momento angular no está alineado con el eje de rotación. Pero siempre hay tres direcciones privilegiadas, los <strong>ejes principales</strong>, en las que la matriz se vuelve diagonal. Los momentos principales de inercia son sus <a href="autovalores-autovectores.html">autovalores</a> y los ejes principales, sus autovectores. Alrededor de un eje principal, el momento angular y la velocidad angular sí son paralelos.</p>
+
+  <h2>Qué Tiene de Especial un Tensor</h2>
+
+  <p>Las componentes de un vector dependen de los ejes que se elijan, pero el vector, la flecha, no. Con los tensores pasa lo mismo, en un nivel más general: sus componentes cambian al cambiar de coordenadas, según una regla fija, pero el tensor como objeto es el mismo. MathWorld da una definición abstracta: un tensor puede verse como una aplicación multilineal, es decir, lineal en cada uno de sus argumentos, y esa definición no depende de ninguna base. Esa independencia es lo que hace a los tensores ideales para escribir leyes físicas: una ley escrita como una igualdad entre tensores vale en cualquier sistema de coordenadas.</p>
+
+  <div class="tech-note">
+    <p><strong>Tensores y gravedad:</strong> según la relatividad general, la masa y la energía curvan el espacio-tiempo a su alrededor, y el movimiento de otros cuerpos es la respuesta a esa curvatura. Las ecuaciones que relacionan la curvatura con la materia y la energía se escriben como igualdades entre tensores, y por eso valen en cualquier sistema de coordenadas. Uno de esos tensores, el que describe la materia y la energía, se trata en el artículo sobre el <a href="tensor-energia-momento.html">tensor de energía-momento</a>.</p>
+  </div>
+
+  <h2>Ricci, Levi-Civita y Grossmann</h2>
+
+  <p>El cálculo tensorial tiene raíces en el trabajo de Gauss y en la conferencia de Riemann de 1854 sobre los fundamentos de la geometría, pero su inventor, según MacTutor, fue Gregorio Ricci-Curbastro, que desarrolló entre 1884 y 1894 su «cálculo diferencial absoluto». En 1900, Ricci-Curbastro y su alumno Tullio Levi-Civita publicaron en <em>Mathematische Annalen</em>, a pedido de Felix Klein, «Méthodes de calcul différentiel absolu et leurs applications», una exposición de la teoría de tensores en la forma que Einstein usaría quince años después.</p>
+
+  <div class="info-box">
+    <h3>«Un enorme respeto por la matemática»</h3>
+    <p>En 1912, Einstein volvió a la Escuela Politécnica de Zúrich, donde intentaba extender la relatividad especial para incluir la gravitación, y empezó a trabajar con su viejo amigo, el matemático Marcel Grossmann. Según MacTutor, fue Grossmann quien le señaló la importancia, para la relatividad general, del cálculo tensorial propuesto por Christoffel en 1864 y desarrollado por Ricci-Curbastro y Levi-Civita. Ese año Einstein escribió: «Nunca antes en mi vida me esforcé tanto, y adquirí un enorme respeto por la matemática». En 1913 publicaron juntos un «Bosquejo de una teoría generalizada de la relatividad y una teoría de la gravitación», con una parte física de Einstein y una matemática de Grossmann.</p>
+  </div>
+
+  <div class="closing">
+    <p>Los tensores generalizan a los escalares y a los vectores: describen relaciones lineales entre magnitudes de una manera que no depende de las coordenadas. El tensor de inercia explica por qué un cuerpo que gira puede bambolear y cuáles son sus ejes privilegiados; el tensor de energía-momento y el tensor métrico son la base de la relatividad general. Ricci y Levi-Civita crearon la herramienta; Grossmann se la mostró a Einstein, que terminó escribiendo con ella la teoría de la gravedad.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si tirás al aire un libro, sujeto con una banda elástica, haciéndolo girar alrededor de cada uno de sus tres ejes principales, ¿el giro es igual de estable en los tres casos? Probalo y contá qué observás.</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>E. W. Weisstein, "Moment of Inertia", <em>MathWorld</em>. <a href="https://mathworld.wolfram.com/MomentofInertia.html" target="_blank" rel="noopener">mathworld.wolfram.com</a></li>
+    <li>T. Rowland, "Tensor", <em>MathWorld</em>. <a href="https://mathworld.wolfram.com/Tensor.html" target="_blank" rel="noopener">mathworld.wolfram.com</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Gregorio Ricci-Curbastro", "Tullio Levi-Civita" y "Marcel Grossmann", <em>MacTutor History of Mathematics</em>. <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Grossmann/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>S. J. Ling, J. Sanny y W. Moebs, <em>University Physics, Volume 1</em>, OpenStax (2016), §13.7 «Einstein's Theory of Gravity». <a href="https://openstax.org/books/university-physics-volume-1/pages/13-7-einsteins-theory-of-gravity" target="_blank" rel="noopener">openstax.org</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

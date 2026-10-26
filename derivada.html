@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Derivada: El Lenguaje del Cambio | Mundo Quarks</title>
+  <meta name="description" content="Qué es la derivada, cómo se define como límite y por qué la velocidad, la pendiente y cualquier tasa de cambio son derivadas. De Newton y Leibniz a hoy.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> El Lenguaje de la Física</div>
+  <h1>La Derivada:<br><span class="hl">El Lenguaje del Cambio</span></h1>
+  <p class="article-subtitle">El ritmo de cambio: velocidad, pendiente y tasa</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Cálculo</span><span class="tag">Derivada</span><span class="tag">Newton y Leibniz</span></div>
+</div>
+<div class="article-container">
+  <p>La física habla de cambios: cuánto cambia la posición de un auto en un instante, qué tan rápido se enfría una taza de café, a qué ritmo crece una población de bacterias. La herramienta matemática para describir el ritmo de cambio es la <strong>derivada</strong>, y es tan central que casi todas las leyes de la física se escriben con ella. La segunda ley de Newton, las ecuaciones de Maxwell y la ecuación de Schrödinger relacionan cantidades con sus ritmos de cambio.</p>
+
+  <p>La idea es sencilla: medir cuánto cambia algo en un intervalo muy pequeño y dividir por la duración de ese intervalo. Lo sutil es qué significa «muy pequeño». La respuesta, que llegó mucho después de la invención del cálculo, es el concepto de límite.</p>
+
+  <div class="math-block">f′(a) = lim<sub>h→0</sub> [f(a + h) − f(a)] / h<br>Notación de Leibniz: df/dx<br>Velocidad instantánea: v(t) = dx/dt</div>
+
+  <h2>De la Velocidad Media a la Velocidad en un Instante</h2>
+
+  <p>Si un auto recorre 120 kilómetros en dos horas, su velocidad media fue de 60 km/h. Pero ese número no dice qué marcaba el velocímetro en cada momento. Para saber la velocidad en un instante, se puede medir la velocidad media en intervalos cada vez más cortos alrededor de ese instante: un minuto, un segundo, una milésima de segundo. La <strong>velocidad instantánea</strong> es el límite de la velocidad media cuando el intervalo de tiempo tiende a cero, es decir, la derivada de la posición respecto del tiempo: v(t) = dx/dt.</p>
+
+  <p>Lo mismo vale para cualquier magnitud. La aceleración es la derivada de la velocidad; la corriente eléctrica, la derivada de la carga que pasa; la potencia, la derivada de la energía. Cada vez que en física aparece «tasa», «ritmo» o «rapidez de cambio», detrás hay una derivada.</p>
+
+  <h2>La Pendiente de la Tangente</h2>
+
+  <p>Geométricamente, la derivada es una pendiente. Si se traza una recta secante que une dos puntos del gráfico de una función y se acerca el segundo punto al primero, las secantes se aproximan a la <strong>recta tangente</strong>. La pendiente de esa tangente es la derivada en ese punto: el ritmo de cambio de la función allí.</p>
+
+  <p>Un ejemplo hecho con la definición: para f(x) = x<sup>2</sup> en x = 3, el cociente [f(x) − f(3)] / (x − 3) = (x<sup>2</sup> − 9) / (x − 3) = x + 3, que tiende a 6 cuando x tiende a 3. La pendiente de la parábola en ese punto es 6. Haciendo la misma cuenta para un punto cualquiera se obtiene la regla general: la derivada de x<sup>2</sup> es 2x.</p>
+
+  <div class="tech-note">
+    <p><strong>Derivada y física:</strong> una derivada lleva unidades. Si x está en metros y t en segundos, dx/dt está en metros por segundo. Por eso la derivada respeta el <a href="analisis-dimensional.html">análisis dimensional</a>: derivar respecto del tiempo agrega un T<sup>−1</sup> a la dimensión. Y una ley escrita con derivadas, como F = m d<sup>2</sup>x/dt<sup>2</sup>, no dice dónde está un cuerpo, sino cómo cambia su movimiento: para conocer la trayectoria hay que «deshacer» la derivada, que es el trabajo de la <a href="integral.html">integral</a>.</p>
+  </div>
+
+  <h2>Newton, Leibniz y una Disputa</h2>
+
+  <p>El cálculo diferencial nació dos veces. Isaac Newton sentó sus bases en menos de dos años, cuando la peste cerró la Universidad de Cambridge en el verano de 1665 y tuvo que volver a Lincolnshire. Llamó a su método el «método de las fluxiones», basado en la idea de que integrar es la operación inversa de derivar. Lo escribió en 1671, pero no lo publicó: apareció impreso recién en 1736, en una traducción inglesa.</p>
+
+  <p>Gottfried Wilhelm Leibniz llegó al cálculo por su cuenta durante su estadía en París. En noviembre de 1675 ya usaba la notación de la integral y la regla del producto, y en 1684 publicó su cálculo diferencial en <em>Nova Methodus pro Maximis et Minimis</em>, en la revista <em>Acta Eruditorum</em> de Leipzig, con la notación d que todavía usamos y las reglas para derivar potencias, productos y cocientes. El artículo no tenía demostraciones, y Jacob Bernoulli lo describió como un enigma más que como una explicación.</p>
+
+  <p>La diferencia en las fechas de publicación desató una de las disputas de prioridad más famosas de la ciencia. En 1711, un artículo de John Keill en las <em>Transactions</em> de la Royal Society acusó a Leibniz de plagio. Newton, entonces presidente de la Royal Society, designó un comité «imparcial» para decidir quién había inventado el cálculo, y él mismo escribió el informe oficial, publicado sin su nombre. La notación que hoy se usa para el cálculo diferencial e integral es la de Leibniz.</p>
+
+  <div class="info-box">
+    <h3>Una idea que llegó tarde</h3>
+    <p>Leibniz nunca pensó la derivada como un límite. Más tarde, el obispo George Berkeley atacó el cálculo por su falta de fundamentos rigurosos; Colin Maclaurin escribió su <em>Treatise of Fluxions</em>, una exposición sistemática de los métodos de Newton, como respuesta. La definición con límites que hoy se enseña en el primer curso de cálculo llegó después y le dio al cálculo la base rigurosa que le faltaba.</p>
+  </div>
+
+  <div class="closing">
+    <p>La derivada convierte una pregunta difícil, cuánto cambia algo en un instante, en un procedimiento: tomar intervalos cada vez más chicos y ver a qué valor se acerca el cociente. Con ella se define la velocidad, la aceleración y cualquier tasa de cambio, y se escriben las leyes fundamentales de la física. Newton la imaginó como el flujo de una cantidad en el tiempo, Leibniz como un cociente de diferencias infinitesimales; la idea de límite terminó de darle forma. Es, en el sentido más literal, el lenguaje del cambio.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Un velocímetro muestra la velocidad instantánea, pero ningún instrumento mide en un intervalo de tiempo cero. ¿Qué mide realmente un velocímetro? ¿Y un radar de tránsito?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>G. Strang y E. Herman, <em>Calculus, Volume 1</em>, OpenStax (2016), §3.1 «Defining the Derivative» y §3.4 «Derivatives as Rates of Change». <a href="https://openstax.org/books/calculus-volume-1/pages/3-1-defining-the-derivative" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>W. Moebs, S. J. Ling y J. Sanny, <em>University Physics, Volume 1</em>, OpenStax (2016), §3.2 «Instantaneous Velocity and Speed». <a href="https://openstax.org/books/university-physics-volume-1/pages/3-2-instantaneous-velocity-and-speed" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Sir Isaac Newton", <em>MacTutor History of Mathematics</em> (2000). <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Newton/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Gottfried Wilhelm von Leibniz", <em>MacTutor History of Mathematics</em> (1998). <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Leibniz/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Colin Maclaurin", <em>MacTutor History of Mathematics</em> (2017). <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Maclaurin/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Series de Taylor: El Arte de Aproximar | Mundo Quarks</title>
+  <meta name="description" content="Cómo una función se aproxima con un polinomio, por qué sen θ ≈ θ salva al péndulo y cuánto error se comete al cortar la serie.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> El Lenguaje de la Física</div>
+  <h1>Series de Taylor:<br><span class="hl">El Arte de Aproximar</span></h1>
+  <p class="article-subtitle">El arte de aproximar: por qué sen θ ≈ θ salva al péndulo</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Cálculo</span><span class="tag">Aproximaciones</span><span class="tag">Péndulo</span></div>
+</div>
+<div class="article-container">
+  <p>Casi ninguna ecuación de la física se resuelve de manera exacta. El péndulo, el caso más simple que se enseña, ya lleva una función trigonométrica que impide escribir la solución con funciones elementales. Lo que hacen los físicos, una y otra vez, es <strong>aproximar</strong>: reemplazar una función complicada por un polinomio que se le parece mucho cerca de un punto. La herramienta para hacerlo de forma sistemática es la <strong>serie de Taylor</strong>.</p>
+
+  <p>La idea es construir un polinomio que tenga, en un punto, el mismo valor que la función, la misma pendiente, la misma curvatura, y así con todas las derivadas que se quiera. Con pocos términos ya se obtiene una aproximación excelente cerca de ese punto; con infinitos términos, para muchas funciones, se obtiene la función misma.</p>
+
+  <div class="math-block">Serie de Taylor de f alrededor de a: f(x) = f(a) + f′(a)(x − a) + f″(a)(x − a)<sup>2</sup>/2! + f‴(a)(x − a)<sup>3</sup>/3! + …<br>Alrededor de a = 0 se llama serie de Maclaurin<br>sen x = x − x<sup>3</sup>/3! + x<sup>5</sup>/5! − … &nbsp;·&nbsp; cos x = 1 − x<sup>2</sup>/2! + x<sup>4</sup>/4! − …</div>
+
+  <h2>Copiar una Función con un Polinomio</h2>
+
+  <p>Supongamos que se conoce todo sobre una función en un punto a: su valor y el de todas sus derivadas. El <strong>polinomio de Taylor</strong> de orden n es el polinomio de grado n que comparte con la función el valor y las primeras n derivadas en a. El de orden 1 es la recta tangente; el de orden 2 agrega la curvatura; cada término nuevo corrige el error del anterior más lejos del punto.</p>
+
+  <p>La <strong>serie de Taylor</strong> es el límite de esos polinomios cuando el orden crece sin límite. El polinomio de orden n es una suma parcial de la serie. Que la serie converja, y que converja justamente a la función, no está garantizado: hay que comprobarlo. Para las funciones que más aparecen en física, como el seno, el coseno o la exponencial, la serie converge a la función para cualquier valor de x.</p>
+
+  <h2>Cuánto Se Equivoca la Aproximación</h2>
+
+  <p>Cortar la serie tiene un costo, y el <strong>teorema de Taylor con resto</strong> permite medirlo. La diferencia entre la función y su polinomio de orden n, el resto R<sub>n</sub>, se puede acotar con la derivada siguiente: es del orden de (x − a)<sup>n+1</sup>. Por eso la aproximación es tan buena cerca del punto y empeora al alejarse. En física esto se traduce en una pregunta concreta: ¿para qué rango de valores alcanza la aproximación?</p>
+
+  <h2>El Péndulo y sen θ ≈ θ</h2>
+
+  <p>Un péndulo simple de longitud L obedece una ecuación con sen θ, donde θ es el ángulo respecto de la vertical. Esa ecuación no tiene una solución sencilla. Pero la serie de Maclaurin del seno empieza con sen θ = θ − θ<sup>3</sup>/6 + …, y para ángulos pequeños, medidos en radianes, el primer término domina. Para ángulos menores que unos 15 grados, cerca de 0,26 radianes, sen θ y θ difieren en menos del 1 %.</p>
+
+  <p>Con la aproximación sen θ ≈ θ, la ecuación del péndulo se vuelve d<sup>2</sup>θ/dt<sup>2</sup> = −(g/L) θ, la del movimiento armónico simple, cuya solución es una oscilación sinusoidal con frecuencia angular ω = √(g/L) y período T = 2π√(L/g). Es el resultado que se usa en todos los cursos de física, y es fruto de quedarse con el primer término de una serie de Taylor.</p>
+
+  <div class="tech-note">
+    <p><strong>Aproximaciones de Taylor en toda la física:</strong> el mismo truco aparece en todas partes. Cerca del mínimo de cualquier energía potencial, el primer término no trivial de la serie es cuadrático, y por eso tantos sistemas oscilan como resortes cuando se los aparta poco del equilibrio. La energía cinética relativista, desarrollada para velocidades pequeñas frente a la de la luz, da en su primer término la expresión clásica ½mv<sup>2</sup>. Cada vez que un libro dice «para pequeñas oscilaciones» o «en el límite no relativista», detrás hay una serie de Taylor cortada.</p>
+  </div>
+
+  <h2>Taylor, Machin y una Cafetería</h2>
+
+  <p>Brook Taylor publicó en 1715 <em>Methodus incrementorum directa et inversa</em>, un libro que contiene lo que hoy se llama serie de Taylor, aunque recién se la conoció con ese nombre en 1785. La primera mención de una versión del teorema aparece en una carta que Taylor le escribió a John Machin el 26 de julio de 1712. En esa carta Taylor explicó de dónde había sacado la idea: de un comentario que Machin había hecho en Child's Coffeehouse.</p>
+
+  <div class="closing">
+    <p>Las series de Taylor son el método universal para convertir lo difícil en algo manejable: reemplazar una función por un polinomio que la copia cerca de un punto, y saber cuánto se equivoca al hacerlo. Gracias a ellas el péndulo tiene una fórmula simple, los sistemas cerca del equilibrio oscilan como resortes y la mecánica de Newton aparece como un caso límite de la relatividad. Aproximar bien, sabiendo cuándo se puede, es una de las habilidades centrales de la física.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si un reloj de péndulo se diseña con la fórmula T = 2π√(L/g), ¿se adelantaría o se atrasaría al oscilar con amplitudes grandes? Pista: mirá el segundo término de la serie del seno y pensá si la fuerza de restitución real es mayor o menor que la aproximada.</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>G. Strang y E. Herman, <em>Calculus, Volume 2</em>, OpenStax (2016), §6.3 «Taylor and Maclaurin Series». <a href="https://openstax.org/books/calculus-volume-2/pages/6-3-taylor-and-maclaurin-series" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>W. Moebs, S. J. Ling y J. Sanny, <em>University Physics, Volume 1</em>, OpenStax (2016), §15.4 «Pendulums». <a href="https://openstax.org/books/university-physics-volume-1/pages/15-4-pendulums" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Brook Taylor", <em>MacTutor History of Mathematics</em> (2000). <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Taylor/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

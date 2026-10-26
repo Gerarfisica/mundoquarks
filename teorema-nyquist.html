@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Teorema de Nyquist: Cuántas Muestras Hacen Falta | Mundo Quarks</title>
+  <meta name="description" content="El teorema de muestreo: por qué alcanza con muestrear a más del doble de la frecuencia máxima, qué es el aliasing y por qué un CD usa 44 100 muestras por segundo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Fourier, Transformadas y Señales</div>
+  <h1>El Teorema de Nyquist:<br><span class="hl">Cuántas Muestras Hacen Falta</span></h1>
+  <p class="article-subtitle">Por qué el audio digital usa 44,1 kHz</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Muestreo</span><span class="tag">Shannon</span><span class="tag">Audio digital</span></div>
+</div>
+<div class="article-container">
+  <p>Un sonido es una onda continua: la presión del aire cambia en cada instante. Un archivo de audio, en cambio, es una lista finita de números. ¿Cómo puede una lista de números guardar toda la información de algo continuo? Parecería que entre una muestra y la siguiente siempre se pierde algo. El <strong>teorema de muestreo</strong> dice que no, con una condición: que la señal no tenga frecuencias por encima de cierto límite y que se tomen muestras con suficiente frecuencia.</p>
+
+  <p>Es el resultado que hace posible el audio digital, el video digital y casi cualquier medición tomada por una computadora. Y explica por qué un CD usa exactamente 44 100 muestras por segundo.</p>
+
+  <div class="math-block">Si una señal no contiene frecuencias mayores que W, queda completamente determinada por sus muestras tomadas cada 1/(2W) segundos<br>Frecuencia de muestreo necesaria: f<sub>s</sub> &gt; 2W · Frecuencia de Nyquist: f<sub>s</sub>/2<br>CD: f<sub>s</sub> = 44 100 Hz → f<sub>s</sub>/2 = 22 050 Hz &gt; 20 000 Hz (límite del oído)</div>
+
+  <h2>El Teorema</h2>
+
+  <p>Claude Shannon lo enunció así en 1949: si una función no contiene frecuencias mayores que W ciclos por segundo, queda completamente determinada por sus valores en una serie de puntos separados 1/(2W) segundos. Es decir, alcanza con muestrear a una frecuencia de más del doble de la frecuencia máxima de la señal. La mitad de la frecuencia de muestreo, el límite por encima del cual no puede haber información, se llama <strong>frecuencia de Nyquist</strong>.</p>
+
+  <p>La justificación intuitiva que da el propio Shannon es que, si la señal no tiene frecuencias mayores que W, no puede cambiar de manera sustancial en un tiempo menor que medio ciclo de la frecuencia más alta. Pero el teorema dice más que eso: la reconstrucción no es aproximada sino exacta. A partir de las muestras se puede recuperar la señal continua sin ningún error, siempre que esté limitada en banda a menos de la mitad de la frecuencia de muestreo.</p>
+
+  <h2>¿Nyquist o Shannon?</h2>
+
+  <p>El teorema se suele asociar a varios nombres, y el propio Shannon fue cuidadoso al respecto. En su artículo de 1949 escribió que el resultado era «de conocimiento común en el arte de las comunicaciones» y que ya había sido dado antes, en otras formas, por matemáticos, entre ellos J. M. Whittaker. También señaló que Nyquist, trabajando en telegrafía, había destacado la importancia fundamental del intervalo 1/(2W), y propuso llamarlo <strong>intervalo de Nyquist</strong>. El trabajo de Nyquist que cita es de 1928. El aporte de Shannon fue enunciarlo con claridad dentro de la teoría de la comunicación y darle una demostración exacta.</p>
+
+  <div class="tech-note">
+    <p><strong>El aliasing:</strong> si se muestrea una señal que tiene frecuencias por encima de la frecuencia de Nyquist, esas frecuencias no desaparecen: se «disfrazan» de frecuencias más bajas y se mezclan con las verdaderas, sin que haya forma de separarlas después. Es el <em>aliasing</em>, y se debe a que el espectro de la señal muestreada es la suma de copias corridas del espectro original, que se superponen si la señal no está limitada en banda. Por eso conviene eliminar las frecuencias que superan la de Nyquist antes de digitalizar.</p>
+  </div>
+
+  <h2>Por Qué 44,1 kHz</h2>
+
+  <p>Como explica Julius O. Smith, de la Universidad de Stanford, en un CD el sonido se muestrea 44 100 veces por segundo: cuando se reproduce, los parlantes se mueven a una nueva posición 44 100 veces por segundo, una vez cada 23 microsegundos. Eso alcanza para generar cualquier sonido dentro del rango del oído humano, porque no oímos frecuencias mayores que unos 20 000 ciclos por segundo, y una frecuencia de muestreo de más del doble de la frecuencia más alta garantiza la reconstrucción exacta. Con 44 100 muestras por segundo, la frecuencia de Nyquist es 22 050 Hz, por encima del límite del oído. El estándar de audio MPEG, el del <a href="compresion-mp3-jpeg.html">MP3</a>, admite precisamente frecuencias de muestreo de 32, 44,1 y 48 kHz.</p>
+
+  <div class="info-box">
+    <h3>Del sonido al número</h3>
+    <p>El teorema de muestreo es la razón por la que la digitalización no tiene por qué perder información. Lo que sí introduce pérdidas es otra cosa: la cuantización, es decir, redondear cada muestra a un número finito de niveles, y los recortes deliberados de la compresión. Pero el simple hecho de pasar de una onda continua a una lista de números, si se respeta el límite de Nyquist, puede hacerse sin error.</p>
+  </div>
+
+  <div class="closing">
+    <p>El teorema de muestreo responde una pregunta que parece paradójica: cómo una lista finita de números puede contener toda la información de una señal continua. La respuesta es que alcanza con muestrear a más del doble de su frecuencia máxima. Shannon lo enunció con precisión en 1949, reconociendo que la idea ya circulaba y que Nyquist había señalado el intervalo clave. Por eso un CD usa 44 100 muestras por segundo, por encima del doble de lo que el oído puede percibir.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si un sistema de audio muestreara a 96 kHz, mucho más que el doble de lo que el oído percibe, ¿qué ventaja podría tener, pensando en el filtro que hay que poner antes de digitalizar para eliminar las frecuencias por encima de la de Nyquist?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>C. E. Shannon, "Communication in the Presence of Noise", <em>Proc. IRE</em> 37, 10 (1949). <a href="https://doi.org/10.1109/JRPROC.1949.232969" target="_blank" rel="noopener">doi:10.1109/JRPROC.1949.232969</a></li>
+    <li>H. Nyquist, "Certain Topics in Telegraph Transmission Theory", <em>Trans. AIEE</em> 47, 617 (1928). <a href="https://doi.org/10.1109/T-AIEE.1928.5055024" target="_blank" rel="noopener">doi:10.1109/T-AIEE.1928.5055024</a></li>
+    <li>J. O. Smith III, <em>Mathematics of the Discrete Fourier Transform (DFT)</em>, W3K Publishing (2007), «Introduction to Sampling» y «Sampling Theorem». <a href="https://ccrma.stanford.edu/~jos/mdft/Introduction_Sampling.html" target="_blank" rel="noopener">ccrma.stanford.edu</a></li>
+    <li>D. Pan, "A tutorial on MPEG/audio compression", <em>IEEE Multimedia</em> 2, 60 (1995). <a href="https://doi.org/10.1109/93.388209" target="_blank" rel="noopener">doi:10.1109/93.388209</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

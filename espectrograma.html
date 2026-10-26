@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Espectrograma: Ver el Sonido | Mundo Quarks</title>
+  <meta name="description" content="Cómo se ve el sonido: la transformada de Fourier de tiempo corto, la ventana que fija la resolución y el espectrograma, nacido en los Bell Labs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Fourier, Transformadas y Señales</div>
+  <h1>El Espectro&shy;grama:<br><span class="hl">Ver el Sonido</span></h1>
+  <p class="article-subtitle">Ver la voz, un acorde y el canto de un pájaro</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Audio</span><span class="tag">STFT</span><span class="tag">Espectro</span></div>
+</div>
+<div class="article-container">
+  <p>Una grabación de sonido es, en el fondo, una lista de números: la posición de la membrana del micrófono, instante tras instante. Mirada así, una palabra hablada y un acorde de guitarra son curvas que suben y bajan sin un patrón evidente. La <a href="transformada-fourier.html">transformada de Fourier</a> permite ver otra cosa: qué frecuencias contiene la señal. Pero el sonido cambia: una palabra empieza con una consonante y sigue con una vocal, una melodía pasa de una nota a otra. Para ver cómo cambian las frecuencias con el tiempo hace falta otra herramienta: el <strong>espectrograma</strong>.</p>
+
+  <p>Un espectrograma es una imagen: el tiempo en el eje horizontal, la frecuencia en el vertical y la intensidad de cada frecuencia en cada instante representada con colores o tonos de gris. Es, literalmente, una manera de ver el sonido.</p>
+
+  <div class="math-block">Transformada de Fourier de tiempo corto (STFT):<br>X(t, f) = transformada de Fourier del segmento de señal visto a través de una ventana w centrada en t<br>Espectrograma: intensidad de |X(t, f)|, en escala logarítmica (dB)<br>Ventana larga → buena resolución en frecuencia, mala en tiempo · ventana corta → al revés</div>
+
+  <h2>Fourier por Pedazos</h2>
+
+  <p>La idea es simple: en lugar de aplicar la transformada de Fourier a toda la señal de una vez, se la aplica a pedazos cortos. Se toma un segmento, se lo multiplica por una <strong>ventana</strong>, una función que vale cero fuera del segmento y suaviza sus bordes, y se calcula su espectro. Después se corre la ventana un poco y se repite. El resultado es la <strong>transformada de Fourier de tiempo corto</strong> o STFT, que en la práctica es simplemente una secuencia de transformadas rápidas de Fourier a lo largo del tiempo.</p>
+
+  <p>Según Julius O. Smith, de la Universidad de Stanford, el espectrograma clásico se define como una imagen de intensidad, en general en escala logarítmica, del módulo de la STFT. Las ventanas suelen superponerse en el tiempo, típicamente al menos en un 50 %. Los parámetros principales son la longitud de la ventana, que controla la resolución en frecuencia; su forma, que controla cuánto se «escapa» la energía hacia frecuencias vecinas, y el corrimiento entre ventanas sucesivas.</p>
+
+  <h2>El Precio de Ver en el Tiempo</h2>
+
+  <p>Elegir la longitud de la ventana es un compromiso. Una ventana larga contiene muchos ciclos de cada oscilación y permite distinguir frecuencias muy cercanas, pero mezcla lo que pasó en todo ese intervalo: un golpe breve queda borroneado en el tiempo. Una ventana corta ubica bien los eventos en el tiempo, pero no alcanza para separar frecuencias próximas. No se pueden tener las dos cosas a la vez: es una propiedad de la transformada de Fourier, y por eso los espectrogramas del habla y de la música se calculan con ventanas de distinta longitud según lo que se quiera ver. Las <a href="wavelets.html">wavelets</a> resuelven este compromiso de otra manera.</p>
+
+  <div class="tech-note">
+    <p><strong>El espectrograma de la voz:</strong> en el análisis del habla es común usar ventanas de 20 milisegundos. Según Smith, es un intervalo lo bastante corto como para que cada tramo contenga, en general, un solo fonema, y lo bastante largo como para incluir al menos dos períodos de la fundamental en la voz sonora, si la frecuencia más grave ronda los 100 Hz. En una vocal sostenida se ven los armónicos, líneas a múltiplos enteros de la fundamental, como predice la <a href="series-fourier.html">serie de Fourier</a>. Algunos grupos de armónicos aparecen más oscuros: son los <strong>formantes</strong>, las resonancias de baja frecuencia del tracto vocal, y los dos primeros determinan en gran medida qué vocal se pronuncia. En un acorde se superponen varias series de armónicos.</p>
+  </div>
+
+  <div class="info-box">
+    <h3>Nacido en los Bell Labs</h3>
+    <p>Según Smith, el espectrograma clásico se desarrolló en los Laboratorios Bell durante la Segunda Guerra Mundial y desde entonces se usó durante décadas para mostrar el espectro de corto plazo del sonido, sobre todo en el análisis del habla. Hay incluso personas capaces de «leer» un espectrograma del habla. Con la difusión de las computadoras digitales, los espectrogramas pasaron a calcularse con la STFT. Smith agrega que el espectrograma es una representación importante porque la audición humana se basa en una especie de espectrograma en tiempo real codificado por la cóclea del oído interno.</p>
+  </div>
+
+  <div class="closing">
+    <p>El espectrograma convierte el sonido en una imagen que muestra qué frecuencias suenan en cada momento. Se construye aplicando la transformada de Fourier a pedazos cortos de la señal, a través de una ventana que se va corriendo, y está sujeto a un compromiso inevitable: cuanto más precisa es la información en frecuencia, más borrosa es en el tiempo, y al revés. Nació en los Bell Labs y se usa sobre todo en el análisis del habla, en la música por computadora y en el procesamiento de señales de audio.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si grabás un aplauso seguido de una nota larga de flauta, ¿qué longitud de ventana elegirías para ver bien el aplauso? ¿Y para ver la nota? ¿Se pueden ver bien las dos cosas en el mismo espectrograma?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>J. O. Smith III, <em>Spectral Audio Signal Processing</em>, W3K Publishing (2011), «The Short-Time Fourier Transform (STFT) and Time-Frequency Displays» y «Classic Spectrograms». <a href="https://ccrma.stanford.edu/~jos/sasp/Classic_Spectrograms.html" target="_blank" rel="noopener">ccrma.stanford.edu</a></li>
+    <li>J. O. Smith III, <em>Spectral Audio Signal Processing</em>, W3K Publishing (2011), «Time-Frequency Displays» y «Spectrogram of Speech». <a href="https://ccrma.stanford.edu/~jos/sasp/Spectrogram_Speech.html" target="_blank" rel="noopener">ccrma.stanford.edu</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

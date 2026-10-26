@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Función de Green: Resolver un Golpe y Sumar | Mundo Quarks</title>
+  <meta name="description" content="La función de Green: resolver una ecuación para una fuente puntual y sumar. La historia de George Green, el molinero de Nottingham que la inventó.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Ecuaciones Diferenciales y Modelos</div>
+  <h1>La Función de Green:<br><span class="hl">Resolver un Golpe y Sumar</span></h1>
+  <p class="article-subtitle">Resolver para un golpe puntual y sumar</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Green</span><span class="tag">Fuentes puntuales</span><span class="tag">Superposición</span></div>
+</div>
+<div class="article-container">
+  <p>Supongamos que hay que calcular el potencial eléctrico producido por una distribución complicada de cargas. Una estrategia es calcular primero algo mucho más simple: el potencial de una sola carga puntual. Si el problema es lineal, cualquier distribución se puede pensar como una suma de cargas puntuales, y el potencial total será la suma de los potenciales de cada una. La solución para una fuente puntual, la respuesta del sistema a un «golpe» concentrado en un punto, se llama <strong>función de Green</strong>.</p>
+
+  <p>La idea es general: sirve para el calor, las ondas, los circuitos y la mecánica cuántica. Y lleva el nombre de un personaje singular de la historia de la ciencia: George Green, un molinero de Nottingham que aprendió matemática casi solo.</p>
+
+  <div class="math-block">Problema: L u(r) = f(r) (L: operador lineal, f: fuente)<br>Función de Green: L G(r, r′) = δ(r − r′) &nbsp;→ respuesta a una fuente puntual en r′<br>Solución: u(r) = ∫ G(r, r′) f(r′) dV′<br>δ: delta de Dirac, nula salvo en un punto, con ∫ δ dV = 1</div>
+
+  <h2>Resolver para un Golpe</h2>
+
+  <p>Muchas ecuaciones de la física tienen la forma «operador lineal aplicado a la incógnita igual a una fuente»: la ecuación de Poisson para el potencial, con la densidad de carga como fuente; la ecuación del calor con una fuente de calor; la ecuación de un oscilador forzado. La función de Green G(r, r′) es la solución cuando la fuente es puntual: una unidad concentrada en el punto r′, que se representa con la <strong>delta de Dirac</strong> δ(r − r′), una «función» nula en todas partes salvo en r′ y cuya integral vale uno.</p>
+
+  <p>Conocida G, la solución para cualquier fuente f es una integral: u(r) = ∫ G(r, r′) f(r′) dV′. Se suman, con el peso que da f, las respuestas a todas las fuentes puntuales. Es el <strong>principio de superposición</strong> llevado al extremo: se resuelve una sola vez el problema más simple posible y después se suma.</p>
+
+  <div class="tech-note">
+    <p><strong>Un ejemplo conocido:</strong> en electrostática, la función de Green del espacio libre para el laplaciano es, salvo constantes, 1/|r − r′|: es el potencial de Coulomb de una carga puntual. La fórmula que da el potencial de una distribución de carga como la integral de la densidad dividida por la distancia es exactamente u = ∫ G f dV′. En el tiempo, la función de Green de un sistema lineal es su respuesta a un impulso instantáneo, como la de una campana a un golpe seco: con ella se obtiene la respuesta a cualquier forzamiento.</p>
+  </div>
+
+  <h2>El Molinero de Nottingham</h2>
+
+  <p>George Green nació en 1793 en Sneinton, cerca de Nottingham. Su padre era panadero y llegó a construir un molino de ladrillo, uno de los primeros dos del condado; Green trabajó allí durante años. Su única educación formal fueron cuatro trimestres en una escuela de Nottingham, entre los ocho y los nueve años, y no se sabe cómo accedió a la matemática más avanzada de su época. Un hecho importante fue que en 1823 se hizo socio de la Nottingham Subscription Library, que le dio acceso, entre otras cosas, a las <em>Transactions</em> de la Royal Society.</p>
+
+  <p>En marzo de 1828 publicó por suscripción <em>An Essay on the Application of Mathematical Analysis to the Theories of Electricity and Magnetism</em>. Tuvo 51 suscriptores, en su mayoría miembros de esa biblioteca, que pagaron siete chelines y seis peniques por una obra de la que difícilmente podían entender una palabra. En ese ensayo Green acuñó el término «potencial» para la suma de las masas de todas las partículas de un sistema, cada una dividida por su distancia a un punto, e introdujo la fórmula que relaciona integrales de superficie y de volumen, hoy llamada teorema de Green, y la «función de Green». En octubre de 1833, a los 40 años, Green ingresó como estudiante al Caius College de Cambridge. Murió en 1841.</p>
+
+  <div class="info-box">
+    <h3>Un ensayo redescubierto</h3>
+    <p>El ensayo de 1828 pasó casi inadvertido. En 1845, cuatro años después de la muerte de Green, lo redescubrió y difundió un joven William Thomson, el futuro Lord Kelvin, que entonces tenía 21 años. Recién en 1871 se reunieron los trabajos matemáticos de Green en un volumen. La delta de Dirac, que hoy se usa para definir la función de Green, recibió una base matemática rigurosa mucho después, a mediados del siglo XX, con la teoría de distribuciones.</p>
+  </div>
+
+  <div class="closing">
+    <p>La función de Green convierte un problema difícil en dos pasos simples: resolver para una fuente puntual y sumar. Funciona siempre que el problema sea lineal, y por eso aparece en la electrostática, la conducción del calor, las ondas y la mecánica cuántica. Es también una de las mejores historias de la ciencia: la herramienta que hoy usan los físicos de todo el mundo la ideó un molinero autodidacta, que publicó su obra para 51 suscriptores y que solo fue reconocido después de su muerte.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si conocés cómo responde una campana a un golpe seco, ¿podés predecir cómo sonará si la frotás suavemente con un arco? ¿Qué propiedad tiene que tener la campana para que eso funcione?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>J. J. O'Connor y E. F. Robertson, "George Green", <em>MacTutor History of Mathematics</em> (1998). <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Green/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>R. L. Herman, «Green's Functions», charla del seminario MAT 595, University of North Carolina Wilmington. <a href="https://people.uncw.edu/hermanr/Documents/Talks/Green_s_Functions_Talk_Herman.pdf" target="_blank" rel="noopener">people.uncw.edu</a></li>
+    <li>P. Dawkins, <em>Paul's Online Notes: Differential Equations</em>, Lamar University, «Solving the Heat Equation» (principio de superposición). <a href="https://tutorial.math.lamar.edu/Classes/DE/SolvingHeatEquation.aspx" target="_blank" rel="noopener">tutorial.math.lamar.edu</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

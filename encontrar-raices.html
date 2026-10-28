@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encontrar Raíces: Bisección y Newton-Raphson | Mundo Quarks</title>
+  <meta name="description" content="Bisección y Newton-Raphson: cómo encuentra una computadora las raíces de una ecuación, qué tan rápido converge cada método y cuándo falla Newton.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Métodos Numéricos y Computación</div>
+  <h1>Encontrar Raíces:<br><span class="hl">Bisección y Newton-Raphson</span></h1>
+  <p class="article-subtitle">Bisección y Newton-Raphson</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Bisección</span><span class="tag">Newton-Raphson</span><span class="tag">Convergencia</span></div>
+</div>
+<div class="article-container">
+  <p>¿Dónde se cruzan las curvas e<sup>−x</sup> y sen x? Despejar x de e<sup>−x</sup> = sen x con álgebra no es nada fácil, pero una computadora la encuentra con 14 decimales correctos en cinco pasos. En física pasa todo el tiempo: muchas preguntas se reducen a encontrar el valor de x que hace f(x) = 0, una <strong>raíz</strong> de la función, en ecuaciones que no se pueden despejar. Para calcular los niveles de energía de una partícula en un pozo cuántico, por ejemplo, se puede ajustar la energía hasta que la función de onda cumpla las condiciones de borde, y eso también es buscar una raíz. Los dos métodos clásicos son la <strong>bisección</strong>, lenta pero segura, y el método de <strong>Newton-Raphson</strong>, rapidísimo pero caprichoso.</p>
+
+  <div class="math-block">Bisección: si f(a) y f(b) tienen signos opuestos, hay una raíz entre a y b; se evalúa f en el punto medio y se conserva la mitad donde cambia el signo<br>Después de n pasos, la raíz queda encerrada en un intervalo de ancho (b − a)/2<sup>n</sup><br>Newton-Raphson: x<sub>n+1</sub> = x<sub>n</sub> − f(x<sub>n</sub>)/f′(x<sub>n</sub>)<br>Convergencia: bisección, lineal (|ε<sub>n</sub>| = ½|ε<sub>n−1</sub>|) · Newton, cuadrática (|ε<sub>n</sub>| ≈ C|ε<sub>n−1</sub>|²)</div>
+
+  <h2>Bisección: Encerrar la Raíz</h2>
+
+  <p>La bisección se apoya en el teorema del valor intermedio: si una función continua es positiva en un extremo de un intervalo y negativa en el otro, en algún punto intermedio vale cero. El método evalúa la función en el punto medio, mira el signo y se queda con la mitad donde todavía hay un cambio de signo. Cada paso divide por dos la incerteza.</p>
+
+  <p>En sus apuntes de física computacional, Peter Young busca la raíz de e<sup>−x</sup> − sen x empezando con el intervalo de 0,4 a 0,8 y obtiene x = 0,5885 en 12 pasos, con cuatro decimales correctos. Como cada paso agrega una cifra binaria, hacen falta unos 3,3 pasos por cada cifra decimal. Con √2, la raíz de x² − 2, empezando entre 1 y 2, la cuenta da (un cálculo propio) un intervalo de ancho 10<sup>−3</sup> después de 10 pasos, de 10<sup>−6</sup> después de 20 y de 10<sup>−12</sup> después de 40. Es lento, pero tiene una gran virtud: si al principio la raíz está encerrada, el método no puede fallar.</p>
+
+  <h2>Newton-Raphson: Seguir la Tangente</h2>
+
+  <p>El método de Newton usa más información: la <a href="derivada.html">derivada</a>. Desde una primera estimación x<sub>0</sub>, se traza la recta tangente a la curva y se toma como nueva estimación el punto donde esa recta corta el eje horizontal. La cuenta da la fórmula del recuadro, y se repite. Cerca de la raíz, una función suave se parece mucho a su recta tangente, y por eso el método es tan eficaz.</p>
+
+  <p>Con √2 y x<sub>0</sub> = 2, las aproximaciones son 1,5; 1,41667; 1,414215686; 1,41421356237469, y en el quinto paso el resultado coincide con √2 en todas las cifras que guarda la computadora (un cálculo propio). Los errores son 9 × 10<sup>−2</sup>, 2 × 10<sup>−3</sup>, 2 × 10<sup>−6</sup> y 2 × 10<sup>−12</sup>: <strong>el número de cifras correctas se duplica en cada paso</strong>. Es la convergencia cuadrática. Young observa lo mismo con e<sup>−x</sup> − sen x: partiendo de 0,8, cinco pasos alcanzan para 14 decimales correctos.</p>
+
+  <div class="analogy-box">
+    <p><strong>Buscar en el diccionario:</strong> la bisección es como buscar una palabra abriendo el diccionario siempre por la mitad del tramo que queda: nunca falla, pero no aprovecha nada de lo que sabés. Newton es como abrirlo donde calculás que debería estar la palabra según la letra con que empieza: si tu estimación es buena, llegás en dos o tres intentos; si te equivocaste de letra, podés terminar muy lejos.</p>
+  </div>
+
+  <h2>Cuándo Falla Newton</h2>
+
+  <p>El texto de cálculo de OpenStax enumera las formas en que Newton puede fallar. Si en alguna aproximación la derivada es cero, la recta tangente es horizontal, no corta el eje y el método no puede continuar. Si la función tiene varias raíces y la estimación inicial está lejos de la buscada, las aproximaciones pueden converger a <em>otra</em> raíz. Y pueden no converger a ninguna, por ejemplo, si quedan alternando entre dos valores. Young lo resume así: según el problema y el valor inicial, la convergencia puede no ocurrir nunca.</p>
+
+  <p>Hay una variante que no necesita la derivada: el método de la secante, que reemplaza la tangente por la recta que pasa por las dos últimas aproximaciones. Según Young, el número de cifras correctas crece en cada paso en un factor de alrededor de 1,618, el número de oro: más rápido que la bisección, más lento que Newton. Pero tampoco garantiza que la raíz siga encerrada entre las aproximaciones.</p>
+
+  <div class="info-box">
+    <h3>Un método con tres nombres</h3>
+    <p>En 1690, Joseph Raphson publicó su <em>Analysis aequationum universalis</em>. Las actas de la Royal Society registran que Edmond Halley presentó el libro diciendo que el método «duplica las cifras conocidas de la raíz en cada operación», de modo que repitiéndolo tres o cuatro veces se obtenían 8 o 10 cifras correctas: una descripción de la convergencia cuadrática. Newton describió el mismo método en su <em>Método de las fluxiones</em>. Según MacTutor, ninguno de los dos usaba todavía el cálculo diferencial para obtener las aproximaciones: la forma iterativa moderna, con la derivada, se debe a Thomas Simpson, que la publicó en 1740.</p>
+  </div>
+
+  <div class="tech-note">
+    <p><strong>¿Cuándo parar?</strong> Un programa de búsqueda de raíces se detiene cuando dos aproximaciones sucesivas difieren en menos que una tolerancia elegida. No tiene sentido pedir más precisión que la que tienen los números de la computadora: en el ejemplo de la secante de Young, el resultado final coincide con la raíz con una precisión de alrededor de 10<sup>−16</sup>, el límite de la doble precisión. Sobre ese límite trata el artículo sobre <a href="errores-numericos.html">errores numéricos</a>.</p>
+  </div>
+
+  <div class="closing">
+    <p>Bisección y Newton representan dos actitudes ante un problema numérico. La bisección renuncia a la velocidad a cambio de una garantía; Newton apuesta a que la función se parece a su tangente y, cuando acierta, duplica la precisión en cada paso. Conocer las dos, y saber cuándo puede fallar la segunda, es parte del oficio de cualquiera que haga física con una computadora.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Aplicá el método de Newton a f(x) = x² − a. ¿Qué fórmula se obtiene para x<sub>n+1</sub>? ¿Podrías usarla para calcular √10 a mano con tres pasos, partiendo de x<sub>0</sub> = 3?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>G. Strang y E. Herman, <em>Calculus, Volume 1</em>, OpenStax (2016), §2.4 «Continuity» y §4.9 «Newton's Method». <a href="https://openstax.org/books/calculus-volume-1/pages/4-9-newtons-method" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>A. P. Young, «Some output from root finding algorithms» y «Quantum Wells — Eigenvalues of the Schrödinger Equation», apuntes de Physics 115/242, Universidad de California en Santa Cruz. <a href="https://peteryoung.sites.ucsc.edu/files/2025/03/root.pdf" target="_blank" rel="noopener">peteryoung.sites.ucsc.edu</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Joseph Raphson" y "Thomas Simpson", <em>MacTutor History of Mathematics</em>. <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Raphson/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

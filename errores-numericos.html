@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Errores Numéricos: Cuando el Redondeo Mata | Mundo Quarks</title>
+  <meta name="description" content="Cómo guarda los números una computadora y qué puede salir mal: el redondeo, la cancelación catastrófica, el misil Patriot de 1991 y el Ariane 5.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Métodos Numéricos y Computación</div>
+  <h1>Errores Numéricos:<br><span class="hl">Cuando el Redondeo Mata</span></h1>
+  <p class="article-subtitle">El misil Patriot de 1991 y otros errores numéricos famosos</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Punto flotante</span><span class="tag">Patriot</span><span class="tag">Ariane 5</span></div>
+</div>
+<div class="article-container">
+  <p>El 25 de febrero de 1991, durante la Guerra del Golfo, una batería de misiles Patriot estadounidense en Dhahran, Arabia Saudita, no logró seguir ni interceptar un misil Scud iraquí. El Scud cayó sobre un cuartel del Ejército de los Estados Unidos y mató a 28 soldados. La causa, según el informe de la Oficina de Contabilidad General (GAO) del gobierno estadounidense, fue un problema de software: un cálculo de tiempo que perdía precisión por la forma en que la computadora guardaba los números. Una fracción tan inocente como 1/10 no se puede representar exactamente en binario, y un error de una diezmillonésima, acumulado durante cien horas, terminó siendo fatal.</p>
+
+  <div class="math-block">En binario: 1/10 = 0,000110011001100110011…<sub>2</sub> (periódico: no se puede guardar exactamente)<br>Precisión aproximada: simple (32 bits) ~10<sup>−7</sup> · doble (64 bits) ~10<sup>−16</sup><br>Rango aproximado: simple ~10<sup>±38</sup> · doble ~10<sup>±308</sup><br>Patriot: 9,5 × 10<sup>−8</sup> × (100 h × 3600 s/h × 10 décimas/s) ≈ 0,34 s</div>
+
+  <h2>Cómo Guarda los Números una Computadora</h2>
+
+  <p>Una computadora guarda los números con una cantidad fija de bits, y eso impone límites al rango y a la precisión. Peter Young los resume en sus apuntes de física computacional. Los enteros se representan exactamente, pero solo dentro de un rango: con 32 bits, hasta 2<sup>31</sup> − 1 = 2 147 483 647. En un programa de prueba que duplica un número y le suma uno, al pasarse de ese valor el resultado salta a −1, y el compilador no da ningún aviso. Los números reales se guardan en <strong>punto flotante</strong>, con un signo, un exponente y una mantisa, como en la notación científica pero en base 2. Con 64 bits, la doble precisión, se distinguen números con una precisión relativa de alrededor de 10<sup>−16</sup>.</p>
+
+  <p>El problema es que muchos números no tienen una representación exacta. David Goldberg, en un artículo clásico sobre aritmética de punto flotante, da el ejemplo típico: 0,1 tiene una expresión decimal finita, pero en binario es periódico, como 1/3 en decimal. Por eso, en doble precisión, 0,1 + 0,2 da 0,30000000000000004 y no 0,3, y sumar diez veces 0,1 da 0,99999999999999989 (cálculos propios). La diferencia que Young llama <strong>error de redondeo</strong> es minúscula en cada operación, pero se puede acumular o amplificar.</p>
+
+  <h2>La Cancelación Catastrófica</h2>
+
+  <p>La forma más traicionera de amplificar un error de redondeo es restar dos números casi iguales. Young muestra que el error relativo crece en esas restas, y Goldberg distingue dos casos. La cancelación es <strong>benigna</strong> si los números que se restan son exactos. Es <strong>catastrófica</strong> si ya traen errores de redondeo: las cifras correctas se cancelan y lo que queda es, en buena parte, el error. Goldberg muestra que a veces se puede evitar reescribiendo la fórmula: por ejemplo, calcular x² − y² como (x − y)(x + y), o reordenar la fórmula de la ecuación de segundo grado.</p>
+
+  <p>Un ejemplo propio: el cociente (1 − cos x)/x² tiende a 1/2 cuando x tiende a cero. Calculado en doble precisión con x = 10<sup>−8</sup>, da exactamente 0, porque cos x se redondea a 1. La expresión equivalente 2 sen²(x/2)/x², que no resta números parecidos, da 0,5000000000.</p>
+
+  <div class="info-box">
+    <h3>Dos errores que compiten</h3>
+    <p>Young distingue dos fuentes principales de error en el cálculo numérico: el redondeo y el error de aproximación del propio método. A veces compiten. Para calcular una derivada como [f(x + h) − f(x)]/h, el error de aproximación pide un h chico, pero con h demasiado chico la resta de dos valores casi iguales amplifica el redondeo. El mejor compromiso, con números de doble precisión, es un h del orden de 10<sup>−8</sup>, y el error final también es del orden de 10<sup>−8</sup>: se pierde la mitad de las cifras disponibles.</p>
+  </div>
+
+  <h2>El Misil Patriot</h2>
+
+  <p>Douglas Arnold, de la Universidad de Minnesota, reconstruyó el error del Patriot a partir del informe de la GAO. El reloj interno del sistema contaba el tiempo en décimas de segundo, y para pasarlo a segundos se multiplicaba por 1/10 usando un registro de 24 bits. Como 1/10 tiene una expansión binaria infinita, el valor guardado estaba truncado, con un error de alrededor de 0,000000095. La batería llevaba unas cien horas encendida, y ese error, multiplicado por la enorme cantidad de décimas de segundo transcurridas, dio un error de alrededor de 0,34 segundos en el tiempo calculado.</p>
+
+  <p>Un Scud viaja a unos 1676 metros por segundo, de modo que en ese tiempo recorre más de medio kilómetro. Según el fragmento del informe de la GAO que cita Arnold, el sistema predecía dónde aparecería el misil a partir de su velocidad y del momento de la última detección del radar, y el efecto del error era proporcional a la velocidad del blanco y al tiempo que el sistema llevaba funcionando: el «rango» que vigilaba el radar se corrió y el Scud quedó afuera. Arnold agrega una ironía: el cálculo de tiempo había sido mejorado en algunas partes del programa, pero no en todas, y por eso los errores no se cancelaron.</p>
+
+  <div class="analogy-box">
+    <p><strong>El reloj que atrasa:</strong> un reloj que atrasa una fracción ínfima de segundo por hora es perfectamente usable durante una tarde. Si se lo deja andar meses sin ponerlo en hora, el atraso se acumula y termina siendo de minutos. El Patriot tenía el mismo tipo de error, y lo grave fue que la batería había estado funcionando de corrido durante días.</p>
+  </div>
+
+  <h2>El Ariane 5</h2>
+
+  <p>El 4 de junio de 1996, el primer vuelo del cohete Ariane 5 terminó en un fracaso. Según el comunicado de la Agencia Espacial Europea sobre el informe de la comisión investigadora, unos 40 segundos después del inicio de la secuencia de vuelo, a unos 3700 metros de altura, el lanzador se desvió de su trayectoria, se partió y explotó. La causa fue la pérdida completa de la información de guiado y orientación, debida a errores de especificación y diseño en el software del sistema de referencia inercial.</p>
+
+  <p>El detalle técnico, citado del informe por Arnold, es otro límite de la representación de los números. Un valor en punto flotante de 64 bits, relacionado con la velocidad horizontal del cohete, se convirtió en un entero con signo de 16 bits. Su valor era mayor que 32 767, el máximo que cabe en ese formato, y la conversión falló. No fue un redondeo, sino un desborde, pero tiene la misma raíz que el caso del Patriot: un número que no cabía en el lugar donde se lo quería guardar.</p>
+
+  <div class="tech-note">
+    <p><strong>Algunas defensas:</strong> Young recomienda usar doble precisión para la mayor parte del trabajo numérico, y da un ejemplo: al promediar diez millones de datos en precisión simple, los últimos números se sumarían de manera muy imprecisa, porque la computadora apenas distingue el total antes y después de cada suma. Otra defensa es reescribir las fórmulas para evitar restar números casi iguales, como sugiere Goldberg. Y, como muestra el caso de 0,1 + 0,2, no conviene comparar dos números en punto flotante esperando una igualdad exacta. En el caso del Ariane 5, el programa anunció, en línea con las recomendaciones de la comisión, un nuevo examen de todo el software embarcado.</p>
+  </div>
+
+  <div class="closing">
+    <p>Los errores numéricos no son errores de programación en el sentido habitual: el código hace exactamente lo que dice, pero con números que no son exactamente los que el programador imaginaba. Casi siempre esa diferencia es invisible. El Patriot y el Ariane 5 muestran qué pasa cuando no lo es: un error de una diezmillonésima, acumulado durante cien horas, o un número demasiado grande para 16 bits.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Según el cálculo de Arnold, el error de tiempo del Patriot crece en proporción a las horas que el sistema lleva encendido. ¿Cuál habría sido el error después de 8 horas? ¿Y cuántos metros habría recorrido el Scud en ese tiempo? ¿Qué medida simple habría evitado el problema?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>A. P. Young, «Representation of numbers on the computer» y «Numerical Differentiation: Approximation and Roundoff Errors», apuntes de Physics 115/242, Universidad de California en Santa Cruz. <a href="https://peteryoung.sites.ucsc.edu/files/2025/03/numbers.pdf" target="_blank" rel="noopener">peteryoung.sites.ucsc.edu</a></li>
+    <li>D. Goldberg, "What every computer scientist should know about floating-point arithmetic", <em>ACM Comput. Surv.</em> 23, 5 (1991). <a href="https://doi.org/10.1145/103162.103163" target="_blank" rel="noopener">doi:10.1145/103162.103163</a></li>
+    <li>D. N. Arnold, «The Patriot Missile Failure» y «The Explosion of the Ariane 5», Universidad de Minnesota (2000), con fragmentos del informe GAO/IMTEC-92-26 y del informe de la comisión investigadora del Ariane 501. <a href="https://www-users.cse.umn.edu/~arnold/disasters/patriot.html" target="_blank" rel="noopener">www-users.cse.umn.edu</a></li>
+    <li>Agencia Espacial Europea, «Ariane 501 – Presentation of Inquiry Board report», comunicado de prensa n.º 33-1996 (1996). <a href="https://www.esa.int/Newsroom/Press_Releases/Ariane_501_-_Presentation_of_Inquiry_Board_report" target="_blank" rel="noopener">esa.int</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

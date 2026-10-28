@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Integración Numérica: Trapecios y Simpson | Mundo Quarks</title>
+  <meta name="description" content="Las reglas del punto medio, de los trapecios y de Simpson: cómo calcular una integral sin primitiva, sus cotas de error y cuándo confiar en el resultado.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Métodos Numéricos y Computación</div>
+  <h1>La Integración Numérica:<br><span class="hl">Trapecios y Simpson</span></h1>
+  <p class="article-subtitle">Trapecios, Simpson y cuándo confiar en el resultado</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Trapecios</span><span class="tag">Simpson</span><span class="tag">Cotas de error</span></div>
+</div>
+<div class="article-container">
+  <p>Una <a href="integral.html">integral</a> definida es un área bajo una curva, y el teorema fundamental del cálculo permite calcularla si se conoce una primitiva. El problema es que, como recuerda el texto de cálculo de OpenStax, las primitivas de muchas funciones no se pueden expresar, o no se pueden expresar fácilmente, con funciones conocidas. Un ejemplo central en física es la <a href="campana-gauss.html">campana de Gauss</a>: la probabilidad de caer a menos de una desviación estándar de la media es el área bajo la curva e<sup>−x²/2</sup>, normalizada, entre −1 y 1. Para obtener ese 68,27 % hay que calcular el área de otra manera: sumando rectángulos, trapecios o parábolas. Eso es la <strong>integración numérica</strong>.</p>
+
+  <div class="math-block">Intervalo [a, b] dividido en n partes de ancho h = (b − a)/n, con x<sub>i</sub> = a + i h y f<sub>i</sub> = f(x<sub>i</sub>)<br>Trapecios: T<sub>n</sub> = h [½f<sub>0</sub> + f<sub>1</sub> + f<sub>2</sub> + ⋯ + f<sub>n−1</sub> + ½f<sub>n</sub>] · error ≤ M<sub>2</sub>(b − a)³/(12n²)<br>Simpson (n par): S<sub>n</sub> = (h/3) [f<sub>0</sub> + 4f<sub>1</sub> + 2f<sub>2</sub> + 4f<sub>3</sub> + ⋯ + 4f<sub>n−1</sub> + f<sub>n</sub>] · error ≤ M<sub>4</sub>(b − a)⁵/(180n⁴)<br>M<sub>2</sub>, M<sub>4</sub>: máximos de |f″| y de |f<sup>(4)</sup>| en [a, b]</div>
+
+  <h2>Rectángulos y Trapecios</h2>
+
+  <p>La idea más simple viene de la propia definición de la integral: dividir el intervalo en n partes y sumar rectángulos. La <strong>regla del punto medio</strong> usa como altura de cada rectángulo el valor de la función en el centro del tramo. La <strong>regla de los trapecios</strong> une con un segmento recto los valores de la función en los extremos de cada tramo y suma las áreas de los trapecios que se forman. OpenStax observa que la de los trapecios tiende a ser menos precisa que la del punto medio, aunque las dos tienen un error que baja como 1/n²: si se duplica el número de tramos, el error se divide aproximadamente por cuatro.</p>
+
+  <h2>Simpson: Cambiar Rectas por Parábolas</h2>
+
+  <p>El punto medio aproxima la función por tramos constantes y los trapecios, por tramos rectos. El paso siguiente es usar parábolas: la <strong>regla de Simpson</strong> pasa una parábola por cada tres puntos consecutivos e integra esas parábolas exactamente. El resultado es la fórmula del recuadro, con los pesos 1, 4, 2, 4, …, 4, 1. OpenStax muestra que también se obtiene como un promedio pesado de las otras dos reglas: S<sub>2n</sub> = (2/3) M<sub>n</sub> + (1/3) T<sub>n</sub>. Su error baja como 1/n⁴: duplicar el número de tramos lo divide por dieciséis. Y como depende de la derivada cuarta, la regla de Simpson es exacta para cualquier polinomio de grado tres o menos. Lleva el nombre del matemático inglés Thomas Simpson, aunque según MacTutor él mismo reconoció que la había aprendido de Newton.</p>
+
+  <p>Peter Young, en sus apuntes de física computacional, da otra manera de llegar a Simpson. El error de la regla de los trapecios, para una función suave, se puede escribir como una serie que solo tiene potencias pares de h: h², h⁴, h⁶… Si se combinan el resultado con n tramos y el resultado con n/2 tramos de modo que se cancele el término en h², lo que queda es exactamente la regla de Simpson. Repetir el truco para cancelar también el término en h⁴, y los siguientes, es la <strong>integración de Romberg</strong>.</p>
+
+  <div class="analogy-box">
+    <p><strong>Medir un terreno con forma irregular:</strong> para estimar el área de un campo con un borde curvo, se pueden clavar estacas a lo largo del borde y unirlas con hilos rectos: así funciona la regla de los trapecios. Si en lugar de hilos rectos se usan arcos que siguen la curvatura entre cada tres estacas, como en la regla de Simpson, la estimación mejora muchísimo con la misma cantidad de estacas.</p>
+  </div>
+
+  <h2>Calcular la Campana</h2>
+
+  <p>Volvamos a la probabilidad de caer a menos de una desviación estándar en una gaussiana, cuyo valor es 0,682689… (cálculos propios):</p>
+
+  <div class="math-block">n = 2 tramos: trapecios 0,6409 (error −0,042) · Simpson 0,6932 (error +0,011)<br>n = 4: trapecios 0,6725 (error −0,010) · Simpson 0,68306 (error 3,7 × 10<sup>−4</sup>)<br>n = 8: trapecios 0,6802 (error −0,0025) · Simpson 0,682711 (error 2,1 × 10<sup>−5</sup>)<br>n = 16: trapecios 0,68206 (error −6,3 × 10<sup>−4</sup>) · Simpson 0,682691 (error 1,3 × 10<sup>−6</sup>)</div>
+
+  <p>Al duplicar los tramos, el error de los trapecios se divide por cuatro, y el de Simpson, por dieciséis, como predicen las cotas. Con 16 tramos y 17 evaluaciones de la función, Simpson ya da seis cifras correctas.</p>
+
+  <div class="info-box">
+    <h3>Cuándo confiar en el resultado</h3>
+    <p>OpenStax hace notar que, en general, no se conoce el valor exacto de la integral: si se conociera, no haría falta calcularla numéricamente. Por eso son útiles las <strong>cotas de error</strong> del recuadro, que dicen cuántos tramos garantizan una precisión dada a partir de una cota de la derivada segunda o de la cuarta. Otra comprobación sencilla, que se apoya en la misma idea que el método de Romberg, es repetir el cálculo con el doble de tramos y ver cuánto cambia el resultado. Si el cambio es pequeño y baja al ritmo que predice el orden del método, el resultado es confiable.</p>
+  </div>
+
+  <div class="tech-note">
+    <p><strong>Cuando la función no es suave:</strong> todas estas cotas suponen que la función tiene derivadas segunda o cuarta acotadas en el intervalo, y Young aclara que la serie de potencias pares de h vale si el integrando no tiene singularidades. Si la función tiene un salto o una derivada infinita en el intervalo, esas garantías dejan de valer, y el error puede no bajar al ritmo que prometen las fórmulas. Para integrales complicadas en muchas dimensiones, Nicholas Metropolis señalaba que el muestreo al azar, el <a href="metodo-montecarlo.html">método de Montecarlo</a>, es una forma eficiente de calcularlas.</p>
+  </div>
+
+  <div class="closing">
+    <p>Integrar numéricamente es volver a la idea original de la integral: sumar muchas áreas pequeñas. La diferencia entre una regla ingenua y una buena está en cómo se aproxima la curva entre los puntos. Con rectas, el error baja como 1/n²; con parábolas, como 1/n⁴. Con funciones suaves y unas pocas decenas de evaluaciones, Simpson alcanza una precisión que con trapecios requeriría cientos.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> La regla de Simpson es exacta para polinomios de grado tres. Comprobalo con ∫<sub>0</sub><sup>1</sup> x³ dx y n = 2. ¿Por qué creés que acierta también con el grado tres, si usa parábolas, que son de grado dos?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>G. Strang y E. Herman, <em>Calculus, Volume 2</em>, OpenStax (2016), §3.6 «Numerical Integration». <a href="https://openstax.org/books/calculus-volume-2/pages/3-6-numerical-integration" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>A. P. Young, «Romberg Integration», apuntes de Physics 115/242, Universidad de California en Santa Cruz. <a href="https://peteryoung.sites.ucsc.edu/files/2025/03/romberg.pdf" target="_blank" rel="noopener">peteryoung.sites.ucsc.edu</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Thomas Simpson", <em>MacTutor History of Mathematics</em>. <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Simpson/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>N. Metropolis, "The beginning of the Monte Carlo method", <em>Los Alamos Science</em>, n.º 15, número especial, 125 (1987). <a href="https://permalink.lanl.gov/object/tr?what=info:lanl-repo/lareport/LA-UR-88-9067" target="_blank" rel="noopener">permalink.lanl.gov</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

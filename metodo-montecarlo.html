@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Método de Montecarlo: Calcular con el Azar | Mundo Quarks</title>
+  <meta name="description" content="El método de Montecarlo: de la aguja de Buffon y el solitario de Ulam a calcular π con dardos, el error que baja como 1/√N y la simulación de neutrones.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Probabilidad, Estadística y Medición</div>
+  <h1>El Método de Montecarlo:<br><span class="hl">Calcular con el Azar</span></h1>
+  <p class="article-subtitle">Calcular π tirando dardos y simular partículas</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Ulam</span><span class="tag">Metropolis</span><span class="tag">Simulación</span></div>
+</div>
+<div class="article-container">
+  <p>Dibujá un cuadrado con un cuarto de círculo adentro y tirá dardos al azar. La fracción de dardos que cae dentro del cuarto de círculo se acerca a π/4, y con suficientes dardos se puede calcular π sin medir nada. Esa idea, usar números aleatorios para resolver un problema que no tiene nada de aleatorio, es el <strong>método de Montecarlo</strong>. Nació en Los Álamos a fines de la década de 1940 para seguir neutrones en el interior de un material fisionable, y hoy es una de las herramientas de cálculo más usadas de la física.</p>
+
+  <div class="math-block">Dardos uniformes en un cuadrado de lado 1: P(caer dentro del cuarto de círculo) = π/4 → π ≈ 4 n/N<br>n: dardos dentro · N: dardos totales · error estadístico típico: σ ≈ 4 √[p(1 − p)/N], con p = π/4<br>Integral: ∫<sub>a</sub><sup>b</sup> f(x) dx ≈ (b − a) · (1/N) Σ f(x<sub>i</sub>), con x<sub>i</sub> al azar en [a, b]<br>El error disminuye como 1/√N: para ganar un factor 10 de precisión hacen falta 100 veces más muestras</div>
+
+  <h2>La Aguja de Buffon</h2>
+
+  <p>La idea de calcular con el azar es antigua. El naturalista francés Georges Buffon planteó en 1733 un problema que resolvió en 1777: si se deja caer una aguja de largo l sobre un piso con rayas paralelas separadas una distancia d, con l ≤ d, la probabilidad de que la aguja cruce una raya es 2l/(πd). Aparece π, y entonces contar cruces es una manera de estimar π. Según su biografía en MacTutor, Buffon hizo el experimento tirando varillas por encima del hombro sobre un piso de baldosas. En un análisis de 1980, H.-J. Bentz repitió el experimento con 2000 tiradas y obtuvo π = 3,1430.</p>
+
+  <h2>Ulam, von Neumann y un Nombre de Casino</h2>
+
+  <p>El método moderno nació de una partida de cartas. Stanisław Ulam contó que la primera idea se le ocurrió en 1946, mientras se recuperaba de una enfermedad jugando solitarios: ¿qué probabilidad hay de que un solitario Canfield con 52 cartas salga bien? En lugar de resolver la combinatoria, se puede jugar muchas veces y contar los éxitos: la fracción de éxitos estima la probabilidad. Esa es la esencia del método.</p>
+
+  <p>Nicholas Metropolis relató el resto en 1987. Ulam sabía que las técnicas de muestreo estadístico habían caído en desuso porque las cuentas eran largas y tediosas, pero la ENIAC, la primera computadora electrónica, cambiaba la situación. Lo conversó con John von Neumann, que vio enseguida su utilidad y el 11 de marzo de 1947 envió a Robert Richtmyer, jefe de la División Teórica de Los Álamos, una carta con un esquema estadístico para el problema de la difusión de neutrones en un material fisionable. La idea era seguir la historia de muchos neutrones individuales: en cada paso, se sortea dónde ocurre el siguiente choque y qué pasa en él, una dispersión, una absorción o una fisión con nuevos neutrones, y se repite hasta obtener un panorama estadísticamente válido.</p>
+
+  <p>El nombre lo propuso Metropolis, y no por casualidad: Ulam tenía un tío que pedía dinero prestado a sus parientes porque «tenía que ir a Montecarlo». Metropolis cuenta además que Enrico Fermi, casi quince años antes, en Roma, ya había desarrollado por su cuenta técnicas de muestreo estadístico para estudiar la difusión de neutrones, y que en Los Álamos hizo construir un aparato analógico, el FERMIAC, que trazaba genealogías de neutrones sobre un plano. En 1949, Metropolis y Ulam publicaron el primer artículo sobre el método, al que describieron como un enfoque estadístico para el estudio de ecuaciones diferenciales.</p>
+
+  <h2>Calcular π con Dardos</h2>
+
+  <p>Con una computadora, los dardos se reemplazan por pares de números aleatorios (x, y) entre 0 y 1, y un dardo cae dentro del cuarto de círculo si x² + y² &lt; 1. Una simulación (un cálculo propio) dio estos resultados:</p>
+
+  <div class="math-block">N = 100 dardos → π ≈ 3,28 · error típico esperado ±0,16<br>N = 10 000 dardos → π ≈ 3,150 · error típico esperado ±0,016<br>N = 1 000 000 dardos → π ≈ 3,1388 · error típico esperado ±0,0016</div>
+
+  <p>Cada vez que el número de dardos se multiplica por 100, el error típico se divide por 10. Es la ley 1/√N que gobierna todo promedio de muestras independientes: la desviación estándar de un promedio de N valores es la de un valor dividida por √N, la misma que usa la <a href="propagacion-incertezas.html">evaluación estadística de incertezas</a>. Notá que el resultado con un millón de dardos se apartó de π en 0,0028, casi dos veces el error típico: es una fluctuación normal, y muestra que el método da un valor con una incerteza que hay que informar, no un valor exacto.</p>
+
+  <div class="analogy-box">
+    <p><strong>La encuesta numérica:</strong> el método de Montecarlo es una encuesta que se le hace a una función. En lugar de recorrerla punto por punto, se la consulta en lugares elegidos al azar y se promedian las respuestas. Como en una encuesta, el resultado tiene un margen de error que baja con el tamaño de la muestra, y es fácil de estimar.</p>
+  </div>
+
+  <h2>Simular Partículas</h2>
+
+  <p>Metropolis destacó por qué el método resultó tan útil para la física: un espectro de velocidades de neutrones con picos y valles es difícil de tratar con ecuaciones, pero para el método de Montecarlo alcanza con copiar ese espectro en la distribución de probabilidad con que se sortean las velocidades. Para obtener una distribución determinada a partir de números uniformes se usa la inversa de la distribución acumulada; por ejemplo, si x es uniforme entre 0 y 1, −ln x da distancias distribuidas en forma exponencial, como los caminos libres de los neutrones entre un choque y el siguiente.</p>
+
+  <p>La revisión del Particle Data Group sobre técnicas de Montecarlo dice que estos métodos son a menudo la única forma práctica de evaluar integrales difíciles o de generar variables con distribuciones de probabilidad complicadas. Se usan, por ejemplo, para calcular las posteriores del <a href="bayes-fisica.html">análisis bayesiano</a> con cadenas de Markov y para calcular cuán probable es que el fondo imite una señal: según la misma revisión de estadística, establecer por fuerza bruta que un pico alcanza las <a href="cinco-sigmas.html">cinco sigmas</a> puede requerir simular varias veces 10<sup>7</sup> experimentos.</p>
+
+  <div class="info-box">
+    <h3>Números aleatorios que no lo son</h3>
+    <p>Las computadoras no tiran dados: usan algoritmos que generan secuencias que parecen aleatorias, los números <strong>pseudoaleatorios</strong>. Uno de los primeros fue el «cuadrado medio» de von Neumann: se eleva al cuadrado un número de n cifras y se toman las n cifras del medio. Todos estos algoritmos producen secuencias periódicas, y la revisión del Particle Data Group advierte que para obtener valores efectivamente aleatorios hay que usar solo una pequeña parte de un período. El generador Mersenne Twister, muy usado hoy, tiene un período de 2<sup>19937</sup> − 1. Según la misma revisión, muchos generadores sencillos de uso común fallan las pruebas estadísticas de calidad.</p>
+  </div>
+
+  <div class="tech-note">
+    <p><strong>Lo que el azar no arregla:</strong> una simulación de Montecarlo es tan buena como el modelo que se le pone adentro. Si las probabilidades de cada choque o la geometría del detector están mal, el resultado será preciso pero equivocado. La incerteza estadística, que baja como 1/√N, se puede reducir corriendo más tiempo la computadora; los errores del modelo, no.</p>
+  </div>
+
+  <div class="closing">
+    <p>De las varillas de Buffon a los solitarios de Ulam y de ahí a los neutrones de Los Álamos, el método de Montecarlo convirtió el azar en una herramienta de cálculo. Su principio cabe en una línea: para calcular un promedio, sacá muestras al azar y promediá. Su precio también: la precisión mejora lentamente, como la raíz del número de muestras.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> ¿Cuántos dardos harían falta, aproximadamente, para obtener π con seis cifras decimales correctas por este método? ¿Te parece una buena manera de calcular π, o el interés del método está en otro lado?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>N. Metropolis, "The beginning of the Monte Carlo method", <em>Los Alamos Science</em>, n.º 15, número especial, 125 (1987). <a href="https://permalink.lanl.gov/object/tr?what=info:lanl-repo/lareport/LA-UR-88-9067" target="_blank" rel="noopener">permalink.lanl.gov</a></li>
+    <li>N. Metropolis y S. Ulam, "The Monte Carlo Method", <em>J. Am. Stat. Assoc.</em> 44, 335 (1949). <a href="https://doi.org/10.1080/01621459.1949.10483310" target="_blank" rel="noopener">doi:10.1080/01621459.1949.10483310</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, "Stan Ulam" y "Georges Buffon", <em>MacTutor History of Mathematics</em>. <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Ulam/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>E. W. Weisstein, "Buffon's Needle Problem" y "Monte Carlo Method", <em>MathWorld</em>. <a href="https://mathworld.wolfram.com/BuffonsNeedleProblem.html" target="_blank" rel="noopener">mathworld.wolfram.com</a></li>
+    <li>G. Cowan, «Monte Carlo Techniques» y «Statistics», en S. Navas <em>et al.</em> (Particle Data Group), "Review of Particle Physics", <em>Phys. Rev. D</em> 110, 030001 (2024). <a href="https://doi.org/10.1103/PhysRevD.110.030001" target="_blank" rel="noopener">doi:10.1103/PhysRevD.110.030001</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

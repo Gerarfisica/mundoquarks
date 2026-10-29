@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Percolación: Cuándo un Incendio Se Propaga | Mundo Quarks</title>
+  <meta name="description" content="La percolación: el umbral a partir del cual un incendio forestal cruza el bosque, un fluido atraviesa un material o una red queda conectada.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="matematica-aplicada.html" class="nav-back">Matemática Aplicada</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Matemática Aplicada <span>·</span> Caos y Sistemas Complejos</div>
+  <h1>La Percolación:<br><span class="hl">Cuándo un Incendio Se Propaga</span></h1>
+  <p class="article-subtitle">Cuándo un incendio forestal se propaga o se apaga</p>
+  <div class="article-tags"><span class="tag active">// Matemática Aplicada</span><span class="tag">Umbral crítico</span><span class="tag">Transición de fase</span><span class="tag">Incendios</span></div>
+</div>
+<div class="article-container">
+  <p>Imaginá un bosque en el que cada lugar de una grilla tiene un árbol con cierta probabilidad p y está vacío en el resto de los casos. Si se enciende el fuego en un borde, y el fuego solo puede pasar de un árbol a un árbol vecino, ¿llega al otro lado? Con pocos árboles, el incendio se apaga enseguida; con muchos, cruza todo el bosque. Lo sorprendente es que el paso de una situación a la otra no es gradual: ocurre de golpe, alrededor de un valor preciso de p. Ese fenómeno se llama <strong>percolación</strong>, y es uno de los modelos más simples de la física estadística que tiene una transición de fase.</p>
+
+  <div class="math-block">Percolación de sitios: cada sitio de una red está ocupado con probabilidad p, independientemente de los demás<br>Cúmulo: conjunto de sitios ocupados conectados entre vecinos · umbral p<sub>c</sub>: a partir de él aparece un cúmulo que atraviesa todo el sistema<br>Red cuadrada (sitios): p<sub>c</sub> = 0,592 746 21(13) · red triangular (sitios): p<sub>c</sub> = 1/2 exacto<br>Por debajo de p<sub>c</sub>, solo cúmulos finitos; por encima, un cúmulo «infinito» que conecta los bordes</div>
+
+  <h2>Un Problema de Máscaras de Gas</h2>
+
+  <p>Según la revisión de Abbas Ali Saberi sobre la teoría de la percolación, la idea ya había sido considerada por Flory en la década de 1940, pero su estudio como teoría matemática empezó en 1954, cuando el ingeniero Simon Broadbent y el matemático John Hammersley, uno de ellos ocupado en el diseño de filtros de carbón para máscaras de gas, se reunieron para tratar «la propagación paso a paso de un fluido o de partículas a través de un medio, siguiendo un camino aleatorio en el que cada enlace está abierto o cerrado según una proporción estadística». En su trabajo de 1957 propusieron el concepto de <strong>umbral de percolación</strong>: por encima de él, los enlaces abiertos forman con alta probabilidad un camino infinito.</p>
+
+  <p>Saberi ilustra la idea con un circuito: una lámpara conectada a una placa aislante en la que se van colocando al azar celdas metálicas. Mientras la fracción de celdas metálicas es menor que el umbral, se forman islas metálicas aisladas y la lámpara sigue apagada. Cuando se supera el umbral, aparece un cúmulo que une los dos lados de la placa, y la lámpara se enciende de golpe. Es una transición de aislante a conductor.</p>
+
+  <h2>El Bosque en la Computadora</h2>
+
+  <p>El incendio forestal del comienzo es el mismo problema: el fuego que se enciende en un borde quema exactamente el cúmulo de árboles conectado a ese borde, y cruza el bosque si ese cúmulo llega al otro lado. Una simulación propia, en bosques de 100 × 100 sitios con 200 repeticiones por valor de p, lo muestra con claridad:</p>
+
+  <div class="math-block">p = 0,50 → el fuego cruza en 0 % de los casos · se quema el 6 % de los árboles<br>p = 0,55 → cruza en 0 % · se quema el 13 %<br>p = 0,59 → cruza en 46 % · se quema el 45 %<br>p = 0,62 → cruza en 98 % · se quema el 83 % · p = 0,65 → cruza en 100 % · se quema el 93 %</div>
+
+  <p>Alrededor de p ≈ 0,59, muy cerca del umbral exacto de la red cuadrada, calculado por M. E. J. Newman y R. M. Ziff con una simulación de alta precisión, el comportamiento cambia por completo. Una diferencia de pocos puntos en la densidad de árboles separa un incendio que se apaga solo de uno que arrasa con casi todo el bosque. En una grilla finita la transición se suaviza; Saberi explica que, en el límite de un sistema infinito, la probabilidad de que exista un cúmulo infinito pasa de 0 a 1 como un escalón en p<sub>c</sub>.</p>
+
+  <div class="analogy-box">
+    <p><strong>Cruzar un río saltando piedras:</strong> si las piedras están muy separadas, no hay manera de cruzar; si hay muchas, se puede elegir entre varios caminos. Entre una situación y otra hay un punto en el que, por primera vez, aparece un camino que va de una orilla a la otra. No hace falta que haya piedras en todos lados: alcanza con que estén conectadas.</p>
+  </div>
+
+  <h2>Una Transición de Fase sin Temperatura</h2>
+
+  <p>La percolación no tiene energía ni temperatura, y sin embargo, según Saberi, tiene todos los rasgos de un fenómeno crítico, como las transiciones de los imanes del <a href="modelo-ising.html">modelo de Ising</a>. En el punto crítico, los cúmulos forman estructuras <a href="fractales-dimensiones.html">fractales</a>, y el comportamiento se describe con leyes de escala y exponentes críticos, es decir, con <a href="ley-potencias.html">leyes de potencia</a>. Una distinción importante: el valor del umbral no es universal, porque depende de la red y de la dimensión; en cambio, el comportamiento a gran escala cerca del umbral sí lo es, y según Saberi no depende del tipo de red. Es la idea de universalidad: para entender el comportamiento a gran escala no hace falta conocer los detalles microscópicos.</p>
+
+  <div class="info-box">
+    <h3>De los filtros a la topografía</h3>
+    <p>Saberi enumera aplicaciones de la teoría de la percolación en problemas muy diversos: materiales conductores, la forma fractal de las costas, las redes, la turbulencia, los coloides, las cuencas hidrográficas y la transición cuántica de Hall de espín, entre otros. También describe cómo se puede pensar el agua que penetra en una roca porosa, con poros conectados por canales de permeabilidad variable. En todos los casos la pregunta es la misma: ¿hay o no un camino que atraviese el sistema?</p>
+  </div>
+
+  <div class="tech-note">
+    <p><strong>Un modelo, no un incendio real:</strong> el bosque de la grilla es una idealización. Los incendios reales dependen del viento, la humedad, la pendiente y el tipo de vegetación, y el fuego puede saltar más allá de los vecinos inmediatos. Lo que el modelo captura es la estructura de la pregunta: cuando la propagación depende de que haya continuidad entre elementos vecinos, aparece un umbral, y cerca de él el resultado es muy sensible a pequeños cambios de densidad.</p>
+  </div>
+
+  <div class="closing">
+    <p>La percolación muestra que un cambio cualitativo puede salir de algo tan simple como ocupar sitios al azar. No hay fuerzas, ni temperatura, ni ecuaciones de movimiento: solo la pregunta de si hay un camino. Por debajo del umbral, todo queda en islas; por encima, aparece un continente. Entre las dos situaciones hay una transición de fase con todos sus rasgos, y por eso la percolación es uno de los ejemplos favoritos de la física de los sistemas complejos.</p>
+  </div>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> Si quisieras evitar que un incendio cruce un bosque plantado en grilla, ¿te convendría talar árboles al azar hasta bajar la densidad por debajo del umbral, o abrir cortafuegos en franjas? ¿Por qué la segunda opción podría necesitar talar muchos menos árboles?</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>A. A. Saberi, "Recent advances in percolation theory and its applications", <em>Phys. Rep.</em> 578, 1 (2015). <a href="https://doi.org/10.1016/j.physrep.2015.03.003" target="_blank" rel="noopener">doi:10.1016/j.physrep.2015.03.003</a></li>
+    <li>S. R. Broadbent y J. M. Hammersley, "Percolation processes", <em>Math. Proc. Camb. Phil. Soc.</em> 53, 629 (1957). <a href="https://doi.org/10.1017/S0305004100032680" target="_blank" rel="noopener">doi:10.1017/S0305004100032680</a></li>
+    <li>M. E. J. Newman y R. M. Ziff, "Efficient Monte Carlo algorithm and high-precision results for percolation", <em>Phys. Rev. Lett.</em> 85, 4104 (2000). <a href="https://doi.org/10.1103/PhysRevLett.85.4104" target="_blank" rel="noopener">doi:10.1103/PhysRevLett.85.4104</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="matematica-aplicada.html" class="back-btn">← Volver a Matemática Aplicada</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

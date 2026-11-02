@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
   </style>
@@ -58,6 +59,51 @@
   <p>Las reglas del Juego de la Vida son una de las definiciones formales más elegantes de la matemática moderna. En cada paso temporal, cada celda mira sus 8 vecinos (las celdas adyacentes ortogonalmente y diagonalmente) y aplica las siguientes reglas: una <em>celda viva</em> con menos de 2 vecinos vivos muere (por "soledad"); una celda viva con 2 o 3 vecinos vivos sobrevive; una celda viva con más de 3 vecinos muere (por "sobrepoblación"); una <em>celda muerta</em> con exactamente 3 vecinos vivos nace.</p>
 
   <p>Estas cuatro reglas, aplicadas simultáneamente a toda la grilla, generan dinámicas de complejidad infinita. Configuraciones aleatorias iniciales producen evoluciones impredecibles: algunas se estabilizan en patrones simples, otras oscilan periódicamente, otras se "extienden" caóticamente por la grilla. Configuraciones cuidadosamente diseñadas pueden producir comportamientos específicos: el "glider" (planeador) es una configuración de 5 células que se mueve diagonalmente por la grilla; el "cañón de Gosper" dispara gliders a intervalos regulares; configuraciones más elaboradas pueden replicarse a sí mismas o computar funciones lógicas.</p>
+  <figure class="figura" id="vida">
+    <canvas id="vida-c" width="1280" height="800" role="img" aria-label="Una grilla del Juego de la Vida con tres configuraciones rotuladas: un bloque que no cambia, un oscilador que alterna entre una barra horizontal y una vertical, y un planeador que avanza en diagonal cambiando de forma cada generación."></canvas>
+    <div class="int-botones">
+      <button type="button" id="vida-pausa">❚❚ pausa</button><button type="button" id="vida-paso">un paso</button><button type="button" id="vida-ini">volver a las tres figuras</button><button type="button" id="vida-azar">llenar al azar</button>
+    </div>
+    <p class="int-estado" id="vida-estado" aria-live="polite"></p>
+    <figcaption>El Juego de la Vida de Conway, con las reglas del artículo: una célula viva con 2 o 3 vecinas sobrevive, una muerta con exactamente 3 nace, y todas las demás mueren o siguen muertas. El bloque no cambia, el parpadeador repite su forma cada dos generaciones y el planeador se traslada una celda en diagonal cada cuatro. Tocá la grilla para agregar o quitar células.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('vida-c'), g = cv.getContext('2d'), E = 2, C = 64, F = 38, T = 9.5, X0 = (640 - C * T) / 2, Y0 = 32;
+    var m, gen, figuras, corriendo = true, visible = true, ultimo = 0;
+    var estado = document.getElementById('vida-estado'), bp = document.getElementById('vida-pausa');
+    function poner(lista, x, y) { lista.forEach(function (p) { m[(y + p[1]) * C + x + p[0]] = 1; }); }
+    function inicial() { m = new Uint8Array(C * F); gen = 0; figuras = true;
+      poner([[1, 0], [2, 1], [0, 2], [1, 2], [2, 2]], 4, 4);            // planeador
+      poner([[0, 0], [1, 0], [0, 1], [1, 1]], 12, 28);                   // bloque
+      poner([[0, 0], [1, 0], [2, 0]], 48, 8); }                          // parpadeador
+    function avanzar() { var n = new Uint8Array(C * F);
+      for (var y = 0; y < F; y++) for (var x = 0; x < C; x++) { var v = 0;
+        for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if (dx || dy) v += m[((y + dy + F) % F) * C + (x + dx + C) % C];
+        var i = y * C + x; n[i] = v === 3 || (v === 2 && m[i]) ? 1 : 0; }
+      m = n; gen++; if (figuras && gen > 120) figuras = false; }
+    function rotulo(txt, x, y) { g.fillStyle = '#f5a623'; g.font = "11px 'Space Mono', monospace"; g.fillText(txt, X0 + x * T, Y0 + y * T); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 400);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('JUEGO DE LA VIDA', 20, 22);
+      g.fillStyle = '#8892b0'; g.font = "11px 'Space Mono', monospace"; g.textAlign = 'right'; g.fillText('generación ' + gen, 620, 22); g.textAlign = 'left';
+      g.strokeStyle = 'rgba(26,108,245,0.15)'; g.lineWidth = 0.5; g.beginPath();
+      for (var x = 0; x <= C; x++) { g.moveTo(X0 + x * T, Y0); g.lineTo(X0 + x * T, Y0 + F * T); } for (var y = 0; y <= F; y++) { g.moveTo(X0, Y0 + y * T); g.lineTo(X0 + C * T, Y0 + y * T); } g.stroke();
+      g.fillStyle = '#00d4ff'; for (var i = 0; i < C * F; i++) if (m[i]) g.fillRect(X0 + (i % C) * T + 0.5, Y0 + Math.floor(i / C) * T + 0.5, T - 1, T - 1);
+      if (figuras) { var d = Math.floor(gen / 4); rotulo('planeador ↘', 4 + d + 4, 4 + d + 1.5); rotulo('bloque', 15, 29.6); rotulo('parpadeador', 52, 7); }
+      estado.innerHTML = figuras ? 'Generación ' + gen + ': el planeador avanzó <strong>' + Math.floor(gen / 4) + ' celdas</strong> en diagonal; el bloque sigue igual y el parpadeador alterna.' : 'Generación ' + gen + ': ' + m.reduce(function (s, v) { return s + v; }, 0) + ' células vivas.';
+    }
+    function bucle(ts) { if (corriendo && visible && ts - ultimo > 110) { ultimo = ts; avanzar(); dibujar(); } requestAnimationFrame(bucle); }
+    bp.addEventListener('click', function () { corriendo = !corriendo; bp.textContent = corriendo ? '❚❚ pausa' : '▶ seguir'; });
+    document.getElementById('vida-paso').addEventListener('click', function () { corriendo = false; bp.textContent = '▶ seguir'; avanzar(); dibujar(); });
+    document.getElementById('vida-ini').addEventListener('click', function () { inicial(); dibujar(); });
+    document.getElementById('vida-azar').addEventListener('click', function () { for (var i = 0; i < C * F; i++) m[i] = Math.random() < 0.3 ? 1 : 0; gen = 0; figuras = false; dibujar(); });
+    cv.addEventListener('click', function (e) { var r = cv.getBoundingClientRect(), x = Math.floor(((e.clientX - r.left) / r.width * 640 - X0) / T), y = Math.floor(((e.clientY - r.top) / r.height * 400 - Y0) / T);
+      if (x >= 0 && x < C && y >= 0 && y < F) { m[y * C + x] ^= 1; figuras = false; dibujar(); } });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    inicial(); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Analogía de la ola en el estadio:</strong> Cuando los espectadores de un estadio hacen "la ola", cada persona individual sigue una regla muy simple: "si mi vecino de la izquierda se levanta, yo me levanto; si mi vecino de la derecha se sienta, yo me siento". Aplicando esta regla local, sin coordinación central, una ola coherente se propaga alrededor del estadio entero. <strong>Los autómatas celulares operan según el mismo principio</strong>: cada celda sigue reglas locales basadas en sus vecinos inmediatos, sin "saber" nada sobre el sistema completo. Sin embargo, esos comportamientos locales se coordinan colectivamente, produciendo patrones globales complejos que ningún componente individual planeó ni puede percibir.</p>
@@ -157,6 +203,50 @@
   <p>En los años 80, el físico Stephen Wolfram estudió sistemáticamente los autómatas celulares unidimensionales más simples posibles: una sola fila de celdas, cada una con dos estados (0 o 1), evolucionando según reglas basadas en el estado de la celda y sus dos vecinas inmediatas. Hay exactamente 256 reglas posibles de este tipo (porque hay 8 configuraciones posibles de tres celdas y cada una debe mapearse a 0 o 1).</p>
 
   <p>Wolfram clasificó estas 256 reglas en cuatro categorías: la <strong>Clase I</strong> produce configuraciones que se estabilizan en patrones simples; la <strong>Clase II</strong> produce patrones periódicos repetitivos; la <strong>Clase III</strong> produce patrones aparentemente aleatorios; la <strong>Clase IV</strong> produce patrones complejos con estructuras emergentes que se mueven, interactúan y combinan. La Regla 110 (clase IV) fue posteriormente demostrada computacionalmente universal —el sistema computacionalmente universal más simple conocido—.</p>
+  <figure class="figura" id="eca">
+    <canvas id="eca-c" width="1280" height="860" role="img" aria-label="Arriba, la tabla de una regla de autómata elemental: para cada una de las ocho combinaciones de una celda y sus dos vecinas, el color que tendrá en la generación siguiente. Abajo, la evolución generación por generación, de arriba hacia abajo. Según la regla aparece un patrón que se apaga, uno regular, uno caótico o estructuras que se mueven e interactúan."></canvas>
+    <div class="int-botones" role="group" aria-label="Regla">
+      <button type="button" data-r="32">regla 32 · clase I</button><button type="button" data-r="108">108 · clase II</button><button type="button" data-r="30">30 · clase III</button><button type="button" data-r="110">110 · clase IV</button>
+    </div>
+    <div class="int-control">
+      <label for="eca-r">regla: <output id="eca-r-v"></output></label>
+      <input type="range" id="eca-r" min="0" max="255" step="1" value="30">
+    </div>
+    <div class="int-botones"><button type="button" id="eca-inicio">empezar al azar</button></div>
+    <p class="int-estado" id="eca-estado" aria-live="polite"></p>
+    <figcaption>Un autómata celular elemental: una fila de celdas blancas o negras que se actualiza toda a la vez, y cada celda mira solo a sus dos vecinas. Las 8 combinaciones posibles y la respuesta a cada una forman un número de 0 a 255, la regla. Elegí una de las cuatro clases de Wolfram, o cualquier regla, y mirá crecer las generaciones hacia abajo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('eca-c'), g = cv.getContext('2d'), E = 2, W = 640, N = 160, CEL = 3.5, X0 = (W - N * CEL) / 2, Y0 = 110, FILAS = 90;
+    var rango = document.getElementById('eca-r'), salida = document.getElementById('eca-r-v'), estado = document.getElementById('eca-estado'), bi = document.getElementById('eca-inicio');
+    var botones = document.querySelectorAll('#eca [data-r]'), regla, fila, gen, azar = false, visible = true, ultimo = 0;
+    var clases = { 32: 'Clase I: todo se apaga y queda uniforme.', 108: 'Clase II: estructuras simples, fijas o periódicas.', 30: 'Clase III: un patrón caótico, que no se repite; Wolfram lo usó como generador de números aleatorios.', 110: 'Clase IV: estructuras localizadas que se mueven y chocan; la regla 110 es capaz de computación universal.' };
+    function tabla() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, 430);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('REGLA ' + regla, 20, 28);
+      for (var v = 7; v >= 0; v--) { var x = 26 + (7 - v) * 74;
+        for (var b = 0; b < 3; b++) { g.fillStyle = (v >> (2 - b)) & 1 ? '#00d4ff' : '#0d1a3c'; g.fillRect(x + b * 18, 44, 16, 16); g.strokeStyle = 'rgba(136,146,176,0.5)'; g.strokeRect(x + b * 18 + 0.5, 44.5, 15, 15); }
+        g.fillStyle = (regla >> v) & 1 ? '#00d4ff' : '#0d1a3c'; g.fillRect(x + 18, 66, 16, 16); g.strokeStyle = '#f5a623'; g.strokeRect(x + 18.5, 66.5, 15, 15);
+        g.fillStyle = '#8892b0'; g.font = "10px 'Space Mono', monospace"; g.fillText((regla >> v) & 1, x + 22, 96); }
+    }
+    function reiniciar() {
+      regla = parseInt(rango.value, 10); salida.textContent = regla; gen = 0;
+      fila = new Uint8Array(N); if (azar) for (var i = 0; i < N; i++) fila[i] = Math.random() < 0.5 ? 1 : 0; else fila[regla === 110 ? N - 20 : N >> 1] = 1;
+      tabla(); dibujarFila();
+      estado.textContent = clases[regla] || 'Regla ' + regla + ' (en binario, ' + ('00000000' + regla.toString(2)).slice(-8) + '): la respuesta de la tabla a cada combinación, de 111 a 000.';
+      for (var b = 0; b < botones.length; b++) botones[b].setAttribute('aria-pressed', botones[b].getAttribute('data-r') == regla ? 'true' : 'false');
+    }
+    function dibujarFila() { g.fillStyle = '#00d4ff'; for (var i = 0; i < N; i++) if (fila[i]) g.fillRect(X0 + i * CEL, Y0 + gen * CEL * 0.9, CEL, CEL * 0.9); }
+    function avanzar() { var nueva = new Uint8Array(N); for (var i = 0; i < N; i++) { var v = (fila[(i + N - 1) % N] << 2) | (fila[i] << 1) | fila[(i + 1) % N]; nueva[i] = (regla >> v) & 1; } fila = nueva; gen++; dibujarFila(); }
+    function bucle(ts) { if (visible && gen < FILAS && ts - ultimo > 40) { ultimo = ts; avanzar(); } requestAnimationFrame(bucle); }
+    for (var b = 0; b < botones.length; b++) botones[b].addEventListener('click', function () { rango.value = this.getAttribute('data-r'); reiniciar(); });
+    rango.addEventListener('input', reiniciar);
+    bi.addEventListener('click', function () { azar = !azar; bi.textContent = azar ? 'empezar con una celda' : 'empezar al azar'; reiniciar(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    reiniciar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <p>Wolfram argumentó en su monumental <em>A New Kind of Science</em> (2002) que esta clasificación tiene importancia fundamental: muchos fenómenos complejos en la naturaleza pueden ser modelados como autómatas celulares, y comprender estos modelos podría revolucionar las ciencias naturales. Su tesis sigue siendo controvertida, pero ha inspirado investigación sustancial.</p>
 

@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -113,6 +114,45 @@
   </figure>
 
   <p>Una iteración propia lo muestra. Con λ = 0,6, la sucesión se queda en 0,5833, el punto fijo 1 − 1/(4λ). Con λ = 0,8, alterna entre 0,7995 y 0,5130. Con λ = 0,88, recorre cuatro valores: 0,8795; 0,3731; 0,8233 y 0,5121. Con λ = 0,95, los valores no se repiten nunca, y dos condiciones iniciales que difieren en 10<sup>−10</sup> se separan cada vez más: es la sensibilidad a las condiciones iniciales del <a href="caos-determinista.html">caos determinista</a>.</p>
+  <figure class="figura" id="bfz">
+    <canvas id="bfz-c" width="1280" height="760" role="img" aria-label="El diagrama de bifurcación del mapa logístico, calculado en el navegador. Con un clic se amplía tres veces la zona elegida. Al ampliar cerca de los puntos de duplicación aparecen nuevas ramas que se dividen en dos, y dentro del caos, ventanas periódicas con copias en miniatura del diagrama completo."></canvas>
+    <div class="int-botones"><button type="button" id="bfz-cas">ir a la cascada 2 → 4 → 8</button><button type="button" id="bfz-ven">ir a la ventana de período 3</button><button type="button" id="bfz-ini">volver al inicio</button></div>
+    <p class="int-estado" id="bfz-estado" aria-live="polite"></p>
+    <figcaption>El mapa logístico x → 4λx(1 − x) en la notación de Peter Young, iterado en tu navegador para cada valor de λ. Hacé clic para ampliar tres veces la zona elegida. Las duplicaciones de período se suceden cada vez más juntas, con distancias que se achican en un factor cercano a 4,669, la constante de Feigenbaum, y dentro del caos hay ventanas donde todo el diagrama se repite en miniatura.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('bfz-c'), g = cv.getContext('2d'), E = 2, X0 = 60, Y0 = 44, W = 560, H = 300, l0, l1, x0, x1, estado = document.getElementById('bfz-estado'), trabajo = 0;
+    var RW = 560, RH = 300, tmp = document.createElement('canvas'); tmp.width = RW; tmp.height = RH; var tg = tmp.getContext('2d');
+    function f(v, d) { return v.toFixed(d).replace('.', ','); }
+    function dibujar() {
+      var id = ++trabajo, cnt = new Uint16Array(RW * RH), col = 0, it = Math.round(400 + 200 * Math.log2(0.3 / (l1 - l0) + 1));
+      function lote() { if (id !== trabajo) return; var fin = Math.min(RW, col + 40);
+        for (; col < fin; col++) { var l = l0 + (l1 - l0) * (col + 0.5) / RW, x = 0.3; for (var k = 0; k < 1500; k++) x = 4 * l * x * (1 - x);
+          for (k = 0; k < it; k++) { x = 4 * l * x * (1 - x); if (x >= x0 && x < x1) { var r = Math.floor((x1 - x) / (x1 - x0) * RH); cnt[r * RW + col]++; } } }
+        var img = tg.createImageData(RW, RH); for (var i = 0; i < RW * RH; i++) { var c = cnt[i], o = 4 * i; if (c) { var a = Math.min(1, 0.35 + 0.65 * Math.log(1 + c) / Math.log(40)); img.data[o] = 7 * (1 - a); img.data[o + 1] = 13 + a * 199; img.data[o + 2] = 34 + a * 221; } else { img.data[o] = 7; img.data[o + 1] = 13; img.data[o + 2] = 34; } img.data[o + 3] = 255; }
+        tg.putImageData(img, 0, 0); marco(); if (col < RW) setTimeout(lote, 0); }
+      lote();
+      estado.innerHTML = 'λ entre ' + f(l0, 5) + ' y ' + f(l1, 5) + ', x entre ' + f(x0, 4) + ' y ' + f(x1, 4) + '. Ampliación: <strong>×' + Math.round(0.3 / (l1 - l0)) + '</strong> en λ.';
+    }
+    function marco() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 380); g.drawImage(tmp, X0, Y0, W, H);
+      g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1; g.strokeRect(X0, Y0, W, H);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('DIAGRAMA DE BIFURCACIÓN', 20, 28);
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; var dl = (l1 - l0) > 0.1 ? 2 : (l1 - l0) > 0.01 ? 3 : (l1 - l0) > 0.001 ? 4 : 5;
+      g.textAlign = 'center'; for (var i = 0; i <= 4; i++) g.fillText(f(l0 + (l1 - l0) * i / 4, dl), X0 + W * i / 4, Y0 + H + 16);
+      g.textAlign = 'right'; for (i = 0; i <= 2; i++) g.fillText(f(x0 + (x1 - x0) * i / 2, 3), X0 - 6, Y0 + H - H * i / 2 + 4); g.fillText('λ', X0 + W, Y0 + H + 32); g.textAlign = 'left';
+    }
+    function ir(a, b, c, d) { l0 = a; l1 = b; x0 = c; x1 = d; dibujar(); }
+    cv.addEventListener('click', function (e) { var r = cv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * 640, py = (e.clientY - r.top) / r.height * 380;
+      if (px < X0 || px > X0 + W || py < Y0 || py > Y0 + H) return; var l = l0 + (l1 - l0) * (px - X0) / W, x = x1 - (x1 - x0) * (py - Y0) / H, dl = (l1 - l0) / 6, dx = (x1 - x0) / 6;
+      ir(Math.max(0.7, l - dl), Math.min(1, l + dl), Math.max(0, x - dx), Math.min(1, x + dx)); });
+    document.getElementById('bfz-ini').addEventListener('click', function () { ir(0.7, 1, 0, 1); });
+    document.getElementById('bfz-cas').addEventListener('click', function () { ir(0.85, 0.895, 0.75, 0.9); });
+    document.getElementById('bfz-ven').addEventListener('click', function () { ir(0.95, 0.965, 0, 1); });
+    ir(0.7, 1, 0, 1);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La regla que se dobla:</strong> imaginá una regla de plástico apoyada de punta sobre la mesa y que la empujás desde arriba cada vez con más fuerza. Al principio sigue recta, comprimida apenas. Pero al superar cierta fuerza, de golpe se curva hacia un costado o hacia el otro. Antes había un solo estado posible; después hay dos, y cuál elige depende de una imperfección mínima. Así se ve, en la vida cotidiana, un cambio cualitativo producido por un cambio gradual de un parámetro.</p>

@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -116,6 +117,40 @@
   <div class="tech-note">
     <p><strong>La cuerda vibrante:</strong> con la ecuación de onda, el mismo procedimiento da modos con la misma forma, sen(nπx/L), pero ahora cada uno oscila en el tiempo en lugar de decaer, con frecuencia angular ω<sub>n</sub> = nπc/L. Las frecuencias de los modos de una cuerda son múltiplos enteros de la fundamental: n = 1, 2, 3… Por eso una cuerda produce <strong>armónicos</strong> y suena con una altura definida. En una membrana circular, los modos ya no son senos sino <a href="funciones-bessel.html">funciones de Bessel</a>, y sus frecuencias dejan de ser múltiplos enteros.</p>
   </div>
+  <figure class="figura" id="cmn">
+    <canvas id="cmn-c" width="1280" height="640" role="img" aria-label="Una cuerda fija en sus dos extremos que vibra en el modo elegido: una forma senoidal con n medias ondas que sube y baja sin desplazarse. Los nodos, puntos que no se mueven, están marcados con círculos; los vientres, donde la oscilación es máxima, con flechas."></canvas>
+    <div class="int-botones" role="group" aria-label="Modo">
+      <button type="button" data-n="1">n = 1</button><button type="button" data-n="2">n = 2</button><button type="button" data-n="3">n = 3</button><button type="button" data-n="4">n = 4</button><button type="button" data-n="5">n = 5</button><button type="button" data-n="0">1 + 3 juntos</button>
+    </div>
+    <p class="int-estado" id="cmn-estado" aria-live="polite"></p>
+    <figcaption>Los modos normales de una cuerda fija en sus extremos: la forma sen(nπx/L) no cambia, solo su amplitud oscila, con frecuencia n veces la fundamental. Los nodos no se mueven nunca. La última opción suma los modos 1 y 3: como cada uno oscila a su propio ritmo, la forma de la suma sí cambia, pero se repite exactamente con el período del modo fundamental.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cmn-c'), g = cv.getContext('2d'), E = 2, X0 = 50, W = 540, YC = 150, A = 90, n = 1, t = 0, prev = null, visible = true;
+    var estado = document.getElementById('cmn-estado'), botones = document.querySelectorAll('#cmn [data-n]');
+    function forma(x, tt) { if (n) return Math.sin(n * Math.PI * x) * Math.cos(n * 2.2 * tt); return 0.7 * Math.sin(Math.PI * x) * Math.cos(2.2 * tt) + 0.4 * Math.sin(3 * Math.PI * x) * Math.cos(3 * 2.2 * tt); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 320);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText(n ? 'MODO n = ' + n + ' · FRECUENCIA ' + n + ' × f₁' : 'MODOS 1 Y 3 SUMADOS', 20, 28);
+      g.strokeStyle = 'rgba(136,146,176,0.35)'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(X0, YC); g.lineTo(X0 + W, YC); g.stroke();
+      if (n) { [1, -1].forEach(function (s) { g.beginPath(); for (var i = 0; i <= 200; i++) { var x = i / 200, Y = YC - s * A * Math.sin(n * Math.PI * x); if (i) g.lineTo(X0 + W * x, Y); else g.moveTo(X0 + W * x, Y); } g.stroke(); }); }
+      g.setLineDash([]);
+      g.strokeStyle = '#00d4ff'; g.lineWidth = 3; g.beginPath(); for (var i = 0; i <= 300; i++) { var x = i / 300, Y = YC - A * forma(x, t); if (i) g.lineTo(X0 + W * x, Y); else g.moveTo(X0 + W * x, Y); } g.stroke();
+      g.fillStyle = '#8892b0'; g.fillRect(X0 - 8, YC - 40, 8, 80); g.fillRect(X0 + W, YC - 40, 8, 80);
+      g.font = "11px 'Space Mono', monospace";
+      if (n) { for (var k = 0; k <= n; k++) { var xn = X0 + W * k / n; g.strokeStyle = '#f5a623'; g.lineWidth = 2; g.beginPath(); g.arc(xn, YC, 6, 0, 7); g.stroke(); }
+        for (k = 0; k < n; k++) { var xv = X0 + W * (k + 0.5) / n; g.strokeStyle = '#5ee0a0'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(xv, YC - A - 12); g.lineTo(xv, YC + A + 12); g.stroke(); }
+        g.fillStyle = '#f5a623'; g.fillText('○ nodos: ' + (n + 1) + ' (con los extremos)', X0, 292); g.fillStyle = '#5ee0a0'; g.fillText('│ vientres: ' + n, X0 + 300, 292); }
+    }
+    function bucle(ts) { if (prev !== null && visible) t += Math.min(0.05, (ts - prev) / 1000); prev = ts; if (visible) dibujar(); requestAnimationFrame(bucle); }
+    function elegir(k) { n = k; for (var b = 0; b < botones.length; b++) botones[b].setAttribute('aria-pressed', botones[b].getAttribute('data-n') == k ? 'true' : 'false');
+      estado.innerHTML = n ? 'Modo ' + n + ': forma sen(' + (n === 1 ? '' : n) + 'πx/L), con <strong>' + (n - 1) + ' nodo' + (n === 2 ? '' : 's') + ' interior' + (n === 2 ? '' : 'es') + '</strong>. Oscila ' + n + ' vez' + (n === 1 ? '' : 'es') + ' por cada oscilación del fundamental.' : 'La suma de dos modos ya no tiene nodos fijos: su forma cambia, pero vuelve a ser la misma después de un período del <strong>modo fundamental</strong>.'; }
+    for (var b = 0; b < botones.length; b++) botones[b].addEventListener('click', function () { elegir(parseInt(this.getAttribute('data-n'), 10)); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    elegir(1); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="info-box">
     <h3>Una idea que va más allá del calor</h3>

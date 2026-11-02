@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -59,6 +60,46 @@
   <h2>La Idea: Seguir la Pendiente</h2>
 
   <p>Una ecuación diferencial de primer orden da, en cada punto, la pendiente de la solución. El método de Euler la usa de la manera más directa posible: parte del valor inicial, avanza un paso h en línea recta con la pendiente que indica la ecuación, recalcula la pendiente en el punto nuevo y repite. La solución aproximada es una sucesión de segmentos rectos. En otras palabras, reemplaza la <a href="derivada.html">derivada</a> por un cociente de diferencias finitas: dy/dt ≈ (y<sub>n+1</sub> − y<sub>n</sub>)/h.</p>
+  <figure class="figura" id="eul">
+    <svg viewBox="0 0 640 400" role="img" aria-labelledby="eul-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="eul-t">La solución exacta de dy/dt = y, la exponencial, y la aproximación de Euler: una poligonal de segmentos rectos que sigue en cada punto la pendiente local. Con un paso grande la poligonal queda muy por debajo; al achicar el paso se acerca a la curva exacta.</title>
+      <rect width="640" height="400" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace" font-size="14" fill="#8892b0">
+        <text x="20" y="28" fill="#eef2ff" font-size="16" letter-spacing="1">EULER PARA dy/dt = y, y(0) = 1</text>
+        <g id="eul-ejes"></g>
+        <path id="eul-ex" fill="none" stroke="#eef2ff" stroke-width="2.4"/>
+        <g id="eul-pol"></g>
+        <text x="80" y="70" fill="#eef2ff" font-size="12">exacta: y = eᵗ</text><text x="80" y="90" fill="#f5a623" font-size="12">Euler: yₙ₊₁ = yₙ + h·yₙ</text>
+      </g>
+    </svg>
+    <div class="int-botones" role="group" aria-label="Paso h">
+      <button type="button" data-h="1">h = 1</button><button type="button" data-h="0.5">h = 0,5</button><button type="button" data-h="0.25">h = 0,25</button><button type="button" data-h="0.1">h = 0,1</button><button type="button" data-h="0.02">h = 0,02</button>
+    </div>
+    <p class="int-estado" id="eul-estado" aria-live="polite"></p>
+    <figcaption>El método de Euler avanza en línea recta con la pendiente del punto donde está, y en el punto nuevo recalcula. Para dy/dt = y la pendiente crece con y, y cada segmento se queda corto: la aproximación siempre está por debajo. Al dividir el paso, el error en t = 2 se reduce aproximadamente a la mitad: el método es de primer orden.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var X0 = 60, W = 540, Y0 = 50, H = 290, h = 0.5, estado = document.getElementById('eul-estado');
+    function px(t) { return X0 + W * t / 2; } function py(y) { return Y0 + H * (1 - y / 8); }
+    var e = '<line x1="' + X0 + '" y1="' + py(0) + '" x2="' + (X0 + W) + '" y2="' + py(0) + '" stroke="#8892b0" stroke-opacity="0.7"/><line x1="' + X0 + '" y1="' + Y0 + '" x2="' + X0 + '" y2="' + py(0) + '" stroke="#8892b0" stroke-opacity="0.7"/>';
+    for (var t = 0; t <= 2; t += 0.5) e += '<text x="' + px(t) + '" y="' + (py(0) + 18) + '" text-anchor="middle" font-size="11">' + String(t).replace('.', ',') + '</text>';
+    for (var y = 2; y <= 8; y += 2) e += '<text x="' + (X0 - 6) + '" y="' + (py(y) + 4) + '" text-anchor="end" font-size="11">' + y + '</text><line x1="' + X0 + '" y1="' + py(y) + '" x2="' + (X0 + W) + '" y2="' + py(y) + '" stroke="#8892b0" stroke-opacity="0.12"/>';
+    e += '<text x="' + (X0 + W) + '" y="' + (py(0) + 36) + '" text-anchor="end" font-size="11">t</text>';
+    document.getElementById('eul-ejes').innerHTML = e;
+    var d = ''; for (var i = 0; i <= 200; i++) { var tt = 2 * i / 200; d += (i ? ' L' : 'M') + px(tt).toFixed(1) + ',' + py(Math.exp(tt)).toFixed(1); } document.getElementById('eul-ex').setAttribute('d', d);
+    function actualizar() {
+      var n = Math.round(2 / h), yv = 1, p = 'M' + px(0) + ',' + py(1), pts = '<circle cx="' + px(0) + '" cy="' + py(1) + '" r="4" fill="#f5a623"/>';
+      for (var k = 1; k <= n; k++) { var y0 = yv; yv = yv + h * yv; p += ' L' + px(k * h).toFixed(1) + ',' + py(yv).toFixed(1); if (n <= 20) pts += '<circle cx="' + px(k * h).toFixed(1) + '" cy="' + py(yv).toFixed(1) + '" r="4" fill="#f5a623"/>'; }
+      document.getElementById('eul-pol').innerHTML = '<path d="' + p + '" fill="none" stroke="#f5a623" stroke-width="2.2"/>' + pts;
+      var err = Math.exp(2) - yv;
+      document.querySelectorAll('#eul [data-h]').forEach(function (b) { b.setAttribute('aria-pressed', parseFloat(b.getAttribute('data-h')) === h ? 'true' : 'false'); });
+      estado.innerHTML = 'Con h = ' + String(h).replace('.', ',') + ' (' + n + ' paso' + (n === 1 ? '' : 's') + '), Euler da y(2) = <strong>' + yv.toFixed(3).replace('.', ',') + '</strong>; el valor exacto es e² = 7,389. Error: <strong>' + err.toFixed(3).replace('.', ',') + '</strong>.';
+    }
+    document.querySelectorAll('#eul [data-h]').forEach(function (b) { b.addEventListener('click', function () { h = parseFloat(b.getAttribute('data-h')); actualizar(); }); });
+    actualizar();
+  })();
+  </script>
 
   <p>El texto de cálculo de OpenStax resume el compromiso que aparece enseguida. Cuanto más chico es el paso h, más cuentas hay que hacer; cuanto más grande, menos cuentas, pero a costa de una precisión menor. Elegir el paso es elegir entre tiempo de cálculo y exactitud.</p>
 

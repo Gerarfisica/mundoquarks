@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -63,6 +64,50 @@
   <p>El ejemplo más simple es el <strong>espín</strong> del electrón. Según el libro de física de OpenStax, el electrón es una partícula de espín 1/2, y la componente de su espín a lo largo de un eje solo puede tomar dos valores, m<sub>s</sub> = +1/2 o −1/2: los estados «espín arriba» y «espín abajo». En el lenguaje del álgebra lineal, esos dos estados son una base de un espacio de dos dimensiones, como los ejes x e y en el plano.</p>
 
   <p>Pero el electrón no tiene por qué estar en uno de esos dos estados. Puede estar en una <strong>superposición</strong>, una combinación lineal a|↑⟩ + b|↓⟩, con coeficientes complejos a y b. Al medir el espín se obtiene «arriba» o «abajo», con probabilidades dadas por |a|<sup>2</sup> y |b|<sup>2</sup>. En el lenguaje geométrico, una superposición es simplemente otro vector del espacio de estados, que apunta en una dirección intermedia.</p>
+  <figure class="figura" id="blo">
+    <canvas id="blo-c" width="1280" height="800" role="img" aria-label="La esfera de Bloch: una esfera con el estado arriba en el polo norte y el estado abajo en el polo sur. Una flecha desde el centro representa el estado del qubit; los controles cambian sus dos ángulos y un panel muestra los coeficientes y las probabilidades de medir arriba o abajo. Se puede girar arrastrando."></canvas>
+    <div class="int-control"><label for="blo-th">θ = <output id="blo-th-v"></output></label><input type="range" id="blo-th" min="0" max="180" step="1" value="60"></div>
+    <div class="int-control"><label for="blo-ph">φ = <output id="blo-ph-v"></output></label><input type="range" id="blo-ph" min="0" max="360" step="1" value="30"></div>
+    <div class="int-botones"><button type="button" data-p="0,0">|↑⟩</button><button type="button" data-p="180,0">|↓⟩</button><button type="button" data-p="90,0">(|↑⟩ + |↓⟩)/√2</button><button type="button" data-p="90,90">(|↑⟩ + i|↓⟩)/√2</button></div>
+    <p class="int-estado" id="blo-estado" aria-live="polite"></p>
+    <figcaption>Un qubit, como el espín de un electrón, es un vector a|↑⟩ + b|↓⟩ con coeficientes complejos. Fijada la fase global, todos los estados posibles se dibujan como puntos de una esfera: a = cos(θ/2) y b = e<sup>iφ</sup> sen(θ/2). Los polos son los estados ↑ y ↓; el ecuador, las superposiciones con igual probabilidad. Arrastrá la esfera para girarla.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('blo-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 400, R = 140, CX = 220, CY = 205, yaw = 0.5, pitch = 0.3, arr = null, visible = true;
+    var th = document.getElementById('blo-th'), ph = document.getElementById('blo-ph'), estado = document.getElementById('blo-estado');
+    function P(q) { var cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), x = cy * q[0] - sy * q[1], y = sy * q[0] + cy * q[1];
+      return [CX + R * x, CY - R * (cp * q[2] - sp * y), cp * y + sp * q[2]]; }
+    function curva(f, col, w, n) { g.lineWidth = w; for (var i = 0; i < n; i++) { var a = P(f(i / n)), b = P(f((i + 1) / n)); g.strokeStyle = col.replace('A', (a[2] > 0 ? 0.15 : 0.5)); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); } }
+    function dibujar() {
+      var t = parseInt(th.value, 10) * Math.PI / 180, f = parseInt(ph.value, 10) * Math.PI / 180, v = [Math.sin(t) * Math.cos(f), Math.sin(t) * Math.sin(f), Math.cos(t)];
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('ESFERA DE BLOCH', 20, 28);
+      g.strokeStyle = 'rgba(136,146,176,0.35)'; g.lineWidth = 1; g.beginPath(); g.arc(CX, CY, R, 0, 7); g.stroke();
+      for (var k = 1; k < 6; k++) { var la = -Math.PI / 2 + k * Math.PI / 6; curva(function (s) { return [Math.cos(la) * Math.cos(2 * Math.PI * s), Math.cos(la) * Math.sin(2 * Math.PI * s), Math.sin(la)]; }, k === 3 ? 'rgba(0,212,255,A)' : 'rgba(26,108,245,A)', k === 3 ? 1.6 : 1, 60); }
+      for (k = 0; k < 6; k++) { var lo = k * Math.PI / 6; curva(function (s) { return [Math.sin(Math.PI * 2 * s) * Math.cos(lo), Math.sin(Math.PI * 2 * s) * Math.sin(lo), Math.cos(Math.PI * 2 * s)]; }, 'rgba(26,108,245,A)', 1, 60); }
+      [[[0, 0, 1.25], '|↑⟩'], [[0, 0, -1.25], '|↓⟩'], [[1.25, 0, 0], 'x'], [[0, 1.25, 0], 'y']].forEach(function (e) { var o = P([0, 0, 0]), q = P(e[0]); g.strokeStyle = 'rgba(136,146,176,0.6)'; g.beginPath(); g.moveTo(o[0], o[1]); g.lineTo(q[0], q[1]); g.stroke(); g.fillStyle = '#eef2ff'; g.font = "13px 'Space Mono', monospace"; g.fillText(e[1], q[0] + 4, q[1] + 4); });
+      var o = P([0, 0, 0]), q = P(v), pz = P([0, 0, v[2]]), pe = P([v[0], v[1], 0]);
+      g.setLineDash([3, 3]); g.strokeStyle = 'rgba(245,166,35,0.6)'; g.beginPath(); g.moveTo(q[0], q[1]); g.lineTo(pz[0], pz[1]); g.moveTo(q[0], q[1]); g.lineTo(pe[0], pe[1]); g.moveTo(o[0], o[1]); g.lineTo(pe[0], pe[1]); g.stroke(); g.setLineDash([]);
+      var an = Math.atan2(q[1] - o[1], q[0] - o[0]); g.strokeStyle = g.fillStyle = '#f5a623'; g.lineWidth = 3; g.beginPath(); g.moveTo(o[0], o[1]); g.lineTo(q[0] - 8 * Math.cos(an), q[1] - 8 * Math.sin(an)); g.stroke();
+      g.beginPath(); g.moveTo(q[0], q[1]); g.lineTo(q[0] - 14 * Math.cos(an - 0.4), q[1] - 14 * Math.sin(an - 0.4)); g.lineTo(q[0] - 14 * Math.cos(an + 0.4), q[1] - 14 * Math.sin(an + 0.4)); g.fill();
+      var a = Math.cos(t / 2), b = Math.sin(t / 2), d = function (x) { return x.toFixed(2).replace('.', ',').replace('-', '−'); };
+      var br = b * Math.cos(f), bi = b * Math.sin(f), bs = Math.abs(bi) < 0.005 ? d(br) : Math.abs(br) < 0.005 ? d(bi) + 'i' : '(' + d(br) + (bi < 0 ? ' − ' : ' + ') + d(Math.abs(bi)) + 'i)';
+      var filas = [['estado', '#8892b0'], [d(a) + ' |↑⟩ + ' + bs + ' |↓⟩', '#eef2ff'], ['', ''], ['P(↑) = |a|²', '#8892b0'], [d(a * a), '#00d4ff'], ['P(↓) = |b|²', '#8892b0'], [d(b * b), '#f5a623']];
+      g.font = "13px 'Space Mono', monospace"; filas.forEach(function (l, i) { g.fillStyle = l[1]; g.fillText(l[0], 400, 80 + i * 26); });
+      g.fillStyle = '#00d4ff'; g.fillRect(400, 270, 200 * a * a, 14); g.fillStyle = '#f5a623'; g.fillRect(400 + 200 * a * a, 270, 200 * b * b, 14);
+      g.fillStyle = '#8892b0'; g.font = "11px 'Space Mono', monospace"; g.fillText('arrastrá para girar', 470, 385);
+      document.getElementById('blo-th-v').textContent = th.value + '°'; document.getElementById('blo-ph-v').textContent = ph.value + '°';
+      estado.innerHTML = 'Al medir el espín se obtiene ↑ con probabilidad <strong>' + Math.round(100 * a * a) + ' %</strong> y ↓ con <strong>' + Math.round(100 * b * b) + ' %</strong>. ' + (Math.abs(t - Math.PI / 2) < 0.01 ? 'En el ecuador, φ no cambia esas probabilidades: solo la fase relativa.' : 'El ángulo φ no cambia estas probabilidades, pero sí el estado.');
+    }
+    th.addEventListener('input', dibujar); ph.addEventListener('input', dibujar);
+    document.querySelectorAll('#blo [data-p]').forEach(function (e) { e.addEventListener('click', function () { var p = e.getAttribute('data-p').split(','); th.value = p[0]; ph.value = p[1]; dibujar(); }); });
+    cv.addEventListener('pointerdown', function (e) { arr = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', function (e) { if (!arr) return; yaw -= (e.clientX - arr[0]) * 0.01; pitch = Math.max(-1.3, Math.min(1.3, pitch + (e.clientY - arr[1]) * 0.01)); arr = [e.clientX, e.clientY]; dibujar(); });
+    cv.addEventListener('pointerup', function () { arr = null; }); cv.addEventListener('pointercancel', function () { arr = null; });
+    dibujar();
+  })();
+  </script>
 
   <h2>Funciones como Vectores</h2>
 

@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
   </style>
@@ -131,6 +132,46 @@
   <div class="tech-note">
     <p><strong>El atractor de Rössler:</strong> En 1976, Otto Rössler propuso un sistema aún más simple que el de Lorenz, con solo dos términos no-lineales en lugar de tres. El atractor de Rössler tiene la forma de una "cinta" enrollada con un único centro de espiral, en lugar de los dos centros del atractor de Lorenz. Su dimensión fractal es ~2,01, apenas mayor que dos. La simplicidad del sistema de Rössler lo hace especialmente útil para entender la geometría de los atractores extraños: muestra que el caos no requiere ecuaciones complicadas, solo no-linealidad apropiada y la combinación correcta de estiramiento y plegado.</p>
   </div>
+  <figure class="figura" id="ros">
+    <canvas id="ros-c" width="1280" height="800" role="img" aria-label="El atractor de Rössler en tres dimensiones: una espiral plana que, cada tanto, se levanta en un pliegue y vuelve a caer al centro. Según el parámetro c, la trayectoria se cierra en un ciclo de una vuelta, de dos, de cuatro, o se vuelve caótica. Se puede girar arrastrando."></canvas>
+    <div class="int-botones" role="group" aria-label="Parámetro c">
+      <button type="button" data-c="2.5">c = 2,5</button><button type="button" data-c="3.5">c = 3,5</button><button type="button" data-c="4">c = 4</button><button type="button" data-c="5.7">c = 5,7</button>
+    </div>
+    <p class="int-estado" id="ros-estado" aria-live="polite"></p>
+    <figcaption>El sistema de Rössler (dx/dt = −y − z, dy/dt = x + ay, dz/dt = b + z(x − c), con a = b = 0,2), calculado en tu navegador. Al subir c, el ciclo se duplica una y otra vez hasta volverse un atractor extraño: estirar en la espiral y plegar en el salto hacia arriba, una y otra vez. Arrastrá para girarlo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('ros-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 400, DT = 0.02, AA = 0.2, BB = 0.2, C, P;
+    var textos = { '2.5': 'un ciclo de <strong>una vuelta</strong>: el movimiento es periódico', '3.5': 'el ciclo se duplicó: <strong>dos vueltas</strong> antes de repetirse', '4': '<strong>cuatro vueltas</strong>: otra duplicación', '5.7': 'el ciclo ya no se cierra: <strong>atractor extraño</strong>' };
+    function f(q) { return [-q[1] - q[2], q[0] + AA * q[1], BB + q[2] * (q[0] - C)]; }
+    function rk4(q) { var k1 = f(q), k2 = f([q[0] + DT / 2 * k1[0], q[1] + DT / 2 * k1[1], q[2] + DT / 2 * k1[2]]), k3 = f([q[0] + DT / 2 * k2[0], q[1] + DT / 2 * k2[1], q[2] + DT / 2 * k2[2]]), k4 = f([q[0] + DT * k3[0], q[1] + DT * k3[1], q[2] + DT * k3[2]]);
+      return [0, 1, 2].map(function (i) { return q[i] + DT / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]); }); }
+    var botones = document.querySelectorAll('#ros [data-c]'), estado = document.getElementById('ros-estado');
+    function calcular(c) { C = c; var q = [1, 1, 0]; P = []; for (var i = 0; i < 6000; i++) q = rk4(q); for (i = 0; i < 9000; i++) { q = rk4(q); P.push([q[0], q[1], q[2] - 8]); } cur = 0;
+      var key = String(c); estado.innerHTML = 'c = ' + key.replace('.', ',') + ': ' + textos[key] + '.';
+      for (var b = 0; b < botones.length; b++) botones[b].setAttribute('aria-pressed', botones[b].getAttribute('data-c') === key ? 'true' : 'false'); }
+    var yaw = -0.5, pitch = 0.9, visible = true, arr = null, cur = 0;
+    function proy(q) { var cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+      var x = cy * q[0] - sy * q[1], y = sy * q[0] + cy * q[1], z = q[2]; return [W / 2 + 13 * x, H / 2 + 20 - 13 * (cp * z - sp * y), sp * z + cp * y]; }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('ATRACTOR DE RÖSSLER · c = ' + String(C).replace('.', ','), 20, 28);
+      var Q = P.map(proy), CH = 50;
+      for (var s = 0; s < Q.length - 1; s += CH) { g.strokeStyle = 'rgba(180,140,255,' + Math.max(0.25, Math.min(0.9, 0.55 + Q[s][2] / 30)).toFixed(2) + ')'; g.lineWidth = 0.9;
+        g.beginPath(); g.moveTo(Q[s][0], Q[s][1]); for (var j = s + 1; j <= Math.min(s + CH, Q.length - 1); j++) g.lineTo(Q[j][0], Q[j][1]); g.stroke(); }
+      g.strokeStyle = '#f5a623'; g.lineWidth = 2.2; g.beginPath(); var m0 = Math.max(0, cur - 60); for (var m = m0; m <= cur; m++) { if (m === m0) g.moveTo(Q[m][0], Q[m][1]); else g.lineTo(Q[m][0], Q[m][1]); } g.stroke();
+      g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(Q[cur][0], Q[cur][1], 4, 0, 7); g.fill();
+    }
+    function bucle() { if (visible) { if (!arr) yaw += 0.003; cur = (cur + 2) % P.length; dibujar(); } requestAnimationFrame(bucle); }
+    cv.addEventListener('pointerdown', function (e) { arr = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', function (e) { if (!arr) return; yaw += (e.clientX - arr[0]) * 0.01; pitch = Math.max(-1.5, Math.min(1.5, pitch + (e.clientY - arr[1]) * 0.01)); arr = [e.clientX, e.clientY]; });
+    cv.addEventListener('pointerup', function () { arr = null; }); cv.addEventListener('pointercancel', function () { arr = null; });
+    for (var b = 0; b < botones.length; b++) botones[b].addEventListener('click', function () { calcular(parseFloat(this.getAttribute('data-c'))); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    calcular(5.7); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <h2>Atractores en Sistemas Reales</h2>
 

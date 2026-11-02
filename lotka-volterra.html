@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -128,6 +129,50 @@
   <h2>Ciclos sin Fin</h2>
 
   <p>El sistema tiene dos equilibrios: la extinción de ambos, x = y = 0, y la coexistencia, x = d/r e y = b/p. Fuera del equilibrio, las poblaciones ciclan. Hay demasiados predadores, entonces las presas disminuyen; con pocas presas, los predadores empiezan a morir; con pocos predadores, las presas se recuperan; con muchas presas, los predadores vuelven a crecer. Y el ciclo se repite.</p>
+  <figure class="figura" id="lvf">
+    <canvas id="lvf-c" width="1280" height="800" role="img" aria-label="A la izquierda, el plano de presas y predadores con varias órbitas cerradas alrededor del punto de equilibrio, y un punto que recorre la órbita elegida. A la derecha, las dos poblaciones en función del tiempo para esa misma órbita, con una marca que avanza en sincronía con el punto."></canvas>
+    <div class="int-botones"><button type="button" id="lvf-borrar">borrar órbitas</button></div>
+    <p class="int-estado" id="lvf-estado" aria-live="polite"></p>
+    <figcaption>El modelo de Lotka-Volterra con los mismos parámetros ilustrativos que el gráfico anterior (b = 1, p = 0,1, r = 0,02, d = 0,5). Hacé clic en el plano para elegir las poblaciones iniciales: el sistema recorre una órbita cerrada alrededor del equilibrio (25 presas, 10 predadores) y la repite para siempre. Cuanto más lejos del equilibrio, más amplios y más largos son los ciclos.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('lvf-c'), g = cv.getContext('2d'), E = 2, B = 1, P = 0.1, R = 0.02, D = 0.5, DT = 0.01;
+    var AX = 60, AY = 50, AW = 300, AH = 300, XM = 100, YM = 40, orbitas = [], cur = null, k = 0, visible = true;
+    var estado = document.getElementById('lvf-estado'), cols = ['#00d4ff', '#5ee0a0', '#b48cff', '#ff7a7a'];
+    function f(s) { return [s[0] * (B - P * s[1]), s[1] * (R * s[0] - D)]; }
+    function rk4(s) { var k1 = f(s), k2 = f([s[0] + DT / 2 * k1[0], s[1] + DT / 2 * k1[1]]), k3 = f([s[0] + DT / 2 * k2[0], s[1] + DT / 2 * k2[1]]), k4 = f([s[0] + DT * k3[0], s[1] + DT * k3[1]]);
+      return [s[0] + DT / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]), s[1] + DT / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1])]; }
+    function orbita(x0, y0) { var s = [x0, y0], pts = [s], a0 = Math.atan2(y0 - 10, x0 - 25), vuelta = 0, prev = a0;
+      for (var i = 0; i < 20000; i++) { s = rk4(s); pts.push(s); var a = Math.atan2(s[1] - 10, s[0] - 25), da = a - prev; if (da > Math.PI) da -= 2 * Math.PI; if (da < -Math.PI) da += 2 * Math.PI; vuelta += da; prev = a; if (Math.abs(vuelta) >= 2 * Math.PI) break; }
+      return { pts: pts, T: pts.length * DT, col: cols[orbitas.length % cols.length], xmax: Math.max.apply(null, pts.map(function (p) { return p[0]; })), ymax: Math.max.apply(null, pts.map(function (p) { return p[1]; })) }; }
+    function ax(x) { return AX + AW * x / XM; } function ay(y) { return AY + AH * (1 - y / YM); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 400);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('PLANO DE FASES', 20, 28); g.fillText('EN EL TIEMPO', 400, 28);
+      g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1; g.strokeRect(AX, AY, AW, AH);
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.textAlign = 'center'; for (var x = 0; x <= XM; x += 25) g.fillText(x, ax(x), AY + AH + 16); g.fillText('presas x', AX + AW / 2, AY + AH + 34);
+      g.textAlign = 'right'; for (var y = 0; y <= YM; y += 10) g.fillText(y, AX - 6, ay(y) + 4); g.textAlign = 'left'; g.save(); g.translate(18, AY + AH / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('predadores y', 0, 0); g.restore();
+      g.save(); g.beginPath(); g.rect(AX, AY, AW, AH); g.clip();
+      orbitas.forEach(function (o) { g.strokeStyle = o === cur ? o.col : 'rgba(136,146,176,0.45)'; g.lineWidth = o === cur ? 2.2 : 1.2; g.beginPath(); o.pts.forEach(function (p, i) { if (i % 4) return; if (i) g.lineTo(ax(p[0]), ay(p[1])); else g.moveTo(ax(p[0]), ay(p[1])); }); g.closePath(); g.stroke(); });
+      g.fillStyle = '#f5a623'; g.beginPath(); g.arc(ax(25), ay(10), 5, 0, 7); g.fill(); g.fillText('equilibrio', ax(25) - 4, ay(10) + 18); g.restore();
+      if (!cur) return; var p = cur.pts[k]; g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(ax(p[0]), ay(p[1]), 5.5, 0, 7); g.fill();
+      var TX = 400, TW = 220, T1 = 60, TH = 130; ['presas x', 'predadores y'].forEach(function (nm, q) { var ty = T1 + q * (TH + 40), mx = q ? cur.ymax : cur.xmax;
+        g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1; g.strokeRect(TX, ty, TW, TH); g.fillStyle = q ? '#f5a623' : cur.col; g.fillText(nm + ' (máx. ' + Math.round(mx) + ')', TX, ty - 6);
+        g.strokeStyle = q ? '#f5a623' : cur.col; g.lineWidth = 1.8; g.beginPath(); cur.pts.forEach(function (s, i) { if (i % 4) return; var X = TX + TW * i / cur.pts.length, Y = ty + TH * (1 - s[q] / (mx * 1.1)); if (i) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.stroke(); });
+      var xm = TX + TW * k / cur.pts.length; g.strokeStyle = '#eef2ff'; g.beginPath(); g.moveTo(xm, T1); g.lineTo(xm, T1 + 2 * TH + 40); g.stroke();
+      g.fillStyle = '#8892b0'; g.fillText('un período: ' + cur.T.toFixed(1).replace('.', ',') + ' unidades de tiempo', TX, T1 + 2 * TH + 62);
+    }
+    function nueva(x, y) { cur = orbita(x, y); orbitas.push(cur); if (orbitas.length > 6) orbitas.shift(); k = 0;
+      estado.innerHTML = 'Empieza con ' + Math.round(x) + ' presas y ' + Math.round(y) + ' predadores. La órbita se cierra: el ciclo dura <strong>' + cur.T.toFixed(1).replace('.', ',') + '</strong> unidades de tiempo y las presas llegan a ' + Math.round(cur.xmax) + '.'; }
+    function bucle() { if (visible && cur) { k = (k + 6) % cur.pts.length; dibujar(); } requestAnimationFrame(bucle); }
+    cv.addEventListener('click', function (e) { var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 640, y = (e.clientY - r.top) / r.height * 400;
+      if (x <= AX || x >= AX + AW || y <= AY || y >= AY + AH) return; var px = XM * (x - AX) / AW, py = YM * (1 - (y - AY) / AH); if (px < 1 || py < 0.5 || (Math.abs(px - 25) < 0.5 && Math.abs(py - 10) < 0.3)) return; nueva(px, py); });
+    document.getElementById('lvf-borrar').addEventListener('click', function () { orbitas = []; cur = null; dibujar(); estado.textContent = 'Hacé clic en el plano para elegir una condición inicial.'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    nueva(20, 4); nueva(35, 10); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <p>Aunque las ecuaciones no se pueden resolver con funciones conocidas, se pueden integrar de otra manera: toda solución cumple que la cantidad C = b ln y − py − rx + d ln x se mantiene constante. Las curvas de nivel de esa cantidad en el plano (x, y) son curvas cerradas alrededor del equilibrio de coexistencia, y cada solución recorre una de ellas. Que las curvas sean cerradas significa que las soluciones son <strong>oscilaciones periódicas</strong>: el sistema vuelve una y otra vez al mismo estado.</p>
 

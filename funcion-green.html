@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -102,6 +103,45 @@
   </figure>
 
   <p>Conocida G, la solución para cualquier fuente f es una integral: u(r) = ∫ G(r, r′) f(r′) dV′. Se suman, con el peso que da f, las respuestas a todas las fuentes puntuales. Es el <strong>principio de superposición</strong> llevado al extremo: se resuelve una sola vez el problema más simple posible y después se suma.</p>
+  <figure class="figura" id="grn">
+    <canvas id="grn-c" width="1280" height="800" role="img" aria-label="Arriba, un mapa del potencial eléctrico de varias cargas puntuales sobre un plano: celeste donde es positivo, naranja donde es negativo. Abajo, el potencial a lo largo de la línea central: una curva fina para la contribución de cada carga y una gruesa para la suma. Con un clic se agregan cargas."></canvas>
+    <div class="int-botones"><button type="button" id="grn-signo">próxima carga: positiva</button><button type="button" id="grn-borrar">borrar todas</button></div>
+    <p class="int-estado" id="grn-estado" aria-live="polite"></p>
+    <figcaption>La función de Green de la electrostática es el potencial de una carga puntual, proporcional a 1/|r − r′|. Hacé clic en el mapa para agregar cargas. El potencial total es, punto por punto, la suma de las respuestas a cada carga: abajo, cada curva fina es una función de Green y la gruesa es su suma. Con una distribución continua, la suma se vuelve la integral u = ∫ G f dV′.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('grn-c'), g = cv.getContext('2d'), E = 2, X0 = 20, W = 600, MY = 44, MH = 200, PY = 270, PH = 110, XR = 4, YR = 4 * MH / W, Q = [[-1.4, 0.2, 1], [1.2, -0.3, -1]], signo = 1;
+    var estado = document.getElementById('grn-estado'), bs = document.getElementById('grn-signo');
+    var RW = 200, RH = Math.round(RW * MH / W), tmp = document.createElement('canvas'); tmp.width = RW; tmp.height = RH; var img = tmp.getContext('2d').createImageData(RW, RH);
+    function G(x, y, q) { return q[2] / Math.sqrt((x - q[0]) * (x - q[0]) + (y - q[1]) * (y - q[1]) + 0.01); }
+    function sx(x) { return X0 + W * (x + XR) / (2 * XR); } function sy(y) { return MY + MH * (1 - (y + YR) / (2 * YR)); }
+    function cuenta(s) { var n = Q.filter(function (q) { return q[2] === s; }).length; return n + (s > 0 ? ' positiva' : ' negativa') + (n === 1 ? '' : 's'); }
+    function dibujar() {
+      for (var j = 0; j < RH; j++) for (var i = 0; i < RW; i++) { var x = -XR + 2 * XR * (i + 0.5) / RW, y = YR - 2 * YR * (j + 0.5) / RH, v = 0; Q.forEach(function (q) { v += G(x, y, q); });
+        var a = Math.tanh(Math.abs(v) / 1.5), o = 4 * (j * RW + i), c = v > 0 ? [0, 212, 255] : [245, 166, 35]; img.data[o] = 7 + (c[0] - 7) * a; img.data[o + 1] = 13 + (c[1] - 13) * a; img.data[o + 2] = 34 + (c[2] - 34) * a; img.data[o + 3] = 255; }
+      tmp.getContext('2d').putImageData(img, 0, 0);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 400); g.imageSmoothingEnabled = true; g.drawImage(tmp, X0, MY, W, MH);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('POTENCIAL DE ' + Q.length + ' CARGA' + (Q.length === 1 ? '' : 'S'), 20, 28);
+      g.strokeStyle = 'rgba(238,242,255,0.5)'; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(X0, sy(0)); g.lineTo(X0 + W, sy(0)); g.stroke(); g.setLineDash([]);
+      Q.forEach(function (q) { g.fillStyle = '#070d22'; g.strokeStyle = '#eef2ff'; g.lineWidth = 1.5; g.beginPath(); g.arc(sx(q[0]), sy(q[1]), 8, 0, 7); g.fill(); g.stroke();
+        g.fillStyle = '#eef2ff'; g.font = "bold 13px 'Space Mono', monospace"; g.textAlign = 'center'; g.fillText(q[2] > 0 ? '+' : '−', sx(q[0]), sy(q[1]) + 4); g.textAlign = 'left'; });
+      var py = function (v) { return PY + PH / 2 - PH / 2 * Math.max(-1.15, Math.min(1.15, v / 4)); };
+      g.strokeStyle = 'rgba(136,146,176,0.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X0, py(0)); g.lineTo(X0 + W, py(0)); g.stroke();
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.fillText('potencial sobre la línea punteada', X0, PY - 6);
+      g.save(); g.beginPath(); g.rect(X0, PY - 2, W, PH + 4); g.clip();
+      Q.forEach(function (q) { g.strokeStyle = q[2] > 0 ? 'rgba(0,212,255,0.55)' : 'rgba(245,166,35,0.55)'; g.lineWidth = 1.2; g.beginPath(); for (var i = 0; i <= 300; i++) { var x = -XR + 2 * XR * i / 300, Y = py(G(x, 0, q)); if (i) g.lineTo(sx(x), Y); else g.moveTo(sx(x), Y); } g.stroke(); });
+      g.strokeStyle = '#eef2ff'; g.lineWidth = 2.4; g.beginPath(); for (var k = 0; k <= 300; k++) { var x = -XR + 2 * XR * k / 300, s = 0; Q.forEach(function (q) { s += G(x, 0, q); }); if (k) g.lineTo(sx(x), py(s)); else g.moveTo(sx(x), py(s)); } g.stroke(); g.restore();
+      g.fillStyle = '#eef2ff'; g.fillText('suma', X0 + W - 40, PY + 12);
+      estado.innerHTML = Q.length ? Q.length + ' carga' + (Q.length === 1 ? '' : 's') + ' (' + cuenta(1) + ', ' + cuenta(-1) + '). El potencial total es la <strong>suma</strong> de una función de Green por carga.' : 'Sin cargas, el potencial es cero en todas partes. Hacé clic en el mapa para agregar una.';
+    }
+    cv.addEventListener('click', function (e) { var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 640, y = (e.clientY - r.top) / r.height * 400;
+      if (x < X0 || x > X0 + W || y < MY || y > MY + MH || Q.length >= 12) return; Q.push([-XR + 2 * XR * (x - X0) / W, YR - 2 * YR * (y - MY) / MH, signo]); dibujar(); });
+    bs.addEventListener('click', function () { signo = -signo; bs.textContent = 'próxima carga: ' + (signo > 0 ? 'positiva' : 'negativa'); });
+    document.getElementById('grn-borrar').addEventListener('click', function () { Q = []; dibujar(); });
+    dibujar();
+  })();
+  </script>
 
   <div class="tech-note">
     <p><strong>Un ejemplo conocido:</strong> en electrostática, la función de Green del espacio libre para el laplaciano es, salvo constantes, 1/|r − r′|: es el potencial de Coulomb de una carga puntual. La fórmula que da el potencial de una distribución de carga como la integral de la densidad dividida por la distancia es exactamente u = ∫ G f dV′. En el tiempo, la función de Green de un sistema lineal es su respuesta a un impulso instantáneo, como la de una campana a un golpe seco: con ella se obtiene la respuesta a cualquier forzamiento.</p>

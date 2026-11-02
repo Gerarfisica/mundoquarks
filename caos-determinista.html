@@ -32,6 +32,8 @@
     .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
     .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
     @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+    .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
   </style>
@@ -49,6 +51,69 @@
   <p>En 1961, el meteorólogo Edward Lorenz introdujo en su computadora unas condiciones iniciales para un modelo climático simplificado, pero con tres decimales menos que los originales. Esperaba obtener una predicción aproximadamente similar; en cambio, después de unas pocas iteraciones, los resultados divergían completamente del cálculo original. <strong>Una variación de menos de una parte en mil había producido una predicción completamente distinta</strong>. Esta observación, aparentemente trivial, condujo a uno de los descubrimientos más profundos de la física del siglo XX: el caos determinista, un régimen donde sistemas perfectamente determinísticos —regidos por ecuaciones exactas y conocidas— se vuelven impredecibles en la práctica debido a su sensibilidad extrema a las condiciones iniciales.</p>
 
   <div class="math-block">Definición: sensibilidad exponencial a condiciones iniciales · Exponente de Lyapunov: λ > 0 indica caos · Tiempo de Lyapunov típico (atmósfera): ~5-7 días · Predictibilidad a largo plazo: imposible aun con leyes exactas</div>
+  <figure class="figura" id="cdi">
+    <canvas id="cdi-c" width="1280" height="760" role="img" aria-label="Dos trayectorias del sistema de Lorenz que arrancan casi en el mismo punto, dibujadas en el plano x–z, y un gráfico en escala logarítmica de la distancia entre ellas en función del tiempo. Durante un rato van juntas; la distancia crece como una recta en escala logarítmica, es decir, exponencialmente, hasta que las dos trayectorias quedan en lados distintos del atractor."></canvas>
+    <div class="int-botones" role="group" aria-label="Diferencia inicial">
+      <button type="button" data-k="2">diferencia 10⁻²</button><button type="button" data-k="5">10⁻⁵</button><button type="button" data-k="8">10⁻⁸</button><button type="button" data-k="11">10⁻¹¹</button><button type="button" id="cdi-pausa">❚❚ pausa</button>
+    </div>
+    <p class="int-estado" id="cdi-estado" aria-live="polite"></p>
+    <figcaption>Dos copias del sistema de Lorenz (σ = 10, ρ = 28, β = 8/3) que empiezan separadas por una distancia mínima, integradas en tu navegador. Al principio se superponen; después la distancia crece exponencialmente —una recta en escala logarítmica— hasta que el futuro de una no dice nada sobre el de la otra. Achicar mil veces el error inicial solo demora la separación un tiempo fijo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cdi-c'), g = cv.getContext('2d'), E = 2, H = 380;
+    var S = 10, R = 28, B = 8 / 3, DT = 0.005, TMAX = 40;
+    function f(p) { return [S * (p[1] - p[0]), p[0] * (R - p[2]) - p[1], p[0] * p[1] - B * p[2]]; }
+    function rk4(p) {
+      var k1 = f(p), a = [], k2, k3, k4, i;
+      for (i = 0; i < 3; i++) a[i] = p[i] + DT / 2 * k1[i]; k2 = f(a);
+      for (i = 0; i < 3; i++) a[i] = p[i] + DT / 2 * k2[i]; k3 = f(a);
+      for (i = 0; i < 3; i++) a[i] = p[i] + DT * k3[i]; k4 = f(a);
+      return [p[0] + DT / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]), p[1] + DT / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]), p[2] + DT / 6 * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2])];
+    }
+    var a, b, t, ta, tb, dist, k, corriendo = true, visible = true, separado;
+    var estado = document.getElementById('cdi-estado'), botones = document.querySelectorAll('#cdi [data-k]'), pausa = document.getElementById('cdi-pausa');
+    function reiniciar(kk) {
+      k = kk; a = [-5.9, -5.9, 22]; b = [a[0] + Math.pow(10, -k), a[1], a[2]]; t = 0; ta = []; tb = []; dist = []; separado = null;
+      for (var i = 0; i < botones.length; i++) botones[i].setAttribute('aria-pressed', botones[i].getAttribute('data-k') == k ? 'true' : 'false');
+      corriendo = true; pausa.textContent = '❚❚ pausa';
+    }
+    var AX = 20, AY = 46, AW = 300, AH = 300, PX = 380, PW = 240;
+    function sx(x) { return AX + AW * (x + 22) / 44; } function sz(z) { return AY + AH * (1 - (z - 2) / 50); }
+    function lx(tt) { return PX + PW * tt / TMAX; } function ly(d) { return AY + AH * (2 - Math.log10(Math.max(d, 1e-12))) / 14; }
+    function rastro(p, col) { g.strokeStyle = col; g.lineWidth = 1.3; g.beginPath(); for (var i = 0; i < p.length; i++) { var X = sx(p[i][0]), Z = sz(p[i][2]); if (i) g.lineTo(X, Z); else g.moveTo(X, Z); } g.stroke(); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, H);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('DOS TRAYECTORIAS (x, z)', 20, 28); g.fillText('DISTANCIA', PX, 28);
+      rastro(ta, 'rgba(0,212,255,0.85)'); rastro(tb, 'rgba(245,166,35,0.85)');
+      g.fillStyle = '#00d4ff'; g.beginPath(); g.arc(sx(a[0]), sz(a[2]), 4, 0, 7); g.fill(); g.fillStyle = '#f5a623'; g.beginPath(); g.arc(sx(b[0]), sz(b[2]), 4, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1; g.strokeRect(PX, AY, PW, AH);
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.textAlign = 'right';
+      for (var e = 2; e >= -12; e -= 2) { var y = ly(Math.pow(10, e)); g.fillText(e === 0 ? '1' : '10' + (e < 0 ? '⁻' : '') + String(Math.abs(e)).replace(/./g, function (c) { return '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]; }), PX - 6, y + 4); g.globalAlpha = 0.15; g.beginPath(); g.moveTo(PX, y); g.lineTo(PX + PW, y); g.stroke(); g.globalAlpha = 1; }
+      g.textAlign = 'center'; for (var tt = 0; tt <= TMAX; tt += 10) g.fillText(tt, lx(tt), AY + AH + 16);
+      g.textAlign = 'right'; g.fillText('tiempo', PX + PW, AY + AH + 32); g.textAlign = 'left';
+      g.strokeStyle = '#eef2ff'; g.lineWidth = 1.6; g.beginPath(); for (var i = 0; i < dist.length; i++) { var X = lx(dist[i][0]), Y = ly(dist[i][1]); if (i) g.lineTo(X, Y); else g.moveTo(X, Y); } g.stroke();
+      g.fillText('x', AX + AW - 10, sz(2) + 16); g.fillText('z', AX + 4, AY + 12);
+    }
+    function paso() {
+      if (corriendo && visible && t < TMAX) {
+        for (var n = 0; n < 4; n++) {
+          a = rk4(a); b = rk4(b); t += DT;
+          var d = Math.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) + (a[2] - b[2]) * (a[2] - b[2]));
+          if (separado === null && d > 5) separado = t;
+          if (n === 3) { dist.push([t, d]); ta.push(a); tb.push(b); if (ta.length > 350) { ta.shift(); tb.shift(); } }
+        }
+        estado.innerHTML = 'Diferencia inicial 10<sup>−' + k + '</sup> · t = ' + t.toFixed(1).replace('.', ',') + (separado === null ? ' · las trayectorias todavía coinciden.' : ' · se separaron en <strong>t ≈ ' + separado.toFixed(1).replace('.', ',') + '</strong>.');
+        dibujar();
+      }
+      requestAnimationFrame(paso);
+    }
+    for (var i = 0; i < botones.length; i++) botones[i].addEventListener('click', function () { reiniciar(parseInt(this.getAttribute('data-k'), 10)); });
+    pausa.addEventListener('click', function () { if (t >= TMAX) { reiniciar(k); return; } corriendo = !corriendo; pausa.textContent = corriendo ? '❚❚ pausa' : '▶ seguir'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    reiniciar(8); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <h2>El Determinismo y su Paradoja</h2>
 
@@ -71,6 +136,44 @@
   <h2>El Sistema de Lorenz</h2>
 
   <p>El sistema que Lorenz estudió originalmente es notablemente simple: tres ecuaciones diferenciales ordinarias acopladas que describen una versión muy idealizada de la convección atmosférica. A pesar de su simplicidad, exhibe el comportamiento caótico paradigmático: las trayectorias en el espacio de fases no se cierran ni divergen al infinito, sino que se quedan confinadas en una región acotada con estructura geométrica fractal —el famoso <strong>atractor de Lorenz</strong>, con forma de mariposa o de "ojos" entrelazados.</p>
+  <figure class="figura" id="clz">
+    <canvas id="clz-c" width="1280" height="800" role="img" aria-label="El atractor de Lorenz en tres dimensiones, con forma de alas de mariposa: dos lóbulos alrededor de los cuales la trayectoria gira, saltando de uno a otro de manera irregular. Se puede girar arrastrando con el mouse o el dedo."></canvas>
+    <div class="int-botones"><button type="button" id="clz-giro">❚❚ detener el giro</button></div>
+    <p class="int-estado">Arrastrá para girarlo. El punto brillante recorre la trayectoria: da vueltas en un lóbulo y salta al otro sin un patrón que se repita.</p>
+    <figcaption>El atractor de Lorenz (σ = 10, ρ = 28, β = 8/3), calculado en tu navegador. La trayectoria nunca se cruza a sí misma ni se cierra, pero tampoco se escapa: queda confinada en esta forma de dos lóbulos.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('clz-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 400;
+    var S = 10, R = 28, B = 8 / 3, DT = 0.008, P = [], p = [1, 1, 20];
+    function f(q) { return [S * (q[1] - q[0]), q[0] * (R - q[2]) - q[1], q[0] * q[1] - B * q[2]]; }
+    function rk4(q) { var k1 = f(q), k2 = f([q[0] + DT / 2 * k1[0], q[1] + DT / 2 * k1[1], q[2] + DT / 2 * k1[2]]), k3 = f([q[0] + DT / 2 * k2[0], q[1] + DT / 2 * k2[1], q[2] + DT / 2 * k2[2]]), k4 = f([q[0] + DT * k3[0], q[1] + DT * k3[1], q[2] + DT * k3[2]]);
+      return [0, 1, 2].map(function (i) { return q[i] + DT / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]); }); }
+    for (var i = 0; i < 300; i++) p = rk4(p);
+    for (i = 0; i < 9000; i++) { p = rk4(p); P.push([p[0], p[1], p[2] - 25]); }
+    var yaw = 0.6, pitch = 0.25, girando = true, visible = true, arr = null, cur = 0;
+    function proy(q) { var cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+      var x = cy * q[0] - sy * q[1], y = sy * q[0] + cy * q[1], z = q[2];
+      var y2 = cp * y - sp * z, z2 = sp * y + cp * z; return [W / 2 + 7 * x, H / 2 + 12 - 7 * z2, y2]; }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('ATRACTOR DE LORENZ', 20, 28);
+      var Q = P.map(proy), CH = 60;
+      for (var s = 0; s < Q.length - 1; s += CH) { var prof = Q[s][2]; g.strokeStyle = 'rgba(0,212,255,' + (0.35 + 0.45 * (prof + 30) / 60).toFixed(2) + ')'; g.lineWidth = 0.9;
+        g.beginPath(); g.moveTo(Q[s][0], Q[s][1]); for (var j = s + 1; j <= Math.min(s + CH, Q.length - 1); j++) g.lineTo(Q[j][0], Q[j][1]); g.stroke(); }
+      g.strokeStyle = '#f5a623'; g.lineWidth = 2.2; g.beginPath(); for (var m = Math.max(0, cur - 80); m <= cur; m++) { if (m === Math.max(0, cur - 80)) g.moveTo(Q[m][0], Q[m][1]); else g.lineTo(Q[m][0], Q[m][1]); } g.stroke();
+      g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(Q[cur][0], Q[cur][1], 4, 0, 7); g.fill();
+      var o = proy([0, 0, -25]); [[[20, 0, -25], 'x'], [[0, 20, -25], 'y'], [[0, 0, 0], 'z']].forEach(function (e) { var q = proy(e[0]); g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(o[0], o[1]); g.lineTo(q[0], q[1]); g.stroke(); g.fillStyle = '#8892b0'; g.font = "11px 'Space Mono', monospace"; g.fillText(e[1], q[0] + 4, q[1]); });
+    }
+    function bucle() { if (visible) { if (girando && !arr) yaw += 0.004; cur = (cur + 3) % P.length; dibujar(); } requestAnimationFrame(bucle); }
+    cv.addEventListener('pointerdown', function (e) { arr = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', function (e) { if (!arr) return; yaw += (e.clientX - arr[0]) * 0.01; pitch = Math.max(-1.4, Math.min(1.4, pitch + (e.clientY - arr[1]) * 0.01)); arr = [e.clientX, e.clientY]; });
+    cv.addEventListener('pointerup', function () { arr = null; }); cv.addEventListener('pointercancel', function () { arr = null; });
+    var bg = document.getElementById('clz-giro'); bg.addEventListener('click', function () { girando = !girando; bg.textContent = girando ? '❚❚ detener el giro' : '▶ girar solo'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <p>Lo asombroso del sistema de Lorenz es que solo tiene tres variables y tres ecuaciones —menor complejidad imposible—, sin embargo produce un comportamiento que pareciera requerir cientos de dimensiones para describirse. Demuestra que el caos no requiere sistemas con muchos grados de libertad: la no-linealidad de las interacciones es suficiente.</p>
 
@@ -83,6 +186,56 @@
   <div class="tech-note">
     <p><strong>El "doble péndulo" como demostración casera:</strong> Uno de los sistemas caóticos más simples y visualmente impactantes es el doble péndulo: dos péndulos unidos en serie. A diferencia del péndulo simple (que oscila regularmente), el doble péndulo exhibe comportamiento caótico para amplitudes moderadas. Es un experimento físico simple que cualquier estudiante puede armar, y demuestra dramáticamente la sensibilidad a las condiciones iniciales: dos péndulos dobles lanzados con configuraciones casi idénticas divergen rápidamente y describen trayectorias completamente diferentes. Es un excelente recurso pedagógico para visualizar el caos determinista en acción.</p>
   </div>
+  <figure class="figura" id="dpd">
+    <canvas id="dpd-c" width="1280" height="800" role="img" aria-label="Dos péndulos dobles superpuestos, uno celeste y otro naranja, que parten de ángulos casi idénticos. Durante unos segundos se mueven juntos; después sus movimientos se vuelven completamente distintos, y las estelas que dejan los extremos dibujan trayectorias sin relación."></canvas>
+    <div class="int-botones" role="group" aria-label="Diferencia inicial">
+      <button type="button" data-k="3">diferencia 10⁻³ rad</button><button type="button" data-k="6">10⁻⁶ rad</button><button type="button" data-k="9">10⁻⁹ rad</button><button type="button" id="dpd-pausa">❚❚ pausa</button>
+    </div>
+    <p class="int-estado" id="dpd-estado" aria-live="polite"></p>
+    <figcaption>Dos péndulos dobles iguales (masas y brazos de 1 kg y 1 m, sin rozamiento), soltados desde 115° con una diferencia mínima en el ángulo del segundo brazo, integrados en tu navegador. La diferencia crece hasta que los movimientos no se parecen en nada: un sistema de dos piezas, sin nada aleatorio, ya es impredecible a largo plazo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('dpd-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 400, G = 9.81, DT = 0.002;
+    function f(s) { var d = s[0] - s[1], den = 3 - Math.cos(2 * d);
+      return [s[2], s[3],
+        (-3 * G * Math.sin(s[0]) - G * Math.sin(s[0] - 2 * s[1]) - 2 * Math.sin(d) * (s[3] * s[3] + s[2] * s[2] * Math.cos(d))) / den,
+        (2 * Math.sin(d) * (2 * s[2] * s[2] + 2 * G * Math.cos(s[0]) + s[3] * s[3] * Math.cos(d))) / den]; }
+    function rk4(s) { var k1 = f(s), a = s.map(function (v, i) { return v + DT / 2 * k1[i]; }), k2 = f(a); a = s.map(function (v, i) { return v + DT / 2 * k2[i]; }); var k3 = f(a); a = s.map(function (v, i) { return v + DT * k3[i]; }); var k4 = f(a);
+      return s.map(function (v, i) { return v + DT / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]); }); }
+    var A, B, ra, rb, t, k, sep, corriendo = true, visible = true;
+    var estado = document.getElementById('dpd-estado'), botones = document.querySelectorAll('#dpd [data-k]'), pausa = document.getElementById('dpd-pausa');
+    var OX = W / 2, OY = 190, L = 95;
+    function pos(s) { var x1 = OX + L * Math.sin(s[0]), y1 = OY + L * Math.cos(s[0]); return [x1, y1, x1 + L * Math.sin(s[1]), y1 + L * Math.cos(s[1])]; }
+    function reiniciar(kk) { k = kk; var th = 115 * Math.PI / 180; A = [th, th, 0, 0]; B = [th, th + Math.pow(10, -k), 0, 0]; ra = []; rb = []; t = 0; sep = null; corriendo = true; pausa.textContent = '❚❚ pausa';
+      for (var i = 0; i < botones.length; i++) botones[i].setAttribute('aria-pressed', botones[i].getAttribute('data-k') == k ? 'true' : 'false'); }
+    function estela(r, c) { g.strokeStyle = c; g.lineWidth = 1.2; g.beginPath(); r.forEach(function (q, i) { if (i) g.lineTo(q[0], q[1]); else g.moveTo(q[0], q[1]); }); g.stroke(); }
+    function pendulo(s, c) { var q = pos(s); g.strokeStyle = c; g.lineWidth = 3; g.beginPath(); g.moveTo(OX, OY); g.lineTo(q[0], q[1]); g.lineTo(q[2], q[3]); g.stroke();
+      g.fillStyle = c; g.beginPath(); g.arc(q[0], q[1], 7, 0, 7); g.fill(); g.beginPath(); g.arc(q[2], q[3], 7, 0, 7); g.fill(); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('DOS PÉNDULOS DOBLES', 20, 28);
+      estela(ra, 'rgba(0,212,255,0.45)'); estela(rb, 'rgba(245,166,35,0.45)');
+      pendulo(B, '#f5a623'); pendulo(A, 'rgba(0,212,255,0.9)');
+      g.fillStyle = '#8892b0'; g.beginPath(); g.arc(OX, OY, 4, 0, 7); g.fill();
+      g.font = "13px 'Space Mono', monospace"; g.fillText('t = ' + t.toFixed(1).replace('.', ',') + ' s', 20, 380);
+    }
+    function bucle() {
+      if (corriendo && visible) {
+        for (var n = 0; n < 8; n++) { A = rk4(A); B = rk4(B); t += DT; }
+        var pa = pos(A), pb = pos(B); ra.push([pa[2], pa[3]]); rb.push([pb[2], pb[3]]); if (ra.length > 260) { ra.shift(); rb.shift(); }
+        var d = Math.hypot(pa[2] - pb[2], pa[3] - pb[3]) / L; if (sep === null && d > 0.1) sep = t;
+        estado.innerHTML = 'Diferencia inicial 10<sup>−' + k + '</sup> rad. ' + (sep === null ? 'Por ahora los dos péndulos se mueven juntos.' : 'Los extremos se separaron más de 10 cm a los <strong>' + sep.toFixed(1).replace('.', ',') + ' s</strong>.');
+        dibujar();
+      }
+      requestAnimationFrame(bucle);
+    }
+    for (var i = 0; i < botones.length; i++) botones[i].addEventListener('click', function () { reiniciar(parseInt(this.getAttribute('data-k'), 10)); });
+    pausa.addEventListener('click', function () { corriendo = !corriendo; pausa.textContent = corriendo ? '❚❚ pausa' : '▶ seguir'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    reiniciar(6); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <h2>Predictibilidad y Decisiones</h2>
 

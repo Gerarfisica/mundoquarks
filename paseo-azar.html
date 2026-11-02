@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -61,6 +62,37 @@
   <p>Cada paso suma +ℓ o −ℓ con igual probabilidad, así que en promedio el caminante no va a ningún lado: ⟨x⟩ = 0. Eso es lo que quería decir Pearson. Pero «en promedio» no significa «quieto». Como los pasos son independientes, sus varianzas se suman: después de N pasos, la varianza de la posición es N ℓ², y la distancia típica al punto de partida crece como <strong>√N</strong>. Para alejarse el doble hacen falta cuatro veces más pasos.</p>
 
   <p>Una simulación lo muestra (un cálculo propio con números aleatorios): con caminantes de 100 pasos, la distancia cuadrática media al origen resultó de unos 10 pasos; con 10 000 pasos, de unos 100. Y como la posición final es una suma de muchos pasos independientes, su distribución tiende a una <a href="campana-gauss.html">campana de Gauss</a>, como notó Pearson al ver la solución de Rayleigh para un número muy grande de pasos.</p>
+  <figure class="figura" id="paz">
+    <canvas id="paz-c" width="1280" height="780" role="img" aria-label="La posición de caminantes al azar en función del número de pasos: primero uno solo, que zigzaguea sin dirección; después cientos, cuyas trayectorias forman un abanico limitado por las curvas más y menos raíz de N. A la derecha, el histograma de las posiciones finales, con forma de campana."></canvas>
+    <div class="int-botones"><button type="button" id="paz-uno">un caminante</button><button type="button" id="paz-muchos">500 caminantes</button></div>
+    <p class="int-estado" id="paz-estado" aria-live="polite"></p>
+    <figcaption>Cada caminante da 400 pasos de largo 1, cada uno hacia adelante o hacia atrás con la misma probabilidad. Uno solo no muestra ninguna regla. Con muchos aparece la ley: el promedio queda en cero, pero la nube se ensancha como la raíz del número de pasos (curvas punteadas en ±√N) y las posiciones finales forman una campana. Simulado en tu navegador.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('paz-c'), g = cv.getContext('2d'), E = 2, N = 400, X0 = 50, W = 420, YC = 200, SY = 3.2, cam = [], paso = 0, visible = true, estado = document.getElementById('paz-estado');
+    function nuevo(k) { cam = []; for (var i = 0; i < k; i++) { var p = [0]; for (var j = 0; j < N; j++) p.push(p[j] + (Math.random() < 0.5 ? 1 : -1)); cam.push(p); } paso = 0; }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 390);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText(cam.length === 1 ? 'UN CAMINANTE' : cam.length + ' CAMINANTES', 20, 28); if (cam.length > 1) g.fillText('POSICIÓN FINAL', 490, 28);
+      g.strokeStyle = 'rgba(136,146,176,0.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X0, YC); g.lineTo(X0 + W, YC); g.moveTo(X0, 50); g.lineTo(X0, 350); g.stroke();
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.textAlign = 'right'; [-40, -20, 0, 20, 40].forEach(function (v) { g.fillText(String(v).replace('-', '−'), X0 - 6, YC - SY * v + 4); }); g.textAlign = 'left'; g.fillText('pasos →', X0 + W - 50, YC + 160);
+      g.strokeStyle = '#f5a623'; g.setLineDash([4, 4]); [1, -1].forEach(function (s) { g.beginPath(); for (var j = 0; j <= N; j++) { var X = X0 + W * j / N, Y = YC - s * SY * Math.sqrt(j); if (j) g.lineTo(X, Y); else g.moveTo(X, Y); } g.stroke(); }); g.setLineDash([]);
+      g.fillStyle = '#f5a623'; g.fillText('±√N', X0 + W + 4, YC - SY * 20 + 4);
+      cam.forEach(function (p) { g.strokeStyle = cam.length === 1 ? '#00d4ff' : 'rgba(0,212,255,0.08)'; g.lineWidth = cam.length === 1 ? 2 : 1; g.beginPath(); for (var j = 0; j <= paso; j++) { var X = X0 + W * j / N, Y = YC - SY * p[j]; if (j) g.lineTo(X, Y); else g.moveTo(X, Y); } g.stroke(); });
+      if (cam.length > 1) { var h = {}; cam.forEach(function (p) { var b = Math.floor(p[paso] / 4); h[b] = (h[b] || 0) + 1; }); var mx = 1; for (var k in h) mx = Math.max(mx, h[k]);
+        for (k in h) { var y = YC - SY * (k * 4 + 2); g.fillStyle = 'rgba(0,212,255,0.6)'; g.fillRect(500, y - SY * 2, 120 * h[k] / mx, SY * 4 - 1); }
+        var rms = Math.sqrt(cam.reduce(function (s, p) { return s + p[paso] * p[paso]; }, 0) / cam.length), med = cam.reduce(function (s, p) { return s + p[paso]; }, 0) / cam.length;
+        estado.innerHTML = 'Después de ' + paso + ' pasos: posición media <strong>' + med.toFixed(1).replace('.', ',').replace('-', '−') + '</strong>, distancia cuadrática media <strong>' + rms.toFixed(1).replace('.', ',') + '</strong> (√' + paso + ' = ' + Math.sqrt(paso).toFixed(1).replace('.', ',') + ').'; }
+      else estado.innerHTML = 'Un solo caminante, paso ' + paso + ': está en la posición <strong>' + String(cam[0][paso]).replace('-', '−') + '</strong>. Su recorrido no sigue ninguna regla visible.';
+    }
+    function bucle() { if (visible && paso < N) { paso = Math.min(N, paso + 2); dibujar(); } requestAnimationFrame(bucle); }
+    document.getElementById('paz-uno').addEventListener('click', function () { nuevo(1); });
+    document.getElementById('paz-muchos').addEventListener('click', function () { nuevo(500); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    nuevo(1); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La plaza llena de gente:</strong> imaginá a alguien que cruza una plaza muy concurrida a ciegas, empujado a cada momento en una dirección cualquiera. Ningún empujón lo lleva lejos y ninguno tiene una dirección preferida, pero los empujones no se compensan exactamente. Después de mucho tiempo, termina lejos de donde empezó, aunque mucho menos lejos de lo que habría llegado caminando en línea recta.</p>

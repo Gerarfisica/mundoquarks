@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -107,6 +108,71 @@
   <h2>El Precio de Ver en el Tiempo</h2>
 
   <p>Elegir la longitud de la ventana es un compromiso. Una ventana larga contiene muchos ciclos de cada oscilación y permite distinguir frecuencias muy cercanas, pero mezcla lo que pasó en todo ese intervalo: un golpe breve queda borroneado en el tiempo. Una ventana corta ubica bien los eventos en el tiempo, pero no alcanza para separar frecuencias próximas. No se pueden tener las dos cosas a la vez: es una propiedad de la transformada de Fourier, y por eso los espectrogramas del habla y de la música se calculan con ventanas de distinta longitud según lo que se quiera ver. Las <a href="wavelets.html">wavelets</a> resuelven este compromiso de otra manera.</p>
+  <figure class="figura" id="esv">
+    <canvas id="esv-c" width="1280" height="720" role="img" aria-label="Espectrograma de una señal de prueba: dos tonos de 600 y 680 hercios que suenan todo el tiempo y tres golpes breves separados por 40 milisegundos. Con una ventana larga los dos tonos aparecen como líneas separadas y los golpes se borronean; con una corta los golpes se separan y los tonos se funden en una banda."></canvas>
+    <div class="int-botones" role="group" aria-label="Largo de la ventana">
+      <button type="button" data-n="64">8 ms</button><button type="button" data-n="128">16 ms</button><button type="button" data-n="256">32 ms</button><button type="button" data-n="512">64 ms</button><button type="button" data-n="1024">128 ms</button><button type="button" data-n="2048">256 ms</button>
+    </div>
+    <p class="int-estado" id="esv-estado" aria-live="polite"></p>
+    <figcaption>Espectrograma calculado en el navegador sobre una señal de prueba: dos tonos de 600 y 680 Hz y tres golpes separados por 40 ms. Elegí el largo de la ventana: no hay ninguno que separe a la vez los tonos en frecuencia y los golpes en el tiempo con nitidez.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('esv-c'), g = cv.getContext('2d'), E = 2;   // escala: 640 × 360 lógicos
+    var FS = 8000, DUR = 1.2, L = Math.round(FS * DUR), x = new Float64Array(L);
+    for (var i = 0; i < L; i++) { var t = i / FS; var v = Math.min(1, t / 0.08, (DUR - t) / 0.08); x[i] = 0.5 * Math.sin(2 * Math.PI * 600 * t) + 0.5 * Math.sin(2 * Math.PI * 680 * t + 1); x[i] *= 0.5 - 0.5 * Math.cos(Math.PI * v); }
+    [0.56, 0.60, 0.64].forEach(function (tc) { var k = Math.round(tc * FS); for (var j = 0; j < 8; j++) x[k + j] += 6 * (1 - j / 8) * (j % 2 ? -1 : 1); });
+    function fft(re, im) {
+      var n = re.length;
+      for (var i = 1, j = 0; i < n; i++) { var b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { var t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+      for (var len = 2; len <= n; len <<= 1) { var a = -2 * Math.PI / len, wr = Math.cos(a), wi = Math.sin(a);
+        for (var s = 0; s < n; s += len) { var cr = 1, ci = 0;
+          for (var k = 0; k < len / 2; k++) { var ur = re[s + k], ui = im[s + k], vr = re[s + k + len / 2] * cr - im[s + k + len / 2] * ci, vi = re[s + k + len / 2] * ci + im[s + k + len / 2] * cr;
+            re[s + k] = ur + vr; im[s + k] = ui + vi; re[s + k + len / 2] = ur - vr; im[s + k + len / 2] = ui - vi; var nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr; } } }
+    }
+    var X0 = 64, Y0 = 52, W = 556, H = 250, FMAX = 1200, COLS = 278, FILAS = 125;
+    var pal = [[7, 13, 34], [26, 108, 245], [0, 212, 255], [238, 242, 255]];
+    function color(v) { v = Math.max(0, Math.min(1, v)) * 3; var k = Math.min(2, Math.floor(v)), f = v - k, a = pal[k], b = pal[k + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; }
+    function dibujar(N) {
+      var M = Math.max(N, 4096), hann = new Float64Array(N), S = [], mx = 1e-12;
+      for (var i = 0; i < N; i++) hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (N - 1));
+      for (var c = 0; c < COLS; c++) {
+        var centro = Math.round((c + 0.5) / COLS * L), re = new Float64Array(M), im = new Float64Array(M);
+        for (var j = 0; j < N; j++) { var k = centro - N / 2 + j; re[j] = (k >= 0 && k < L ? x[k] : 0) * hann[j]; }
+        fft(re, im); var col = new Float64Array(FILAS);
+        for (var r = 0; r < FILAS; r++) { var b = Math.round((r + 0.5) / FILAS * FMAX / FS * M), p = (re[b] * re[b] + im[b] * im[b]) / (N * N); col[r] = p; if (p > mx) mx = p; }
+        S.push(col);
+      }
+      g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, cv.width, cv.height);
+      var img = g.createImageData(COLS, FILAS);
+      for (var c2 = 0; c2 < COLS; c2++) for (var r2 = 0; r2 < FILAS; r2++) {
+        var v = 1 + 10 * Math.log10(S[c2][r2] / mx + 1e-12) / 60, rgb = color(v), o = ((FILAS - 1 - r2) * COLS + c2) * 4;
+        img.data[o] = rgb[0]; img.data[o + 1] = rgb[1]; img.data[o + 2] = rgb[2]; img.data[o + 3] = 255; }
+      var tmp = document.createElement('canvas'); tmp.width = COLS; tmp.height = FILAS; tmp.getContext('2d').putImageData(img, 0, 0);
+      g.imageSmoothingEnabled = false; g.drawImage(tmp, X0 * E, Y0 * E, W * E, H * E);
+      g.setTransform(E, 0, 0, E, 0, 0);
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1;
+      g.strokeRect(X0, Y0, W, H); g.textAlign = 'right';
+      for (var f = 0; f <= FMAX; f += 200) { var y = Y0 + H - H * f / FMAX; g.fillText(f, X0 - 8, y + 4); g.beginPath(); g.moveTo(X0 - 4, y); g.lineTo(X0, y); g.stroke(); }
+      g.textAlign = 'center';
+      for (var t = 0; t <= DUR + 1e-9; t += 0.2) { var xx = X0 + W * t / DUR; g.fillText(t.toFixed(1).replace('.', ','), xx, Y0 + H + 18); g.beginPath(); g.moveTo(xx, Y0 + H); g.lineTo(xx, Y0 + H + 4); g.stroke(); }
+      g.textAlign = 'left'; g.fillText('Hz', 30, Y0 - 8); g.textAlign = 'right'; g.fillText('tiempo (s)', X0 + W, Y0 + H + 36);
+      g.fillStyle = '#eef2ff'; g.font = "16px 'Space Mono', monospace"; g.textAlign = 'left'; g.fillText('ESPECTROGRAMA · VENTANA DE ' + (N / FS * 1000) + ' ms', 20, 28);
+      var ancho = W * (N / FS) / DUR; g.strokeStyle = '#f5a623'; g.lineWidth = 2; g.beginPath(); g.moveTo(X0 + 8, Y0 + H + 48); g.lineTo(X0 + 8 + ancho, Y0 + H + 48); g.stroke();
+      g.fillStyle = '#f5a623'; g.font = "11px 'Space Mono', monospace"; g.fillText('largo de la ventana', X0 + 16 + Math.max(ancho, 0), Y0 + H + 52);
+    }
+    var estado = document.getElementById('esv-estado'), botones = document.querySelectorAll('#esv .int-botones button');
+    function elegir(N) {
+      dibujar(N);
+      var tonos = 2 * FS / N < 80, golpes = N / FS < 0.04, df = Math.round(FS / N);
+      estado.innerHTML = 'Ventana de <strong>' + (N / FS * 1000) + ' ms</strong> (resolución en frecuencia ≈ ' + df + ' Hz). ' +
+        (tonos && golpes ? 'Justo en el medio: se distinguen los dos tonos y los tres golpes, aunque ninguno con nitidez.' : tonos ? 'Los dos tonos se ven separados, pero los tres golpes se funden en una mancha.' : 'Los tres golpes quedan separados en el tiempo, pero los dos tonos se funden en una sola banda.');
+      for (var b = 0; b < botones.length; b++) botones[b].setAttribute('aria-pressed', botones[b].getAttribute('data-n') == N ? 'true' : 'false');
+    }
+    for (var b = 0; b < botones.length; b++) botones[b].addEventListener('click', function () { elegir(parseInt(this.getAttribute('data-n'), 10)); });
+    elegir(512);
+  })();
+  </script>
 
   <div class="tech-note">
     <p><strong>El espectrograma de la voz:</strong> en el análisis del habla es común usar ventanas de 20 milisegundos. Según Smith, es un intervalo lo bastante corto como para que cada tramo contenga, en general, un solo fonema, y lo bastante largo como para incluir al menos dos períodos de la fundamental en la voz sonora, si la frecuencia más grave ronda los 100 Hz. En una vocal sostenida se ven los armónicos, líneas a múltiplos enteros de la fundamental, como predice la <a href="series-fourier.html">serie de Fourier</a>. Algunos grupos de armónicos aparecen más oscuros: son los <strong>formantes</strong>, las resonancias de baja frecuencia del tracto vocal, y los dos primeros determinan en gran medida qué vocal se pronuncia. En un acorde se superponen varias series de armónicos.</p>

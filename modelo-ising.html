@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
   </style>
@@ -176,6 +177,51 @@
   </figure>
 
   <p>A temperaturas altas, la agitación térmica desordena los espines completamente: cada espín fluctúa independientemente, la magnetización promedio es cero, no hay orden colectivo. A temperaturas bajas, las interacciones dominan: los espines tienden a alinearse, generando dominios magnéticos coherentes. <strong>Entre estos dos regímenes hay una temperatura crítica T_c donde ocurre la transición de fase ferromagnética</strong>, con propiedades singulares: divergencia de la susceptibilidad magnética, fluctuaciones críticas a todas las escalas, y leyes de potencia universales.</p>
+  <figure class="figura" id="isg">
+    <canvas id="isg-c" width="1280" height="800" role="img" aria-label="A la izquierda, una red de 100 por 100 espines, celestes hacia arriba y naranjas hacia abajo, que cambian en vivo según la temperatura elegida. A la derecha, la magnetización en función del tiempo: cerca de uno a temperatura baja, cerca de cero a temperatura alta, y con grandes fluctuaciones cerca de la temperatura crítica."></canvas>
+    <div class="int-botones" role="group" aria-label="Temperatura">
+      <button type="button" data-t="1.5">T = 1,5 · fría</button><button type="button" data-t="2.27">T = 2,27 · crítica</button><button type="button" data-t="3.5">T = 3,5 · caliente</button><button type="button" id="isg-mezclar">desordenar todo</button>
+    </div>
+    <div class="int-control">
+      <label for="isg-t">T = <output id="isg-t-v"></output></label>
+      <input type="range" id="isg-t" min="1" max="4" step="0.01" value="2.27">
+    </div>
+    <p class="int-estado" id="isg-estado" aria-live="polite"></p>
+    <figcaption>Modelo de Ising en dos dimensiones, simulado en tu navegador con el algoritmo de Metropolis (temperatura en unidades de J/k<sub>B</sub>). Por debajo de la temperatura crítica de Onsager, 2,269, los espines se alinean en grandes dominios y aparece magnetización; por encima, la agitación térmica gana y la magnetización se anula. Cerca de 2,27 hay dominios de todos los tamaños y la magnetización fluctúa mucho.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('isg-c'), g = cv.getContext('2d'), E = 2, L = 100, s = new Int8Array(L * L), T, ex = [1, 1, 1], serie = [], visible = true;
+    var rango = document.getElementById('isg-t'), salida = document.getElementById('isg-t-v'), estado = document.getElementById('isg-estado'), botones = document.querySelectorAll('#isg [data-t]');
+    var img = g.createImageData(L, L), tmp = document.createElement('canvas'); tmp.width = tmp.height = L;
+    function mezclar() { for (var i = 0; i < L * L; i++) s[i] = Math.random() < 0.5 ? 1 : -1; serie = []; }
+    function fijarT() { T = parseFloat(rango.value); ex = [Math.exp(-4 / T), Math.exp(-8 / T)]; salida.textContent = T.toFixed(2).replace('.', ',');
+      for (var b = 0; b < botones.length; b++) botones[b].setAttribute('aria-pressed', Math.abs(parseFloat(botones[b].getAttribute('data-t')) - T) < 0.005 ? 'true' : 'false'); }
+    function barrido() { for (var n = 0; n < L * L; n++) { var x = (Math.random() * L) | 0, y = (Math.random() * L) | 0, i = y * L + x;
+      var v = s[y * L + (x + 1) % L] + s[y * L + (x + L - 1) % L] + s[((y + 1) % L) * L + x] + s[((y + L - 1) % L) * L + x], dE = 2 * s[i] * v;
+      if (dE <= 0 || Math.random() < ex[dE / 4 - 1]) s[i] = -s[i]; } }
+    function dibujar() {
+      var m = 0; for (var i = 0; i < L * L; i++) { m += s[i]; var o = 4 * i; if (s[i] > 0) { img.data[o] = 0; img.data[o + 1] = 170; img.data[o + 2] = 214; } else { img.data[o] = 245; img.data[o + 1] = 166; img.data[o + 2] = 35; } img.data[o + 3] = 255; }
+      m = Math.abs(m) / (L * L); serie.push(m); if (serie.length > 300) serie.shift();
+      tmp.getContext('2d').putImageData(img, 0, 0);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 400); g.imageSmoothingEnabled = false; g.drawImage(tmp, 20, 50, 330, 330);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('ESPINES', 20, 28); g.fillText('MAGNETIZACIÓN |m|', 390, 28);
+      var X0 = 400, Y0 = 50, W = 220, H = 290; g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1; g.strokeRect(X0, Y0, W, H);
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.textAlign = 'right'; ['0', '0,5', '1'].forEach(function (t, k) { g.fillText(t, X0 - 6, Y0 + H - H * k / 2 + 4); }); g.fillText('tiempo →', X0 + W, Y0 + H + 16); g.textAlign = 'left';
+      var mo = Math.pow(Math.max(0, 1 - Math.pow(Math.sinh(2 / T), -4)), 0.125);
+      g.strokeStyle = 'rgba(94,224,160,0.8)'; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(X0, Y0 + H - H * mo); g.lineTo(X0 + W, Y0 + H - H * mo); g.stroke(); g.setLineDash([]);
+      g.fillStyle = '#5ee0a0'; g.textAlign = 'right'; g.fillText('Onsager: ' + mo.toFixed(2).replace('.', ','), X0 + W - 6, Math.min(Y0 + H - H * mo - 6, Y0 + H - 30)); g.textAlign = 'left';
+      g.strokeStyle = '#eef2ff'; g.lineWidth = 1.5; g.beginPath(); serie.forEach(function (v, k) { var X = X0 + W * k / 300, Y = Y0 + H - H * v; if (k) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.stroke();
+      estado.innerHTML = 'T = ' + T.toFixed(2).replace('.', ',') + (T < 2.2 ? ' (por debajo de T<sub>c</sub>)' : T > 2.35 ? ' (por encima de T<sub>c</sub>)' : ' (cerca de T<sub>c</sub> ≈ 2,27)') + ': magnetización <strong>' + m.toFixed(2).replace('.', ',') + '</strong>; el valor de equilibrio en una red infinita es ' + mo.toFixed(2).replace('.', ',') + '.';
+    }
+    function bucle() { if (visible) { barrido(); dibujar(); } requestAnimationFrame(bucle); }
+    for (var b = 0; b < botones.length; b++) botones[b].addEventListener('click', function () { rango.value = this.getAttribute('data-t'); fijarT(); });
+    rango.addEventListener('input', fijarT);
+    document.getElementById('isg-mezclar').addEventListener('click', mezclar);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    mezclar(); fijarT(); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Analogía del equipo deportivo:</strong> Imaginá un equipo deportivo donde cada jugador puede estar "comprometido" o "desinteresado". A cada jugador le gusta estar en el mismo estado que sus compañeros cercanos (interacción local positiva), pero también es susceptible al estrés y al cansancio (agitación térmica). En épocas de alta presión (alta temperatura), cada jugador fluctúa independientemente: no hay ánimo colectivo, el equipo está dividido. En épocas de baja presión, las interacciones dominan: todo el equipo se "compromete" o "desinteresa" colectivamente. <strong>Y en una zona intermedia muy específica, el equipo está en estado crítico</strong>: las opiniones individuales son frágiles, pequeños eventos pueden propagar cambios colectivos masivos, y la dinámica social del equipo se vuelve muy sensible a perturbaciones. El modelo de Ising describe matemáticamente este tipo de dinámica colectiva.</p>

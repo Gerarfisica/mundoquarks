@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -112,6 +113,42 @@
   <div class="math-block">Simulación propia: 2000 osciladores con frecuencias gaussianas de desviación 1 (λ<sub>c</sub> ≈ 1,60)<br>λ = 0,5 → R ≈ 0,02 · λ = 1,0 → R ≈ 0,02 · λ = 1,5 → R ≈ 0,21<br>λ = 2,0 → R ≈ 0,76 · λ = 3,0 → R ≈ 0,94 · λ = 4,0 → R ≈ 0,97</div>
 
   <p>La simulación propia muestra la transición. Por debajo del valor crítico, el parámetro de orden se queda en el nivel del ruido de una población finita; cerca de él empieza a crecer, y por encima, la gran mayoría de los osciladores gira al unísono. Es una transición de fase, como la de un imán que se magnetiza, pero en el tiempo en lugar del espacio: lo que se ordena son las fases de los ritmos.</p>
+  <figure class="figura" id="kur">
+    <canvas id="kur-c" width="1280" height="760" role="img" aria-label="A la izquierda, 300 osciladores dibujados como puntos que giran sobre un círculo, cada uno a su propia frecuencia, y una flecha central cuyo largo es el parámetro de orden R. A la derecha, R en función del tiempo. Con acoplamiento débil los puntos se reparten por todo el círculo y R queda cerca de cero; con acoplamiento fuerte se agrupan y R se acerca a uno."></canvas>
+    <div class="int-control"><label for="kur-l">acoplamiento λ = <output id="kur-l-v"></output></label><input type="range" id="kur-l" min="0" max="4" step="0.1" value="0.5"></div>
+    <div class="int-botones"><button type="button" id="kur-ini">desordenar las fases</button></div>
+    <p class="int-estado" id="kur-estado" aria-live="polite"></p>
+    <figcaption>El modelo de Kuramoto con 300 osciladores de frecuencias gaussianas (desviación 1), integrado en tu navegador. Cada uno tira de los demás hacia su propia fase con intensidad λ. Por debajo del valor crítico, cercano a 1,6, cada oscilador sigue su ritmo y el parámetro de orden R es casi cero; por encima, un grupo cada vez mayor gira junto y R crece, como en la simulación del artículo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('kur-c'), g = cv.getContext('2d'), E = 2, N = 300, w = new Float64Array(N), th = new Float64Array(N), serie = [], visible = true, DT = 0.03;
+    var rango = document.getElementById('kur-l'), estado = document.getElementById('kur-estado');
+    function gauss() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+    for (var i = 0; i < N; i++) w[i] = gauss();
+    function desordenar() { for (var i = 0; i < N; i++) th[i] = 2 * Math.PI * Math.random(); serie = []; }
+    function paso() { var lam = parseFloat(rango.value), c = 0, s = 0; for (var i = 0; i < N; i++) { c += Math.cos(th[i]); s += Math.sin(th[i]); } c /= N; s /= N; var R = Math.hypot(c, s), psi = Math.atan2(s, c);
+      for (i = 0; i < N; i++) th[i] += DT * (w[i] + lam * R * Math.sin(psi - th[i])); return [R, psi]; }
+    function dibujar(Rp) {
+      var R = Rp[0], psi = Rp[1], CX = 160, CY = 200, RA = 130;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 380);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('300 OSCILADORES', 20, 28); g.fillText('PARÁMETRO DE ORDEN R', 340, 28);
+      g.strokeStyle = 'rgba(136,146,176,0.4)'; g.lineWidth = 1; g.beginPath(); g.arc(CX, CY, RA, 0, 7); g.stroke();
+      for (var i = 0; i < N; i++) { var hue = w[i] < -1 ? '#b48cff' : w[i] > 1 ? '#f5a623' : '#00d4ff'; g.fillStyle = hue; g.globalAlpha = 0.75; g.beginPath(); g.arc(CX + RA * Math.cos(th[i]), CY - RA * Math.sin(th[i]), 3, 0, 7); g.fill(); } g.globalAlpha = 1;
+      var ax = CX + RA * R * Math.cos(psi), ay = CY - RA * R * Math.sin(psi); g.strokeStyle = '#eef2ff'; g.lineWidth = 3; g.beginPath(); g.moveTo(CX, CY); g.lineTo(ax, ay); g.stroke(); g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(ax, ay, 4, 0, 7); g.fill();
+      var X0 = 350, W = 270, Y0 = 60, H = 260; g.strokeStyle = 'rgba(136,146,176,0.6)'; g.strokeRect(X0, Y0, W, H);
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.textAlign = 'right'; ['0', '0,5', '1'].forEach(function (s, k) { g.fillText(s, X0 - 6, Y0 + H - H * k / 2 + 4); }); g.fillText('tiempo →', X0 + W, Y0 + H + 16); g.textAlign = 'left';
+      g.strokeStyle = '#f5a623'; g.lineWidth = 1.8; g.beginPath(); serie.forEach(function (v, k) { var X = X0 + W * k / 400, Y = Y0 + H - H * v; if (k) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.stroke();
+      g.font = "11px 'Space Mono', monospace"; [['frecuencia baja', '#b48cff'], ['media', '#00d4ff'], ['alta', '#f5a623']].forEach(function (l, k) { g.fillStyle = l[1]; g.fillText('● ' + l[0], 20 + k * 150, 365); });
+      var lam = parseFloat(rango.value); document.getElementById('kur-l-v').textContent = lam.toFixed(1).replace('.', ',');
+      estado.innerHTML = 'λ = ' + lam.toFixed(1).replace('.', ',') + ': R = <strong>' + R.toFixed(2).replace('.', ',') + '</strong>. ' + (lam < 1.4 ? 'Por debajo del umbral: cada oscilador sigue su ritmo.' : lam < 1.9 ? 'Cerca del umbral: empieza a formarse un grupo sincronizado.' : 'Por encima del umbral: la mayoría gira junta y solo los más rápidos o lentos quedan sueltos.');
+    }
+    function bucle() { if (visible) { var r; for (var k = 0; k < 2; k++) r = paso(); serie.push(r[0]); if (serie.length > 400) serie.shift(); dibujar(r); } requestAnimationFrame(bucle); }
+    document.getElementById('kur-ini').addEventListener('click', desordenar);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    desordenar(); dibujar([0, 0]); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Una ronda de caminantes:</strong> imaginá un grupo de personas que caminan en círculo alrededor de una plaza, cada una a su paso natural. Si cada una intenta mantenerse cerca del grupo, las rápidas se frenan un poco y las lentas se apuran. Si esa tendencia es débil, el grupo se desarma y cada uno da vueltas a su ritmo; si es lo bastante fuerte comparada con las diferencias de paso, todos terminan dando las vueltas juntos. Es la condición del umbral de Kuramoto.</p>

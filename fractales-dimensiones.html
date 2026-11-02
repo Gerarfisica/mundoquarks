@@ -32,8 +32,9 @@
     .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
     .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
     @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
-    .figura{margin:2.5rem 0;}.figura img,.figura video{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura video{background:#000;}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura{margin:2.5rem 0;}.figura img,.figura video,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura video{background:#000;}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .figura.media{max-width:520px;margin-left:auto;margin-right:auto;}.figura.chica{max-width:300px;margin-left:auto;margin-right:auto;}.figura-doble{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}.figura-doble img{aspect-ratio:1;object-fit:cover;}@media(max-width:600px){.figura-doble{grid-template-columns:1fr;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
   </style>
@@ -75,6 +76,50 @@
   <p>El fractal más famoso de la historia es el <strong>conjunto de Mandelbrot</strong>, descrito por primera vez por el propio Mandelbrot en 1980 usando computadoras. Se define por una operación simple: para cada número complejo c, comenzá con z=0 y aplicá iterativamente la transformación z → z² + c. Si la secuencia permanece acotada, c pertenece al conjunto; si diverge al infinito, c no pertenece. Los puntos que pertenecen al conjunto, visualizados en el plano complejo, forman una figura de complejidad asombrosa: una "amenaza negra" con zarcillos espirales, microcopias autosemejantes en sus bordes, estructuras filamentosas que se extienden infinitamente.</p>
 
   <p>El conjunto de Mandelbrot exhibe la autosemejanza más espectacular conocida: al amplificar cualquier región de su borde, encontrás copias casi exactas de la figura completa, junto con estructuras nuevas e infinitamente intrincadas. Es un objeto matemático infinitamente complejo definido por una ecuación absurdamente simple. Su exploración —que requiere herramientas computacionales— ha producido algunas de las imágenes matemáticas más bellas jamás creadas.</p>
+  <figure class="figura" id="mdb">
+    <canvas id="mdb-c" width="1280" height="800" role="img" aria-label="El conjunto de Mandelbrot, en negro, rodeado de franjas de color según lo rápido que escapan los puntos de afuera. Con un clic se amplía la zona elegida cuatro veces; en el borde aparecen espirales, filamentos y copias pequeñas del conjunto entero."></canvas>
+    <div class="int-botones">
+      <button type="button" id="mdb-alejar">− alejar</button><button type="button" id="mdb-mar">ir a una copia en miniatura</button><button type="button" id="mdb-ini">volver al inicio</button>
+    </div>
+    <p class="int-estado" id="mdb-estado" aria-live="polite"></p>
+    <figcaption>El conjunto de Mandelbrot: los números complejos c para los que la iteración z → z² + c, desde z = 0, no se escapa al infinito. Tocá o hacé clic para ampliar cuatro veces la zona elegida. Por más que se amplíe el borde, siempre aparece más detalle, y en algunos lugares, copias casi exactas del conjunto completo. Calculado en tu navegador.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('mdb-c'), g = cv.getContext('2d'), W = cv.width, H = cv.height, cx, cy, esc, trabajo = 0;
+    var estado = document.getElementById('mdb-estado');
+    var pal = [[7, 13, 34], [26, 108, 245], [0, 212, 255], [238, 242, 255], [245, 166, 35], [7, 13, 34]];
+    function color(v) { v = (v % 1) * 5; var k = Math.floor(v), f = v - k, a = pal[k], b = pal[k + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; }
+    function dibujar() {
+      var id = ++trabajo, zoom = 3 / esc, it = Math.min(3000, Math.round(120 + 60 * Math.log2(zoom > 1 ? zoom : 1))), img = g.createImageData(W, H), fila = 0;
+      estado.innerHTML = 'Ampliación: <strong>×' + (zoom < 1e4 ? Math.round(zoom) : zoom.toExponential(1).replace('.', ',').replace('e+', ' × 10^')) + '</strong> · centro ' + cx.toFixed(6).replace('.', ',') + (cy < 0 ? ' − ' : ' + ') + Math.abs(cy).toFixed(6).replace('.', ',') + ' i · hasta ' + it + ' iteraciones.';
+      function lote() {
+        if (id !== trabajo) return;
+        var fin = Math.min(H, fila + 40);
+        for (; fila < fin; fila++) {
+          var ci = cy + (H / 2 - fila) * esc / W;
+          for (var col = 0; col < W; col++) {
+            var cr = cx + (col - W / 2) * esc / W, zr = 0, zi = 0, n = 0, zr2 = 0, zi2 = 0;
+            while (n < it && zr2 + zi2 < 256) { zi = 2 * zr * zi + ci; zr = zr2 - zi2 + cr; zr2 = zr * zr; zi2 = zi * zi; n++; }
+            var o = (fila * W + col) * 4, c;
+            if (n >= it) c = [0, 0, 0]; else { var mu = n + 1 - Math.log(Math.log(Math.sqrt(zr2 + zi2))) / Math.LN2; c = color(Math.sqrt(mu) / 6); }
+            img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+          }
+        }
+        g.putImageData(img, 0, 0, 0, 0, W, fin);
+        if (fila < H) setTimeout(lote, 0);
+      }
+      lote();
+    }
+    function ir(x, y, e) { cx = x; cy = y; esc = e; dibujar(); }
+    cv.addEventListener('click', function (e) { var r = cv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W, py = (e.clientY - r.top) / r.height * H;
+      ir(cx + (px - W / 2) * esc / W, cy + (H / 2 - py) * esc / W, esc / 4); });
+    document.getElementById('mdb-alejar').addEventListener('click', function () { ir(cx, cy, Math.min(esc * 4, 3.2)); });
+    document.getElementById('mdb-ini').addEventListener('click', function () { ir(-0.6, 0, 3.2); });
+    document.getElementById('mdb-mar').addEventListener('click', function () { ir(-1.7549, 0, 0.05); });
+    ir(-0.6, 0, 3.2);
+  })();
+  </script>
 
   <h2>Los Fractales en la Naturaleza</h2>
 

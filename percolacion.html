@@ -32,6 +32,8 @@
     .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
     .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
     @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -58,12 +60,82 @@
   <p>Según la revisión de Abbas Ali Saberi sobre la teoría de la percolación, la idea ya había sido considerada por Flory en la década de 1940, pero su estudio como teoría matemática empezó en 1954, cuando el ingeniero Simon Broadbent y el matemático John Hammersley, uno de ellos ocupado en el diseño de filtros de carbón para máscaras de gas, se reunieron para tratar «la propagación paso a paso de un fluido o de partículas a través de un medio, siguiendo un camino aleatorio en el que cada enlace está abierto o cerrado según una proporción estadística». En su trabajo de 1957 propusieron el concepto de <strong>umbral de percolación</strong>: por encima de él, los enlaces abiertos forman con alta probabilidad un camino infinito.</p>
 
   <p>Saberi ilustra la idea con un circuito: una lámpara conectada a una placa aislante en la que se van colocando al azar celdas metálicas. Mientras la fracción de celdas metálicas es menor que el umbral, se forman islas metálicas aisladas y la lámpara sigue apagada. Cuando se supera el umbral, aparece un cúmulo que une los dos lados de la placa, y la lámpara se enciende de golpe. Es una transición de aislante a conductor.</p>
+  <figure class="figura" id="pcl">
+    <canvas id="pcl-c" width="1280" height="760" role="img" aria-label="Una grilla de 80 por 80 sitios, cada uno ocupado con probabilidad p. El racimo conectado más grande se pinta en naranja y, cuando une el borde de arriba con el de abajo, se marca que percola. Por debajo de p de 0,59 los racimos son chicos y aislados; por encima, uno de ellos atraviesa toda la grilla."></canvas>
+    <div class="int-control"><label for="pcl-p">p = <output id="pcl-p-v"></output></label><input type="range" id="pcl-p" min="0.3" max="0.9" step="0.01" value="0.5"></div>
+    <div class="int-botones"><button type="button" id="pcl-otra">otra grilla al azar</button></div>
+    <p class="int-estado" id="pcl-estado" aria-live="polite"></p>
+    <figcaption>Percolación de sitios en una red cuadrada, calculada en tu navegador. Cada sitio tiene asignado un número al azar y está ocupado si ese número es menor que p, así que al subir p se agregan sitios sin quitar ninguno. Cerca del umbral, p ≈ 0,593, el racimo más grande deja de ser un racimo más y pasa a atravesar la grilla de lado a lado: es una transición de fase.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('pcl-c'), g = cv.getContext('2d'), E = 2, N = 80, r = new Float64Array(N * N), lab = new Int32Array(N * N), rango = document.getElementById('pcl-p'), estado = document.getElementById('pcl-estado');
+    var tmp = document.createElement('canvas'); tmp.width = tmp.height = N; var img = tmp.getContext('2d').createImageData(N, N);
+    function sortear() { for (var i = 0; i < N * N; i++) r[i] = Math.random(); }
+    function actualizar() {
+      var p = parseFloat(rango.value), occ = function (i) { return r[i] < p; }, nlab = 0, tam = [0], cruza = {};
+      lab.fill(0);
+      for (var s = 0; s < N * N; s++) { if (!occ(s) || lab[s]) continue; nlab++; var cola = [s], top = false, bot = false; lab[s] = nlab; var c = 0;
+        while (cola.length) { var i = cola.pop(), x = i % N, y = (i / N) | 0; c++; if (y === 0) top = true; if (y === N - 1) bot = true;
+          [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var X = x + d[0], Y = y + d[1]; if (X >= 0 && X < N && Y >= 0 && Y < N) { var j = Y * N + X; if (occ(j) && !lab[j]) { lab[j] = nlab; cola.push(j); } } }); }
+        tam.push(c); if (top && bot) cruza[nlab] = true; }
+      var big = 0; for (var k = 1; k < tam.length; k++) if (tam[k] > tam[big]) big = k;
+      var perc = Object.keys(cruza).length > 0, nocc = 0;
+      for (s = 0; s < N * N; s++) { var o = 4 * s, col; if (!occ(s)) col = [7, 13, 34]; else { nocc++; col = cruza[lab[s]] ? [245, 166, 35] : lab[s] === big ? [180, 140, 255] : [0, 130, 170]; } img.data[o] = col[0]; img.data[o + 1] = col[1]; img.data[o + 2] = col[2]; img.data[o + 3] = 255; }
+      tmp.getContext('2d').putImageData(img, 0, 0);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 380); g.imageSmoothingEnabled = false; g.drawImage(tmp, 20, 44, 320, 320);
+      g.strokeStyle = 'rgba(136,146,176,0.6)'; g.strokeRect(20, 44, 320, 320);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('PERCOLACIÓN · p = ' + p.toFixed(2).replace('.', ','), 20, 28);
+      g.font = "13px 'Space Mono', monospace"; g.fillStyle = perc ? '#f5a623' : '#8892b0'; g.fillText(perc ? 'PERCOLA: un racimo une' : 'NO PERCOLA', 370, 80); if (perc) g.fillText('arriba con abajo', 370, 100);
+      g.font = "12px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.fillText('sitios ocupados: ' + nocc, 370, 140); g.fillText('racimos: ' + nlab, 370, 162); g.fillText('el mayor: ' + tam[big] + ' sitios', 370, 184); g.fillText('(' + Math.round(100 * tam[big] / Math.max(nocc, 1)) + ' % de los ocupados)', 370, 204);
+      [['racimo que cruza', [245, 166, 35]], ['racimo más grande', [180, 140, 255]], ['otros racimos', [0, 130, 170]]].forEach(function (l, j) { g.fillStyle = 'rgb(' + l[1] + ')'; g.fillRect(370, 250 + j * 22, 12, 12); g.fillStyle = '#8892b0'; g.fillText(l[0], 390, 261 + j * 22); });
+      document.getElementById('pcl-p-v').textContent = p.toFixed(2).replace('.', ',');
+      estado.innerHTML = 'p = ' + p.toFixed(2).replace('.', ',') + ': ' + (perc ? 'hay un camino de sitios ocupados de arriba abajo; <strong>la red percola</strong>.' : 'ningún racimo llega de arriba abajo; <strong>la red no percola</strong>.') + ' El racimo mayor reúne el ' + Math.round(100 * tam[big] / Math.max(nocc, 1)) + ' % de los sitios ocupados.';
+    }
+    rango.addEventListener('input', actualizar);
+    document.getElementById('pcl-otra').addEventListener('click', function () { sortear(); actualizar(); });
+    sortear(); actualizar();
+  })();
+  </script>
 
   <h2>El Bosque en la Computadora</h2>
 
   <p>El incendio forestal del comienzo es el mismo problema: el fuego que se enciende en un borde quema exactamente el cúmulo de árboles conectado a ese borde, y cruza el bosque si ese cúmulo llega al otro lado. Una simulación propia, en bosques de 100 × 100 sitios con 200 repeticiones por valor de p, lo muestra con claridad:</p>
 
   <div class="math-block">p = 0,50 → el fuego cruza en 0 % de los casos · se quema el 6 % de los árboles<br>p = 0,55 → cruza en 0 % · se quema el 13 %<br>p = 0,59 → cruza en 46 % · se quema el 45 %<br>p = 0,62 → cruza en 98 % · se quema el 83 % · p = 0,65 → cruza en 100 % · se quema el 93 %</div>
+  <figure class="figura" id="fue">
+    <canvas id="fue-c" width="1280" height="760" role="img" aria-label="Un bosque de 100 por 100 lugares, con árboles verdes según la densidad elegida. El fuego se enciende en el borde izquierdo y avanza de árbol en árbol vecino; los árboles en llamas se ven naranjas y los quemados, grises. Por debajo de una densidad cercana a 0,59 el fuego se apaga pronto; por encima, cruza todo el bosque."></canvas>
+    <div class="int-control"><label for="fue-p">densidad de árboles p = <output id="fue-p-v"></output></label><input type="range" id="fue-p" min="0.4" max="0.8" step="0.01" value="0.59"></div>
+    <div class="int-botones"><button type="button" id="fue-ini">encender de nuevo</button></div>
+    <p class="int-estado" id="fue-estado" aria-live="polite"></p>
+    <figcaption>El incendio del artículo, en vivo: cada lugar tiene un árbol con probabilidad p; el fuego empieza en todo el borde izquierdo y en cada paso pasa a los árboles vecinos, sin viento ni saltos. Con p = 0,50 casi siempre se apaga cerca del borde; con 0,65 cruza el bosque. Alrededor de 0,59 el resultado cambia mucho de un bosque a otro: es el umbral de percolación.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('fue-c'), g = cv.getContext('2d'), E = 2, N = 100, s = new Uint8Array(N * N), frente, paso, arboles, quemados, cruzo, visible = true, ultimo = 0;
+    var rango = document.getElementById('fue-p'), estado = document.getElementById('fue-estado'), tmp = document.createElement('canvas'); tmp.width = tmp.height = N; var img = tmp.getContext('2d').createImageData(N, N);
+    var COL = [[7, 13, 34], [40, 150, 90], [245, 166, 35], [70, 76, 95]];
+    function ini() { var p = parseFloat(rango.value); arboles = 0; quemados = 0; paso = 0; cruzo = false; frente = [];
+      for (var i = 0; i < N * N; i++) { s[i] = Math.random() < p ? 1 : 0; arboles += s[i]; }
+      for (var y = 0; y < N; y++) if (s[y * N]) { s[y * N] = 2; frente.push(y * N); }
+      document.getElementById('fue-p-v').textContent = p.toFixed(2).replace('.', ','); }
+    function avanzar() { var nuevo = []; frente.forEach(function (i) { var x = i % N, y = (i / N) | 0; s[i] = 3; quemados++; if (x === N - 1) cruzo = true;
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var X = x + d[0], Y = y + d[1]; if (X >= 0 && X < N && Y >= 0 && Y < N) { var j = Y * N + X; if (s[j] === 1) { s[j] = 2; nuevo.push(j); } } }); });
+      frente = nuevo; paso++; }
+    function dibujar() { for (var i = 0; i < N * N; i++) { var c = COL[s[i]], o = 4 * i; img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255; }
+      tmp.getContext('2d').putImageData(img, 0, 0); g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 380); g.imageSmoothingEnabled = false; g.drawImage(tmp, 20, 44, 320, 320);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('INCENDIO FORESTAL', 20, 28);
+      g.font = "12px 'Space Mono', monospace"; [['árbol', 1], ['en llamas', 2], ['quemado', 3]].forEach(function (l, j) { var c = COL[l[1]]; g.fillStyle = 'rgb(' + c + ')'; g.fillRect(370, 70 + j * 22, 12, 12); g.fillStyle = '#8892b0'; g.fillText(l[0], 390, 81 + j * 22); });
+      g.fillStyle = '#eef2ff'; g.fillText('paso ' + paso, 370, 160); g.fillText('quemado: ' + Math.round(100 * quemados / Math.max(arboles, 1)) + ' % de los árboles', 370, 182);
+      g.fillStyle = cruzo ? '#f5a623' : '#8892b0'; g.fillText(cruzo ? 'el fuego cruzó el bosque' : frente.length ? 'el fuego avanza…' : 'el fuego se apagó', 370, 214);
+      estado.innerHTML = 'Densidad ' + rango.value.replace('.', ',') + ': ' + (frente.length ? 'el fuego sigue avanzando.' : (cruzo ? 'el fuego <strong>cruzó</strong> el bosque' : 'el fuego <strong>se apagó</strong> antes de cruzar') + ' y quemó el ' + Math.round(100 * quemados / Math.max(arboles, 1)) + ' % de los árboles.'); }
+    function bucle(ts) { if (visible && frente.length && ts - ultimo > 30) { ultimo = ts; avanzar(); dibujar(); } requestAnimationFrame(bucle); }
+    rango.addEventListener('input', function () { ini(); dibujar(); });
+    document.getElementById('fue-ini').addEventListener('click', function () { ini(); dibujar(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    ini(); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <p>Alrededor de p ≈ 0,59, muy cerca del umbral exacto de la red cuadrada, calculado por M. E. J. Newman y R. M. Ziff con una simulación de alta precisión, el comportamiento cambia por completo. Una diferencia de pocos puntos en la densidad de árboles separa un incendio que se apaga solo de uno que arrasa con casi todo el bosque. En una grilla finita la transición se suaviza; Saberi explica que, en el límite de un sistema infinito, la probabilidad de que exista un cúmulo infinito pasa de 0 a 1 como un escalón en p<sub>c</sub>.</p>
 

@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -148,6 +149,42 @@
   <p>Langtangen analiza qué le hace el esquema a cada onda espacial de la solución. La ecuación del calor exacta amortigua todas las ondas, y más rápido las más cortas. El esquema explícito multiplica cada onda, en cada paso, por un factor A = 1 − 4F sen²(kΔx/2), con k el número de onda. Ese factor nunca es mayor que 1, pero puede ser menor que −1, y entonces la onda crece y cambia de signo en cada paso. El peor caso es la onda más corta que admite la grilla, y la condición para que ninguna crezca es <strong>F ≤ 1/2</strong>. Sus experimentos numéricos lo confirman: con F &gt; 1/2 las soluciones crecen.</p>
 
   <p>Una prueba propia lo muestra con números. Una barra de largo 1, con α = 1, extremos a temperatura 0 y una temperatura inicial con forma de media onda seno, dividida en 20 tramos. La solución exacta en el centro, en t = 0,1, es e<sup>−π²·0,1</sup> ≈ 0,3727. Con F = 0,25 el esquema da 0,3723, y con F = 0,5, 0,3712. Con F = 0,6 el resultado en t = 0,1 todavía parece razonable, 0,365, pero una perturbación de 10<sup>−12</sup>, del tamaño de los errores de redondeo, crece en cada paso: en t = 0,18 la «temperatura» llega a 10<sup>5</sup>, y en t = 0,3, a 10<sup>16</sup>.</p>
+  <figure class="figura" id="dfe">
+    <canvas id="dfe-c" width="1280" height="700" role="img" aria-label="La temperatura de una barra calculada con diferencias finitas, junto con la solución exacta. Con un número de Fourier menor o igual que un medio, los puntos calculados siguen la curva exacta, que se achica sin cambiar de forma. Con un valor mayor, aparece un serrucho de puntos que alternan de signo y crece hasta tapar todo."></canvas>
+    <div class="int-botones" role="group" aria-label="Número de Fourier F">
+      <button type="button" data-f="0.25">F = 0,25</button><button type="button" data-f="0.5">F = 0,5</button><button type="button" data-f="0.52">F = 0,52</button><button type="button" data-f="0.6">F = 0,6</button>
+    </div>
+    <p class="int-estado" id="dfe-estado" aria-live="polite"></p>
+    <figcaption>La prueba del artículo: barra de largo 1, α = 1, extremos a 0, temperatura inicial en media onda seno y 20 tramos, con una perturbación de 10<sup>−12</sup>, del tamaño de los errores de redondeo. El esquema explícito multiplica la onda más corta de la grilla por 1 − 4F en cada paso: con F ≤ 1/2 se amortigua, y con F mayor crece y cambia de signo hasta tapar la solución.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('dfe-c'), g = cv.getContext('2d'), E = 2, N = 20, dx = 1 / N, F = 0.25, dt, u, t, n, visible = true, estado = document.getElementById('dfe-estado'), TMAX = 0.3;
+    function ini() { dt = F * dx * dx; u = []; for (var i = 0; i <= N; i++) u.push(Math.sin(Math.PI * i * dx) + (i > 0 && i < N ? 1e-12 * (i % 2 ? 1 : -1) : 0)); t = 0; n = 0;
+      document.querySelectorAll('#dfe [data-f]').forEach(function (b) { b.setAttribute('aria-pressed', parseFloat(b.getAttribute('data-f')) === F ? 'true' : 'false'); }); }
+    function paso() { var v = u.slice(); for (var i = 1; i < N; i++) v[i] = u[i] + F * (u[i + 1] - 2 * u[i] + u[i - 1]); u = v; t += dt; n++; }
+    function sci(v) { var e = Math.floor(Math.log10(Math.abs(v))), m = v / Math.pow(10, e); return m.toFixed(1).replace('.', ',').replace('-', '−') + ' × 10<sup>' + e + '</sup>'; }
+    function dibujar() {
+      var X0 = 60, W = 540, YC = 200, A = 140;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 350);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('BARRA CON F = ' + String(F).replace('.', ','), 20, 28);
+      g.strokeStyle = 'rgba(136,146,176,0.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X0, YC); g.lineTo(X0 + W, YC); g.stroke();
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.textAlign = 'right'; ['1', '0', '−1'].forEach(function (s, k) { g.fillText(s, X0 - 6, YC - A + k * A + 4); }); g.textAlign = 'left';
+      var ex = Math.exp(-Math.PI * Math.PI * t); g.strokeStyle = '#eef2ff'; g.lineWidth = 2; g.beginPath(); for (var i = 0; i <= 200; i++) { var x = i / 200; if (i) g.lineTo(X0 + W * x, YC - A * ex * Math.sin(Math.PI * x)); else g.moveTo(X0, YC); } g.stroke();
+      g.save(); g.beginPath(); g.rect(X0 - 10, 40, W + 20, 300); g.clip();
+      g.strokeStyle = 'rgba(0,212,255,0.5)'; g.beginPath(); u.forEach(function (v, i) { var Y = YC - A * Math.max(-3, Math.min(3, v)); if (i) g.lineTo(X0 + W * i / N, Y); else g.moveTo(X0, Y); }); g.stroke();
+      u.forEach(function (v, i) { g.fillStyle = '#00d4ff'; g.beginPath(); g.arc(X0 + W * i / N, YC - A * Math.max(-3, Math.min(3, v)), 4, 0, 7); g.fill(); }); g.restore();
+      g.fillStyle = '#eef2ff'; g.fillText('exacta: e^(−π²t) sen(πx)', 420, 58); g.fillStyle = '#00d4ff'; g.fillText('diferencias finitas', 420, 76);
+      g.fillStyle = '#8892b0'; g.fillText('t = ' + t.toFixed(3).replace('.', ',') + ' · paso ' + n, 430, 335);
+      var mx = Math.max.apply(null, u.map(Math.abs)), c = u[N / 2];
+      estado.innerHTML = 't = ' + t.toFixed(3).replace('.', ',') + ': en el centro, exacta ' + ex.toFixed(4).replace('.', ',') + ', calculada <strong>' + (Math.abs(c) < 1e4 ? c.toFixed(4).replace('.', ',').replace('-', '−') : sci(c)) + '</strong>.' + (mx > 1.5 ? ' La perturbación de 10<sup>−12</sup> creció hasta ' + sci(mx) + ': el esquema es <strong>inestable</strong>.' : F > 0.5 ? ' Todavía parece bien, pero el error de redondeo ya está creciendo en cada paso.' : '');
+    }
+    function bucle() { if (visible && t < TMAX) { var k = Math.max(1, Math.round(0.0015 / dt)); for (var i = 0; i < k && t < TMAX; i++) paso(); dibujar(); } requestAnimationFrame(bucle); }
+    document.querySelectorAll('#dfe [data-f]').forEach(function (b) { b.addEventListener('click', function () { F = parseFloat(b.getAttribute('data-f')); ini(); dibujar(); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    ini(); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="info-box">
     <h3>Un precio alto por la resolución</h3>

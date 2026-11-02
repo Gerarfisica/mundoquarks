@@ -32,6 +32,8 @@
     .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
     .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
     @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -60,6 +62,37 @@
   <h2>Oscilaciones: El Círculo Escondido</h2>
 
   <p>El texto de física de OpenStax muestra una forma sencilla de ver una oscilación. Una clavija fija al borde de un disco que gira a velocidad constante proyecta, iluminada desde arriba, una sombra que va y viene: ese vaivén es un movimiento armónico simple. Así, una oscilación armónica se puede ver como la proyección de un movimiento circular uniforme, y un ciclo completo de la oscilación corresponde a una vuelta completa, 2π radianes. Por eso la frecuencia angular es ω = 2πf, y por eso el período de un oscilador o de un péndulo lleva un 2π, como en T = 2π√(L/g). El círculo no está en el péndulo; está en la descripción matemática de su movimiento.</p>
+  <figure class="figura" id="pis">
+    <canvas id="pis-c" width="1280" height="640" role="img" aria-label="A la izquierda, un punto que gira con velocidad constante sobre un círculo de radio uno, con el arco recorrido marcado. A la derecha, su altura dibujada en función del ángulo: una onda seno que se completa exactamente cuando el ángulo llega a dos pi, es decir, al largo de la circunferencia."></canvas>
+    <div class="int-botones"><button type="button" id="pis-pausa">❚❚ pausa</button></div>
+    <p class="int-estado" id="pis-estado" aria-live="polite"></p>
+    <figcaption>Un punto recorre el círculo de radio 1 a velocidad constante; su altura, dibujada contra el ángulo en radianes, es sen θ. El ángulo en radianes es el largo del arco recorrido, así que una vuelta completa mide 2π, el largo de la circunferencia, y ahí la onda vuelve a empezar. Por eso cada oscilación de la física trae un 2π consigo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('pis-c'), g = cv.getContext('2d'), E = 2, CX = 110, CY = 165, R = 80, X0 = 230, SX = 380 / (2 * Math.PI), th = 0, prev = null, corriendo = true, visible = true, estado = document.getElementById('pis-estado');
+    function dibujar() {
+      var a = th % (2 * Math.PI), y = Math.sin(a), x = Math.cos(a);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 320);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('EL CÍRCULO Y LA ONDA', 20, 28);
+      g.strokeStyle = 'rgba(136,146,176,0.5)'; g.lineWidth = 1; g.beginPath(); g.arc(CX, CY, R, 0, 7); g.moveTo(CX - R - 15, CY); g.lineTo(X0 + 2 * Math.PI * SX + 10, CY); g.moveTo(CX, CY - R - 15); g.lineTo(CX, CY + R + 15); g.moveTo(X0, CY - R - 15); g.lineTo(X0, CY + R + 15); g.stroke();
+      g.strokeStyle = '#f5a623'; g.lineWidth = 4; g.beginPath(); g.arc(CX, CY, R, 0, -a, true); g.stroke();
+      g.strokeStyle = '#00d4ff'; g.lineWidth = 2; g.beginPath(); g.moveTo(CX, CY); g.lineTo(CX + R * x, CY - R * y); g.stroke();
+      g.strokeStyle = 'rgba(238,242,255,0.5)'; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(CX + R * x, CY - R * y); g.lineTo(X0 + a * SX, CY - R * y); g.stroke(); g.setLineDash([]);
+      g.strokeStyle = '#00d4ff'; g.lineWidth = 2.4; g.beginPath(); for (var i = 0; i <= 200; i++) { var t = a * i / 200; if (i) g.lineTo(X0 + t * SX, CY - R * Math.sin(t)); else g.moveTo(X0, CY); } g.stroke();
+      g.strokeStyle = '#f5a623'; g.lineWidth = 4; g.beginPath(); g.moveTo(X0, CY + R + 30); g.lineTo(X0 + a * SX, CY + R + 30); g.stroke();
+      g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(CX + R * x, CY - R * y, 5, 0, 7); g.fill(); g.beginPath(); g.arc(X0 + a * SX, CY - R * y, 5, 0, 7); g.fill();
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.textAlign = 'center';
+      [[Math.PI / 2, 'π/2'], [Math.PI, 'π'], [3 * Math.PI / 2, '3π/2'], [2 * Math.PI, '2π']].forEach(function (q) { g.fillText(q[1], X0 + q[0] * SX, CY + 16); g.beginPath(); g.moveTo(X0 + q[0] * SX, CY - 3); g.lineTo(X0 + q[0] * SX, CY + 3); g.stroke(); });
+      g.textAlign = 'left'; g.fillStyle = '#f5a623'; g.fillText('arco recorrido = θ', X0, CY + R + 50);
+      estado.innerHTML = 'θ = <strong>' + a.toFixed(2).replace('.', ',') + ' rad</strong> (' + Math.round(a * 180 / Math.PI) + '°): el arco naranja mide ' + a.toFixed(2).replace('.', ',') + ' radios y la altura es sen θ = ' + y.toFixed(2).replace('.', ',').replace('-', '−') + '. Una vuelta completa: 2π ≈ 6,28.';
+    }
+    function bucle(ts) { if (prev !== null && corriendo && visible) th += Math.min(0.05, (ts - prev) / 1000) * 0.8; prev = ts; if (visible) dibujar(); requestAnimationFrame(bucle); }
+    var bp = document.getElementById('pis-pausa'); bp.addEventListener('click', function () { corriendo = !corriendo; bp.textContent = corriendo ? '❚❚ pausa' : '▶ seguir'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    th = 1; dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La sombra de la calesita:</strong> imaginá un caballito de calesita girando y mirá su sombra sobre una pared lejana: la sombra va de un lado al otro, se frena en los extremos y acelera en el medio, exactamente como un resorte. Quien solo ve la sombra no sabe que hay un círculo, pero el tiempo que tarda en ir y volver es el de una vuelta completa de la calesita.</p>

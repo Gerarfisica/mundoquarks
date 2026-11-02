@@ -32,6 +32,8 @@
     .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
     .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
     @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -66,6 +68,70 @@
   <p>Una ecuación diferencial no tiene, en general, una sola solución, sino una familia. La ecuación dy/dx = 2x la cumplen y = x<sup>2</sup>, y = x<sup>2</sup> + 1 y, en general, y = x<sup>2</sup> + C para cualquier constante C. Esa familia es la <strong>solución general</strong>; cada miembro, una <strong>solución particular</strong>.</p>
 
   <p>Para elegir una hace falta información adicional: el valor de la función en un instante, y a veces también el de algunas derivadas. Una ecuación junto con esas condiciones forma un <strong>problema de valor inicial</strong>. En física, es la idea de que conocer las leyes no alcanza: hay que conocer también el estado de partida. La segunda ley de Newton es de segundo orden, y por eso para predecir el movimiento de un cuerpo hay que conocer su posición y su velocidad iniciales.</p>
+  <figure class="figura" id="cdp">
+    <svg id="cdp-s" viewBox="0 0 640 400" role="img" aria-labelledby="cdp-t" xmlns="http://www.w3.org/2000/svg" style="cursor:crosshair">
+      <title id="cdp-t">Un campo de pendientes: en cada punto de una grilla, un segmento corto con la pendiente que indica la ecuación diferencial. Al hacer clic en un punto se dibuja la solución que pasa por él, siguiendo los segmentos hacia adelante y hacia atrás.</title>
+      <defs><clipPath id="cdp-c"><rect x="40" y="44" width="580" height="320"/></clipPath></defs>
+      <rect width="640" height="400" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace" font-size="14" fill="#8892b0">
+        <text id="cdp-tit" x="20" y="28" fill="#eef2ff" font-size="16" letter-spacing="1"></text>
+        <g id="cdp-ejes"></g>
+        <g id="cdp-campo"></g>
+        <g id="cdp-sol" clip-path="url(#cdp-c)"></g>
+        <text x="620" y="390" text-anchor="end" font-size="11">hacé clic para elegir la condición inicial</text>
+      </g>
+    </svg>
+    <div class="int-botones" role="group" aria-label="Ecuación">
+      <button type="button" data-e="0">dy/dx = 2x</button><button type="button" data-e="1">dy/dx = −y</button><button type="button" data-e="2">dy/dx = x − y</button><button type="button" data-e="3">dy/dx = y(1 − y)</button><button type="button" id="cdp-borrar">borrar soluciones</button>
+    </div>
+    <p class="int-estado" id="cdp-estado" aria-live="polite"></p>
+    <figcaption>Una ecuación diferencial de primer orden fija la pendiente de la solución en cada punto, y eso se puede dibujar como un campo de segmentos. Hacé clic en cualquier lugar: la curva que pasa por ahí, siguiendo los segmentos, es la solución con esa condición inicial. Cada clic elige otro miembro de la familia de soluciones.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var EQ = [
+      { f: function (x, y) { return 2 * x; }, nom: 'dy/dx = 2x', txt: 'la familia y = x² + C: parábolas iguales, corridas hacia arriba o hacia abajo', x: [-3, 3], y: [-4, 8] },
+      { f: function (x, y) { return -y; }, nom: 'dy/dx = −y', txt: 'la familia y = C e⁻ˣ: todas decaen hacia cero, como en el enfriamiento o la desintegración', x: [-1, 5], y: [-3, 3] },
+      { f: function (x, y) { return x - y; }, nom: 'dy/dx = x − y', txt: 'todas las soluciones se acercan a la recta y = x − 1', x: [-3, 4], y: [-3, 4] },
+      { f: function (x, y) { return y * (1 - y); }, nom: 'dy/dx = y(1 − y)', txt: 'la ecuación logística: desde cualquier valor positivo, la solución tiende a 1', x: [-4, 6], y: [-0.5, 1.6] } ];
+    var svg = document.getElementById('cdp-s'), X0 = 40, W = 580, Y0 = 44, H = 320, k = 0, cols = ['#00d4ff', '#f5a623', '#5ee0a0', '#b48cff', '#ff7a7a'], nsol = 0;
+    var estado = document.getElementById('cdp-estado'), botones = document.querySelectorAll('#cdp [data-e]');
+    function px(x) { var q = EQ[k]; return X0 + W * (x - q.x[0]) / (q.x[1] - q.x[0]); } function py(y) { var q = EQ[k]; return Y0 + H * (1 - (y - q.y[0]) / (q.y[1] - q.y[0])); }
+    function elegir(i) {
+      k = i; nsol = 0; var q = EQ[k], c = '', e = '';
+      document.getElementById('cdp-tit').textContent = 'CAMPO DE PENDIENTES · ' + q.nom;
+      if (q.y[0] < 0 && q.y[1] > 0) e += '<line x1="' + X0 + '" y1="' + py(0) + '" x2="' + (X0 + W) + '" y2="' + py(0) + '" stroke="#8892b0" stroke-opacity="0.6"/>';
+      if (q.x[0] < 0 && q.x[1] > 0) e += '<line x1="' + px(0) + '" y1="' + Y0 + '" x2="' + px(0) + '" y2="' + (Y0 + H) + '" stroke="#8892b0" stroke-opacity="0.6"/>';
+      e += '<text x="' + (X0 + W - 4) + '" y="' + (Math.min(Math.max(py(0), Y0 + 12), Y0 + H) - 6) + '" text-anchor="end" font-size="11">x</text><text x="' + (Math.min(Math.max(px(0), X0), X0 + W) + 6) + '" y="' + (Y0 + 12) + '" font-size="11">y</text>';
+      document.getElementById('cdp-ejes').innerHTML = e;
+      var NX = 24, NY = 14, L = 9;
+      for (var a = 0; a <= NX; a++) for (var b = 0; b <= NY; b++) {
+        var x = q.x[0] + (q.x[1] - q.x[0]) * a / NX, y = q.y[0] + (q.y[1] - q.y[0]) * b / NY, m = q.f(x, y);
+        var dxp = (W / (q.x[1] - q.x[0])), dyp = -(H / (q.y[1] - q.y[0])) * m, n = Math.hypot(dxp, dyp), ux = dxp / n * L, uy = dyp / n * L;
+        c += '<line x1="' + (px(x) - ux).toFixed(1) + '" y1="' + (py(y) - uy).toFixed(1) + '" x2="' + (px(x) + ux).toFixed(1) + '" y2="' + (py(y) + uy).toFixed(1) + '" stroke="#1a6cf5" stroke-opacity="0.75" stroke-width="1.3"/>'; }
+      document.getElementById('cdp-campo').innerHTML = c; document.getElementById('cdp-sol').innerHTML = '';
+      estado.innerHTML = 'Las soluciones de <strong>' + q.nom + '</strong> forman ' + q.txt + '.';
+      for (var j = 0; j < botones.length; j++) botones[j].setAttribute('aria-pressed', j === k ? 'true' : 'false');
+    }
+    function solucion(x0, y0) {
+      var q = EQ[k], h = (q.x[1] - q.x[0]) / 600, ramas = [];
+      [1, -1].forEach(function (s) { var x = x0, y = y0, p = []; for (var i = 0; i < 700; i++) { p.push([x, y]);
+        var k1 = q.f(x, y), k2 = q.f(x + s * h / 2, y + s * h / 2 * k1), k3 = q.f(x + s * h / 2, y + s * h / 2 * k2), k4 = q.f(x + s * h, y + s * h * k3);
+        y += s * h / 6 * (k1 + 2 * k2 + 2 * k3 + k4); x += s * h; if (x < q.x[0] - h || x > q.x[1] + h || Math.abs(y) > 1e3) break; } ramas.push(p); });
+      var pts = ramas[1].reverse().concat(ramas[0].slice(1)), col = cols[nsol++ % cols.length];
+      var d = pts.map(function (p, i) { return (i ? 'L' : 'M') + px(p[0]).toFixed(1) + ',' + py(p[1]).toFixed(1); }).join(' ');
+      document.getElementById('cdp-sol').insertAdjacentHTML('beforeend', '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2.4"/><circle cx="' + px(x0).toFixed(1) + '" cy="' + py(y0).toFixed(1) + '" r="5" fill="' + col + '"/>');
+      estado.innerHTML = 'Solución que pasa por (' + x0.toFixed(1).replace('.', ',').replace('-', '−') + '; ' + y0.toFixed(1).replace('.', ',').replace('-', '−') + '): ' + q.txt + '.';
+    }
+    svg.addEventListener('click', function (e) { var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; var p = pt.matrixTransform(svg.getScreenCTM().inverse()), q = EQ[k];
+      if (p.x < X0 || p.x > X0 + W || p.y < Y0 || p.y > Y0 + H) return;
+      solucion(q.x[0] + (p.x - X0) / W * (q.x[1] - q.x[0]), q.y[0] + (1 - (p.y - Y0) / H) * (q.y[1] - q.y[0])); });
+    for (var j = 0; j < botones.length; j++) botones[j].addEventListener('click', function () { elegir(parseInt(this.getAttribute('data-e'), 10)); semillas(); });
+    document.getElementById('cdp-borrar').addEventListener('click', function () { elegir(k); });
+    function semillas() { var q = EQ[k], ys = [0.3, 0.55, 0.8]; ys.forEach(function (f) { solucion(q.x[0] + 0.5 * (q.x[1] - q.x[0]), q.y[0] + f * (q.y[1] - q.y[0])); }); estado.innerHTML = 'Tres soluciones de <strong>' + q.nom + '</strong>, una por cada condición inicial: ' + q.txt + '. Hacé clic para agregar otras.'; }
+    elegir(0); semillas();
+  })();
+  </script>
 
   <div class="tech-note">
     <p><strong>Leyes y condiciones iniciales:</strong> la ley de enfriamiento de Newton dice que el ritmo de cambio de la temperatura de un objeto es proporcional a la diferencia entre su temperatura y la del ambiente: dT/dt = k(T − T<sub>a</sub>). La ecuación es la misma para una taza de café y para una cacerola; lo que distingue un caso del otro es la temperatura inicial y la constante k. Esa separación entre la ley, que es general, y las condiciones particulares de cada sistema es una de las ideas más fecundas de la física.</p>

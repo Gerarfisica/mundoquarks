@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -53,6 +54,50 @@
 </div>
 <div class="article-container">
   <p>Pongamos la Tierra en una computadora: una órbita circular de una unidad astronómica alrededor del Sol, con la gravedad de Newton y un paso de tiempo de un día. Si la integramos con el <a href="metodo-euler.html">método de Euler</a>, después de un año la Tierra está a 1,21 unidades astronómicas del Sol, y después de diez años, a 1,90: se está escapando (es un cálculo propio). No es un error de programación ni un efecto físico: la <a href="estabilidad-orbital-tierra.html">órbita real de la Tierra</a> no hace nada parecido. Es una propiedad del método. Hay otros métodos, casi igual de simples, que con el mismo paso mantienen la órbita estable durante miles de años. Se llaman <strong>integradores simplécticos</strong>, y la razón de su éxito está en la geometría del movimiento.</p>
+  <figure class="figura" id="orb">
+    <canvas id="orb-c" width="1280" height="640" role="img" aria-label="Tres paneles con la órbita de la Tierra alrededor del Sol, calculada con el mismo paso por tres métodos. Con Euler la órbita se abre en espiral y la Tierra se escapa; con Runge-Kutta de cuarto orden y con Verlet se mantiene cerrada, aunque con pasos muy grandes Runge-Kutta también termina fallando."></canvas>
+    <div class="int-botones" role="group" aria-label="Paso de tiempo">
+      <button type="button" data-h="1">paso: 1 día</button><button type="button" data-h="5">5 días</button><button type="button" data-h="15">15 días</button><button type="button" data-h="30">30 días</button><button type="button" id="orb-ini">empezar de nuevo</button>
+    </div>
+    <p class="int-estado" id="orb-estado" aria-live="polite"></p>
+    <figcaption>La misma órbita circular de 1 UA integrada a la vez con Euler, RK4 y Verlet, con el Sol fijo y el paso elegido (cálculo en tu navegador). Con un día, Euler ya se escapa en pocos años mientras los otros dos se mantienen. Con pasos grandes RK4 también falla: con 15 días cae de a poco hacia el Sol y con 30 termina escapándose. Verlet se deforma, pero en 40 años sigue entre 1 y 1,13 UA: es lo que da ser simpléctico.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('orb-c'), g = cv.getContext('2d'), E = 2, GM = 4 * Math.PI * Math.PI, h, est, t, tr, visible = true, estado = document.getElementById('orb-estado'), dias = 1;
+    var NOM = ['EULER', 'RK4', 'VERLET'], COL = ['#f5a623', '#b48cff', '#5ee0a0'];
+    function acc(x, y) { var r3 = Math.pow(x * x + y * y, 1.5); return [-GM * x / r3, -GM * y / r3]; }
+    function f(s) { var a = acc(s[0], s[1]); return [s[2], s[3], a[0], a[1]]; }
+    function paso(k, s) {
+      if (k === 0) { var a = acc(s[0], s[1]); return [s[0] + h * s[2], s[1] + h * s[3], s[2] + h * a[0], s[3] + h * a[1]]; }
+      if (k === 2) { var a1 = acc(s[0], s[1]), vx = s[2] + h / 2 * a1[0], vy = s[3] + h / 2 * a1[1], x = s[0] + h * vx, y = s[1] + h * vy, a2 = acc(x, y); return [x, y, vx + h / 2 * a2[0], vy + h / 2 * a2[1]]; }
+      var k1 = f(s), k2 = f(s.map(function (v, i) { return v + h / 2 * k1[i]; })), k3 = f(s.map(function (v, i) { return v + h / 2 * k2[i]; })), k4 = f(s.map(function (v, i) { return v + h * k3[i]; }));
+      return s.map(function (v, i) { return v + h / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]); }); }
+    function ini() { h = dias / 365.25; est = [0, 1, 2].map(function () { return [1, 0, 0, 2 * Math.PI]; }); tr = [[], [], []]; t = 0;
+      document.querySelectorAll('#orb [data-h]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-h') == dias ? 'true' : 'false'); }); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 320);
+      for (var k = 0; k < 3; k++) { var cx = 110 + 210 * k, cy = 175, U = 55;
+        g.font = "14px 'Space Mono', monospace"; g.fillStyle = COL[k]; g.fillText(NOM[k], cx - 90, 28);
+        g.strokeStyle = 'rgba(136,146,176,0.35)'; g.setLineDash([3, 4]); g.beginPath(); g.arc(cx, cy, U, 0, 7); g.stroke(); g.setLineDash([]);
+        g.fillStyle = '#ffd36b'; g.beginPath(); g.arc(cx, cy, 6, 0, 7); g.fill();
+        g.save(); g.beginPath(); g.rect(cx - 100, 40, 200, 270); g.clip();
+        g.strokeStyle = COL[k]; g.globalAlpha = 0.7; g.lineWidth = 1.2; g.beginPath(); tr[k].forEach(function (p, i) { if (i) g.lineTo(cx + U * p[0], cy - U * p[1]); else g.moveTo(cx + U * p[0], cy - U * p[1]); }); g.stroke(); g.globalAlpha = 1;
+        var s = est[k]; g.fillStyle = '#00d4ff'; g.beginPath(); g.arc(cx + U * s[0], cy - U * s[1], 4.5, 0, 7); g.fill(); g.restore();
+        var r = Math.hypot(s[0], s[1]); g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.fillText('distancia: ' + (r > 99 ? '> 99' : r.toFixed(3).replace('.', ',')) + ' UA', cx - 90, 305); }
+      g.fillStyle = '#eef2ff'; g.font = "12px 'Space Mono', monospace"; g.fillText('t = ' + t.toFixed(1).replace('.', ',') + ' años', 20, 50);
+      var r0 = Math.hypot(est[0][0], est[0][1]), r1 = Math.hypot(est[1][0], est[1][1]), r2 = Math.hypot(est[2][0], est[2][1]);
+      estado.innerHTML = 'Paso de ' + dias + ' día' + (dias === 1 ? '' : 's') + ', t = ' + t.toFixed(1).replace('.', ',') + ' años. Distancia al Sol: Euler <strong>' + (r0 > 99 ? 'más de 99' : r0.toFixed(2).replace('.', ',')) + ' UA</strong>, RK4 ' + r1.toFixed(3).replace('.', ',') + ' UA, Verlet ' + r2.toFixed(3).replace('.', ',') + ' UA.';
+    }
+    function bucle() { if (visible && t < 40) { var n = Math.max(1, Math.round(0.05 / h)); for (var i = 0; i < n; i++) { for (var k = 0; k < 3; k++) { if (Math.hypot(est[k][0], est[k][1]) < 100) est[k] = paso(k, est[k]); } t += h; }
+        for (k = 0; k < 3; k++) { tr[k].push([est[k][0], est[k][1]]); if (tr[k].length > 1500) tr[k].shift(); } dibujar(); }
+      requestAnimationFrame(bucle); }
+    document.querySelectorAll('#orb [data-h]').forEach(function (b) { b.addEventListener('click', function () { dias = parseInt(b.getAttribute('data-h'), 10); ini(); }); });
+    document.getElementById('orb-ini').addEventListener('click', ini);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    ini(); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="math-block">Velocity Verlet (equivalente al «salto de rana»), con paso h y aceleración a(x) = F(x)/m:<br>v<sub>n+1/2</sub> = v<sub>n</sub> + (h/2) a(x<sub>n</sub>) · x<sub>n+1</sub> = x<sub>n</sub> + h v<sub>n+1/2</sub> · v<sub>n+1</sub> = v<sub>n+1/2</sub> + (h/2) a(x<sub>n+1</sub>)<br>Simpléctico: conserva el área en el espacio de fases (det J = 1, con J la matriz jacobiana de un paso)<br>Orden: Euler, 1 · Verlet, 2 · Runge-Kutta clásico (RK4), 4</div>
 

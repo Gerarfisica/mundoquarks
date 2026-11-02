@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -65,6 +66,41 @@
   <h2>El Tambor: Ceros de Bessel</h2>
 
   <p>En una membrana circular tensa, fija en el borde, conviene usar coordenadas polares. Al separar variables, la parte angular da senos y cosenos y la parte radial cumple la ecuación de Bessel. Sus soluciones aceptables en el centro son las funciones de Bessel de primera especie, J<sub>m</sub>. La condición de que la membrana esté fija en el borde exige que la función se anule en el radio a, y eso solo ocurre para ciertos valores: los ceros η<sub>mn</sub> de J<sub>m</sub>. La frecuencia angular de cada modo es ω<sub>mn</sub> = η<sub>mn</sub> c/a, donde c es la velocidad de las ondas transversales en la membrana.</p>
+  <figure class="figura" id="mem">
+    <canvas id="mem-c" width="1280" height="760" role="img" aria-label="Una membrana circular, vista en perspectiva como una malla, que vibra en el modo elegido. Las zonas que suben se ven celestes y las que bajan naranjas; entre ellas quedan líneas y círculos nodales que no se mueven."></canvas>
+    <div class="int-botones" role="group" aria-label="Modo (m, n)">
+      <button type="button" data-m="0" data-n="1">(0,1)</button><button type="button" data-m="1" data-n="1">(1,1)</button><button type="button" data-m="2" data-n="1">(2,1)</button><button type="button" data-m="0" data-n="2">(0,2)</button><button type="button" data-m="3" data-n="1">(3,1)</button><button type="button" data-m="1" data-n="2">(1,2)</button>
+    </div>
+    <p class="int-estado" id="mem-estado" aria-live="polite"></p>
+    <figcaption>Una membrana circular fija en el borde, calculada con las funciones de Bessel: u = J<sub>m</sub>(η<sub>mn</sub> r/a) cos(mθ) cos(ω<sub>mn</sub>t). El índice m cuenta los diámetros nodales y n los círculos nodales, contando el borde. Las frecuencias, proporcionales a los ceros η<sub>mn</sub>, no son múltiplos enteros de la fundamental: por eso un tambor no suena con armónicos. Para que se vea el movimiento, la animación pasa a la misma velocidad todos los modos.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var Z = { '0,1': 2.4048, '1,1': 3.8317, '2,1': 5.1356, '0,2': 5.5201, '3,1': 6.3802, '1,2': 7.0156 };
+    function fact(n) { var r = 1; for (var i = 2; i <= n; i++) r *= i; return r; }
+    function J(m, x) { var s = 0; for (var k = 0; k < 30; k++) s += (k % 2 ? -1 : 1) * Math.pow(x / 2, 2 * k + m) / (fact(k) * fact(k + m)); return s; }
+    var cv = document.getElementById('mem-c'), g = cv.getContext('2d'), E = 2, CX = 320, CY = 205, RP = 230, m = 0, n = 1, eta, amp, t = 0, prev = null, visible = true;
+    var estado = document.getElementById('mem-estado'), botones = document.querySelectorAll('#mem [data-m]');
+    function elegir(mm, nn) { m = mm; n = nn; eta = Z[m + ',' + n]; amp = 0; for (var i = 0; i <= 100; i++) amp = Math.max(amp, Math.abs(J(m, eta * i / 100)));
+      for (var b = 0; b < botones.length; b++) botones[b].setAttribute('aria-pressed', botones[b].getAttribute('data-m') == m && botones[b].getAttribute('data-n') == n ? 'true' : 'false');
+      estado.innerHTML = 'Modo (' + m + ',' + n + '): ' + m + ' diámetro' + (m === 1 ? '' : 's') + ' nodal' + (m === 1 ? '' : 'es') + ' y ' + (n - 1) + ' círculo' + (n === 2 ? '' : 's') + ' nodal' + (n === 2 ? '' : 'es') + ' interior' + (n === 2 ? '' : 'es') + '. Frecuencia: η = ' + eta.toFixed(4).replace('.', ',') + ', <strong>' + (eta / 2.4048).toFixed(3).replace('.', ',') + ' veces</strong> la fundamental.'; }
+    function P(r, th, z) { return [CX + RP * r * Math.cos(th), CY + RP * 0.4 * r * Math.sin(th) - 78 * z]; }
+    function u(r, th) { return J(m, eta * r) * Math.cos(m * th) / amp * Math.cos(2.4 * t); }
+    function seg(a, b, z) { g.strokeStyle = z > 0.02 ? 'rgba(0,212,255,0.85)' : z < -0.02 ? 'rgba(245,166,35,0.85)' : 'rgba(238,242,255,0.6)'; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 380);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('MEMBRANA CIRCULAR · MODO (' + m + ',' + n + ')', 20, 28);
+      g.lineWidth = 1.1; var NR = 14, NT = 64, i, j;
+      for (i = 1; i <= NR; i++) { var r = i / NR; for (j = 0; j < NT; j++) { var a = 2 * Math.PI * j / NT, b = 2 * Math.PI * (j + 1) / NT, za = u(r, a), zb = u(r, b); seg(P(r, a, i === NR ? 0 : za), P(r, b, i === NR ? 0 : zb), (za + zb) / 2); } }
+      for (j = 0; j < 32; j++) { var th = 2 * Math.PI * j / 32; for (i = 0; i < NR; i++) { var r1 = i / NR, r2 = (i + 1) / NR, z1 = u(r1, th), z2 = i + 1 === NR ? 0 : u(r2, th); seg(P(r1, th, z1), P(r2, th, z2), (z1 + z2) / 2); } }
+      g.strokeStyle = '#8892b0'; g.lineWidth = 2.5; g.beginPath(); g.ellipse(CX, CY, RP, RP * 0.4, 0, 0, 7); g.stroke();
+    }
+    function bucle(ts) { if (prev !== null && visible) t += Math.min(0.05, (ts - prev) / 1000); prev = ts; if (visible) dibujar(); requestAnimationFrame(bucle); }
+    for (var b = 0; b < botones.length; b++) botones[b].addEventListener('click', function () { elegir(parseInt(this.getAttribute('data-m'), 10), parseInt(this.getAttribute('data-n'), 10)); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    elegir(0, 1); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <p>Los ceros de las funciones de Bessel no guardan proporciones enteras. El modo (1,1), con una línea nodal a lo largo de un diámetro, vibra a 3,8317/2,4048 ≈ 1,593 veces la frecuencia fundamental; el (2,1), a unas 2,136 veces; el (0,2), con un círculo nodal interior, a unas 2,295. Como las frecuencias no son múltiplos enteros de la fundamental, el tambor común no produce armónicos.</p>
   <figure class="figura">

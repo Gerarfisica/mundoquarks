@@ -32,6 +32,8 @@
     .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
     .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
     @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -58,12 +60,108 @@
   <p>La bisección se apoya en el teorema del valor intermedio: si una función continua es positiva en un extremo de un intervalo y negativa en el otro, en algún punto intermedio vale cero. El método evalúa la función en el punto medio, mira el signo y se queda con la mitad donde todavía hay un cambio de signo. Cada paso divide por dos la incerteza.</p>
 
   <p>En sus apuntes de física computacional, Peter Young busca la raíz de e<sup>−x</sup> − sen x empezando con el intervalo de 0,4 a 0,8 y obtiene x = 0,5885 en 12 pasos, con cuatro decimales correctos. Como cada paso agrega una cifra binaria, hacen falta unos 3,3 pasos por cada cifra decimal. Con √2, la raíz de x² − 2, empezando entre 1 y 2, la cuenta da (un cálculo propio) un intervalo de ancho 10<sup>−3</sup> después de 10 pasos, de 10<sup>−6</sup> después de 20 y de 10<sup>−12</sup> después de 40. Es lento, pero tiene una gran virtud: si al principio la raíz está encerrada, el método no puede fallar.</p>
+  <figure class="figura" id="bis">
+    <svg viewBox="0 0 640 400" role="img" aria-labelledby="bis-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="bis-t">La función e a la menos x menos seno de x entre 0,3 y 0,9, que cruza el cero cerca de 0,5885. Un intervalo sombreado encierra la raíz; con cada paso se lo parte por la mitad y se conserva la mitad donde la función cambia de signo.</title>
+      <rect width="640" height="400" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace" font-size="14" fill="#8892b0">
+        <text x="20" y="28" fill="#eef2ff" font-size="16" letter-spacing="1">BISECCIÓN DE e⁻ˣ − sen x</text>
+        <rect id="bis-int" y="50" height="250" fill="#00d4ff" fill-opacity="0.12"/>
+        <g id="bis-ejes"></g>
+        <path id="bis-f" fill="none" stroke="#eef2ff" stroke-width="2.4"/>
+        <g id="bis-marcas"></g>
+        <g id="bis-tabla" font-size="11"></g>
+      </g>
+    </svg>
+    <div class="int-botones"><button type="button" id="bis-paso">paso siguiente</button><button type="button" id="bis-ini">empezar de nuevo</button></div>
+    <p class="int-estado" id="bis-estado" aria-live="polite"></p>
+    <figcaption>El ejemplo de Peter Young que cita el artículo: buscar la raíz de e<sup>−x</sup> − sen x empezando entre 0,4 y 0,8. En cada paso se evalúa la función en el punto medio y se conserva la mitad del intervalo donde cambia de signo. El ancho se divide por dos cada vez: lento, pero si la raíz está encerrada al principio, no puede escaparse.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    function f(x) { return Math.exp(-x) - Math.sin(x); }
+    var X0 = 40, W = 380, Y0 = 50, H = 250, A = 0.3, B = 0.9, YM = 0.55, a, b, k, filas, estado = document.getElementById('bis-estado');
+    function px(x) { return X0 + W * (x - A) / (B - A); } function py(y) { return Y0 + H * (0.5 - y / (2 * YM)); }
+    var e = '<line x1="' + X0 + '" y1="' + py(0) + '" x2="' + (X0 + W) + '" y2="' + py(0) + '" stroke="#8892b0" stroke-opacity="0.7"/>';
+    for (var x = 0.3; x <= 0.9001; x += 0.1) e += '<text x="' + px(x) + '" y="' + (Y0 + H + 18) + '" text-anchor="middle" font-size="11">' + x.toFixed(1).replace('.', ',') + '</text>';
+    document.getElementById('bis-ejes').innerHTML = e;
+    var d = ''; for (var i = 0; i <= 200; i++) { var xx = A + (B - A) * i / 200; d += (i ? ' L' : 'M') + px(xx).toFixed(1) + ',' + py(f(xx)).toFixed(1); } document.getElementById('bis-f').setAttribute('d', d);
+    function c(v, n) { return v.toFixed(n).replace('.', ',').replace('-', '−'); }
+    function dibujar() {
+      var r = document.getElementById('bis-int'); r.setAttribute('x', px(a).toFixed(1)); r.setAttribute('width', Math.max(1, px(b) - px(a)).toFixed(1));
+      var m = '';[[a, '#00d4ff'], [b, '#00d4ff']].forEach(function (q) { m += '<circle cx="' + px(q[0]).toFixed(1) + '" cy="' + py(f(q[0])).toFixed(1) + '" r="5" fill="' + q[1] + '"/>'; });
+      document.getElementById('bis-marcas').innerHTML = m;
+      var t = '<text x="440" y="62" fill="#eef2ff">paso   a        b        ancho</text>';
+      filas.slice(-11).forEach(function (q, j) { t += '<text x="440" y="' + (84 + j * 22) + '" fill="' + (j === Math.min(filas.length, 11) - 1 ? '#00d4ff' : '#8892b0') + '">' + (q[0] < 10 ? ' ' : '') + q[0] + '     ' + c(q[1], 5) + '  ' + c(q[2], 5) + '  ' + c(q[2] - q[1], 5) + '</text>'; });
+      document.getElementById('bis-tabla').innerHTML = t;
+      estado.innerHTML = k === 0 ? 'f(0,4) = ' + c(f(0.4), 3) + ' es positiva y f(0,8) = ' + c(f(0.8), 3) + ' es negativa: la raíz está entre los dos.' : 'Paso ' + k + ': la raíz está entre <strong>' + c(a, 5) + '</strong> y <strong>' + c(b, 5) + '</strong>; el intervalo mide ' + c(b - a, 5) + '.' + (b - a < 1e-4 ? ' Ya hay cuatro decimales seguros: x ≈ 0,5885.' : '');
+    }
+    function ini() { a = 0.4; b = 0.8; k = 0; filas = [[0, a, b]]; dibujar(); }
+    document.getElementById('bis-paso').addEventListener('click', function () { if (b - a < 1e-6) return; var m = (a + b) / 2; if (f(a) * f(m) <= 0) b = m; else a = m; k++; filas.push([k, a, b]); dibujar(); });
+    document.getElementById('bis-ini').addEventListener('click', ini);
+    ini();
+  })();
+  </script>
 
   <h2>Newton-Raphson: Seguir la Tangente</h2>
 
   <p>El método de Newton usa más información: la <a href="derivada.html">derivada</a>. Desde una primera estimación x<sub>0</sub>, se traza la recta tangente a la curva y se toma como nueva estimación el punto donde esa recta corta el eje horizontal. La cuenta da la fórmula del recuadro, y se repite. Cerca de la raíz, una función suave se parece mucho a su recta tangente, y por eso el método es tan eficaz.</p>
 
   <p>Con √2 y x<sub>0</sub> = 2, las aproximaciones son 1,5; 1,41667; 1,414215686; 1,41421356237469, y en el quinto paso el resultado coincide con √2 en todas las cifras que guarda la computadora (un cálculo propio). Los errores son 9 × 10<sup>−2</sup>, 2 × 10<sup>−3</sup>, 2 × 10<sup>−6</sup> y 2 × 10<sup>−12</sup>: <strong>el número de cifras correctas se duplica en cada paso</strong>. Es la convergencia cuadrática. Young observa lo mismo con e<sup>−x</sup> − sen x: partiendo de 0,8, cinco pasos alcanzan para 14 decimales correctos.</p>
+  <figure class="figura" id="nwt">
+    <svg id="nwt-s" viewBox="0 0 640 400" role="img" aria-labelledby="nwt-t" xmlns="http://www.w3.org/2000/svg" style="touch-action:none">
+      <title id="nwt-t">El gráfico de una función y las rectas tangentes del método de Newton: desde el punto inicial, la tangente corta al eje en la siguiente aproximación, y así sucesivamente, acercándose muy rápido a la raíz. El punto inicial se puede arrastrar a lo largo del eje.</title>
+      <defs><clipPath id="nwt-c"><rect x="40" y="44" width="380" height="300"/></clipPath></defs>
+      <rect width="640" height="400" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace" font-size="14" fill="#8892b0">
+        <text id="nwt-tit" x="20" y="28" fill="#eef2ff" font-size="16" letter-spacing="1"></text>
+        <g id="nwt-ejes"></g>
+        <g clip-path="url(#nwt-c)"><path id="nwt-f" fill="none" stroke="#eef2ff" stroke-width="2.4"/><g id="nwt-it"></g></g>
+        <circle id="nwt-x0" r="10" fill="#f5a623" fill-opacity="0.3" stroke="#f5a623" style="cursor:ew-resize"/>
+        <g id="nwt-tabla" font-size="12"></g>
+      </g>
+    </svg>
+    <div class="int-botones" role="group" aria-label="Función">
+      <button type="button" data-k="0">x² − 2</button><button type="button" data-k="1">e⁻ˣ − sen x</button><button type="button" data-k="2">x³ − 2x + 2 (falla)</button>
+    </div>
+    <p class="int-estado" id="nwt-estado" aria-live="polite"></p>
+    <figcaption>Newton-Raphson sigue la recta tangente hasta el eje y repite desde ahí. Arrastrá el punto naranja para elegir la primera estimación. Cerca de la raíz la convergencia es cuadrática: la cantidad de cifras correctas se duplica en cada paso, como en el ejemplo de √2 del artículo. El tercer caso muestra una de las fallas: desde x₀ = 0 el método salta entre 0 y 1 para siempre.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var F = [{ f: function (x) { return x * x - 2; }, d: function (x) { return 2 * x; }, x: [-0.5, 3], y: [-3, 7], x0: 2, n: 'x² − 2', raiz: Math.SQRT2 },
+      { f: function (x) { return Math.exp(-x) - Math.sin(x); }, d: function (x) { return -Math.exp(-x) - Math.cos(x); }, x: [-0.5, 2], y: [-1.2, 1.8], x0: 0, n: 'e⁻ˣ − sen x', raiz: 0.5885327439818611 },
+      { f: function (x) { return x * x * x - 2 * x + 2; }, d: function (x) { return 3 * x * x - 2; }, x: [-2.5, 2], y: [-4, 6], x0: 0, n: 'x³ − 2x + 2', raiz: -1.7692923542386314 }];
+    var svg = document.getElementById('nwt-s'), k = 0, x0, X0 = 40, W = 380, Y0 = 44, H = 300, arr = false, estado = document.getElementById('nwt-estado');
+    function px(x) { var q = F[k]; return X0 + W * (x - q.x[0]) / (q.x[1] - q.x[0]); } function py(y) { var q = F[k]; return Y0 + H * (1 - (y - q.y[0]) / (q.y[1] - q.y[0])); }
+    function dibujar() {
+      var q = F[k], d = '', e = '<line x1="' + X0 + '" y1="' + py(0) + '" x2="' + (X0 + W) + '" y2="' + py(0) + '" stroke="#8892b0" stroke-opacity="0.7"/>';
+      for (var t = Math.ceil(q.x[0]); t <= q.x[1]; t++) e += '<text x="' + px(t) + '" y="' + (py(0) + 16) + '" text-anchor="middle" font-size="10">' + String(t).replace('-', '−') + '</text>';
+      document.getElementById('nwt-ejes').innerHTML = e;
+      for (var i = 0; i <= 300; i++) { var x = q.x[0] + (q.x[1] - q.x[0]) * i / 300; d += (i ? ' L' : 'M') + px(x).toFixed(1) + ',' + py(q.f(x)).toFixed(1); } document.getElementById('nwt-f').setAttribute('d', d);
+      var xs = [x0], s = '', tb = '<text x="440" y="62" fill="#eef2ff">n   xₙ</text>';
+      for (i = 0; i < 8; i++) { var xn = xs[i], dv = q.d(xn); if (Math.abs(dv) < 1e-12) break; var xn1 = xn - q.f(xn) / dv; xs.push(xn1);
+        var a = 0.85 - 0.08 * i; s += '<line x1="' + px(xn).toFixed(1) + '" y1="' + py(0).toFixed(1) + '" x2="' + px(xn).toFixed(1) + '" y2="' + py(q.f(xn)).toFixed(1) + '" stroke="#8892b0" stroke-dasharray="3 3"/>';
+        s += '<line x1="' + px(xn).toFixed(1) + '" y1="' + py(q.f(xn)).toFixed(1) + '" x2="' + px(xn1).toFixed(1) + '" y2="' + py(0).toFixed(1) + '" stroke="#f5a623" stroke-opacity="' + Math.max(0.3, a) + '" stroke-width="1.8"/><circle cx="' + px(xn1).toFixed(1) + '" cy="' + py(0).toFixed(1) + '" r="3.5" fill="#00d4ff"/>'; }
+      document.getElementById('nwt-it').innerHTML = s;
+      xs.forEach(function (v, j) { var err = Math.abs(v - q.raiz); tb += '<text x="440" y="' + (84 + j * 24) + '" fill="' + (err < 1e-9 ? '#5ee0a0' : '#8892b0') + '">' + j + '   ' + (isFinite(v) ? v.toFixed(10).replace('.', ',').replace('-', '−') : '—') + '</text>'; });
+      document.getElementById('nwt-tabla').innerHTML = tb;
+      var h = document.getElementById('nwt-x0'); h.setAttribute('cx', px(x0)); h.setAttribute('cy', py(0));
+      document.getElementById('nwt-tit').textContent = 'NEWTON-RAPHSON · ' + q.n;
+      var ult = xs[xs.length - 1], ok = Math.abs(ult - q.raiz) < 1e-9, pasos = xs.findIndex(function (v) { return Math.abs(v - q.raiz) < 1e-9; });
+      document.querySelectorAll('#nwt [data-k]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-k') == k ? 'true' : 'false'); });
+      estado.innerHTML = ok ? 'Desde x₀ = ' + x0.toFixed(2).replace('.', ',').replace('-', '−') + ', en <strong>' + pasos + ' pasos</strong> se llega a la raíz ' + q.raiz.toFixed(10).replace('.', ',').replace('-', '−') + ' con diez decimales correctos.' : 'Desde x₀ = ' + x0.toFixed(2).replace('.', ',').replace('-', '−') + ' el método <strong>no converge</strong> en ocho pasos: las tangentes no llevan a la raíz.';
+    }
+    function elegir(i) { k = i; x0 = F[k].x0; dibujar(); }
+    var h = document.getElementById('nwt-x0');
+    h.addEventListener('pointerdown', function (e) { arr = true; h.setPointerCapture(e.pointerId); e.preventDefault(); });
+    h.addEventListener('pointermove', function (e) { if (!arr) return; var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; var p = pt.matrixTransform(svg.getScreenCTM().inverse()), q = F[k];
+      x0 = Math.max(q.x[0], Math.min(q.x[1], q.x[0] + (p.x - X0) / W * (q.x[1] - q.x[0]))); x0 = Math.round(x0 * 100) / 100; dibujar(); });
+    h.addEventListener('pointerup', function () { arr = false; });
+    document.querySelectorAll('#nwt [data-k]').forEach(function (b) { b.addEventListener('click', function () { elegir(parseInt(b.getAttribute('data-k'), 10)); }); });
+    elegir(0);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Buscar en el diccionario:</strong> la bisección es como buscar una palabra abriendo el diccionario siempre por la mitad del tramo que queda: nunca falla, pero no aprovecha nada de lo que sabés. Newton es como abrirlo donde calculás que debería estar la palabra según la letra con que empieza: si tu estimación es buena, llegás en dos o tres intentos; si te equivocaste de letra, podés terminar muy lejos.</p>

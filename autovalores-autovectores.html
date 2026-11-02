@@ -32,6 +32,8 @@
     .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
     .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
     @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -58,10 +60,98 @@
   <p>Un autovector de una matriz A es un vector no nulo v tal que A v = λ v para algún número λ. Aplicar la transformación a v devuelve el mismo vector, multiplicado por λ. Para encontrar los autovalores se reescribe la ecuación como (A − λI) v = 0; para que tenga una solución no nula, la matriz A − λI no puede ser invertible, es decir, su determinante tiene que ser cero. La ecuación det(A − λI) = 0, el <strong>polinomio característico</strong>, da los autovalores, y con cada uno se encuentran sus autovectores.</p>
 
   <p>Un ejemplo sencillo: una matriz que estira el plano al doble en la dirección horizontal y lo deja igual en la vertical tiene autovalores 2 y 1, con autovectores horizontales y verticales. Cualquier otro vector cambia de dirección al transformarlo. Una rotación del plano, en cambio, no tiene autovectores reales: ninguna dirección queda fija.</p>
+  <figure class="figura" id="aut">
+    <svg viewBox="0 0 640 400" role="img" aria-labelledby="aut-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="aut-t">Una cuadrícula y una rueda de flechas que salen del origen, deformadas gradualmente por una matriz. Casi todas las flechas cambian de dirección; las que están sobre los autovectores, marcadas en verde, solo se estiran o se achican y siguen sobre su misma recta.</title>
+      <defs><clipPath id="aut-c"><rect x="20" y="40" width="400" height="340"/></clipPath></defs>
+      <rect width="640" height="400" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace" font-size="14" fill="#8892b0">
+        <text x="20" y="28" fill="#eef2ff" font-size="16" letter-spacing="1">DIRECCIONES QUE NO GIRAN</text>
+        <g clip-path="url(#aut-c)"><g id="aut-gr"></g><g id="aut-fl"></g></g>
+        <g id="aut-panel" font-size="12"></g>
+      </g>
+    </svg>
+    <div class="int-botones" role="group" aria-label="Matriz">
+      <button type="button" data-m="0">estirar ×2 en x</button><button type="button" data-m="1">simétrica</button><button type="button" data-m="2">cizalla</button><button type="button" data-m="3">rotación 30°</button>
+    </div>
+    <div class="int-control">
+      <label for="aut-t2">de la identidad a la matriz: <output id="aut-t-v"></output></label>
+      <input type="range" id="aut-t2" min="0" max="100" step="1" value="100">
+    </div>
+    <p class="int-estado" id="aut-estado" aria-live="polite"></p>
+    <figcaption>Mové el control para aplicar la matriz de a poco. Las flechas grises giran; las verdes, sobre los autovectores, se quedan en su recta y solo cambian de largo en un factor igual al autovalor. El primer caso es el ejemplo del artículo, con autovalores 2 y 1. La cizalla tiene una sola dirección invariante y la rotación ninguna: sus autovalores no son reales.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var MS = [{ m: [[2, 0], [0, 1]], v: [[1, 0], [0, 1]], l: [2, 1], n: 'estirar ×2 en x' }, { m: [[2, 1], [1, 2]], v: [[1, 1], [1, -1]], l: [3, 1], n: 'simétrica' },
+      { m: [[1, 1], [0, 1]], v: [[1, 0]], l: [1], n: 'cizalla' }, { m: [[0.866, -0.5], [0.5, 0.866]], v: [], l: [], n: 'rotación 30°' }];
+    var k = 0, OX = 220, OY = 210, U = 42, rango = document.getElementById('aut-t2'), estado = document.getElementById('aut-estado');
+    function A(t) { var m = MS[k].m; return [[1 + t * (m[0][0] - 1), t * m[0][1]], [t * m[1][0], 1 + t * (m[1][1] - 1)]]; }
+    function ap(X, v) { return [X[0][0] * v[0] + X[0][1] * v[1], X[1][0] * v[0] + X[1][1] * v[1]]; }
+    function sx(v) { return (OX + U * v[0]).toFixed(1); } function sy(v) { return (OY - U * v[1]).toFixed(1); }
+    function flecha(v, c, w) { var a = Math.atan2(-v[1], v[0]), x = OX + U * v[0], y = OY - U * v[1];
+      return '<line x1="' + OX + '" y1="' + OY + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="' + c + '" stroke-width="' + w + '"/><path d="M' + x.toFixed(1) + ',' + y.toFixed(1) + ' L' + (x - 9 * Math.cos(a - 0.4)).toFixed(1) + ',' + (y - 9 * Math.sin(a - 0.4)).toFixed(1) + ' L' + (x - 9 * Math.cos(a + 0.4)).toFixed(1) + ',' + (y - 9 * Math.sin(a + 0.4)).toFixed(1) + ' Z" fill="' + c + '"/>'; }
+    function actualizar() {
+      var t = parseInt(rango.value, 10) / 100, X = A(t), q = MS[k], s = '';
+      for (var i = -6; i <= 6; i++) { var a1 = ap(X, [i, -6]), b1 = ap(X, [i, 6]), a2 = ap(X, [-6, i]), b2 = ap(X, [6, i]);
+        s += '<line x1="' + sx(a1) + '" y1="' + sy(a1) + '" x2="' + sx(b1) + '" y2="' + sy(b1) + '" stroke="#1a6cf5" stroke-opacity="' + (i ? 0.2 : 0.6) + '"/><line x1="' + sx(a2) + '" y1="' + sy(a2) + '" x2="' + sx(b2) + '" y2="' + sy(b2) + '" stroke="#1a6cf5" stroke-opacity="' + (i ? 0.2 : 0.6) + '"/>'; }
+      document.getElementById('aut-gr').innerHTML = s; s = '';
+      q.v.forEach(function (v) { var n = Math.hypot(v[0], v[1]); s += '<line x1="' + (OX - 300 * v[0] / n) + '" y1="' + (OY + 300 * v[1] / n) + '" x2="' + (OX + 300 * v[0] / n) + '" y2="' + (OY - 300 * v[1] / n) + '" stroke="#5ee0a0" stroke-opacity="0.35" stroke-dasharray="5 4"/>'; });
+      for (var j = 0; j < 16; j++) { var an = Math.PI * j / 8, v = [1.6 * Math.cos(an), 1.6 * Math.sin(an)], es = q.v.some(function (e) { return Math.abs(e[0] * v[1] - e[1] * v[0]) < 1e-6; }); if (!es) s += flecha(ap(X, v), 'rgba(136,146,176,0.75)', 1.4); }
+      q.v.forEach(function (e) { var n = Math.hypot(e[0], e[1]); [1, -1].forEach(function (sg) { s += flecha(ap(X, [sg * 1.6 * e[0] / n, sg * 1.6 * e[1] / n]), '#5ee0a0', 2.6); }); });
+      document.getElementById('aut-fl').innerHTML = s;
+      var m = q.m, p = '', f = function (x) { return String(Math.round(x * 1000) / 1000).replace('.', ',').replace('-', '−'); };
+      [['matriz', '#8892b0'], ['[ ' + f(m[0][0]) + '  ' + f(m[0][1]) + ' ]', '#eef2ff'], ['[ ' + f(m[1][0]) + '  ' + f(m[1][1]) + ' ]', '#eef2ff'], ['', ''], ['autovalores', '#8892b0'], [q.l.length ? q.l.map(f).join(' y ') : 'no reales', '#5ee0a0'], ['', ''], ['autovectores', '#8892b0']].concat(q.v.length ? q.v.map(function (v) { return ['(' + f(v[0]) + '; ' + f(v[1]) + ')', '#5ee0a0']; }) : [['ninguna dirección real', '#5ee0a0']]).forEach(function (l, i) {
+        p += '<text x="445" y="' + (70 + i * 22) + '" fill="' + l[1] + '">' + l[0] + '</text>'; });
+      document.getElementById('aut-panel').innerHTML = p;
+      document.getElementById('aut-t-v').textContent = Math.round(t * 100) + ' %';
+      document.querySelectorAll('#aut [data-m]').forEach(function (e) { e.setAttribute('aria-pressed', e.getAttribute('data-m') == k ? 'true' : 'false'); });
+      estado.innerHTML = q.v.length ? 'Con la ' + (k === 1 ? 'matriz simétrica' : q.n) + ', las flechas verdes no giran: se multiplican por ' + q.l.map(f).join(' y ') + '. Las demás cambian de dirección.' : 'La rotación gira <strong>todas</strong> las flechas: no hay ninguna dirección invariante real.';
+    }
+    document.querySelectorAll('#aut [data-m]').forEach(function (e) { e.addEventListener('click', function () { k = parseInt(e.getAttribute('data-m'), 10); actualizar(); }); });
+    rango.addEventListener('input', actualizar);
+    actualizar();
+  })();
+  </script>
 
   <h2>Los Modos Naturales</h2>
 
   <p>En física, los autovalores y autovectores aparecen sobre todo al resolver sistemas de ecuaciones diferenciales lineales. Un sistema x′ = A x, como el de varias masas unidas por resortes o el de un circuito con varias mallas, tiene soluciones de la forma x(t) = e<sup>λt</sup> v, donde λ es un autovalor y v su autovector. Cada par describe un <strong>modo normal</strong>: un patrón de movimiento en el que todas las partes del sistema se mueven con la misma dependencia temporal, sin mezclarse con los otros modos. La solución general es una superposición de modos.</p>
+  <figure class="figura" id="mnr">
+    <canvas id="mnr-c" width="1280" height="700" role="img" aria-label="Dos masas iguales unidas entre sí y a dos paredes por tres resortes iguales. En el primer modo se mueven juntas, en fase; en el segundo, en direcciones opuestas y más rápido. Debajo, el desplazamiento de cada masa en función del tiempo."></canvas>
+    <div class="int-botones" role="group" aria-label="Movimiento">
+      <button type="button" data-k="1">modo 1: en fase</button><button type="button" data-k="2">modo 2: en contrafase</button><button type="button" data-k="0">mover solo una masa</button>
+    </div>
+    <p class="int-estado" id="mnr-estado" aria-live="polite"></p>
+    <figcaption>Dos masas m unidas por tres resortes de constante k. La matriz del sistema tiene dos autovectores: las masas moviéndose juntas, con ω = √(k/m), y en direcciones opuestas, con ω = √(3k/m). En cada modo el movimiento es una oscilación pura. Si se suelta una sola masa, el movimiento es una suma de los dos modos y la energía pasa de una masa a la otra.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('mnr-c'), g = cv.getContext('2d'), E = 2, W = 640, modo = 1, t = 0, prev = null, visible = true, hist = [];
+    var w1 = 1.4, w2 = 1.4 * Math.sqrt(3), estado = document.getElementById('mnr-estado');
+    function x(tt) { if (modo === 1) return [Math.cos(w1 * tt), Math.cos(w1 * tt)]; if (modo === 2) return [Math.cos(w2 * tt), -Math.cos(w2 * tt)];
+      return [(Math.cos(w1 * tt) + Math.cos(w2 * tt)) / 2, (Math.cos(w1 * tt) - Math.cos(w2 * tt)) / 2]; }
+    function resorte(a, b, y) { g.strokeStyle = '#8892b0'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(a, y); var n = 12; for (var i = 1; i < n; i++) g.lineTo(a + (b - a) * i / n, y + (i % 2 ? -9 : 9)); g.lineTo(b, y); g.stroke(); }
+    function dibujar() {
+      var p = x(t), A = 40, y = 110, x1 = 220 + A * p[0], x2 = 420 + A * p[1];
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, 350);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText(modo === 1 ? 'MODO 1 · ω = √(k/m)' : modo === 2 ? 'MODO 2 · ω = √(3k/m)' : 'UNA SOLA MASA DESPLAZADA', 20, 28);
+      g.fillStyle = '#8892b0'; g.fillRect(40, 70, 10, 80); g.fillRect(590, 70, 10, 80);
+      resorte(50, x1 - 22, y); resorte(x1 + 22, x2 - 22, y); resorte(x2 + 22, 590, y);
+      g.fillStyle = '#00d4ff'; g.fillRect(x1 - 22, y - 22, 44, 44); g.fillStyle = '#f5a623'; g.fillRect(x2 - 22, y - 22, 44, 44);
+      g.strokeStyle = 'rgba(136,146,176,0.4)'; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(220, 60); g.lineTo(220, 160); g.moveTo(420, 60); g.lineTo(420, 160); g.stroke(); g.setLineDash([]);
+      var T0 = 190, TH = 140; g.strokeStyle = 'rgba(136,146,176,0.5)'; g.beginPath(); g.moveTo(40, T0 + TH / 2); g.lineTo(600, T0 + TH / 2); g.stroke();
+      [[0, '#00d4ff'], [1, '#f5a623']].forEach(function (c) { g.strokeStyle = c[1]; g.lineWidth = 2; g.beginPath(); for (var i = 0; i <= 280; i++) { var tt = t - (280 - i) * 0.03, q = x(tt)[c[0]], X = 40 + 2 * i, Y = T0 + TH / 2 - TH * 0.42 * q; if (i) g.lineTo(X, Y); else g.moveTo(X, Y); } g.stroke(); });
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.fillText('desplazamientos en el tiempo →', 40, 345);
+    }
+    function bucle(ts) { if (prev !== null && visible) t += Math.min(0.05, (ts - prev) / 1000); prev = ts; if (visible) dibujar(); requestAnimationFrame(bucle); }
+    function elegir(k) { modo = k; t = 0; document.querySelectorAll('#mnr [data-k]').forEach(function (e) { e.setAttribute('aria-pressed', e.getAttribute('data-k') == k ? 'true' : 'false'); });
+      estado.innerHTML = k === 1 ? 'Autovector (1, 1): las masas van juntas y el resorte del medio <strong>no se estira</strong>. Es el modo más lento.' : k === 2 ? 'Autovector (1, −1): las masas van en sentidos opuestos y el resorte del medio trabaja doble. Frecuencia <strong>√3 ≈ 1,73 veces</strong> mayor.' : 'Una sola masa desplazada es la suma de los dos modos: como tienen frecuencias distintas, el movimiento <strong>pasa de una masa a la otra</strong>.'; }
+    document.querySelectorAll('#mnr [data-k]').forEach(function (e) { e.addEventListener('click', function () { elegir(parseInt(e.getAttribute('data-k'), 10)); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    elegir(1); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <p>Es la misma idea que aparece en la <a href="separacion-variables.html">separación de variables</a>, donde las funciones propias y los valores propios de una ecuación diferencial dan los modos de una cuerda o de una barra que se enfría. Si el autovalor es real y negativo, el modo decae; si es positivo, crece; si es complejo, oscila. Así, el signo y el tipo de los autovalores dicen si un sistema es estable sin necesidad de resolverlo por completo.</p>
 

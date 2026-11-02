@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -215,6 +216,62 @@
   <div class="tech-note">
     <p><strong>Cuánto se comprime:</strong> Wallace da una guía en bits por píxel: entre 0,25 y 0,5, calidad de moderada a buena; entre 0,5 y 0,75, de buena a muy buena; entre 0,75 y 1,5, excelente para la mayoría de las aplicaciones; y entre 1,5 y 2,0, en general indistinguible del original. Wallace aclara que esos bits por píxel cuentan el total de la imagen comprimida, incluidas las componentes de color, dividido por el número de muestras de luminancia.</p>
   </div>
+  <figure class="figura" id="jpq">
+    <canvas id="jpq-c" width="1280" height="740" role="img" aria-label="El retrato de Emmy Noether comprimido en JPEG por el navegador a la calidad elegida, junto a una ampliación del ojo con la grilla de bloques de 8 por 8 píxeles. A calidades bajas los bloques se vuelven visibles y el archivo ocupa mucho menos."></canvas>
+    <div class="int-botones" role="group" aria-label="Calidad JPEG">
+      <button type="button" data-q="3">calidad 3</button><button type="button" data-q="10">10</button><button type="button" data-q="25">25</button><button type="button" data-q="50">50</button><button type="button" data-q="75">75</button><button type="button" data-q="95">95</button>
+    </div>
+    <div class="int-control">
+      <label for="jpq-q">calidad: <output id="jpq-q-v"></output></label>
+      <input type="range" id="jpq-q" min="1" max="100" step="1" value="50">
+    </div>
+    <p class="int-estado" id="jpq-estado" aria-live="polite"></p>
+    <figcaption>Tu navegador comprime en JPEG, en el momento, un recorte del retrato de Emmy Noether y muestra cuánto ocupa. A calidades altas el archivo es varias veces más chico que la imagen sin comprimir y la diferencia no se nota; a calidades bajas aparecen los bloques de 8 × 8 píxeles. Los tamaños exactos dependen del codificador de cada navegador.<span class="credito">Gráfico interactivo: Mundo Quarks · Retrato: autor desconocido, Mathematical Association of America / Wikimedia Commons, dominio público</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('jpq-c'), g = cv.getContext('2d'), E = 2, LADO = 288;
+    var fuente = document.createElement('canvas'); fuente.width = LADO; fuente.height = LADO;
+    var ZX = 96, ZY = 64, ZL = 48, ZE = 6;                                 // recorte ampliado, alineado a la grilla de 8
+    var rango = document.getElementById('jpq-q'), salida = document.getElementById('jpq-q-v'), estado = document.getElementById('jpq-estado');
+    var botones = document.querySelectorAll('#jpq .int-botones button'), lista = false, pedido = 0;
+    function marco() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 370);
+      g.fillStyle = '#eef2ff'; g.font = "16px 'Space Mono', monospace"; g.fillText('JPEG EN VIVO', 20, 28);
+      g.fillStyle = '#8892b0'; g.font = "11px 'Space Mono', monospace"; g.fillText('ampliación ×6 · grilla de bloques 8 × 8', 332, 28);
+    }
+    function mostrar(q) {
+      salida.textContent = q;
+      for (var b = 0; b < botones.length; b++) botones[b].setAttribute('aria-pressed', botones[b].getAttribute('data-q') == q ? 'true' : 'false');
+      if (!lista) return;
+      var url; try { url = fuente.toDataURL('image/jpeg', q / 100); } catch (e) { estado.textContent = 'Este navegador no permite comprimir la imagen aquí.'; return; }
+      var bytes = Math.round((url.length - url.indexOf(',') - 1) * 3 / 4), crudo = LADO * LADO * 3, n = ++pedido, img = new Image();
+      img.onload = function () {
+        if (n !== pedido) return;
+        marco(); g.imageSmoothingEnabled = false;
+        g.drawImage(img, 20, 48, LADO, LADO);
+        g.drawImage(img, ZX, ZY, ZL, ZL, 332, 48, ZL * ZE, ZL * ZE);
+        g.strokeStyle = 'rgba(245,166,35,0.55)'; g.lineWidth = 0.6;
+        for (var k = 0; k <= ZL; k += 8) { g.beginPath(); g.moveTo(332 + k * ZE, 48); g.lineTo(332 + k * ZE, 48 + ZL * ZE); g.stroke(); g.beginPath(); g.moveTo(332, 48 + k * ZE); g.lineTo(332 + ZL * ZE, 48 + k * ZE); g.stroke(); }
+        g.strokeStyle = '#f5a623'; g.lineWidth = 1.5; g.strokeRect(20 + ZX, 48 + ZY, ZL, ZL);
+        g.fillStyle = '#00d4ff'; g.font = "13px 'Space Mono', monospace";
+        g.fillText((bytes / 1024).toFixed(1).replace('.', ',') + ' KB', 20, 358); g.fillStyle = '#8892b0'; g.font = "11px 'Space Mono', monospace";
+        g.fillText('sin comprimir: ' + (crudo / 1024).toFixed(0) + ' KB (288 × 288 × 3 bytes)', 120, 358);
+        estado.innerHTML = 'Calidad ' + q + ': <strong>' + (bytes / 1024).toFixed(1).replace('.', ',') + ' KB</strong>, unas <strong>' + Math.round(crudo / bytes) + ' veces</strong> menos que la imagen sin comprimir.' +
+          (q <= 10 ? ' Los bloques de 8 × 8 se ven a simple vista.' : q >= 75 ? ' Las diferencias con el original casi no se notan.' : '');
+      };
+      img.src = url;
+    }
+    var foto = new Image();
+    foto.onload = function () { fuente.getContext('2d').drawImage(foto, 290, 90, 560, 560, 0, 0, LADO, LADO); lista = true; mostrar(parseInt(rango.value, 10)); };
+    foto.onerror = function () { estado.textContent = 'No se pudo cargar la imagen.'; };
+    marco();
+    foto.src = 'img/matematica-aplicada/noether-retrato.jpg';
+    for (var b = 0; b < botones.length; b++) botones[b].addEventListener('click', function () { rango.value = this.getAttribute('data-q'); mostrar(parseInt(rango.value, 10)); });
+    rango.addEventListener('input', function () { mostrar(parseInt(rango.value, 10)); });
+    mostrar(50);
+  })();
+  </script>
 
   <h2>MP3: Lo que el Oído No Oye</h2>
 

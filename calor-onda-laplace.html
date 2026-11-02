@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -507,6 +508,51 @@
   <p>La ecuación de Laplace, ∇<sup>2</sup>u = 0, no tiene tiempo: describe situaciones de equilibrio. Es lo que queda de la ecuación del calor cuando la temperatura dejó de cambiar, y la solución de equilibrio de una placa calentada en sus bordes la cumple. Según el NIST, gobierna problemas de conducción del calor, la distribución del potencial en un campo electrostático y el movimiento irrotacional de un fluido incompresible.</p>
 
   <p>Sus soluciones, las funciones armónicas, tienen una propiedad notable: el valor en cada punto es el promedio de los valores a su alrededor, de modo que no pueden tener máximos ni mínimos en el interior de la región, solo en el borde. Lleva el nombre de Laplace, que la usó en su <em>Mecánica celeste</em>, pero según MacTutor la ecuación ya se conocía antes de su época.</p>
+  <figure class="figura" id="col">
+    <canvas id="col-c" width="1280" height="760" role="img" aria-label="Tres simulaciones una al lado de la otra. A la izquierda, el perfil de temperatura de una barra con dos zonas calientes, que se suaviza y baja con el tiempo. En el medio, una cuerda con un pulso que se divide en dos ondas que viajan, rebotan en los extremos y vuelven invertidas. A la derecha, una placa cuadrada con el borde superior caliente que llega a un mapa de equilibrio que ya no cambia."></canvas>
+    <div class="int-botones"><button type="button" id="col-ini">empezar de nuevo</button><button type="button" id="col-pausa">❚❚ pausa</button></div>
+    <p class="int-estado" id="col-estado" aria-live="polite"></p>
+    <figcaption>Las tres ecuaciones resueltas en vivo con diferencias finitas. El calor suaviza el perfil y borra los detalles; la onda conserva la forma del pulso y lo transporta, rebotando en los extremos; Laplace no tiene tiempo: la placa termina en un equilibrio en el que cada punto vale el promedio de sus vecinos.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('col-c'), g = cv.getContext('2d'), E = 2, N = 120, M = 48, u, onda, ondaV, lap, t, corriendo = true, visible = true;
+    var estado = document.getElementById('col-estado'), bp = document.getElementById('col-pausa');
+    var tmp = document.createElement('canvas'); tmp.width = tmp.height = M; var img = tmp.getContext('2d').createImageData(M, M);
+    function iniciar() { u = new Float64Array(N); onda = new Float64Array(N); ondaV = new Float64Array(N); lap = new Float64Array(M * M); t = 0;
+      for (var i = 0; i < N; i++) { var x = i / (N - 1); u[i] = (x > 0.15 && x < 0.3 ? 1 : 0) + (x > 0.6 && x < 0.65 ? 0.9 : 0); onda[i] = Math.exp(-Math.pow((x - 0.35) / 0.05, 2)); ondaV[i] = onda[i]; }
+      for (var c = 0; c < M; c++) lap[c] = 1; }
+    function paso() {
+      var n = new Float64Array(N); for (var i = 1; i < N - 1; i++) n[i] = u[i] + 0.45 * (u[i + 1] - 2 * u[i] + u[i - 1]); u = n;
+      var w = new Float64Array(N); for (i = 1; i < N - 1; i++) w[i] = 2 * onda[i] - ondaV[i] + 0.8 * (onda[i + 1] - 2 * onda[i] + onda[i - 1]); ondaV = onda; onda = w;
+      for (var y = 1; y < M - 1; y++) for (var x = 1; x < M - 1; x++) { var k = y * M + x; lap[k] = 0.25 * (lap[k - 1] + lap[k + 1] + lap[k - M] + lap[k + M]); }
+      t++;
+    }
+    function perfil(arr, x0, y0, w, h, lo, hi, col) { g.strokeStyle = 'rgba(136,146,176,0.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0 + h * hi / (hi - lo)); g.lineTo(x0 + w, y0 + h * hi / (hi - lo)); g.stroke();
+      g.strokeStyle = col; g.lineWidth = 2.2; g.beginPath(); for (var i = 0; i < arr.length; i++) { var X = x0 + w * i / (arr.length - 1), Y = y0 + h * (hi - arr[i]) / (hi - lo); if (i) g.lineTo(X, Y); else g.moveTo(X, Y); } g.stroke();
+      g.fillStyle = col; g.beginPath(); g.arc(x0, y0 + h * hi / (hi - lo), 3, 0, 7); g.arc(x0 + w, y0 + h * hi / (hi - lo), 3, 0, 7); g.fill(); }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 380);
+      g.font = "14px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('CALOR', 20, 28); g.fillText('ONDA', 230, 28); g.fillText('LAPLACE', 440, 28);
+      g.font = "11px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.fillText('∂u/∂t = k ∂²u/∂x²', 20, 48); g.fillText('∂²u/∂t² = c² ∂²u/∂x²', 230, 48); g.fillText('∇²u = 0', 440, 48);
+      perfil(u, 20, 80, 180, 200, -0.1, 1.1, '#f5a623');
+      for (var i = 0; i < 60; i++) { var v = u[Math.round(i * (N - 1) / 59)]; g.fillStyle = 'rgba(245,166,35,' + Math.max(0, Math.min(1, v)).toFixed(2) + ')'; g.fillRect(20 + i * 3, 300, 3, 16); } g.strokeStyle = 'rgba(136,146,176,0.5)'; g.strokeRect(20, 300, 180, 16);
+      g.fillStyle = '#8892b0'; g.fillText('barra, extremos a 0', 20, 336);
+      perfil(onda, 230, 80, 180, 236, -1.1, 1.1, '#00d4ff'); g.fillStyle = '#8892b0'; g.fillText('cuerda fija en los extremos', 230, 336);
+      for (var k = 0; k < M * M; k++) { var c = Math.max(0, Math.min(1, lap[k])); img.data[4 * k] = 7 + c * 238; img.data[4 * k + 1] = 13 + c * 153; img.data[4 * k + 2] = 34 + c * 1; img.data[4 * k + 3] = 255; }
+      tmp.getContext('2d').putImageData(img, 0, 0); g.imageSmoothingEnabled = true; g.drawImage(tmp, 440, 80, 180, 180); g.strokeStyle = 'rgba(136,146,176,0.5)'; g.strokeRect(440, 80, 180, 180);
+      g.fillStyle = '#8892b0'; g.fillText('borde de arriba a 1,', 440, 284); g.fillText('los otros tres a 0', 440, 300);
+      g.fillStyle = '#eef2ff'; g.fillText('paso ' + t, 20, 368);
+    }
+    function bucle() { if (corriendo && visible) { for (var n = 0; n < 3; n++) paso(); dibujar();
+        estado.innerHTML = t < 150 ? 'Al principio: el calor empieza a borrar los bordes del perfil, el pulso se parte en dos y la placa se calienta desde arriba.' : t < 900 ? 'El perfil térmico ya es suave y sigue bajando; las ondas rebotan invertidas en los extremos; la placa se acerca al equilibrio.' : 'El calor casi desapareció de la barra; la onda sigue viajando sin perder forma; el mapa de Laplace ya <strong>no cambia</strong>.'; }
+      requestAnimationFrame(bucle); }
+    document.getElementById('col-ini').addEventListener('click', function () { iniciar(); dibujar(); });
+    bp.addEventListener('click', function () { corriendo = !corriendo; bp.textContent = corriendo ? '❚❚ pausa' : '▶ seguir'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    iniciar(); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="tech-note">
     <p><strong>Tres comportamientos, tres tipos:</strong> la ecuación del calor suaviza y olvida los detalles iniciales; la de onda los transporta y los conserva; la de Laplace no evoluciona y queda determinada por lo que pasa en el borde. Para resolverlas hacen falta condiciones distintas: la temperatura inicial y en los extremos para el calor; la posición y la velocidad iniciales de la cuerda para la onda; solo los valores en el borde para Laplace. Las tres se resuelven, en geometrías sencillas, con el mismo método: la <a href="separacion-variables.html">separación de variables</a>.</p>

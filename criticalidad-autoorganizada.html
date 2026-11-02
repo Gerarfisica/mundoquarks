@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
   </style>
@@ -56,6 +57,55 @@
   <h2>El Modelo de la Pila de Arena</h2>
 
   <p>El modelo paradigmático de Bak-Tang-Wiesenfeld es notablemente simple. Imaginá una grilla cuadrada donde podés agregar "granos de arena" uno por uno en posiciones aleatorias. Cada celda puede contener hasta cierto número crítico de granos (típicamente 3 o 4); cuando una celda excede este umbral, "se desliza", transfiriendo sus granos a las celdas vecinas. Si las celdas vecinas también exceden el umbral, ellas también se deslizan, generando una <strong>avalancha</strong> que puede extenderse por toda la grilla.</p>
+  <figure class="figura" id="btw">
+    <canvas id="btw-c" width="1280" height="800" role="img" aria-label="A la izquierda, una grilla cuadrada de 60 por 60 celdas coloreadas según cuántos granos tiene cada una, de cero a tres; las avalanchas se ven como manchas blancas que se extienden. A la derecha, un histograma en escala logarítmica del tamaño de las avalanchas, que se acomoda en una recta."></canvas>
+    <div class="int-botones">
+      <button type="button" id="btw-vel">ver las avalanchas despacio</button><button type="button" id="btw-pausa">❚❚ pausa</button>
+    </div>
+    <p class="int-estado" id="btw-estado" aria-live="polite"></p>
+    <figcaption>El modelo de Bak, Tang y Wiesenfeld, simulado en tu navegador: se agrega un grano por vez en una celda al azar y, cuando una celda llega a 4 granos, se desmorona y le pasa uno a cada vecina; los que caen por el borde se pierden. Sin ajustar nada, la pila llega sola a un estado crítico en el que la mayoría de las avalanchas son chicas, pero cada tanto una recorre media grilla: la recta del histograma es una ley de potencia.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('btw-c'), g = cv.getContext('2d'), E = 2, N = 60, z = new Uint8Array(N * N), toc = new Uint8Array(N * N), hist = new Float64Array(40);
+    var lento = false, corriendo = true, visible = true, cola = [], tam = 0, ultima = 0, total = 0, granos = 0;
+    var estado = document.getElementById('btw-estado'), bv = document.getElementById('btw-vel'), bp = document.getElementById('btw-pausa');
+    var col = [[13, 26, 60], [26, 108, 245], [0, 170, 214], [180, 140, 255]], img = g.createImageData(N, N), tmp = document.createElement('canvas'); tmp.width = tmp.height = N;
+    function agregar() { var i = Math.floor(Math.random() * N * N); z[i]++; granos++; toc.fill(0); tam = 0; if (z[i] >= 4) cola = [i]; }
+    function ola() { var sig = [];
+      cola.forEach(function (i) { if (z[i] < 4) return; z[i] -= 4; tam++; toc[i] = 1; var x = i % N, y = (i / N) | 0;
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var X = x + d[0], Y = y + d[1]; if (X >= 0 && X < N && Y >= 0 && Y < N) { var j = Y * N + X; z[j]++; if (z[j] >= 4) sig.push(j); } }); if (z[i] >= 4) sig.push(i); });
+      cola = sig; if (!cola.length && tam) { ultima = tam; total++; hist[Math.floor(Math.log2(tam))]++; } }
+    function relajar() { while (cola.length) ola(); }
+    for (var k = 0; k < 30000; k++) { agregar(); relajar(); } hist.fill(0); total = 0; ultima = 0;
+    function dibujar() {
+      for (var i = 0; i < N * N; i++) { var c = toc[i] ? [238, 242, 255] : col[Math.min(z[i], 3)]; img.data[4 * i] = c[0]; img.data[4 * i + 1] = c[1]; img.data[4 * i + 2] = c[2]; img.data[4 * i + 3] = 255; }
+      tmp.getContext('2d').putImageData(img, 0, 0);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 400); g.imageSmoothingEnabled = false; g.drawImage(tmp, 20, 50, 330, 330);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('PILA DE ARENA', 20, 28); g.fillText('AVALANCHAS', 390, 28);
+      g.font = "10px 'Space Mono', monospace"; ['0', '1', '2', '3 granos'].forEach(function (t, i) { g.fillStyle = 'rgb(' + col[i] + ')'; g.fillRect(170 + i * 38, 384, 10, 10); g.fillStyle = '#8892b0'; g.fillText(t, 183 + i * 38, 393); });
+      var X0 = 400, Y0 = 50, W = 220, H = 290; g.strokeStyle = 'rgba(136,146,176,0.6)'; g.lineWidth = 1; g.strokeRect(X0, Y0, W, H);
+      g.fillStyle = '#8892b0'; g.font = "11px 'Space Mono', monospace"; g.textAlign = 'center';
+      [0, 3, 6, 9, 12].forEach(function (e) { g.fillText(Math.pow(2, e), X0 + W * (e + 0.5) / 13, Y0 + H + 16); }); g.textAlign = 'right'; g.fillText('tamaño (desmoronamientos)', X0 + W, Y0 + H + 32);
+      g.save(); g.translate(X0 - 8, Y0 + H / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('frecuencia (escala log)', 0, 0); g.restore(); g.textAlign = 'left';
+      for (var b = 0; b <= 12; b++) if (hist[b] > 0) { var dens = hist[b] / Math.pow(2, b) / Math.max(total, 1), y = Y0 + H * (-Math.log10(dens)) / 7.5;
+        g.fillStyle = '#f5a623'; g.beginPath(); g.arc(X0 + W * (b + 0.5) / 13, Math.min(y, Y0 + H - 4), 4.5, 0, 7); g.fill(); }
+      estado.innerHTML = granos.toLocaleString('es-AR') + ' granos agregados. Última avalancha: <strong>' + ultima + ' desmoronamiento' + (ultima === 1 ? '' : 's') + '</strong>. Avalanchas contadas: ' + total + '.';
+    }
+    function bucle() {
+      if (corriendo && visible) {
+        if (lento) { if (cola.length) ola(); else agregar(); }
+        else for (var n = 0; n < 40; n++) { agregar(); relajar(); }
+        dibujar();
+      }
+      requestAnimationFrame(bucle);
+    }
+    bv.addEventListener('click', function () { lento = !lento; relajar(); bv.textContent = lento ? 'ir rápido' : 'ver las avalanchas despacio'; });
+    bp.addEventListener('click', function () { corriendo = !corriendo; bp.textContent = corriendo ? '❚❚ pausa' : '▶ seguir'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <p>El descubrimiento sorprendente es la distribución del tamaño de las avalanchas. Si simulás el sistema durante mucho tiempo, encontrás que hay avalanchas de todos los tamaños: muchas pequeñas (uno o pocos deslizamientos), menos medianas, y ocasionalmente avalanchas masivas que afectan a gran parte del sistema. La distribución sigue una <strong>ley de potencia</strong>: P(s) ∝ s^(-τ), donde s es el tamaño de la avalancha y τ es un exponente típicamente cercano a 1,5.</p>
   <figure class="figura">

@@ -35,6 +35,7 @@
     .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
     .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
     @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
     .article-hero h1{hyphens:none;}
     @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -109,6 +110,42 @@
   <p>En sus trabajos posteriores sobre mecánica celeste, reunidos en <em>Los nuevos métodos de la mecánica celeste</em>, publicados entre 1892 y 1899, Poincaré mostró que los desarrollos en serie que se usaban para estudiar el problema de los tres cuerpos eran convergentes, pero en general no uniformemente convergentes. Con eso puso en duda las demostraciones de estabilidad del sistema solar de Lagrange y de Laplace. La herramienta con la que los astrónomos habían calculado el movimiento de los planetas durante un siglo no garantizaba lo que se creía.</p>
 
   <p>La dificultad de fondo es que, en el problema de tres cuerpos, órbitas que empiezan muy cerca pueden separarse con el tiempo de manera drástica. Esa sensibilidad a las condiciones iniciales es la marca del caos, la misma que décadas más tarde se estudió en el sistema de Lorenz y en muchos otros sistemas. Las ecuaciones son perfectamente deterministas; lo que se pierde es la posibilidad de predecir a largo plazo.</p>
+  <figure class="figura" id="tcb">
+    <canvas id="tcb-c" width="1280" height="760" role="img" aria-label="Dos simulaciones superpuestas del problema de tres cuerpos con masas 3, 4 y 5 que parten del reposo. Las trayectorias de la primera son líneas llenas y las de la segunda, idéntica salvo por una millonésima en una posición, son puntos. Durante un tiempo coinciden; después de algunos encuentros cercanos se separan por completo."></canvas>
+    <div class="int-botones" role="group" aria-label="Diferencia inicial">
+      <button type="button" data-k="3">diferencia 10⁻³</button><button type="button" data-k="6">10⁻⁶</button><button type="button" data-k="9">10⁻⁹</button><button type="button" id="tcb-pausa">❚❚ pausa</button>
+    </div>
+    <p class="int-estado" id="tcb-estado" aria-live="polite"></p>
+    <figcaption>El problema pitagórico de tres cuerpos: masas 3, 4 y 5 en reposo en los vértices de un triángulo de lados 3, 4 y 5, con gravedad de Newton (G = 1). Tu navegador integra dos copias que difieren en una distancia mínima en la posición de un cuerpo (líneas llenas y puntos). Durante varios encuentros cercanos van juntas; después, sus historias no se parecen. Para poder integrar los choques muy cercanos se suaviza apenas la gravedad a distancias menores que 0,02.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('tcb-c'), g = cv.getContext('2d'), E = 2, M = [3, 4, 5], DT = 2e-4, EPS2 = 4e-4, A, B, t, k, sep, trA, trB, corriendo = true, visible = true;
+    var COL = ['#00d4ff', '#f5a623', '#b48cff'], estado = document.getElementById('tcb-estado'), bp = document.getElementById('tcb-pausa');
+    function acc(s) { var a = [[0, 0], [0, 0], [0, 0]]; for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) if (i !== j) { var dx = s[j][0] - s[i][0], dy = s[j][1] - s[i][1], r3 = Math.pow(dx * dx + dy * dy + EPS2, 1.5); a[i][0] += M[j] * dx / r3; a[i][1] += M[j] * dy / r3; } return a; }
+    function paso(s) { var a = acc(s); s.forEach(function (b, i) { b[2] += DT / 2 * a[i][0]; b[3] += DT / 2 * a[i][1]; b[0] += DT * b[2]; b[1] += DT * b[3]; }); a = acc(s); s.forEach(function (b, i) { b[2] += DT / 2 * a[i][0]; b[3] += DT / 2 * a[i][1]; }); }
+    function ini(kk) { k = kk; A = [[1, 3, 0, 0], [-2, -1, 0, 0], [1, -1, 0, 0]]; B = A.map(function (b) { return b.slice(); }); B[0][0] += Math.pow(10, -k); t = 0; sep = null; trA = [[], [], []]; trB = [[], [], []];
+      document.querySelectorAll('#tcb [data-k]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-k') == k ? 'true' : 'false'); }); corriendo = true; bp.textContent = '❚❚ pausa'; }
+    function sx(x) { return 320 + 30 * x; } function sy(y) { return 200 - 30 * y; }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, 640, 380);
+      g.font = "16px 'Space Mono', monospace"; g.fillStyle = '#eef2ff'; g.fillText('TRES CUERPOS, DOS VECES', 20, 28);
+      for (var i = 0; i < 3; i++) { g.strokeStyle = COL[i]; g.globalAlpha = 0.75; g.lineWidth = 1.3; g.beginPath(); trA[i].forEach(function (p, j) { if (j) g.lineTo(sx(p[0]), sy(p[1])); else g.moveTo(sx(p[0]), sy(p[1])); }); g.stroke();
+        g.fillStyle = COL[i]; trB[i].forEach(function (p, j) { if (j % 3 === 0) g.fillRect(sx(p[0]) - 0.8, sy(p[1]) - 0.8, 1.6, 1.6); }); g.globalAlpha = 1;
+        g.beginPath(); g.arc(sx(A[i][0]), sy(A[i][1]), 3 + M[i], 0, 7); g.fill(); g.strokeStyle = '#eef2ff'; g.lineWidth = 1.5; g.beginPath(); g.arc(sx(B[i][0]), sy(B[i][1]), 4 + M[i], 0, 7); g.stroke(); }
+      g.font = "12px 'Space Mono', monospace"; g.fillStyle = '#8892b0'; g.fillText('t = ' + t.toFixed(1).replace('.', ','), 20, 370); ['masa 3', 'masa 4', 'masa 5'].forEach(function (s, i) { g.fillStyle = COL[i]; g.fillText(s, 540, 60 + i * 20); });
+      var d = 0; for (i = 0; i < 3; i++) d = Math.max(d, Math.hypot(A[i][0] - B[i][0], A[i][1] - B[i][1]));
+      estado.innerHTML = 'Diferencia inicial 10<sup>−' + k + '</sup>; t = ' + t.toFixed(1).replace('.', ',') + '. ' + (sep === null ? 'Las dos simulaciones todavía coinciden (diferencia máxima del orden de 10<sup>' + Math.floor(Math.log10(Math.max(d, 1e-15))).toString().replace('-', '−') + '</sup>).' : 'Se separaron más de 0,5 en <strong>t ≈ ' + sep.toFixed(1).replace('.', ',') + '</strong>: desde ahí, sus historias no se parecen.');
+      if (sep === null && d > 0.5) sep = t;
+    }
+    function bucle() { if (corriendo && visible && t < 70) { for (var n = 0; n < 150; n++) { paso(A); paso(B); t += DT; } for (var i = 0; i < 3; i++) { trA[i].push([A[i][0], A[i][1]]); trB[i].push([B[i][0], B[i][1]]); if (trA[i].length > 350) { trA[i].shift(); trB[i].shift(); } } dibujar(); }
+      requestAnimationFrame(bucle); }
+    document.querySelectorAll('#tcb [data-k]').forEach(function (b) { b.addEventListener('click', function () { ini(parseInt(b.getAttribute('data-k'), 10)); }); });
+    bp.addEventListener('click', function () { corriendo = !corriendo; bp.textContent = corriendo ? '❚❚ pausa' : '▶ seguir'; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+    ini(6); dibujar(); requestAnimationFrame(bucle);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El baile de a tres:</strong> una pareja que baila puede seguir un patrón regular, porque cada uno responde solo al otro. Si se suma un tercero y cada uno responde a los otros dos al mismo tiempo, una pequeña demora de uno cambia lo que hacen los demás, y eso vuelve a cambiar lo que hace el primero. Con tres, los efectos se realimentan, y la coreografía puede volverse imposible de anticipar.</p>

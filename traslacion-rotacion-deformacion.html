@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traslación, Rotación y Deformación: Qué Le Pasa a un Elemento de Fluido | Mundo Quarks</title>
+  <meta name="description" content="Cómo se descompone el movimiento de un pedacito de fluido en traslación, rotación y deformación, y qué es el tensor de deformación.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
+    *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--white);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.7;overflow-x:hidden;}
+    #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 4rem;background:rgba(3,5,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
+    .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
+    .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
+    .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
+    .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
+    .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
+    .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="mecanica-fluidos.html" class="nav-back">Mecánica de Fluidos</a></nav>
+<div class="article-hero">
+  <div class="article-meta">Mecánica de Fluidos <span>·</span> Cinemática y leyes de conservación</div>
+  <h1>Traslación, Rotación y Deformación:<br><span class="hl">Qué Le Pasa a un Elemento de Fluido</span></h1>
+  <p class="article-subtitle">Un cuadradito de agua que avanza, gira y se estira al mismo tiempo</p>
+  <div class="article-tags"><span class="tag active">// Mecánica de Fluidos</span><span class="tag">Deformación</span><span class="tag">Rotación</span><span class="tag">Helmholtz</span></div>
+</div>
+<div class="article-container">
+  <p>Imaginá que pintás un cuadradito diminuto en el agua de un río y lo seguís mientras la corriente lo lleva. En un instante, ese cuadradito puede hacer cuatro cosas a la vez: avanzar, girar, estirarse o aplastarse, y torcerse hasta volverse un rombo. Separar esos cuatro movimientos es la manera de entender qué le hace un flujo a cada pedacito de fluido.</p>
+
+  <h2>Una idea de Helmholtz</h2>
+  <p>Según MacTutor, Hermann von Helmholtz publicó en 1858 un trabajo sobre el movimiento de un fluido perfecto que empezaba justamente así: descomponiendo el movimiento del fluido en traslación, rotación y deformación [1]. Esa descomposición es hoy la base de la cinemática de fluidos.</p>
+
+  <h2>Los cuatro movimientos</h2>
+  <p>John Cimbala, de la Universidad Estatal de Pensilvania, los calcula para un ejemplo concreto: un flujo plano con velocidad <strong>V</strong> = (3x, −3y) [2]:</p>
+  <ul>
+    <li><strong>Traslación:</strong> la velocidad de traslación es simplemente el vector velocidad en cada punto [2].</li>
+    <li><strong>Rotación:</strong> la velocidad de rotación sale de las diferencias entre derivadas cruzadas de la velocidad. En este ejemplo es cero: el flujo es irrotacional, y su vorticidad también es cero [2].</li>
+    <li><strong>Deformación lineal:</strong> mide cuánto se estira el cuadradito en cada dirección, y sale de derivadas como ∂u/∂x [2].</li>
+    <li><strong>Deformación angular (de corte):</strong> mide cuánto se tuerce el cuadradito, cuánto cambian sus ángulos rectos, y sale de la suma de derivadas cruzadas [2].</li>
+  </ul>
+  <p>En el ejemplo, el cuadradito se estira en x, se aplasta en y y no gira (un cálculo propio con las fórmulas de Cimbala: ∂u/∂x = 3 y ∂v/∂y = −3). Las dos tasas suman cero, como corresponde a un flujo que conserva el volumen.</p>
+  <div class="math-block">Deformación lineal: ε<sub>xx</sub> = ∂u/∂x · ε<sub>yy</sub> = ∂v/∂y<br>Deformación de corte: ε<sub>xy</sub> = ½ (∂u/∂y + ∂v/∂x)<br>Rotación: ω<sub>z</sub> = ½ (∂v/∂x − ∂u/∂y)</div>
+
+  <div class="analogy-box">
+    <p><strong>La masa de pizza:</strong> un pedazo de masa sobre la mesada puede deslizarse sin cambiar (traslación), girar como un volante (rotación), estirarse con el palote (deformación lineal) o torcerse cuando la empujás de una punta (deformación de corte). Un pedacito de fluido hace todo eso, pero sin parar y todo a la vez.</p>
+  </div>
+
+  <h2>El tensor de deformación</h2>
+  <p>Cimbala junta las deformaciones lineales y de corte en una tabla de tres por tres, el <strong>tensor de tasa de deformación</strong> [2]. David Tong, de la Universidad de Cambridge, muestra por qué tiene sentido: las nueve derivadas de la velocidad se separan en una parte simétrica, que es ese tensor, y una antisimétrica, que es la rotación y contiene la misma información que la <a href="vorticidad.html">vorticidad</a> [3].</p>
+  <p>Tong da dos ejemplos que separan los dos efectos [3]. El flujo <strong>u</strong> = (−αx, αy, 0) tiene deformación pero no vorticidad: aplasta el fluido en una dirección y lo estira en la otra. El flujo <strong>u</strong> = (−y, x, 0) tiene vorticidad pero no deformación: gira como un cuerpo rígido. Y agrega una propiedad: como el tensor es simétrico, siempre se puede encontrar un sistema de ejes donde solo hay estiramientos, sin corte; en un fluido incompresible esos tres estiramientos suman cero, así que en alguna dirección el fluido se estira y en otra se aplasta [3].</p>
+
+  <h2>Corte simple: rotar y deformar a la vez</h2>
+  <p>El caso más común en la naturaleza mezcla las dos cosas. Es el flujo entre una placa quieta y otra que se mueve, donde la velocidad crece con la altura (u = γy). En ese flujo, ∂u/∂y = γ y las otras derivadas son cero: la rotación vale −γ/2 y la deformación de corte vale γ/2 (un cálculo propio con las fórmulas de arriba). Un cuadradito, entonces, gira y se tuerce a la vez. Es el flujo entre dos placas con que se define la <a href="viscosidad.html">viscosidad</a>, llamado flujo de Couette [3].</p>
+
+  <div class="tech-note">
+    <p><strong>Por qué importa:</strong> Tong muestra que, en un fluido newtoniano e incompresible, los esfuerzos viscosos son proporcionales al tensor de tasa de deformación, y no a la rotación [3]. Un fluido que gira como un sólido, sin deformarse, no tiene fricción interna. Por eso el tensor de deformación es la pieza que conecta la cinemática con las <a href="navier-stokes.html">ecuaciones de Navier-Stokes</a>.</p>
+  </div>
+
+  <p>Todo movimiento de un pedacito de fluido es la suma de una traslación, una rotación y una deformación, lineal y de corte. Helmholtz lo vio en 1858, y hoy se calcula con las derivadas del campo de velocidades: la parte antisimétrica da la rotación y la simétrica, el tensor de deformación. Saber separarlas es saber qué le hace el flujo a cada gota.</p>
+
+  <div class="question-box">
+    <p><strong>Pregunta para la comunidad:</strong> En el ejemplo de Cimbala, <strong>V</strong> = (3x, −3y), ¿cómo se ve un cuadradito centrado en el origen después de un ratito? ¿Y uno que empieza en el punto (1, 1)? Pista: los dos se deforman igual, pero no se trasladan igual.</p>
+  </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>J. J. O'Connor y E. F. Robertson, «Hermann von Helmholtz», <em>MacTutor History of Mathematics Archive</em>, Universidad de St Andrews. <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Helmholtz/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>J. M. Cimbala, <em>ME 320: Fluid Flow</em>, clase 10 «Rates of motion and deformation», Universidad Estatal de Pensilvania (2015). <a href="https://www.me.psu.edu/cimbala/me320web_Spring_2015/Lectures/Tablet_PC_notes/ME320_Lecture_10.pdf" target="_blank" rel="noopener">me.psu.edu</a></li>
+    <li>D. Tong, <em>Lectures on Fluid Mechanics</em>, apuntes de clase, Universidad de Cambridge (DAMTP), §2.2 «Vorticity», §3.1.1 «Newtonian Fluids» y §3.2.2 «Couette Flow». <a href="https://www.damtp.cam.ac.uk/user/tong/fluids.html" target="_blank" rel="noopener">damtp.cam.ac.uk</a></li>
+  </ol>
+</div>
+<div class="article-footer">
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <a href="mecanica-fluidos.html" class="back-btn">← Volver a Mecánica de Fluidos</a>
+</div>
+<script>
+const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
+</script>
+</body>
+</html>

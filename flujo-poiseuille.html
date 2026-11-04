@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Flujo de Poiseuille: Cómo Corre un Fluido por un Tubo | Mundo Quarks</title>
+  <meta name="description" content="Por qué un fluido viscoso corre más rápido en el centro de un tubo, de dónde sale la ley de Poiseuille y por qué el caudal depende de la cuarta potencia del radio.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
     *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
@@ -15,71 +15,90 @@
     .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
     .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
     .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
-    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
     .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
     .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
-    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
     .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
     .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
     .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
-    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
-    .eq-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-size:0.9rem;color:var(--cyan);position:relative;text-align:center;}.eq-block::before{content:'ECUACION';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
-    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGIA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
-    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TECNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
-    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
     .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
     .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
-    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
-    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
-    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
   </style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
-<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="mecanica-fluidos.html" class="nav-back">Mecanica de fluidos</a></nav>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="mecanica-fluidos.html" class="nav-back">Mecánica de Fluidos</a></nav>
 <div class="article-hero">
-  <div class="article-meta">Mecanica de Fluidos <span>&middot;</span> Flujo laminar en tuberias cilindricas</div>
+  <div class="article-meta">Mecánica de Fluidos <span>·</span> Fluidos viscosos y capa límite</div>
   <h1>El Flujo de Poiseuille:<br><span class="hl">Cómo Corre un Fluido por un Tubo</span></h1>
-  <p class="article-subtitle">La solucion exacta mas util de Navier-Stokes: el perfil parabolico que describe todo flujo laminar en tuberias y que conecta caudal, viscosidad y geometria en una sola ecuacion</p>
-  <div class="article-tags"><span class="tag active">// Mecánica de Fluidos</span><span class="tag">Tuberia</span><span class="tag">Laminar</span><span class="tag">Perdida de carga</span></div>
+  <p class="article-subtitle">Un perfil parabólico y un caudal que crece con la cuarta potencia del radio</p>
+  <div class="article-tags"><span class="tag active">// Mecánica de Fluidos</span><span class="tag">Poiseuille</span><span class="tag">Caudal</span><span class="tag">Viscosidad</span></div>
 </div>
 <div class="article-container">
+  <p>Duplicá el radio de un caño y, a igual diferencia de presión, el agua que pasa no se duplica: se multiplica por dieciséis. Esa sorpresa sale de una de las pocas soluciones exactas de las ecuaciones de Navier-Stokes, la del fluido que corre por un tubo empujado por una diferencia de presión. Es el <strong>flujo de Poiseuille</strong>, y explica desde las cañerías de una casa hasta la circulación de la sangre.</p>
 
-  <p>La solucion de Hagen-Poiseuille para el flujo laminar estacionario en un tubo circular es, junto con el flujo de Couette, una de las contadas soluciones exactas de las ecuaciones de Navier-Stokes. Derivada experimentalmente por Poiseuille (1840s) y teoricamente por Hagen y Stokes, describe un perfil de velocidades parabolico con velocidad maxima en el centro y cero en la pared, y establece que el caudal es proporcional a la cuarta potencia del radio y al gradiente de presion, e inversamente proporcional a la viscosidad.</p>
-  <p>Esta solucion es el pilar de la ingenieria hidraulica laminar. Con ella se dimensionan tuberias de agua en edificios, se calcula el flujo sanguineo en vasos pequeños, se diseñan sistemas microfluidicos y se calibran viscosimetros capilares. Su dependencia con R⁴ tiene consecuencias biologicas dramaticas: una reduccion del 10% en el radio arterial casi duplica la resistencia al flujo y el trabajo del corazon.</p>
-  <h2>El Perfil Parabolico</h2>
-  <div class="eq-block">
-    \[ v(r) = \frac{\Delta P}{4\mu L}(R^2 - r^2) \qquad Q = \frac{\pi R^4 \Delta P}{8\mu L} \]
-    <br><small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">v(r): velocidad a distancia r del eje · R: radio del tubo · ΔP: caida de presion · μ: viscosidad · L: longitud · Q: caudal volumetrico</small>
-  </div>
-  <p>El perfil parabolico emerge de un balance perfecto entre el gradiente de presion que impulsa el flujo y la friccion viscosa que lo frena. En el centro del tubo, lejos de las paredes, la friccion es minima y la velocidad es maxima: v_max = ΔPR²/(4μL). En la pared, la condicion de no deslizamiento impone v = 0. La velocidad media es exactamente la mitad de la maxima: v_media = v_max/2. El caudal volumetrico Q = πR²v_media = πR⁴ΔP/(8μL) es la celebre ley de Poiseuille.</p>
-  <h2>La Dependencia con R⁴</h2>
-  <p>La dependencia R⁴ es el aspecto mas notable de la ley. ¿Por que cuarta potencia y no primera o segunda? Porque el caudal depende del area de la seccion (∝ R²) multiplicada por la velocidad media (∝ R², porque el gradiente de velocidad en la pared es proporcional a v_max/R y v_max ∝ R²). El resultado es R² × R² = R⁴. Esto significa que duplicar el radio multiplica el caudal por 16 (a igual caida de presion), o equivalentemente, que la resistencia hidraulica R_h = ΔP/Q = 8μL/(πR⁴) es extremadamente sensible al radio.</p>
+  <h2>Por qué el centro va más rápido</h2>
+  <p>En un fluido sin viscosidad, la velocidad sería la misma en toda la sección del tubo [1]. Pero con viscosidad, el fluido pegado a la pared no se mueve: es la condición de no deslizamiento [2]. La capa que está al lado de la pared es frenada por ella, la siguiente es frenada por la primera, y así hacia adentro. Según OpenStax, en un fluido viscoso la velocidad es cero en las paredes y crece hasta un máximo en el centro del tubo [1]. OpenStax señala que ese perfil se ve hasta en la llama de un mechero de Bunsen, aunque la viscosidad del gas sea chica [1].</p>
+
+  <h2>El perfil parabólico</h2>
+  <p>David Tong, de la Universidad de Cambridge, resuelve las <a href="navier-stokes.html">ecuaciones de Navier-Stokes</a> para un tubo circular de radio R con un gradiente de presión constante [2]. Con la condición de no deslizamiento en la pared, la velocidad resulta [2]:</p>
+  <div class="math-block">u(r) = −(1/4μ) (dP/dx) (R² − r²)<br>u: velocidad a una distancia r del eje · μ: viscosidad · dP/dx: gradiente de presión a lo largo del tubo · R: radio del tubo</div>
+  <p>Es una parábola: cero en la pared, máxima en el centro. El signo menos dice que el fluido corre de la presión alta hacia la baja [2]. Tong la llama flujo de Hagen-Poiseuille [2].</p>
+
+  <h2>La ley de Poiseuille</h2>
+  <p>Integrando la velocidad sobre toda la sección se obtiene el caudal. OpenStax lo escribe así [1]:</p>
+  <div class="math-block">Q = (p<sub>2</sub> − p<sub>1</sub>) π r⁴ / (8ηl) &nbsp;·&nbsp; resistencia R = 8ηl / (πr⁴)<br>Q: caudal · p<sub>2</sub> − p<sub>1</sub>: diferencia de presión · r: radio · η: viscosidad · l: largo del tubo</div>
+  <p>La ley dice cosas razonables: el caudal crece con la diferencia de presión y baja con la viscosidad y con el largo del tubo [1]. Lo sorprendente es la cuarta potencia del radio. Según OpenStax, cualquier cambio en el radio tiene un efecto enorme: si se duplica el radio, la resistencia baja 2⁴ = 16 veces [1]. En un ejemplo de OpenStax, un conducto de aire acondicionado que pasa de 18 a 9 cm de diámetro reduce su caudal al 6,25 % del original [1].</p>
+
   <div class="analogy-box">
-    <p><strong>Las cañerias de la ciudad:</strong> Imagina que necesitas duplicar el suministro de agua a un barrio. ¿Que es mas eficiente: duplicar la presion de bombeo o aumentar el diametro de la cañeria un 19% (factor 2^(1/4))? Gracias a R⁴, el ligero aumento de diametro logra el mismo efecto que duplicar la presion. Por eso los ingenieros sanitarios usan cañerias ligeramente sobredimensionadas: un pequeño exceso de diametro ahorra enormes costos de bombeo a largo plazo.</p>
+    <p><strong>Por qué cuatro:</strong> la cuarta potencia sale de dos efectos que se multiplican. Un tubo más ancho tiene más área por donde pasar, y eso da r². Pero además, en un tubo más ancho el centro está más lejos de las paredes que lo frenan, y el fluido de adentro corre más rápido, y eso da otro r². Juntos, r⁴ (un razonamiento a partir del perfil parabólico).</p>
   </div>
-  <h2>Limites de Validez</h2>
-  <p>La solucion de Poiseuille es exacta solo bajo condiciones estrictas: flujo laminar (Re < ~2300 en tuberias), estacionario, completamente desarrollado (lejos de la entrada, donde el perfil todavia evoluciona), fluido newtoniano e incompresible, tubo recto y cilindrico. En la practica, pocas de estas condiciones se cumplen simultaneamente, pero la ley sigue siendo util como primera aproximacion y referencia para cuantificar desviaciones.</p>
+
+  <h2>Poiseuille y la sangre</h2>
+  <p>Según OpenStax, la ley lleva el nombre del científico francés J. L. Poiseuille (1799–1869), que la dedujo intentando entender el flujo de la sangre en el cuerpo [1]. Por eso la cuarta potencia importa tanto en medicina: un pequeño estrechamiento de un vaso sanguíneo aumenta mucho su resistencia (un razonamiento a partir de la ley). La física de la circulación está en el <a href="flujo-sanguineo.html">flujo sanguíneo</a>.</p>
+
   <div class="tech-note">
-    <p><strong>Longitud de entrada:</strong> Cuando el fluido entra en un tubo desde un deposito, el perfil de velocidades es inicialmente plano (uniforme). La viscosidad gradualmente "esculpe" el perfil parabolico a medida que el fluido avanza. La distancia necesaria para que el perfil se desarrolle completamente es la <strong>longitud de entrada</strong> L_e ≈ 0,06 Re × D. A Re = 2000 y D = 1 cm, L_e ≈ 1,2 m. En la region de entrada, la ley de Poiseuille no es valida y la caida de presion por unidad de longitud es mayor que la predicha, porque el perfil sigue cambiando y los gradientes de velocidad en la pared son mas intensos.</p>
+    <p><strong>Solo para flujo laminar:</strong> OpenStax aclara que la ley vale para el flujo laminar de un fluido incompresible [1]. Si el flujo se vuelve turbulento, la resistencia aumenta muchísimo [1]. Cuándo pasa eso lo dice el <a href="numero-reynolds.html">número de Reynolds</a>. Tong muestra además la versión plana, entre dos placas quietas, que también tiene un perfil parabólico [2].</p>
   </div>
-  <div class="closing">
-    <p>El flujo de Poiseuille es la columna vertebral de la mecanica de fluidos en tuberias. Su formula, con esa memorable R⁴, es una de las primeras que aprende todo estudiante de ingenieria y una de las ultimas que olvida. Es exacta, elegante y directamente aplicable a una enorme variedad de problemas practicos. Y su dependencia brutal con el radio es un recordatorio constante de que en el mundo de los fluidos, la geometria manda.</p>
-  </div>
+
+  <p>El flujo de Poiseuille es la solución exacta para un fluido viscoso que corre por un tubo: una parábola de velocidades, cero en la pared y máxima en el centro. El caudal que da crece con la cuarta potencia del radio, y por eso un caño o una arteria un poco más angostos dejan pasar mucho menos fluido. Es una de las leyes de la física más útiles en ingeniería y en medicina.</p>
+
   <div class="question-box">
-    <p><strong>Pregunta para la comunidad:</strong> La ley de Poiseuille predice que el caudal crece indefinidamente si ΔP crece. Pero en la realidad, a Re ≈ 2300 el flujo transiciona a turbulento y la relacion ΔP-Q cambia radicalmente. ¿Que ocurre con el perfil de velocidades y con la relacion Q(ΔP) despues de la transicion? ¿El caudal sigue aumentando con ΔP?</p>
+    <p><strong>Pregunta para la comunidad:</strong> Si una arteria se estrecha un 20 % de su radio, ¿cuánto tiene que aumentar la diferencia de presión para que pase la misma cantidad de sangre? Hacé la cuenta con la ley de Poiseuille.</p>
   </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>W. Moebs, S. J. Ling y J. Sanny, <em>University Physics, Volume 1</em>, OpenStax (2016), §14.7 «Viscosity and Turbulence». <a href="https://openstax.org/books/university-physics-volume-1/pages/14-7-viscosity-and-turbulence" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>D. Tong, <em>Lectures on Fluid Mechanics</em>, apuntes de clase, Universidad de Cambridge (DAMTP), §3.2.1 «The No-Slip Boundary Condition» y §3.2.3 «Poiseuille Flow». <a href="https://www.damtp.cam.ac.uk/user/tong/fluids.html" target="_blank" rel="noopener">damtp.cam.ac.uk</a></li>
+  </ol>
 </div>
 <div class="article-footer">
-  <p>Publicado por <span>Mundo Quarks</span> &middot; Sigamos hackeando el codigo del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
   <a href="mecanica-fluidos.html" class="back-btn">← Volver a Mecánica de Fluidos</a>
 </div>
 <script>
 const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
 function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
 function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
-function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
-resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
 </script>
 </body>
 </html>

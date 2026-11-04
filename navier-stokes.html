@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Las Ecuaciones de Navier-Stokes: El Problema del Millón de Dólares | Mundo Quarks</title>
+  <meta name="description" content="De dónde salen las ecuaciones de Navier-Stokes, qué dice cada término, por qué la viscosidad difunde la cantidad de movimiento y qué pregunta sigue abierta.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root{--bg:#03050f;--blue:#1a6cf5;--cyan:#00d4ff;--white:#eef2ff;--gray:#8892b0;--accent:#f5a623;--card-bg:rgba(13,25,60,0.6);--border:rgba(26,108,245,0.2);}
     *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
@@ -15,73 +15,100 @@
     .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--white);text-decoration:none;letter-spacing:-0.03em;}.nav-logo span{color:var(--cyan);}
     .nav-back{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;transition:color 0.2s;}.nav-back:hover{color:var(--cyan);}.nav-back::before{content:'← ';}
     .article-hero{position:relative;z-index:1;padding:10rem 4rem 5rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border);}
-    .article-meta{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
+    .article-meta{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;}.article-meta span{color:var(--gray);}.article-meta::before{content:'';display:block;width:2rem;height:1px;background:var(--cyan);}
     .article-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-0.04em;margin-bottom:1rem;}.article-hero h1 .hl{color:var(--cyan);}
     .article-subtitle{font-family:'Crimson Pro',serif;font-size:1.3rem;font-style:italic;color:var(--gray);font-weight:300;margin-bottom:2.5rem;}
-    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
+    .article-tags{display:flex;gap:0.75rem;flex-wrap:wrap;}.tag{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.8rem;border:1px solid var(--border);color:var(--gray);}.tag.active{border-color:var(--cyan);color:var(--cyan);}
     .article-container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:5rem 4rem 8rem;}
     .article-container p{color:rgba(238,242,255,0.85);font-size:1.15rem;line-height:1.85;margin-bottom:1.75rem;}
     .article-container h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--white);margin-top:3.5rem;margin-bottom:1.25rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;}.article-container h2::before{content:'//';font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);font-weight:400;}
-    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
-    .eq-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-size:0.9rem;color:var(--cyan);position:relative;text-align:center;}.eq-block::before{content:'ECUACION';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
-    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGIA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
-    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TECNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
-    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h4{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
+    .math-block{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.5rem 2rem;margin:2rem 0;font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:0.05em;position:relative;}.math-block::before{content:'DATO';position:absolute;top:-0.6rem;left:1.5rem;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}
+    .analogy-box{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.analogy-box::before{content:'ANALOGÍA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--accent);background:var(--bg);padding:0 0.5rem;}.analogy-box p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.analogy-box strong{color:var(--accent);}
+    .tech-note{background:var(--card-bg);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:2rem 2.5rem;margin:2.5rem 0;position:relative;}.tech-note::before{content:'NOTA TÉCNICA';position:absolute;top:-0.6rem;left:1.5rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--cyan);background:var(--bg);padding:0 0.5rem;}.tech-note p{color:rgba(238,242,255,0.85)!important;margin-bottom:0!important;}.tech-note strong{color:var(--cyan);}
+    .info-box{background:linear-gradient(135deg,rgba(26,108,245,0.08),rgba(0,212,255,0.04));border:1px solid rgba(0,212,255,0.2);padding:2rem 2.5rem;margin:2.5rem 0;}.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--cyan);margin-bottom:0.75rem;}.info-box p{color:rgba(238,242,255,0.85);margin-bottom:0;font-size:1.05rem;}
     .closing{margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);}
     .question-box{background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--accent);padding:2rem 2.5rem;margin:3rem 0;}.question-box p{color:rgba(238,242,255,0.85);margin-bottom:0;}.question-box strong{color:var(--accent);}
-    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
-    .back-btn{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
-    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:8rem 1.5rem 3rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}}
+    .article-footer{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2rem 4rem 4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}.article-footer p{font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--gray);}.article-footer p span{color:var(--cyan);}
+    .back-btn{font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.8rem 1.6rem;border:1px solid var(--border);color:var(--gray);text-decoration:none;transition:all 0.2s;}.back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+    .refs{list-style:decimal;padding-left:1.5rem;}.refs li{color:var(--gray);font-size:0.95rem;line-height:1.6;margin-bottom:0.6rem;}.refs a{color:var(--cyan);}
+    @media(max-width:900px){nav{padding:1rem 1.5rem;}.article-hero{padding:6rem 1.5rem 2.5rem;}.article-subtitle{margin-bottom:1.5rem;}.article-container{padding:3rem 1.5rem 5rem;}.article-footer{padding:2rem 1.5rem;}.analogy-box,.tech-note,.info-box,.question-box{padding:1.5rem 1.25rem;}.math-block{padding:1.25rem 1rem;}}
+    .article-hero h1{hyphens:none;}
+    @media(max-width:600px){.article-hero h1{font-size:clamp(1.75rem,9vw,2.5rem);hyphens:manual;}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
+    @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
   </style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
-<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="mecanica-fluidos.html" class="nav-back">Mecanica de fluidos</a></nav>
+<nav><a href="index.html" class="nav-logo">Mundo<span>Quarks</span></a><a href="mecanica-fluidos.html" class="nav-back">Mecánica de Fluidos</a></nav>
 <div class="article-hero">
-  <div class="article-meta">Mecanica de Fluidos <span>&middot;</span> Ecuaciones fundamentales del movimiento</div>
+  <div class="article-meta">Mecánica de Fluidos <span>·</span> Fluidos viscosos y capa límite</div>
   <h1>Las Ecuaciones de Navier-Stokes:<br><span class="hl">El Problema del Millón de Dólares</span></h1>
-  <p class="article-subtitle">Las ecuaciones que gobiernan el movimiento de todo fluido del universo y que nadie ha podido resolver en general: un problema del millon de dolares</p>
-  <div class="article-tags"><span class="tag active">// Mecánica de Fluidos</span><span class="tag">Viscosidad</span><span class="tag">Momentum</span><span class="tag">Milenio</span></div>
+  <p class="article-subtitle">La ecuación de Euler más la fricción interna, y una pregunta que vale un millón de dólares</p>
+  <div class="article-tags"><span class="tag active">// Mecánica de Fluidos</span><span class="tag">Navier-Stokes</span><span class="tag">Viscosidad</span><span class="tag">Problemas del Milenio</span></div>
 </div>
 <div class="article-container">
+  <p>Si toda la mecánica de fluidos tuviera que caber en una línea, sería esta: las <strong>ecuaciones de Navier-Stokes</strong>. Describen el humo de un cigarrillo, el agua de un río, el aire alrededor de un avión y la sangre en las arterias. Y, a casi dos siglos de su descubrimiento, todavía nadie sabe responder una pregunta básica sobre ellas.</p>
 
-  <p>Si la mecanica de fluidos tuviera un texto sagrado, serian las ecuaciones de Navier-Stokes. Derivadas independientemente por Claude-Louis Navier (1822) y George Gabriel Stokes (1845), estas ecuaciones describen como la velocidad y la presion de un fluido viscoso evolucionan en el espacio y el tiempo. Son la version fluida de la segunda ley de Newton (F = ma), aplicada a cada punto infinitesimal de un continuo viscoso. En principio, resolviendo estas ecuaciones con las condiciones iniciales y de contorno adecuadas, se puede predecir cualquier flujo: desde el agua en una canilla hasta la atmosfera de Jupiter.</p>
-  <p>En la practica, resolverlas es extraordinariamente dificil. Las ecuaciones son no lineales (el termino convectivo v·∇v acopla la velocidad consigo misma), acopladas (velocidad y presion estan entrelazadas), y tridimensionales. La existencia y unicidad de sus soluciones suaves para datos generales en tres dimensiones es uno de los siete <strong>Problemas del Milenio</strong> del Instituto Clay, con un premio de un millon de dolares. A la fecha, el problema permanece abierto: no sabemos si las ecuaciones siempre producen soluciones fisicamente razonables o si pueden generar singularidades (infinitos) en tiempo finito.</p>
-  <h2>Las Ecuaciones</h2>
-  <p>Para un fluido incompresible newtoniano con viscosidad constante, las ecuaciones de Navier-Stokes son:</p>
-  <div class="eq-block">
-    \[ \rho\left(\frac{\partial \vec{v}}{\partial t} + \vec{v}\cdot\nabla\vec{v}\right) = -\nabla P + \mu\nabla^2\vec{v} + \rho\vec{g} \]
-    \[ \nabla \cdot \vec{v} = 0 \]
-    <br><small style="color:var(--gray);font-family:'Space Mono',monospace;font-size:0.7rem;">Primera: conservacion de momentum · Segunda: continuidad (incompresibilidad) · ρ(∂v/∂t + v·∇v): inercia · -∇P: gradiente de presion · μ∇²v: difusion viscosa · ρg: gravedad</small>
-  </div>
-  <p>El lado izquierdo es la masa por la aceleracion de una particula de fluido (la derivada material Dv/Dt, que incluye tanto la aceleracion local ∂v/∂t como la convectiva v·∇v). El lado derecho es la suma de fuerzas por unidad de volumen: el gradiente de presion (que empuja el fluido de alta a baja presion), la difusion viscosa μ∇²v (que suaviza los gradientes de velocidad, como la difusion de calor suaviza los gradientes de temperatura), y la gravedad. La segunda ecuacion (∇·v = 0) impone la incompresibilidad.</p>
-  <h2>Soluciones Exactas: Las Excepciones Preciosas</h2>
-  <p>Aunque no existe solucion general, hay unas pocas soluciones exactas para geometrias y condiciones simples que son pilares de la mecanica de fluidos. El <strong>flujo de Poiseuille</strong> (tubo circular, gradiente de presion constante) da un perfil parabolico v(r) = (ΔP/4μL)(R²-r²). El <strong>flujo de Couette</strong> (entre placas paralelas, una movil) da un perfil lineal. El <strong>flujo de Stokes</strong> alrededor de una esfera a bajo Reynolds da la celebre ley de arrastre F = 6πμRv. Estas soluciones, aunque limitadas a casos simples, proporcionan intuicion fundamental sobre el comportamiento de los fluidos viscosos y sirven como referencia para validar codigos numericos.</p>
+  <h2>Euler más fricción</h2>
+  <p>La <a href="ecuacion-euler.html">ecuación de Euler</a> es la segunda ley de Newton para un fluido ideal. Le falta un ingrediente que, según David Tong, de la Universidad de Cambridge, resulta ser muy importante: la fricción interna del fluido, la <a href="viscosidad.html">viscosidad</a> [1]. Tong argumenta qué forma tiene que tener esa fuerza [1]:</p>
+  <ul>
+    <li>Para velocidades no muy grandes, la fuerza de fricción tiene que ser proporcional a la velocidad: es el mismo argumento de «respuesta lineal» que da la ley de Ohm. Los fluidos para los que esto vale se llaman <strong>newtonianos</strong>.</li>
+    <li>No puede depender de la velocidad misma, porque si todo el fluido se mueve junto no hay fricción: tiene que depender de cómo cambia la velocidad de un punto a otro.</li>
+    <li>Por simetría, el único término posible para un fluido incompresible es μ∇²<strong>u</strong>.</li>
+  </ul>
+  <p>Sumando ese término a la ecuación de Euler se obtienen las ecuaciones de Navier-Stokes [1]:</p>
+  <div class="math-block">ρ D<strong>u</strong>/Dt = −∇P + μ∇²<strong>u</strong> + <strong>f</strong> &nbsp;&nbsp; ∇ · <strong>u</strong> = 0<br>ρ: densidad · D<strong>u</strong>/Dt: aceleración de cada porción de fluido · ∇P: gradiente de presión · μ: viscosidad · <strong>f</strong>: fuerzas externas</div>
+  <p>El cociente ν = μ/ρ aparece tan seguido que tiene nombre propio: la viscosidad cinemática [1].</p>
+
+  <h2>Qué hace la viscosidad</h2>
+  <p>Tong da una imagen útil. Si se miran solo dos términos de la ecuación, el que dice cómo cambia la velocidad con el tiempo y el de la viscosidad, queda una ecuación igual a la del calor [1]. Así como el calor se difunde desde un punto caliente, la viscosidad <strong>difunde la cantidad de movimiento</strong>: si en una zona el fluido se mueve más rápido, la viscosidad reparte ese movimiento con los alrededores [1].</p>
+
   <div class="analogy-box">
-    <p><strong>Las reglas del ajedrez:</strong> Las ecuaciones de Navier-Stokes son como las reglas del ajedrez: simples de enunciar, pero generan una complejidad infinita de posiciones y estrategias. Las reglas caben en una pagina; dominar el juego requiere una vida. Similarmente, las ecuaciones de Navier-Stokes caben en una linea, pero predecir la turbulencia a partir de ellas sigue siendo uno de los problemas abiertos mas importantes de la fisica matematica. Conocer las reglas no es conocer el juego.</p>
+    <p><strong>La fila que se contagia:</strong> imaginá una fila de gente tomada del brazo. Si la persona del medio empieza a caminar, arrastra un poco a sus vecinos, que arrastran a los suyos. El movimiento se va repartiendo hacia los costados, cada vez más parejo y más lento. La viscosidad hace eso con la velocidad del fluido.</p>
   </div>
-  <h2>Simulacion Numerica: CFD</h2>
-  <p>Ante la imposibilidad de resolver analitica las ecuaciones para la mayoria de los flujos de interes practico, la ingenieria moderna recurre a la <strong>dinamica de fluidos computacional</strong> (CFD). Los metodos numericos (volumenes finitos, elementos finitos, metodos espectrales) discretizan las ecuaciones en millones o miles de millones de puntos y las resuelven paso a paso en el tiempo. Un calculo CFD de un avion completo puede requerir mallas de 10⁹ celdas y semanas de calculo en supercomputadoras. Aun asi, la simulacion directa de la turbulencia (DNS) solo es posible para Reynolds moderados; para flujos industriales se usan modelos de turbulencia (RANS, LES) que aproximan las escalas pequeñas.</p>
+
+  <h2>Una condición más en las paredes</h2>
+  <p>Con viscosidad aparece una condición de borde que el fluido ideal no tenía: la de <strong>no deslizamiento</strong>. Sobre una pared, el fluido tiene que moverse con la misma velocidad que la pared [1]. Tong aclara que no sale de la ecuación: es algo que se agrega, que tiene sentido físico por la fricción entre el fluido y la pared y que coincide con la mayoría de los experimentos [1]. Y explica por qué la ecuación de Euler no podía tenerla: es de primer orden en las derivadas, y admite una sola condición de borde; Navier-Stokes es de segundo orden y admite dos [1]. Esa diferencia está detrás de la <a href="capa-limite.html">capa límite</a> y de la solución de la <a href="paradoja-dalembert.html">paradoja de d'Alembert</a>.</p>
+
+  <h2>Navier y Stokes</h2>
+  <p>Según MacTutor, el ingeniero Claude-Louis Navier, conocido en su época como constructor de puentes, dio las ecuaciones para fluidos viscosos en 1822 [2]. Lo hizo sin entender del todo la física: no conocía los esfuerzos de corte en un fluido, y modificó las ecuaciones de Euler teniendo en cuenta las fuerzas entre las moléculas [2]. George Stokes las obtuvo de nuevo con otros supuestos y las publicó en 1845, en un trabajo sobre la fricción interna de los fluidos en movimiento [3]. Cuando las dedujo, descubrió que Navier, Poisson y Saint-Venant ya habían considerado el problema [3].</p>
+
+  <h2>El problema del millón de dólares</h2>
+  <p>Tong advierte que, por simples que parezcan, de las ecuaciones de Navier-Stokes falta entender mucho, incluidas las preguntas más básicas sobre si sus soluciones existen y si son únicas [1]. El Instituto de Matemática Clay incluyó la pregunta por la existencia y la suavidad de sus soluciones entre sus siete Problemas del Milenio [4], y destinó un millón de dólares a la solución de cada uno [5].</p>
+
   <div class="tech-note">
-    <p><strong>El problema del milenio:</strong> La pregunta del Instituto Clay es, simplificada: dadas condiciones iniciales suaves (sin singularidades) en tres dimensiones, ¿la solucion de Navier-Stokes sigue siendo suave para todo tiempo futuro? O, ¿puede la velocidad explotar a infinito en un punto en tiempo finito? En dos dimensiones, la respuesta es no (Ladyzhenskaya, 1959): las soluciones son siempre suaves. Pero en tres dimensiones, la no linealidad del termino convectivo podria generar una concentracion de vorticidad tan intensa que la velocidad divergiera. Nadie ha demostrado que esto ocurra ni que no ocurra. Si ocurriera, significaria que las ecuaciones de Navier-Stokes no son una descripcion completa de la realidad: la fisica molecular (que las ecuaciones ignoran) deberia intervenir antes de que se forme la singularidad.</p>
+    <p><strong>Por qué cuesta tanto:</strong> las ecuaciones son no lineales, por el término de la derivada material en el que el fluido se transporta a sí mismo [1]. Solo en casos muy simples tienen solución exacta: el flujo entre dos placas, el <a href="flujo-couette.html">flujo de Couette</a>, y el flujo por un tubo, el <a href="flujo-poiseuille.html">flujo de Poiseuille</a> [1]. Para todo lo demás, desde el ala de un avión hasta el clima, se resuelven en computadora.</p>
   </div>
-  <div class="closing">
-    <p>Las ecuaciones de Navier-Stokes son simultaneamente el mayor logro y el mayor desafio de la mecanica de fluidos. Gobiernan todo flujo viscoso del universo con una precision asombrosa, pero su complejidad matematica sigue desafiando a los mejores matematicos del mundo. En la practica, la ingenieria no espera la demostracion del milenio: los codigos CFD resuelven las ecuaciones numericamente para diseñar aviones, predecir el clima y optimizar turbinas. Pero la cuestion fundamental —¿estas ecuaciones son matematicamente consistentes?— sigue abierta, recordandonos que la fisica del fluido mas cotidiano esconde misterios profundos.</p>
-  </div>
+
+  <p>Las ecuaciones de Navier-Stokes son la ecuación de Euler más la fricción interna del fluido: un término que difunde la cantidad de movimiento y una condición de no deslizamiento en las paredes. Con esas dos piezas aparecen la capa límite, el arrastre y la turbulencia. Y con ellas también, una de las grandes preguntas abiertas de la matemática.</p>
+
   <div class="question-box">
-    <p><strong>Pregunta para la comunidad:</strong> Si un matematico demostrara que las ecuaciones de Navier-Stokes pueden generar singularidades en tres dimensiones, ¿que implicaria para la fisica? ¿Significaria que las ecuaciones son "incorrectas", o simplemente que necesitan ser complementadas con fisica adicional a escalas muy pequeñas?</p>
+    <p><strong>Pregunta para la comunidad:</strong> Si la viscosidad difunde la cantidad de movimiento como el calor se difunde, ¿qué esperás que pase con un remolino en un vaso de agua que dejás quieto? ¿Y con el mismo remolino en un vaso de miel?</p>
   </div>
+
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>D. Tong, <em>Lectures on Fluid Mechanics</em>, apuntes de clase, Universidad de Cambridge (DAMTP), §3 «The Navier-Stokes Equation» y §3.2.1 «The No-Slip Boundary Condition». <a href="https://www.damtp.cam.ac.uk/user/tong/fluids.html" target="_blank" rel="noopener">damtp.cam.ac.uk</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, «Claude-Louis Navier», <em>MacTutor History of Mathematics Archive</em>, Universidad de St Andrews. <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Navier/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>J. J. O'Connor y E. F. Robertson, «George Stokes», <em>MacTutor History of Mathematics Archive</em>, Universidad de St Andrews. <a href="https://mathshistory.st-andrews.ac.uk/Biographies/Stokes/" target="_blank" rel="noopener">mathshistory.st-andrews.ac.uk</a></li>
+    <li>Clay Mathematics Institute, «Navier–Stokes Equation», Millennium Prize Problems. <a href="https://www.claymath.org/millennium/navier-stokes-equation/" target="_blank" rel="noopener">claymath.org</a></li>
+    <li>Clay Mathematics Institute, «The Millennium Prize Problems». <a href="https://www.claymath.org/millennium-problems/" target="_blank" rel="noopener">claymath.org</a></li>
+  </ol>
 </div>
 <div class="article-footer">
-  <p>Publicado por <span>Mundo Quarks</span> &middot; Sigamos hackeando el codigo del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
+  <p>Publicado por <span>Mundo Quarks</span> · Sigamos hackeando el código del universo.<br>© 2025–2026 Gerardo Pozzi · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es" target="_blank" rel="license noopener" style="color:inherit;">CC BY-NC-SA 4.0</a></p>
   <a href="mecanica-fluidos.html" class="back-btn">← Volver a Mecánica de Fluidos</a>
 </div>
 <script>
 const canvas=document.getElementById('stars-canvas'),ctx=canvas.getContext('2d');let W,H,particles=[];
 function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
 function createParticles(){particles=[];const c=Math.floor(W*H/8000);for(let i=0;i<c;i++)particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,alpha:Math.random()*.6+.2,blue:Math.random()>.85});}
-function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}requestAnimationFrame(draw);}
-resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();});
+function draw(){ctx.clearRect(0,0,W,H);for(const p of particles){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.blue?`rgba(0,212,255,${p.alpha})`:`rgba(180,195,240,${p.alpha})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;}for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.strokeStyle=`rgba(26,108,245,${.08*(1-d/120)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}if(!reduceMotion)requestAnimationFrame(draw);}
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+resize();createParticles();draw();window.addEventListener('resize',()=>{resize();createParticles();if(reduceMotion)draw();});
 </script>
 </body>
 </html>

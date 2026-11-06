@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -56,11 +60,65 @@
   <p>El ángulo de contacto θ es el ángulo entre la superficie del líquido y la superficie del sólido, en el borde donde se tocan [1]. Está directamente relacionado con la competencia entre cohesión y adhesión: cuanto más fuerte es la cohesión del líquido frente a su adhesión al sólido, más grande es θ y más tiende el líquido a hacerse gota [1]. OpenStax da algunos valores [1]:</p>
   <div class="math-block">Agua–vidrio: 0° · alcohol–vidrio: 0° · kerosén–vidrio: 26°<br>Agua–plata: 90° · agua–parafina: 107° · mercurio–vidrio: 140°</div>
   <p>Según Bush, del MIT, un líquido moja un sólido cuando θ es menor que 90° y lo moja poco cuando es mayor. Para el agua, una superficie es hidrofílica si θ &lt; 90°, hidrofóbica si θ &gt; 90° y superhidrofóbica si θ supera los 150° [2]. Por eso el menisco del agua en el vidrio es cóncavo, y el del mercurio, convexo: el agua sube por la pared y el mercurio se aleja de ella [1].</p>
+  <figure class="figura" id="ang">
+    <canvas id="ang-c" width="1280" height="600" role="img" aria-label="Una gota apoyada en un sólido, dibujada de costado. Con ángulo de contacto chico se extiende; con ángulo grande queda casi esférica."></canvas>
+    <div class="int-botones" role="group" aria-label="Ejemplos"><button type="button" data-a="26">kerosén–vidrio</button><button type="button" data-a="90">agua–plata</button><button type="button" data-a="107">agua–parafina</button><button type="button" data-a="140">mercurio–vidrio</button></div>
+    <div class="int-control"><label for="ang-t">Ángulo de contacto</label><input type="range" id="ang-t" min="5" max="170" step="1" value="107"><output id="ang-o" for="ang-t">107°</output></div>
+    <p class="int-estado" id="ang-e" aria-live="polite"></p>
+    <figcaption>Una gota de volumen fijo, dibujada como un casquete esférico, lo que vale para gotas chicas. Los ejemplos son los valores de OpenStax [1], y la clasificación para el agua es la de Bush [2]. La gravedad aplastaría una gota grande.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('ang-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 300;
+    var sl = document.getElementById('ang-t'), so = document.getElementById('ang-o'), es = document.getElementById('ang-e'), bs = document.querySelectorAll('#ang .int-botones button');
+    var CX = 320, YS = 240, V = 1800000, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function poner() {
+      var d = +sl.value, t = d * Math.PI / 180, c = Math.cos(t), f = Math.PI / 3 * (2 - 3 * c + c * c * c), R = Math.cbrt(V / f), a = R * Math.sin(t), yc = YS + R * c, x1 = CX + a, bl;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#26345f'; g.fillRect(16, YS, 608, 34); g.strokeStyle = GR; g.lineWidth = 2; g.beginPath(); g.moveTo(16, YS); g.lineTo(624, YS); g.stroke();
+      var a0 = Math.PI / 2 + t, a1 = Math.PI / 2 - t;
+      g.fillStyle = 'rgba(0,212,255,0.32)'; g.strokeStyle = CI; g.lineWidth = 3; g.beginPath(); g.arc(CX, yc, R, t - Math.PI / 2, 1.5 * Math.PI - t, true); g.closePath(); g.fill(); g.stroke();
+      bl = 58; g.strokeStyle = NA; g.lineWidth = 3; g.beginPath(); g.moveTo(x1, YS); g.lineTo(x1 - bl * Math.cos(t), YS - bl * Math.sin(t)); g.moveTo(x1, YS); g.lineTo(x1 - bl, YS); g.stroke();
+      g.lineWidth = 2; g.beginPath(); g.arc(x1, YS, 30, Math.PI, Math.PI + t); g.stroke();
+      g.font = "16px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('θ = ' + d + '°', 24, 34);
+      so.textContent = d + '°';
+      es.innerHTML = d < 90 ? 'Con θ menor que 90°, el líquido <strong>moja</strong> el sólido.' : d <= 150 ? 'Con θ mayor que 90°, lo moja <strong>poco</strong>: para el agua, una superficie hidrofóbica.' : 'Con θ mayor que 150°, la superficie es <strong>superhidrofóbica</strong>.';
+    }
+    bs.forEach(function (b) { b.addEventListener('click', function () { sl.value = b.getAttribute('data-a'); poner(); }); });
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <h2>La ecuación de Young</h2>
   <p>Hay tres superficies que se encuentran en el borde de una gota: líquido–aire, sólido–líquido y sólido–aire. Cada una tiene su propia tensión, es decir, su propia energía por unidad de área [2]. En el borde, las tres tiran en direcciones distintas, y la gota se queda quieta cuando las fuerzas horizontales se equilibran. De ese balance sale la ley de Young [2]:</p>
   <div class="math-block">γ<sub>LV</sub> cos θ = γ<sub>SV</sub> − γ<sub>SL</sub><br>γ<sub>LV</sub>: tensión líquido–vapor · γ<sub>SV</sub>: sólido–vapor · γ<sub>SL</sub>: sólido–líquido · θ: ángulo de contacto de equilibrio</div>
   <p>Thomas Young publicó su ensayo sobre la cohesión de los fluidos en 1805 [3]. Bush recuerda que de las tres tensiones solo γ<sub>LV</sub> se puede medir con facilidad [2]. Y agrega un caso extremo: si el sólido «prefiere» estar mojado, el líquido se extiende por completo y no hay ángulo de contacto; pasa, por ejemplo, con el agua sobre vidrio limpio [2].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 352" role="img" aria-labelledby="men2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="men2-t">Borde de una gota sobre un sólido, con las tres tensiones: sólido vapor hacia afuera, sólido líquido hacia adentro y líquido vapor inclinada según el ángulo de contacto.</title>
+      <rect width="640" height="352" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">La cinchada en el borde</text>
+        <rect x="16.0" y="240.0" width="608.0" height="50.0" fill="#26345f"/>
+        <line x1="16.0" y1="240.0" x2="624.0" y2="240.0" stroke="#8892b0" stroke-width="2"/>
+        <path d="M100,240 Q130,96 250,96 Q370,96 400,240 Z" fill="#00d4ff44" stroke="#00d4ff" stroke-width="3"/>
+        <circle cx="400.0" cy="240.0" r="6" fill="#eef2ff"/>
+        <line x1="400.0" y1="240.0" x2="534.0" y2="240.0" stroke="#5ee0a0" stroke-width="4"/>
+        <polygon points="550.0,240.0 534.0,247.2 534.0,232.8" fill="#5ee0a0"/>
+        <text x="550.0" y="226.0" text-anchor="end" fill="#5ee0a0" font-size="17">γ<tspan dy="5" font-size="70%">SV</tspan><tspan dy="-5">​</tspan></text>
+        <line x1="400.0" y1="240.0" x2="266.0" y2="240.0" stroke="#ff7a7a" stroke-width="4"/>
+        <polygon points="250.0,240.0 266.0,232.8 266.0,247.2" fill="#ff7a7a"/>
+        <text x="250.0" y="226.0" text-anchor="start" fill="#ff7a7a" font-size="17">γ<tspan dy="5" font-size="70%">SL</tspan><tspan dy="-5">​</tspan></text>
+        <line x1="400.0" y1="240.0" x2="376.8" y2="128.7" stroke="#f5a623" stroke-width="4"/>
+        <polygon points="373.5,113.0 383.8,127.2 369.7,130.1" fill="#f5a623"/>
+        <text x="390.0" y="102.0" text-anchor="start" fill="#f5a623" font-size="17">γ<tspan dy="5" font-size="70%">LV</tspan><tspan dy="-5">​</tspan></text>
+        <text x="320.0" y="270.0" text-anchor="middle" fill="#8892b0" font-size="15">sólido</text>
+        <text x="320.0" y="334.0" text-anchor="middle" fill="#eef2ff" font-size="17">γ<tspan dy="5" font-size="70%">LV</tspan><tspan dy="-5">​</tspan> cos θ = γ<tspan dy="5" font-size="70%">SV</tspan><tspan dy="-5">​</tspan> − γ<tspan dy="5" font-size="70%">SL</tspan><tspan dy="-5">​</tspan></text>
+      </g>
+    </svg>
+    <figcaption>El balance horizontal de las tres tensiones en el borde da la ley de Young [2]. La componente vertical de γ<sub>LV</sub> la equilibra el sólido.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>La cinchada en el borde:</strong> imaginá tres equipos que tiran de una soga atada en el borde de la gota. El sólido seco tira hacia afuera, para que la gota lo cubra; la interfaz sólido–líquido tira hacia adentro; y la superficie de la gota tira inclinada, según el ángulo θ. La gota se acomoda en el ángulo justo para que nadie gane la cinchada.</p>
@@ -69,6 +127,13 @@
   <h2>Por qué una gota se queda pegada al vidrio</h2>
   <p>Si el ángulo de contacto fuera único, una gota sobre un vidrio inclinado no tendría nada que la sostenga. Pero en las superficies reales no lo es. Según Bush, para un sólido y un líquido dados hay un rango de ángulos posibles: entre un ángulo de retroceso y uno de avance [2]. Si se infla una gota despacio con una jeringa, θ crece hasta llegar al ángulo de avance y recién entonces el borde avanza; si se la vacía, θ baja hasta el de retroceso y recién ahí el borde retrocede [2]. Esa diferencia se llama <strong>histéresis del ángulo de contacto</strong>.</p>
   <p>Su origen son las imperfecciones de la superficie, químicas o de textura, que «anclan» el borde de la gota y le ponen una barrera energética a su movimiento [2]. Por eso una gota de lluvia puede quedarse quieta en el vidrio de una ventana: adelante el ángulo puede llegar al de avance y atrás bajar al de retroceso, y esa diferencia da una fuerza capilar que sostiene su peso [2]. Las gotas crecen juntando otras hasta que pesan demasiado y, entonces, ruedan [2].</p>
+  <figure class="figura">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;align-items:start">
+      <img src="img/mecanica-fluidos/menisco-gotas-vidrio.jpg" width="960" height="761" loading="lazy" alt="Gotas planas y de formas irregulares sobre un vidrio.">
+      <img src="img/mecanica-fluidos/menisco-gota-hoja.jpg" width="960" height="1014" loading="lazy" alt="Una gota casi esférica sobre una hoja verde.">
+    </div>
+    <figcaption>Sobre un vidrio, las gotas se aplanan y se quedan ancladas en formas irregulares [2]. Sobre una hoja hidrofóbica, la gota se recoge en una esfera casi perfecta.<span class="credito">Fotos: <a href="https://commons.wikimedia.org/wiki/File:Drops_of_water_on_the_glass.jpg" target="_blank" rel="noopener">BogTar201213</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a> · <a href="https://commons.wikimedia.org/wiki/File:Water_drop_on_a_leaf.jpg" target="_blank" rel="noopener">tanakawho</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a></span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Rugosidad y mojabilidad:</strong> Bush muestra que la rugosidad amplifica la tendencia natural de un sólido: una superficie hidrofílica se vuelve más hidrofílica al rugosearla, y una hidrofóbica, más hidrofóbica [2]. Llevada al extremo, con aire atrapado entre las rugosidades, esa idea explica el <a href="efecto-loto.html">efecto loto</a>.</p>

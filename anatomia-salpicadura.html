@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -65,6 +67,13 @@
     <li><strong>La columna:</strong> después viene el rebote, con una columna que sube del centro.</li>
   </ul>
   <p>En su primera serie de fotos, de una gota de leche que cae desde 40 cm sobre agua, toda la secuencia, desde el contacto hasta el anillo de lóbulos, dura unos 0,056 segundos [1]. Un truco del experimento le dio información extra: la gota arrastraba hollín de la superficie de donde caía, y esas marcas negras mostraban que la pared interior del cráter estaba hecha del líquido de la gota original, y que ese mismo líquido salía después en la punta de la columna central [1].</p>
+  <figure class="figura">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;align-items:start">
+      <img src="img/mecanica-fluidos/anatomia-salpicadura-corona.jpg" width="1138" height="468" loading="lazy" alt="Fotografía antigua de una gota de leche que abrió un cráter en el agua, con su borde levantado.">
+      <img src="img/mecanica-fluidos/anatomia-salpicadura-columna.jpg" width="1344" height="922" loading="lazy" alt="Fotografía antigua de una columna de líquido que sube del centro de una salpicadura, con pequeñas manchas negras.">
+    </div>
+    <figcaption>Dos fotografías de la primera serie de Worthington: leche que cae en agua desde 40 cm. En la columna central de la derecha se ven las marcas negras del hollín que arrastró la gota, que delataban de dónde venía el líquido [1].<span class="credito">Fotos: <a href="https://www.gutenberg.org/ebooks/39831" target="_blank" rel="noopener">A. M. Worthington, A Study of Splashes (1908)</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>Una piedra en un charco, en cámara lenta:</strong> cuando tirás una piedra a un charco, ves que el agua salta hacia los costados y después vuelve a subir en el medio. Una gota hace lo mismo a escala de milímetros: abre un hueco, lo rodea con una corona y, cuando el hueco se cierra, el líquido que converge en el centro sale disparado hacia arriba.</p>
@@ -74,6 +83,39 @@
   <p>En una salpicadura compiten la inercia de la gota, que la hace desparramarse y romperse, y la tensión superficial, que tiende a mantenerla junta. Según Bush, del MIT, esa competencia se mide con el <strong>número de Weber</strong> [2]:</p>
   <div class="math-block">We = ρU²a / γ<br>ρ: densidad del líquido · U: velocidad del impacto · a: tamaño de la gota · γ: tensión superficial</div>
   <p>Con We chico, la tensión superficial gana y la gota se aplasta sin romperse; con We grande, gana la inercia y la gota se rompe en pedacitos (un razonamiento a partir de lo que mide We).</p>
+  <figure class="figura" id="wes">
+    <canvas id="wes-c" width="1280" height="600" role="img" aria-label="Una gota que choca contra una placa una y otra vez. A velocidad baja se aplasta sin romperse; a velocidad alta se desarma en gotitas."></canvas>
+    <div class="int-control"><label for="wes-u">Velocidad del impacto</label><input type="range" id="wes-u" min="0.2" max="4" step="0.1" value="0.6"><output id="wes-o" for="wes-u">0,6 m/s</output></div>
+    <p class="int-estado" id="wes-e" aria-live="polite"></p>
+    <figcaption>We = ρU²a/γ para una gota de agua con a = 1,5 mm, ρ = 1000 kg/m³ y γ = 0,0728 N/m [2]. La animación es una ilustración de la idea del artículo: con We chico gana la tensión superficial y con We grande gana la inercia. El valor exacto en que cambia depende de la superficie y del aire, así que el dibujo no marca un umbral medido.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('wes-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 300;
+    var sl = document.getElementById('wes-u'), so = document.getElementById('wes-o'), es = document.getElementById('wes-e');
+    var CX = 320, YP = 232, R0 = 34, T = 0, t0 = 0, vis = true, CI = '#00d4ff', GR = '#8892b0', NA = '#f5a623', G = [], i;
+    for (i = 0; i < 26; i++) G.push([Math.random(), Math.random(), 1.6 + Math.random() * 3.4]);
+    function We() { var u = +sl.value; return 1000 * u * u * 0.0015 / 0.0728; }
+    function dibujar() {
+      var we = We(), s = Math.min(1, Math.log(1 + we) / Math.log(1 + 300)), f = T / 1.6, k;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#26345f'; g.fillRect(16, YP, 608, 32);
+      g.fillStyle = 'rgba(0,212,255,0.55)'; g.strokeStyle = CI; g.lineWidth = 2;
+      if (f < 0.35) { var y = 30 + (YP - R0 - 30) * Math.pow(f / 0.35, 2); g.beginPath(); g.arc(CX, y, R0, 0, 6.3); g.fill(); g.stroke(); }
+      else {
+        var q = Math.min(1, (f - 0.35) / 0.35), an = R0 + (60 + 170 * s) * Math.sin(q * 1.57), al = Math.max(5, 34 * R0 / an * 0.55);
+        g.beginPath(); g.ellipse(CX, YP, an, al, 0, Math.PI, 0); g.fill(); g.stroke();
+        if (s > 0.48) { var n = Math.round(26 * (s - 0.48) / 0.52); for (k = 0; k < n; k++) { var d = G[k], lado = k % 2 ? 1 : -1, x = CX + lado * (an * 0.8 + q * 110 * d[0]), yy = YP - 8 - (q * 150 * d[1] * s - q * q * 70 * d[1]); g.beginPath(); g.arc(x, Math.min(YP - 3, yy), d[2], 0, 6.3); g.fill(); } }
+      }
+      g.font = "16px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('We = ' + Math.round(we), 24, 32);
+    }
+    function textos() { var we = We(), s = Math.log(1 + we) / Math.log(1 + 300); so.textContent = String(+sl.value).replace('.', ',') + ' m/s'; es.innerHTML = s > 0.48 ? 'Con We de ' + Math.round(we) + ', gana la <strong>inercia</strong> y la gota se rompe.' : 'Con We de ' + Math.round(we) + ', gana la <strong>tensión superficial</strong> y la gota se aplasta sin romperse.'; }
+    function paso(t) { var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016; t0 = t; if (vis) { T = (T + dt) % 1.6; dibujar(); } requestAnimationFrame(paso); }
+    sl.addEventListener('input', textos);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    textos(); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <h2>Sin aire, no hay salpicadura</h2>
   <p>En 2005, Lei Xu, Wendy Zhang y Sidney Nagel, de la Universidad de Chicago, encontraron algo que nadie esperaba. Filmaron con cámaras de alta velocidad gotas de alcohol, de 3,1 mm de diámetro, que caían sobre un portaobjetos de vidrio liso dentro de una cámara de vacío [3]. A presión atmosférica, 100 kPa, la gota salpicaba. Un poco por encima de 38,4 kPa, la presión umbral, la gota apenas soltaba unas pocas gotitas. Y a presiones más bajas, no había salpicadura en absoluto [3].</p>

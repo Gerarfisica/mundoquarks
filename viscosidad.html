@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -51,11 +53,60 @@
 </div>
 <div class="article-container">
   <p>Volcá un vaso de jugo y un frasco de miel: el jugo sale enseguida y la miel se arrastra. Los dos son fluidos, pero la miel tiene mucha más fricción interna. Esa propiedad se llama <strong>viscosidad</strong>: es la fricción dentro del propio fluido y entre el fluido y lo que lo rodea [1]. Según la tabla de OpenStax, la miel a 20 °C tiene una viscosidad de 2 a 10 Pa·s, y el agua, de 0,001 Pa·s: entre dos mil y diez mil veces menos [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/viscosidad-miel.jpg" width="800" height="915" loading="lazy" style="width:min(26rem,100%);margin:0 auto" alt="Un cucharón de madera deja caer un hilo fino y continuo de miel sobre un bizcocho, junto a un frasco de vidrio lleno.">
+    <figcaption>El hilo de miel baja despacio y sin romperse. A 20 °C, su viscosidad es de 2 a 10 Pa·s: entre dos mil y diez mil veces la del agua [1].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Runny_hunny_(cropped).jpg" target="_blank" rel="noopener">Scott Bauer, USDA ARS</a> · Dominio público</span></figcaption>
+  </figure>
 
   <h2>Dos placas: la definición</h2>
   <p>La definición precisa de la viscosidad se basa en el flujo laminar, en el que el fluido se mueve en capas que no se mezclan [1]. Se pone el fluido entre dos placas paralelas, se deja una quieta y se arrastra la otra. La capa de fluido en contacto con cada placa no se mueve respecto de ella: la de arriba va con la placa y la de abajo queda quieta. Cada capa arrastra a la de abajo, y la velocidad varía en forma continua de un valor a cero [1].</p>
   <p>Para mantener la placa de arriba a velocidad constante hace falta una fuerza. Los experimentos muestran que es proporcional a la velocidad y al área de la placa, e inversamente proporcional a la separación entre placas; la constante de proporcionalidad es la viscosidad [1]:</p>
   <div class="math-block">F = η v A / L &nbsp;→&nbsp; η = F L / (v A)<br>η: viscosidad · v: velocidad de la placa · A: área · L: separación entre placas · unidad: Pa·s<br>Valores de OpenStax (en Pa·s): agua a 20 °C, 1,002 × 10<sup>−3</sup> · aire a 20 °C, 1,81 × 10<sup>−5</sup> · sangre a 37 °C, 2,08 × 10<sup>−3</sup> · glicerina a 20 °C, 1,5</div>
+  <figure class="figura" id="pla">
+    <canvas id="pla-c" width="1280" height="700" role="img" aria-label="Fluido entre dos placas. La de arriba se arrastra y la de abajo queda quieta. Las capas se mueven más rápido cerca de la placa superior y la velocidad baja en forma lineal hasta cero. Se muestra la fuerza necesaria según el fluido y la velocidad."></canvas>
+    <div class="int-botones" role="group" aria-label="Fluido">
+      <button type="button" data-e="0.0000181" data-n="aire">aire</button><button type="button" data-e="0.001002" data-n="agua">agua</button><button type="button" data-e="0.00208" data-n="sangre">sangre</button><button type="button" data-e="1.5" data-n="glicerina">glicerina</button><button type="button" data-e="5" data-n="miel">miel</button>
+    </div>
+    <div class="int-control">
+      <label for="pla-v">Velocidad de la placa</label>
+      <input type="range" id="pla-v" min="0.1" max="2" step="0.1" value="1">
+      <output id="pla-o" for="pla-v">1,0 m/s</output>
+    </div>
+    <p class="int-estado" id="pla-e" aria-live="polite"></p>
+    <figcaption>La fórmula del artículo, F = η v A / L, con una placa de A = 1 m² y una separación de L = 1 cm. Las viscosidades son las de OpenStax a 20 °C, salvo la sangre, a 37 °C; para la miel, cuyo rango es de 2 a 10 Pa·s, se usa 5 Pa·s [1]. El perfil de velocidad no depende del fluido: lo que cambia es la fuerza necesaria para sostenerlo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('pla-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 350;
+    var sl = document.getElementById('pla-v'), so = document.getElementById('pla-o'), es = document.getElementById('pla-e'), bs = document.querySelectorAll('#pla .int-botones button');
+    var X0 = 24, X1 = 616, YA = 74, YB = 266, A = 1, L = 0.01, eta = 0.001002, nom = 'agua', v = 1, s = 0, t0 = 0, vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    var P = [], i, a = 0.13, b = 0.57; for (i = 0; i < 90; i++) { a = (a + 0.6180339887) % 1; b = (b * 997.13 + 0.317) % 1; P.push([a, 0.03 + 0.94 * b]); }
+    function mod(x, m) { return ((x % m) + m) % m; }
+    function flecha(x1, y, x2, c, w) { g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y); g.lineTo(x2 - 6, y); g.stroke(); g.beginPath(); g.moveTo(x2, y); g.lineTo(x2 - 9, y - 5); g.lineTo(x2 - 9, y + 5); g.closePath(); g.fill(); }
+    function fmt(f) { var t = f >= 100 ? f.toFixed(0) : f >= 1 ? f.toFixed(1) : f >= 0.01 ? f.toFixed(2) : f.toFixed(4); return t.replace('.', ','); }
+    function dibujar() {
+      var w = X1 - X0, h = YB - YA, k, y, x, f = eta * v * A / L, m = mod(s, 40), lf;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.08)'; g.fillRect(X0, YA, w, h);
+      g.fillStyle = GR; for (k = 0; k < P.length; k++) { y = P[k][1]; x = X0 + mod(P[k][0] * w + y * s, w); g.beginPath(); g.arc(x, YB - h * y, 2.3, 0, 6.3); g.fill(); }
+      g.fillStyle = '#26345f'; g.fillRect(X0, YA - 12, w, 12); g.fillRect(X0, YB, w, 12);
+      g.fillStyle = '#eef2ff'; for (k = 0; k < 15; k++) g.fillRect(X0 + k * 40 + m, YA - 9, 8, 6);
+      for (k = 1; k <= 5; k++) { y = k / 5; if (y * v * 90 > 12) flecha(X0 + 34, YB - h * y, X0 + 34 + y * v * 90, CI, 2); }
+      g.strokeStyle = CI; g.setLineDash([5, 5]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(X0 + 34, YB); g.lineTo(X0 + 34 + v * 90, YA); g.stroke(); g.setLineDash([]);
+      lf = Math.max(14, Math.min(210, 105 + 35 * (Math.log(f) / Math.LN10)));
+      flecha(X1 - 230, 40, X1 - 230 + lf, NA, 4);
+      g.font = "16px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('F = ' + fmt(f) + ' N', X0, 45);
+      g.fillStyle = GR; g.textAlign = 'center'; g.fillText('placa quieta: v = 0', W / 2, 304); g.fillStyle = '#eef2ff'; g.fillText(nom + ': η = ' + String(eta < 0.0001 ? '1,81 × 10⁻⁵' : eta < 0.01 ? (eta * 1000).toFixed(eta < 0.0015 ? 3 : 2).replace('.', ',') + ' × 10⁻³' : String(eta).replace('.', ',')) + ' Pa·s', W / 2, 332);
+    }
+    function textos() { es.innerHTML = 'Para arrastrar la placa a ' + v.toFixed(1).replace('.', ',') + ' m/s en ' + nom + ' hacen falta <strong>' + fmt(eta * v * A / L) + ' N</strong>.'; so.textContent = v.toFixed(1).replace('.', ',') + ' m/s'; }
+    function paso(t) { var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0; t0 = t; if (vis) { s += v * 90 * dt; dibujar(); } requestAnimationFrame(paso); }
+    function marcar(b0) { bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); }
+    bs.forEach(function (b) { b.addEventListener('click', function () { eta = +b.getAttribute('data-e'); nom = b.getAttribute('data-n'); marcar(b); textos(); dibujar(); }); });
+    sl.addEventListener('input', function () { v = +sl.value; textos(); dibujar(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    marcar(bs[1]); textos(); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
   <p>La viscosidad cambia de un fluido a otro en varios órdenes de magnitud, y la de los gases es mucho menor que la de los líquidos [1]. Que el fluido no deslice sobre la pared es la condición de <strong>no deslizamiento</strong>, y explica por qué en una cañería el agua va más rápido en el centro que junto a las paredes; ese perfil es el tema del artículo sobre el <a href="flujo-poiseuille.html">flujo de Poiseuille</a>.</p>
 
   <h2>De Newton a Navier y Stokes</h2>
@@ -75,6 +126,78 @@
 
   <h2>Líquidos: más calientes, más fluidos</h2>
   <p>En los líquidos pasa lo contrario. Según la tabla de OpenStax, el agua tiene una viscosidad de 1,792 × 10<sup>−3</sup> Pa·s a 0 °C, de 1,002 × 10<sup>−3</sup> a 20 °C y de 0,282 × 10<sup>−3</sup> a 100 °C: al calentarla, se vuelve más de seis veces menos viscosa [1]. Lo mismo vale para la sangre, que a 37 °C es menos viscosa que a 20 °C [1]. Por eso la miel calentada corre mejor.</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 370" role="img" aria-labelledby="visc2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="visc2-t">Dos gráficos de viscosidad entre 0 y 100 grados Celsius. La del agua cae de 1,8 a 0,28 milipascal segundo. La del nitrógeno sube de 16,6 a 21,1 micropascal segundo.</title>
+      <rect width="640" height="370" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Al calentar: uno baja, el otro sube</text>
+        <text x="185.0" y="70.0" text-anchor="middle" fill="#00d4ff" font-size="17">agua (mPa·s)</text>
+        <line x1="70.0" y1="322.0" x2="300.0" y2="322.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="327.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="70.0" y1="263.0" x2="300.0" y2="263.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="268.0" text-anchor="end" fill="#8892b0" font-size="15">0,5</text>
+        <line x1="70.0" y1="204.0" x2="300.0" y2="204.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="209.0" text-anchor="end" fill="#8892b0" font-size="15">1</text>
+        <line x1="70.0" y1="145.0" x2="300.0" y2="145.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="150.0" text-anchor="end" fill="#8892b0" font-size="15">1,5</text>
+        <line x1="70.0" y1="86.0" x2="300.0" y2="86.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="91.0" text-anchor="end" fill="#8892b0" font-size="15">2</text>
+        <line x1="70.0" y1="322.0" x2="70.0" y2="328.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="70.0" y="347.0" text-anchor="middle" fill="#8892b0" font-size="15">0 °C</text>
+        <line x1="185.0" y1="322.0" x2="185.0" y2="328.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="185.0" y="347.0" text-anchor="middle" fill="#8892b0" font-size="15">50 °C</text>
+        <line x1="300.0" y1="322.0" x2="300.0" y2="328.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="300.0" y="347.0" text-anchor="middle" fill="#8892b0" font-size="15">100 °C</text>
+        <line x1="70.0" y1="322.0" x2="300.0" y2="322.0" stroke="#8892b0" stroke-width="2"/>
+        <polyline points="70.0,110.7 93.0,168.0 116.0,203.8 139.0,227.9 162.0,245.0 185.0,257.5 208.0,267.0 231.0,274.4 254.0,280.2 277.0,284.9 299.9,288.8" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="70.0" cy="110.7" r="4" fill="#00d4ff"/>
+        <circle cx="93.0" cy="168.0" r="4" fill="#00d4ff"/>
+        <circle cx="116.0" cy="203.8" r="4" fill="#00d4ff"/>
+        <circle cx="139.0" cy="227.9" r="4" fill="#00d4ff"/>
+        <circle cx="162.0" cy="245.0" r="4" fill="#00d4ff"/>
+        <circle cx="185.0" cy="257.5" r="4" fill="#00d4ff"/>
+        <circle cx="208.0" cy="267.0" r="4" fill="#00d4ff"/>
+        <circle cx="231.0" cy="274.4" r="4" fill="#00d4ff"/>
+        <circle cx="254.0" cy="280.2" r="4" fill="#00d4ff"/>
+        <circle cx="277.0" cy="284.9" r="4" fill="#00d4ff"/>
+        <circle cx="299.9" cy="288.8" r="4" fill="#00d4ff"/>
+        <text x="490.0" y="70.0" text-anchor="middle" fill="#f5a623" font-size="17">nitrógeno (µPa·s)</text>
+        <line x1="375.0" y1="322.0" x2="605.0" y2="322.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="367.0" y="327.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="375.0" y1="274.8" x2="605.0" y2="274.8" stroke="#1c2c55" stroke-width="1"/>
+        <text x="367.0" y="279.8" text-anchor="end" fill="#8892b0" font-size="15">5</text>
+        <line x1="375.0" y1="227.6" x2="605.0" y2="227.6" stroke="#1c2c55" stroke-width="1"/>
+        <text x="367.0" y="232.6" text-anchor="end" fill="#8892b0" font-size="15">10</text>
+        <line x1="375.0" y1="180.4" x2="605.0" y2="180.4" stroke="#1c2c55" stroke-width="1"/>
+        <text x="367.0" y="185.4" text-anchor="end" fill="#8892b0" font-size="15">15</text>
+        <line x1="375.0" y1="133.2" x2="605.0" y2="133.2" stroke="#1c2c55" stroke-width="1"/>
+        <text x="367.0" y="138.2" text-anchor="end" fill="#8892b0" font-size="15">20</text>
+        <line x1="375.0" y1="86.0" x2="605.0" y2="86.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="367.0" y="91.0" text-anchor="end" fill="#8892b0" font-size="15">25</text>
+        <line x1="375.0" y1="322.0" x2="375.0" y2="328.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="375.0" y="347.0" text-anchor="middle" fill="#8892b0" font-size="15">0 °C</text>
+        <line x1="490.0" y1="322.0" x2="490.0" y2="328.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="490.0" y="347.0" text-anchor="middle" fill="#8892b0" font-size="15">50 °C</text>
+        <line x1="605.0" y1="322.0" x2="605.0" y2="328.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="605.0" y="347.0" text-anchor="middle" fill="#8892b0" font-size="15">100 °C</text>
+        <line x1="375.0" y1="322.0" x2="605.0" y2="322.0" stroke="#8892b0" stroke-width="2"/>
+        <polyline points="375.0,165.0 398.0,160.5 421.0,156.1 444.0,151.7 467.0,147.5 490.0,143.2 513.0,139.0 536.0,134.9 559.0,130.8 582.0,126.8 605.0,122.8" fill="none" stroke="#f5a623" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="375.0" cy="165.0" r="4" fill="#f5a623"/>
+        <circle cx="398.0" cy="160.5" r="4" fill="#f5a623"/>
+        <circle cx="421.0" cy="156.1" r="4" fill="#f5a623"/>
+        <circle cx="444.0" cy="151.7" r="4" fill="#f5a623"/>
+        <circle cx="467.0" cy="147.5" r="4" fill="#f5a623"/>
+        <circle cx="490.0" cy="143.2" r="4" fill="#f5a623"/>
+        <circle cx="513.0" cy="139.0" r="4" fill="#f5a623"/>
+        <circle cx="536.0" cy="134.9" r="4" fill="#f5a623"/>
+        <circle cx="559.0" cy="130.8" r="4" fill="#f5a623"/>
+        <circle cx="582.0" cy="126.8" r="4" fill="#f5a623"/>
+        <circle cx="605.0" cy="122.8" r="4" fill="#f5a623"/>
+      </g>
+    </svg>
+    <figcaption>Viscosidad del agua y del nitrógeno, el gas principal del aire, a presión atmosférica, según el NIST [4]. Atención a las unidades: la escala de la derecha es mil veces más chica. El aire se comporta igual que el nitrógeno: según OpenStax, sube de 1,71 × 10<sup>−5</sup> Pa·s a 0 °C a 2,18 × 10<sup>−5</sup> Pa·s a 100 °C [1].<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
   <p>A veces conviene dividir la viscosidad por la densidad, lo que da la <strong>viscosidad cinemática</strong>, ν = η/ρ. Con los datos del NIST a 20 °C, el agua tiene ν ≈ 1,0 × 10<sup>−6</sup> m²/s y el nitrógeno, el gas principal del aire, ν ≈ 1,5 × 10<sup>−5</sup> m²/s (un cálculo propio) [4]. Aunque el gas tiene una viscosidad mucho menor, su viscosidad cinemática es mayor, porque su densidad es cientos de veces menor. Esa combinación es la que aparece en el <a href="numero-reynolds.html">número de Reynolds</a>.</p>
 
   <p>La viscosidad es lo que hace real a la mecánica de fluidos. Sin ella, el agua no frenaría en las cañerías ni el aire frenaría a un auto, como muestra la <a href="paradoja-dalembert.html">paradoja de D'Alembert</a>. Con ella aparecen las pérdidas, la capa límite y la transición a la turbulencia. Y su historia, de la «falta de lubricidad» de Newton a las moléculas de Maxwell, es también la historia de cómo se aceptó que la materia está hecha de átomos.</p>

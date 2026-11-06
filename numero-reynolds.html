@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -54,7 +56,63 @@
 
   <h2>El experimento de 1883</h2>
   <p>Osborne Reynolds hizo pasar agua desde un tanque por tubos de vidrio y dejó entrar con ella un hilo de agua muy coloreada. Lo describió así: cuando las velocidades eran lo bastante bajas, el hilo de color se extendía en una hermosa línea recta a lo largo del tubo. Al aumentar la velocidad de a poco, en algún punto del tubo, siempre lejos de la entrada, el hilo se mezclaba de golpe con el agua de alrededor y llenaba el resto del tubo de agua coloreada [2]. Iluminado con la luz de una chispa eléctrica, ese color se resolvía en una masa de rulos: remolinos [2].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/numero-reynolds-1883.jpg" width="960" height="928" loading="lazy" style="width:min(30rem,100%);margin:0 auto" alt="Grabado de un hombre de pie sobre una mesa de madera, detrás de un tanque de agua con un tubo de vidrio de entrada acampanada; arriba, un frasco con el líquido coloreado.">
+    <figcaption>La figura del artículo de 1883: el tanque, el tubo de vidrio con su entrada acampanada y, arriba, el frasco del agua coloreada [2].<span class="credito">Figura: <a href="https://commons.wikimedia.org/wiki/File:Reynolds_fluid_turbulence_experiment_1883.jpg" target="_blank" rel="noopener">Osborne Reynolds, 1883</a> · Dominio público</span></figcaption>
+  </figure>
   <p>Reynolds sacó varias conclusiones. Había remolinos y había una <strong>velocidad crítica</strong> a partir de la cual aparecían. No aparecían de a poco al superarla, sino de golpe. Y con el agua a temperatura constante, las velocidades críticas en los distintos tubos eran casi exactamente inversamente proporcionales a sus diámetros [2]. Además, en todos los tubos la velocidad crítica bajaba al subir la temperatura del agua, y seguía la misma ley que la viscosidad medida por Poiseuille [2].</p>
+  <figure class="figura" id="tin">
+    <canvas id="tin-c" width="1280" height="520" role="img" aria-label="Un tubo de vidrio horizontal con un hilo de tinta que entra por la izquierda. A número de Reynolds bajo, el hilo es una línea recta. Al subirlo, a partir de cierta distancia de la entrada, el hilo se mezcla de golpe y llena el tubo de color."></canvas>
+    <div class="int-control">
+      <label for="tin-r">Número de Reynolds</label>
+      <input type="range" id="tin-r" min="500" max="6000" step="100" value="1000">
+      <output id="tin-o" for="tin-r">1000</output>
+    </div>
+    <p class="int-estado" id="tin-e" aria-live="polite"></p>
+    <figcaption>Una ilustración del experimento de Reynolds, no una simulación de las ecuaciones: el dibujo solo repite lo que él describió, con el hilo recto a baja velocidad y la mezcla repentina, lejos de la entrada, a alta velocidad [2]. Los límites de 2000 y 3000 son los de OpenStax; entre ambos, el flujo alterna al azar [1].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('tin-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 260;
+    var sl = document.getElementById('tin-r'), so = document.getElementById('tin-o'), es = document.getElementById('tin-e');
+    var X0 = 26, X1 = 614, YC = 118, R = 58, MAX = 1100, D = [], Re = 1000, t0 = 0, vis = true, tur = false, cam = 0, emi = 0, ult = '', CI = '#00d4ff', GR = '#8892b0';
+    function regimen() { return Re < 2000 ? 0 : Re <= 3000 ? 1 : 2; }
+    function paso(t) {
+      var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016, r = regimen(), U = 60 + Re * 0.05, xt = 460 - (Math.min(Re, 6000) - 2000) * 0.05, k, d, q;
+      t0 = t;
+      if (vis) {
+        if (r === 1) { cam -= dt; if (cam <= 0) { tur = !tur; cam = 0.8 + Math.random() * 2; } } else tur = r === 2;
+        emi += U * dt / 3; while (emi >= 1) { emi -= 1; D.push({ x: X0 + 34, y: 0, v: 0, m: tur }); }
+        for (k = D.length - 1; k >= 0; k--) {
+          d = D[k]; q = d.m && d.x > xt;
+          d.x += U * dt * (q ? 0.8 + Math.random() * 0.4 : 1 - 0.5 * (d.y / R) * (d.y / R));
+          if (q) { d.v += (Math.random() - 0.5) * (260 + Re * 0.08) * dt * 6; d.v *= 0.96; d.y += d.v * dt; if (d.y > R - 2) { d.y = R - 2; d.v = -Math.abs(d.v); } if (d.y < -R + 2) { d.y = -R + 2; d.v = Math.abs(d.v); } }
+          if (d.x > X1 + 4) D.splice(k, 1);
+        }
+        while (D.length > MAX) D.shift();
+        dibujar();
+      }
+      requestAnimationFrame(paso);
+    }
+    function dibujar() {
+      var k, d;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.06)'; g.fillRect(X0, YC - R, X1 - X0, 2 * R);
+      g.strokeStyle = GR; g.lineWidth = 2.5; g.beginPath(); g.moveTo(X0, YC - R); g.lineTo(X1, YC - R); g.moveTo(X0, YC + R); g.lineTo(X1, YC + R); g.stroke();
+      g.strokeStyle = '#f5a623'; g.lineWidth = 3; g.beginPath(); g.moveTo(X0, YC); g.lineTo(X0 + 34, YC); g.stroke();
+      g.fillStyle = CI; for (k = 0; k < D.length; k++) { d = D[k]; g.fillRect(d.x, YC + d.y - 1.1, 3, 2.2); }
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#f5a623'; g.fillText('tinta', X0, 40); g.fillStyle = GR; g.textAlign = 'right'; g.fillText('agua →', X1, 40);
+      g.textAlign = 'center'; g.fillStyle = '#eef2ff'; g.fillText(['laminar', 'inestable', 'turbulento'][regimen()], W / 2, 222);
+    }
+    function textos() {
+      var s = ['Por debajo de 2000: el hilo de tinta se mantiene <strong>recto</strong>, como una línea.', 'Entre 2000 y 3000: el flujo es <strong>inestable</strong> y alterna entre ordenado y mezclado.', 'Por encima de 3000: el hilo se mezcla <strong>de golpe</strong>, lejos de la entrada.'][regimen()];
+      if (s !== ult) { ult = s; es.innerHTML = s; } so.textContent = String(Re);
+    }
+    sl.addEventListener('input', function () { Re = +sl.value; textos(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    textos(); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El desfile y la salida de la cancha:</strong> un flujo laminar es como un desfile: cada fila avanza en paralelo a sus vecinas, sin cruzarse. Si alguien tropieza, la disciplina lo devuelve a su lugar. Un flujo turbulento es como la salida de una cancha llena: un empujón se propaga en remolinos de gente imposibles de prever. La viscosidad hace de disciplina; la inercia, de empuje.</p>
@@ -68,6 +126,48 @@
 
   <h2>Nadar a bajo Reynolds</h2>
   <p>En 1976, el físico Edward Purcell dio una charla famosa sobre la vida a bajo número de Reynolds. Una persona que nada tiene un Reynolds de unos 10<sup>4</sup>; un pececito, de unos 10<sup>2</sup>; una bacteria de un micrómetro que avanza a unos 30 micrómetros por segundo, de 10<sup>−4</sup> o 10<sup>−5</sup> [3]. Para ella la inercia es totalmente irrelevante: si deja de empujar, se detiene en unas 0,6 millonésimas de segundo, después de recorrer apenas una décima de ángstrom [3].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 312" role="img" aria-labelledby="rey3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="rey3-t">Escala logarítmica del número de Reynolds. Una bacteria está entre diez a la menos cinco y diez a la menos cuatro; un pececito, en cien; una persona que nada, en diez mil. El aire de un conducto da 1835.</title>
+      <rect width="640" height="312" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Del microbio al nadador</text>
+        <line x1="40.0" y1="190.0" x2="600.0" y2="190.0" stroke="#8892b0" stroke-width="2"/>
+        <line x1="40.0" y1="184.0" x2="40.0" y2="196.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="40.0" y="218.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">−6</tspan><tspan dy="6">​</tspan></text>
+        <line x1="133.3" y1="184.0" x2="133.3" y2="196.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="133.3" y="218.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">−4</tspan><tspan dy="6">​</tspan></text>
+        <line x1="226.7" y1="184.0" x2="226.7" y2="196.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="226.7" y="218.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">−2</tspan><tspan dy="6">​</tspan></text>
+        <line x1="320.0" y1="184.0" x2="320.0" y2="196.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="320.0" y="218.0" text-anchor="middle" fill="#8892b0" font-size="15">1</text>
+        <line x1="413.3" y1="184.0" x2="413.3" y2="196.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="413.3" y="218.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">2</tspan><tspan dy="6">​</tspan></text>
+        <line x1="506.7" y1="184.0" x2="506.7" y2="196.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="506.7" y="218.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">4</tspan><tspan dy="6">​</tspan></text>
+        <line x1="600.0" y1="184.0" x2="600.0" y2="196.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="600.0" y="218.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">6</tspan><tspan dy="6">​</tspan></text>
+        <rect x="86.7" y="183.0" width="46.7" height="14.0" fill="#5ee0a0"/>
+        <line x1="110.0" y1="183.0" x2="110.0" y2="112.0" stroke="#5ee0a0" stroke-width="1.5"/>
+        <text x="76.0" y="86.0" text-anchor="start" fill="#5ee0a0" font-size="17">bacteria</text>
+        <text x="76.0" y="104.0" text-anchor="start" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">−5</tspan><tspan dy="6">​</tspan> a 10<tspan dy="-6" font-size="70%">−4</tspan><tspan dy="6">​</tspan></text>
+        <circle cx="413.3" cy="190.0" r="7" fill="#00d4ff"/>
+        <line x1="413.3" y1="190.0" x2="413.3" y2="136.0" stroke="#00d4ff" stroke-width="1.5"/>
+        <text x="413.3" y="110.0" text-anchor="middle" fill="#00d4ff" font-size="17">pececito</text>
+        <text x="413.3" y="128.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">2</tspan><tspan dy="6">​</tspan></text>
+        <circle cx="506.7" cy="190.0" r="7" fill="#eef2ff"/>
+        <line x1="506.7" y1="190.0" x2="506.7" y2="96.0" stroke="#eef2ff" stroke-width="1.5"/>
+        <text x="506.7" y="70.0" text-anchor="middle" fill="#eef2ff" font-size="17">persona</text>
+        <text x="506.7" y="88.0" text-anchor="middle" fill="#8892b0" font-size="15">10<tspan dy="-6" font-size="70%">4</tspan><tspan dy="6">​</tspan></text>
+        <circle cx="472.3" cy="190.0" r="6" fill="#f5a623"/>
+        <line x1="472.3" y1="190.0" x2="472.3" y2="234.0" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="480.3" y="252.0" text-anchor="end" fill="#f5a623" font-size="16">conducto de aire: 1835</text>
+        <text x="480.3" y="274.0" text-anchor="end" fill="#8892b0" font-size="15">en un tubo: laminar hasta unos 2000</text>
+        <text x="480.3" y="294.0" text-anchor="end" fill="#8892b0" font-size="15">y turbulento desde unos 3000</text>
+      </g>
+    </svg>
+    <figcaption>Números de Reynolds en escala logarítmica: cada marca vale cien veces la anterior. Los seres vivos son los valores de Purcell [3]; el conducto y los límites del flujo en un tubo son de OpenStax [1]. Esos límites valen para tubos: el número de Reynolds sirve para comparar, pero el valor de la transición depende de la geometría.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
   <p>Purcell propuso imaginarse en esa situación: una pileta llena de melaza, con la prohibición de mover cualquier parte del cuerpo a más de un centímetro por minuto. Si en esas condiciones lográs avanzar unos metros en un par de semanas, calificás como nadador de bajo Reynolds [3]. Y agregó una consecuencia curiosa: a bajo Reynolds, un movimiento que se repite al revés, como abrir y cerrar una almeja, no lleva a ninguna parte, por más rápido o lento que se haga [3]. Los microorganismos tienen que nadar de otra manera, como se cuenta en <a href="hidrodinamica-organismos.html">la hidrodinámica de los organismos</a>.</p>
 
   <div class="tech-note">

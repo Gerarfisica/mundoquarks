@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -59,6 +63,61 @@
 
   <h2>La paradoja de D'Alembert</h2>
   <p>El problema apareció al calcular la fuerza que un fluido ejerce sobre un cuerpo que se mueve a velocidad constante. Para un fluido ideal e incompresible que rodea en forma estacionaria a un cuerpo sólido, el arrastre da <strong>cero</strong> [3]. Pero cualquiera que sacó la mano por la ventanilla de un auto sabe que el aire empuja.</p>
+  <figure class="figura" id="cil">
+    <canvas id="cil-c" width="1280" height="680" role="img" aria-label="Partículas que rodean un cilindro. En el fluido ideal, las trayectorias son simétricas adelante y atrás y no hay fuerza neta. En el fluido real, se forma detrás una estela de remolinos alternados y aparece una fuerza de arrastre."></canvas>
+    <div class="int-botones" role="group" aria-label="Modelo">
+      <button type="button" data-m="0">fluido ideal</button><button type="button" data-m="1">fluido real</button>
+    </div>
+    <p class="int-estado" id="cil-e" aria-live="polite"></p>
+    <figcaption>El caso ideal es la solución exacta del flujo potencial alrededor de un cilindro: simétrica de adelante hacia atrás, sin arrastre [3]. El caso real es una ilustración cualitativa, no una solución de las ecuaciones de Navier-Stokes: se agregan remolinos alternados detrás del cilindro para mostrar qué le falta al modelo ideal.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cil-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 340;
+    var es = document.getElementById('cil-e'), bs = document.querySelectorAll('#cil .int-botones button');
+    var CX = 190, CY = 170, A = 42, U = 95, M = 0, T = [], V = [], t0 = 0, vis = true, cron = 0, sg = 1, CI = '#00d4ff', GR = '#8892b0', NA = '#f5a623', i;
+    for (i = 0; i < 700; i++) T.push(nuevo(Math.random() * W));
+    function nuevo(x) { var y; do { y = Math.random() * H; } while ((x - CX) * (x - CX) + (y - CY) * (y - CY) < (A + 3) * (A + 3)); return [x, y]; }
+    function vel(x, y) {
+      var dx = x - CX, dy = y - CY, r2 = dx * dx + dy * dy, a2 = A * A / (r2 * r2), u = U * (1 - a2 * (dx * dx - dy * dy)), v = -U * a2 * 2 * dx * dy, k, q, d2, w;
+      if (M) for (k = 0; k < V.length; k++) { q = V[k]; dx = x - q[0]; dy = y - q[1]; d2 = dx * dx + dy * dy + 150; w = q[2] * q[3] / d2; u += -w * dy; v += w * dx; }
+      return [u, v];
+    }
+    function paso(t) {
+      var dt = t0 ? Math.min(0.04, (t - t0) / 1000) : 0.016, k, p, q, w, dx, dy, r; t0 = t;
+      if (vis) {
+        if (M) {
+          cron -= dt; if (cron <= 0) { cron = 0.75; sg = -sg; V.push([CX + A + 26, CY - sg * 26, sg * 900, 0]); }
+          for (k = V.length - 1; k >= 0; k--) { q = V[k]; q[3] = Math.min(1, q[3] + dt * 3); q[0] += U * 0.62 * dt; if (q[0] > W + 60) V.splice(k, 1); }
+        }
+        for (k = 0; k < T.length; k++) {
+          p = T[k]; w = vel(p[0], p[1]); p[0] += w[0] * dt; p[1] += w[1] * dt;
+          dx = p[0] - CX; dy = p[1] - CY; r = Math.sqrt(dx * dx + dy * dy);
+          if (r < A + 1) { p[0] = CX + dx / r * (A + 1); p[1] = CY + dy / r * (A + 1); }
+          if (p[0] > W + 4 || p[1] < -4 || p[1] > H + 4) T[k] = nuevo(-Math.random() * 30 - 2 + 0);
+        }
+        dibujar();
+      }
+      requestAnimationFrame(paso);
+    }
+    function dibujar() {
+      var k, p, w;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = 'rgba(0,212,255,0.75)'; g.lineWidth = 1.5; g.beginPath(); for (k = 0; k < T.length; k++) { p = T[k]; w = vel(p[0], p[1]); g.moveTo(p[0], p[1]); g.lineTo(p[0] - w[0] * 0.07, p[1] - w[1] * 0.07); } g.stroke();
+      g.fillStyle = '#26345f'; g.strokeStyle = GR; g.lineWidth = 2; g.beginPath(); g.arc(CX, CY, A, 0, 6.3); g.fill(); g.stroke();
+      g.font = "16px 'Space Mono',monospace"; g.textAlign = 'center';
+      if (M) { g.strokeStyle = NA; g.fillStyle = NA; g.lineWidth = 4; g.beginPath(); g.moveTo(CX - 6, CY); g.lineTo(CX + 18, CY); g.stroke(); g.beginPath(); g.moveTo(CX + 30, CY); g.lineTo(CX + 16, CY - 8); g.lineTo(CX + 16, CY + 8); g.closePath(); g.fill(); g.fillText('arrastre', CX, CY + A + 24); }
+      else { g.fillStyle = '#eef2ff'; g.fillText('arrastre: 0', CX, CY + A + 24); }
+    }
+    function modo(m, b0) {
+      M = m; V.length = 0; cron = 0; bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); });
+      es.innerHTML = m ? 'Fluido real: detrás del cilindro aparece una <strong>estela</strong> de remolinos, y el cuerpo siente una fuerza.' : 'Fluido ideal: el flujo se cierra atrás igual que se abrió adelante, y la fuerza neta es <strong>cero</strong>.';
+    }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-m'), b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(0, bs[0]); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
   <p>La historia de esa contradicción la reconstruyeron Grimberg, Pauls y Frisch en 2008. Según su trabajo, Euler estuvo muy cerca de probar que el arrastre se anulaba en 1745; Borda mostró en 1766 que el principio de las «fuerzas vivas», la conservación de la energía, implicaba que el arrastre era nulo; y D'Alembert, después de rechazar al principio esa posibilidad, estableció la paradoja en 1768, aunque solo para cuerpos simétricos de adelante hacia atrás [3]. Una formulación general, para cuerpos de cualquier forma, la dio Saint-Venant en 1846, que señaló que el arrastre nulo podía deberse a no tener en cuenta la viscosidad [3].</p>
   <p>Los autores agregan un detalle: como las primeras deducciones no usaban directamente las ecuaciones del fluido ideal, durante mucho tiempo no se reconoció que el problema estaba en la idealización misma, y las dificultades se atribuyeron a la falta de herramientas matemáticas [3]. La idea de viscosidad, señalan, maduró recién en el siglo XIX [3].</p>
 
@@ -68,7 +127,20 @@
 
   <h2>Qué se pierde</h2>
   <p>Al eliminar la viscosidad se pierde, en primer lugar, la condición de que el fluido no deslice sobre las paredes: en un fluido real, la capa en contacto con una superficie se mueve con ella [4]. Se pierde también la transición entre el flujo ordenado y el turbulento, que según Reynolds depende de la viscosidad: cuanto más viscoso es un fluido, menos propenso es a formar remolinos [5]. Y se pierde todo el mundo de los microorganismos, que viven a números de Reynolds tan bajos que la viscosidad lo domina todo, como describió Purcell [6].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/fluidos-ideales-vortices-rishiri.jpg" width="960" height="960" loading="lazy" style="width:min(30rem,100%);margin:0 auto" alt="Vista desde el espacio de un manto de nubes sobre el mar, con una cadena de remolinos alternados que nace en una isla.">
+    <figcaption>Vórtices de von Kármán en las nubes, detrás de la isla Rishiri (Japón), fotografiados desde el transbordador espacial. La estela de remolinos alternados que deja el viento es lo que un fluido ideal no puede dar.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Von_Karman_vortices_off_Rishiri_Island,_Japan.jpg" target="_blank" rel="noopener">NASA</a> · Dominio público</span></figcaption>
+  </figure>
   <p>Por eso el fluido ideal funciona bien en algunas situaciones y muy mal en otras. Cuando interesa la fuerza que el fluido hace sobre un objeto, como mostró la paradoja, la viscosidad no se puede ignorar.</p>
+  <figure class="figura">
+    <div class="esq">
+      <div class="esq-fila">
+        <div class="esq-caja"><span class="esq-tit">FLUIDO IDEAL</span>viscosidad despreciable<span class="esq-sub">sin fricción interna</span><span class="esq-tit">PARED</span>el fluido desliza<span class="esq-tit">SE GANA</span>Bernoulli y flujo potencial<span class="esq-veredicto esq-no">arrastre: cero</span></div>
+        <div class="esq-caja esq-ok"><span class="esq-tit">FLUIDO REAL</span>viscosidad<span class="esq-sub">fricción interna</span><span class="esq-tit">PARED</span>la capa en contacto va con ella<span class="esq-tit">APARECE</span>turbulencia y capa límite<span class="esq-veredicto esq-si">arrastre: sí</span></div>
+      </div>
+    </div>
+    <figcaption>Lo que cada modelo supone y lo que produce [1, 2, 3, 4, 5, 7]. El ideal gana simplicidad, pero no puede dar la fuerza de arrastre.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>La reconciliación: Prandtl</h2>
   <p>La salida llegó a comienzos del siglo XX. Según la biografía de MacTutor, Ludwig Prandtl respondió el problema abierto del flujo con viscosidad muy pequeña introduciendo la <strong>capa límite</strong>, que él llamaba la capa de fricción sobre las paredes, y presentó el resultado en el Congreso Internacional de Matemáticos de Heidelberg, en agosto de 1904 [7]. La idea es que la viscosidad, aunque sea muy chica, no se puede ignorar en esa capa de fricción pegada a las paredes. Los detalles están en el artículo sobre la <a href="capa-limite.html">capa límite</a>.</p>

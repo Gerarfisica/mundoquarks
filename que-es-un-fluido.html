@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -51,6 +53,111 @@
 </div>
 <div class="article-container">
   <p>Abrí la canilla y el agua sale; inclinás un frasco de miel y la miel termina saliendo, aunque tarde. Empujás de costado un bloque de madera apoyado en la mesa y se deforma un poquito, pero no fluye. Esa diferencia es la que define a un fluido. Como resume el libro <em>University Physics</em> de OpenStax, los líquidos y los gases se consideran fluidos porque <strong>ceden ante las fuerzas de corte</strong>, mientras que los sólidos las resisten [1]. Una fuerza de corte es la que se aplica en forma tangencial a una superficie, como cuando se arrastra la palma de la mano sobre la mesa.</p>
+  <figure class="figura" id="corte">
+    <canvas id="corte-c" width="1280" height="800" role="img" aria-label="Dos paneles con la misma fuerza aplicada sobre una tapa. A la izquierda, un sólido entre dos placas se inclina un poco y se detiene; al soltar, recupera su forma. A la derecha, un fluido entre dos placas se sigue deformando mientras dure la fuerza; al soltar, queda donde estaba."></canvas>
+    <div class="int-control">
+      <label for="corte-f">Fuerza sobre la tapa</label>
+      <input type="range" id="corte-f" min="-100" max="100" step="1" value="0">
+      <output id="corte-v" for="corte-f">0 %</output>
+    </div>
+    <div class="int-botones">
+      <button type="button" id="corte-s">Soltar</button><button type="button" id="corte-r">Volver a empezar</button>
+    </div>
+    <p class="int-estado" id="corte-e" aria-live="polite"></p>
+    <figcaption>La misma fuerza de corte actúa sobre las dos tapas. En este modelo simplificado, en el sólido la fuerza fija cuánto se deforma; en el fluido fija cuán rápido se deforma, y por eso no se detiene mientras la fuerza dure. Las líneas celestes están pintadas en el fluido para seguir la deformación. Arrastrá sobre el dibujo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('corte-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 400;
+    var sl = document.getElementById('corte-f'), sa = document.getElementById('corte-v'), es = document.getElementById('corte-e');
+    var AR = 110, AB = 306, ALT = AB - AR;              // tapa y base
+    var S = { x: 24, w: 280 }, L = { x: 336, w: 280 };  // paneles
+    var GMAX = 0.42, V = 75, TAU = 0.1;                 // deformación máxima, rapidez de la tapa, respuesta del sólido
+    var F = 0, gam = 0, D = 0, t0 = 0, corre = false, arr = null, ult = '';
+    var CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', BL = '#eef2ff', LI = '#1c2c55';
+    var P = [], i, a = 0.37, b = 0.71;
+    for (i = 0; i < 70; i++) { a = (a + 0.6180339887) % 1; b = (b * 997.13 + 0.317) % 1; P.push([a, 0.04 + 0.92 * b]); }
+    function mod(x, m) { return ((x % m) + m) % m; }
+    function txt(s, x, y, c, f, al) { g.fillStyle = c; g.font = f; g.textAlign = al || 'left'; g.fillText(s, x, y); }
+    function flecha(x1, y, x2, c, w) {
+      var d = x2 > x1 ? 1 : -1; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w;
+      g.beginPath(); g.moveTo(x1, y); g.lineTo(x2 - d * 6, y); g.stroke();
+      g.beginPath(); g.moveTo(x2, y); g.lineTo(x2 - d * 8, y - 5); g.lineTo(x2 - d * 8, y + 5); g.closePath(); g.fill();
+    }
+    function placa(p, x, w, y) { g.fillStyle = '#26345f'; g.fillRect(x, y, w, 12); g.strokeStyle = GR; g.lineWidth = 1; g.strokeRect(x + 0.5, y + 0.5, w - 1, 11); }
+    function panel(p, titulo) {
+      txt(titulo, p.x + p.w / 2, 38, BL, "700 17px 'Space Mono',monospace", 'center');
+      g.strokeStyle = LI; g.lineWidth = 1; g.strokeRect(p.x + 0.5, 56.5, p.w - 1, 288);
+      g.save(); g.beginPath(); g.rect(p.x + 1, 57, p.w - 2, 287); g.clip();
+    }
+    function solido() {
+      var p = S, cx = p.x + p.w / 2, an = 150, s = gam * ALT, n = 6, m = 5, u, v;
+      panel(p, 'SÓLIDO');
+      function X(u, v) { return cx - an / 2 + an * u / n + v * s / m; } function Y(v) { return AB - ALT * v / m; }
+      g.fillStyle = 'rgba(0,212,255,0.08)'; g.beginPath(); g.moveTo(X(0, 0), Y(0)); g.lineTo(X(n, 0), Y(0)); g.lineTo(X(n, m), Y(m)); g.lineTo(X(0, m), Y(m)); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(0,212,255,0.45)'; g.lineWidth = 1.5;
+      for (v = 0; v <= m; v++) { g.beginPath(); g.moveTo(X(0, v), Y(v)); g.lineTo(X(n, v), Y(v)); g.stroke(); }
+      for (u = 0; u <= n; u++) { g.beginPath(); g.moveTo(X(u, 0), Y(0)); g.lineTo(X(u, m), Y(m)); g.stroke(); }
+      g.fillStyle = CI; for (v = 0; v <= m; v++) for (u = 0; u <= n; u++) { g.beginPath(); g.arc(X(u, v), Y(v), 3, 0, 6.3); g.fill(); }
+      placa(p, cx - 95 + s, 190, AR - 12); placa(p, p.x + 20, p.w - 40, AB);
+      if (F) flecha(cx + s, 82, cx + s + F * 80, NA, 3);
+      g.restore();
+    }
+    function tramo(x0) {  // línea teñida: se corta cuando cruza el borde del panel
+      var p = L, n = 60, k, v, x, y, ant = null;
+      g.beginPath();
+      for (k = 0; k <= n; k++) { v = k / n; x = p.x + mod(x0 + v * D, p.w); y = AB - ALT * v;
+        if (ant === null || Math.abs(x - ant) > p.w / 2) g.moveTo(x, y); else g.lineTo(x, y); ant = x; }
+      g.stroke();
+    }
+    function fluido() {
+      var p = L, i, v, x, ma = mod(D, 40);
+      panel(p, 'FLUIDO');
+      g.fillStyle = 'rgba(0,212,255,0.07)'; g.fillRect(p.x, AR, p.w, ALT);
+      g.fillStyle = GR; for (i = 0; i < P.length; i++) { v = P[i][1]; x = p.x + mod(P[i][0] * p.w + v * D, p.w); g.beginPath(); g.arc(x, AB - ALT * v, 2.2, 0, 6.3); g.fill(); }
+      g.strokeStyle = CI; g.lineWidth = 2; for (i = 0; i < 4; i++) tramo(35 + i * 70);
+      if (F) for (i = 1; i <= 4; i++) { v = i / 5; x = p.x + 70; if (Math.abs(F * 60 * v) > 10) flecha(x, AB - ALT * v, x + F * 60 * v, NA, 2); }
+      placa(p, p.x, p.w, AR - 12); placa(p, p.x, p.w, AB);
+      g.fillStyle = BL; for (i = -1; i < 9; i++) g.fillRect(p.x + i * 40 + ma, AR - 9, 8, 6);
+      if (F) flecha(p.x + p.w / 2, 82, p.x + p.w / 2 + F * 80, NA, 3);
+      g.restore();
+    }
+    function dibujar() {
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      solido(); fluido();
+      txt('corrimiento de la tapa: ' + Math.round(Math.abs(gam * ALT)), S.x + S.w / 2, 374, GR, "14px 'Space Mono',monospace", 'center');
+      txt('corrimiento de la tapa: ' + Math.round(Math.abs(D)), L.x + L.w / 2, 374, GR, "14px 'Space Mono',monospace", 'center');
+    }
+    function estado() {
+      var s = F ? 'Con la fuerza aplicada, el <strong>sólido</strong> se deforma y se frena; el <strong>fluido</strong> no deja de correrse.'
+        : D ? 'Sin fuerza, el <strong>sólido</strong> recupera su forma; el <strong>fluido</strong> queda donde estaba.'
+        : 'Arrastrá sobre el dibujo o mové el control: la misma fuerza empuja las dos tapas.';
+      if (s !== ult) { ult = s; es.innerHTML = s; }
+    }
+    function paso(t) {
+      var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0, ob = F * GMAX; t0 = t;
+      D += F * V * dt; gam += (ob - gam) * Math.min(1, dt / TAU);
+      if (!F && Math.abs(gam) < 0.002) gam = 0;
+      dibujar(); estado();
+      if (F || gam) requestAnimationFrame(paso); else { corre = false; t0 = 0; }
+    }
+    function mover() { if (!corre) { corre = true; t0 = 0; requestAnimationFrame(paso); } else estado(); }
+    function fijar(f) {
+      F = Math.max(-1, Math.min(1, f)); sl.value = Math.round(F * 100);
+      sa.textContent = (F < 0 ? '← ' : F > 0 ? '→ ' : '') + Math.abs(Math.round(F * 100)) + ' %'; mover();
+    }
+    function px(e) { var r = cv.getBoundingClientRect(); return (e.clientX - r.left) * W / r.width; }
+    sl.addEventListener('input', function () { fijar(sl.value / 100); });
+    document.getElementById('corte-s').addEventListener('click', function () { fijar(0); });
+    document.getElementById('corte-r').addEventListener('click', function () { D = 0; gam = 0; fijar(0); dibujar(); estado(); });
+    cv.addEventListener('pointerdown', function (e) { arr = px(e); cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+    cv.addEventListener('pointermove', function (e) { if (arr !== null) fijar((px(e) - arr) / 120); });
+    function fin() { if (arr !== null) { arr = null; fijar(0); } }
+    cv.addEventListener('pointerup', fin); cv.addEventListener('pointercancel', fin);
+    dibujar(); estado();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(dibujar);
+  })();
+  </script>
   <p>La definición tiene una consecuencia importante: desde el punto de vista de la mecánica, un líquido y un gas son lo mismo. Los dos fluyen, y la mecánica de fluidos los describe con las mismas leyes, distinguiéndolos solo cuando se comportan distinto [1].</p>
 
   <h2>Sólidos, líquidos y gases</h2>
@@ -82,6 +189,49 @@
     <h3>¿El vidrio de las catedrales fluye?</h3>
     <p>Se suele repetir que los vitrales medievales son más gruesos abajo porque el vidrio «fluye» lentamente durante siglos. El físico Edgar Zanotto estimó en 1998, con curvas de viscosidad de vidrios modernos y antiguos, cuánto tardaría el vidrio en deformarse a temperatura ambiente. Su conclusión es que el vidrio de las ventanas podría fluir a esa temperatura solo en tiempos increíblemente largos, que exceden los límites de la historia humana [6]. La diferencia de espesor no se explica por un flujo del vidrio.</p>
   </div>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/que-es-un-fluido-gota-de-brea.jpg" width="960" height="979" loading="lazy" alt="John Mainstone sonríe junto a una campana de vidrio que cubre un embudo con brea negra. Del tallo cuelga una gota y en el vaso de abajo se ven las gotas ya caídas.">
+    <figcaption>El experimento de la gota de brea de la Universidad de Queensland, con su custodio John Mainstone en 1990. A temperatura ambiente la brea se rompe de un martillazo, pero fluye: Thomas Parnell la volcó en el embudo en 1927 y cortó el tallo en 1930; la primera gota tardó 8 años en caer y la novena cayó en abril de 2014 [7].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Pitch_drop_experiment_with_John_Mainstone.jpg" target="_blank" rel="noopener">John Mainstone, University of Queensland</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.es" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></figcaption>
+  </figure>
+  <figure class="figura">
+    <svg viewBox="0 0 640 340" role="img" aria-labelledby="visc3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="visc3-t">Escala logarítmica de viscosidad en pascal segundo. El nitrógeno está cerca de diez a la menos cinco, el agua cerca de diez a la menos tres y la brea en dos coma tres por diez a la ocho. El vidrio de ventana queda fuera de la escala, hacia la derecha, sin un valor marcado.</title>
+      <rect width="640" height="340" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace" font-size="17" fill="#8892b0">
+        <text x="20" y="30" fill="#eef2ff" font-size="19" letter-spacing="1">Del gas a la brea, en una sola regla</text>
+        <line x1="50" y1="230" x2="570" y2="230" stroke="#8892b0" stroke-width="2"/>
+        <g stroke="#8892b0" stroke-width="2"><line x1="50" y1="224" x2="50" y2="236"/><line x1="115" y1="224" x2="115" y2="236"/><line x1="180" y1="224" x2="180" y2="236"/><line x1="245" y1="224" x2="245" y2="236"/><line x1="310" y1="224" x2="310" y2="236"/><line x1="375" y1="224" x2="375" y2="236"/><line x1="440" y1="224" x2="440" y2="236"/><line x1="505" y1="224" x2="505" y2="236"/><line x1="570" y1="224" x2="570" y2="236"/></g>
+        <g text-anchor="middle" font-size="16">
+          <text x="50" y="258">10<tspan dy="-6" font-size="70%">−6</tspan></text><text x="115" y="258">10<tspan dy="-6" font-size="70%">−4</tspan></text><text x="180" y="258">10<tspan dy="-6" font-size="70%">−2</tspan></text><text x="245" y="258">1</text><text x="310" y="258">10<tspan dy="-6" font-size="70%">2</tspan></text><text x="375" y="258">10<tspan dy="-6" font-size="70%">4</tspan></text><text x="440" y="258">10<tspan dy="-6" font-size="70%">6</tspan></text><text x="505" y="258">10<tspan dy="-6" font-size="70%">8</tspan></text><text x="570" y="258">10<tspan dy="-6" font-size="70%">10</tspan></text>
+        </g>
+        <text x="310" y="282" text-anchor="middle" font-size="16">viscosidad (Pa·s)</text>
+
+        <line x1="90.5" y1="230" x2="90.5" y2="124" stroke="#5ee0a0" stroke-width="1.5"/>
+        <circle cx="90.5" cy="230" r="7" fill="#5ee0a0"/>
+        <text x="90.5" y="96" text-anchor="middle" fill="#5ee0a0">nitrógeno</text>
+        <text x="90.5" y="114" text-anchor="middle" font-size="15">1,8 × 10<tspan dy="-6" font-size="70%">−5</tspan></text>
+
+        <line x1="147.5" y1="230" x2="147.5" y2="190" stroke="#00d4ff" stroke-width="1.5"/>
+        <circle cx="147.5" cy="230" r="7" fill="#00d4ff"/>
+        <text x="147.5" y="162" text-anchor="start" fill="#00d4ff" dx="-12">agua</text>
+        <text x="147.5" y="180" text-anchor="start" font-size="15" dx="-12">1,0 × 10<tspan dy="-6" font-size="70%">−3</tspan></text>
+
+        <line x1="516.8" y1="230" x2="516.8" y2="190" stroke="#eef2ff" stroke-width="1.5"/>
+        <circle cx="516.8" cy="230" r="7" fill="#eef2ff"/>
+        <text x="516.8" y="162" text-anchor="middle" fill="#eef2ff">brea</text>
+        <text x="516.8" y="180" text-anchor="middle" font-size="15">2,3 × 10<tspan dy="-6" font-size="70%">8</tspan></text>
+
+        <text x="622" y="72" text-anchor="end" fill="#f5a623">vidrio de ventana</text>
+        <text x="622" y="90" text-anchor="end" font-size="15">sin valor en esta escala</text>
+        <line x1="440" y1="108" x2="612" y2="108" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="7 6"/>
+        <path d="M624,108 L610,101 L610,115 Z" fill="#f5a623"/>
+
+        <path d="M147.5,298 L147.5,306 L516.8,306 L516.8,298" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="332" y="328" text-anchor="middle" font-size="16" fill="#eef2ff">la brea: unas 2 × 10<tspan dy="-6" font-size="70%">11</tspan><tspan dy="6"> veces la viscosidad del agua</tspan></text>
+      </g>
+    </svg>
+    <figcaption>Viscosidades en escala logarítmica: cada marca vale cien veces la anterior. El nitrógeno y el agua están a 20 °C [4]; la brea, (2,3 ± 0,5) × 10<sup>8</sup> Pa·s, es la medida del experimento de Queensland [8]. El cociente entre brea y agua es un cálculo propio. El vidrio no lleva un punto porque aquí no se cita un valor: se indica solo la conclusión de Zanotto, que lo ubica en tiempos de flujo mayores que la historia humana [6].<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Fluidos fuera de lo común:</strong> la definición de fluido alcanza a sustancias muy distintas del agua y el aire. Hay fluidos cuyo comportamiento depende de cuán rápido se los deforma, como la maicena con agua, que se tratan en <a href="fluidos-no-newtonianos.html">los fluidos no newtonianos</a>; y hay fluidos cuánticos, como el helio a muy baja temperatura, que se tratan en <a href="superfluidos.html">los superfluidos</a>.</p>
@@ -102,6 +252,8 @@
     <li>«Thermophysical Properties of Fluid Systems», en P. J. Linstrom (ed.), <em>NIST Chemistry WebBook</em>, NIST Standard Reference Database 69 (consultado en noviembre de 2026). <a href="https://doi.org/10.18434/T4D303" target="_blank" rel="noopener">doi:10.18434/T4D303</a></li>
     <li>W. Moebs, S. J. Ling y J. Sanny, <em>University Physics, Volume 1</em>, OpenStax (2016), §14.7 «Viscosity and Turbulence». <a href="https://openstax.org/books/university-physics-volume-1/pages/14-7-viscosity-and-turbulence" target="_blank" rel="noopener">openstax.org</a></li>
     <li>E. D. Zanotto, "Do cathedral glasses flow?", <em>American Journal of Physics</em> 66, 392–395 (1998). <a href="https://doi.org/10.1119/1.19026" target="_blank" rel="noopener">doi:10.1119/1.19026</a></li>
+    <li>School of Mathematics and Physics, The University of Queensland, «Pitch Drop experiment» (consultado en noviembre de 2026). <a href="https://smp.uq.edu.au/pitch-drop-experiment" target="_blank" rel="noopener">smp.uq.edu.au</a></li>
+    <li>R. Edgeworth, B. J. Dalton y T. Parnell, "The pitch drop experiment", <em>European Journal of Physics</em> 5, 198–200 (1984). <a href="https://doi.org/10.1088/0143-0807/5/4/003" target="_blank" rel="noopener">doi:10.1088/0143-0807/5/4/003</a></li>
   </ol>
 </div>
 <div class="article-footer">

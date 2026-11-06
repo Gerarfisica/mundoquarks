@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -59,6 +63,50 @@
 
   <h2>De dónde sale: los choques de las moléculas</h2>
   <p>En un gas, la presión tiene un origen muy concreto. Cada molécula que choca contra la pared le transmite un empujón, por la tercera ley de Newton, y la suma de todos esos choques es la presión [2]. Cuantas más moléculas hay, más choques y más presión; cuanto más rápido se mueven, también [2]. La teoría cinética lo resume en una fórmula [2]:</p>
+  <figure class="figura" id="pga">
+    <canvas id="pga-c" width="1280" height="720" role="img" aria-label="Una caja con moléculas que rebotan contra las paredes. Cada choque deja un destello. Al aumentar la temperatura o la cantidad de moléculas, los choques son más y más fuertes, y sube la presión."></canvas>
+    <div class="int-control"><label for="pga-t">Temperatura</label><input type="range" id="pga-t" min="150" max="600" step="10" value="300"><output id="pga-to" for="pga-t">300 K</output></div>
+    <div class="int-control"><label for="pga-n">Moléculas</label><input type="range" id="pga-n" min="20" max="200" step="10" value="80"><output id="pga-no" for="pga-n">80</output></div>
+    <p class="int-estado" id="pga-e" aria-live="polite"></p>
+    <figcaption>Las moléculas rebotan contra las paredes y cada choque deja un destello. La presión del dibujo sale de la fórmula del artículo, p V = N k<sub>B</sub> T, y se muestra respecto del valor inicial [2]: se duplica si se duplica N o si se duplica T. Las velocidades del dibujo crecen con la raíz de T, pero están muy frenadas para que se puedan ver.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('pga-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 360;
+    var st = document.getElementById('pga-t'), sn = document.getElementById('pga-n'), to = document.getElementById('pga-to'), no = document.getElementById('pga-no'), es = document.getElementById('pga-e');
+    var X0 = 20, Y0 = 20, BW = 420, BH = 320, M = [], F = [], t0 = 0, vis = true, T = 300, N = 80, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function nueva() { var a = Math.random() * 6.283, v = 0.6 + Math.random() * 0.8; return [Math.random() * BW, Math.random() * BH, v * Math.cos(a), v * Math.sin(a)]; }
+    function poner() {
+      T = +st.value; N = +sn.value; while (M.length < N) M.push(nueva()); M.length = N;
+      to.textContent = T + ' K'; no.textContent = String(N);
+      es.innerHTML = 'La presión es <strong>' + (N * T / (80 * 300)).toFixed(2).replace('.', ',') + ' veces</strong> la inicial.';
+    }
+    function dibujar() {
+      var k, f, p = N * T / (80 * 300), h = Math.min(290, 96 * p);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = GR; g.lineWidth = 2.5; g.strokeRect(X0, Y0, BW, BH);
+      g.fillStyle = CI; for (k = 0; k < M.length; k++) { g.beginPath(); g.arc(X0 + M[k][0], Y0 + M[k][1], 3.5, 0, 6.3); g.fill(); }
+      for (k = 0; k < F.length; k++) { f = F[k]; g.fillStyle = 'rgba(245,166,35,' + f[2] + ')'; g.beginPath(); g.arc(f[0], f[1], 8, 0, 6.3); g.fill(); }
+      g.fillStyle = '#26345f'; g.fillRect(508, Y0 + 300 - h, 64, h); g.fillStyle = NA; g.fillRect(508, Y0 + 300 - h, 64, 4);
+      g.strokeStyle = GR; g.lineWidth = 1.5; g.strokeRect(508, Y0, 64, 300);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = GR; g.fillText('presión', 540, 346);
+    }
+    function paso(t) {
+      var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016, k, m, v = 130 * Math.sqrt(T / 300); t0 = t;
+      if (vis) {
+        for (k = 0; k < M.length; k++) { m = M[k]; m[0] += m[2] * v * dt; m[1] += m[3] * v * dt;
+          if (m[0] < 0) { m[0] = -m[0]; m[2] = -m[2]; F.push([X0, Y0 + m[1], 0.9]); } if (m[0] > BW) { m[0] = 2 * BW - m[0]; m[2] = -m[2]; F.push([X0 + BW, Y0 + m[1], 0.9]); }
+          if (m[1] < 0) { m[1] = -m[1]; m[3] = -m[3]; F.push([X0 + m[0], Y0, 0.9]); } if (m[1] > BH) { m[1] = 2 * BH - m[1]; m[3] = -m[3]; F.push([X0 + m[0], Y0 + BH, 0.9]); } }
+        for (k = F.length - 1; k >= 0; k--) { F[k][2] -= dt * 3; if (F[k][2] <= 0) F.splice(k, 1); }
+        dibujar();
+      }
+      requestAnimationFrame(paso);
+    }
+    st.addEventListener('input', poner); sn.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
   <div class="math-block">p V = ⅓ N m ⟨v²⟩ = N k<sub>B</sub> T<br>V: volumen · N: número de moléculas · m: masa de cada una · ⟨v²⟩: velocidad cuadrática media · k<sub>B</sub>: constante de Boltzmann · T: temperatura absoluta</div>
   <p>La segunda igualdad es la ley de los gases ideales, y muestra que la temperatura mide la energía cinética media de las moléculas [2]. A nivel del mar, el aire empuja con unos 1,013 × 10<sup>5</sup> Pa [3]: sobre cada metro cuadrado, una fuerza igual al peso de unas diez toneladas (un cálculo propio).</p>
 
@@ -70,10 +118,55 @@
   <p>La mayoría de los medidores marcan cero a la presión atmosférica. Lo que miden es la <strong>presión manométrica</strong>: la diferencia con la atmosférica. La <strong>presión absoluta</strong> es la suma de la manométrica y la atmosférica [3]:</p>
   <div class="math-block">p<sub>abs</sub> = p<sub>man</sub> + p<sub>atm</sub><br>Ejemplo de OpenStax: un medidor de cubiertas marca 34 psi → presión absoluta 34 + 14,7 = 48,7 psi ≈ 336 kPa</div>
   <p>Por eso un tubo de buceo que «se vació» todavía tiene aire a una atmósfera: el medidor marca cero porque adentro y afuera la presión es la misma [3]. Y por eso existen las presiones manométricas negativas, como en una cámara de vacío [3]. OpenStax aclara que, en la mayoría de los casos, la presión absoluta en un fluido no puede ser negativa: los fluidos empujan, no tiran. La presión manométrica más baja posible es, entonces, menos una atmósfera [3].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 262" role="img" aria-labelledby="pre2e-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="pre2e-t">Dos escalas alineadas en libras por pulgada cuadrada. Vacío: cero absoluta y menos 14,7 en el medidor. Atmósfera: 14,7 absoluta y cero en el medidor. Rueda inflada: 48,7 absoluta y 34 en el medidor.</title>
+      <rect width="640" height="262" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Dos reglas para la misma presión</text>
+        <text x="100.0" y="99.0" text-anchor="end" fill="#00d4ff" font-size="15">absoluta</text>
+        <text x="100.0" y="189.0" text-anchor="end" fill="#f5a623" font-size="15">medidor</text>
+        <line x1="110.0" y1="94.0" x2="610.0" y2="94.0" stroke="#00d4ff" stroke-width="3"/>
+        <line x1="110.0" y1="184.0" x2="610.0" y2="184.0" stroke="#f5a623" stroke-width="3"/>
+        <line x1="110.0" y1="84.0" x2="110.0" y2="194.0" stroke="#8892b0" stroke-width="1.5" stroke-dasharray="5 5"/>
+        <circle cx="110.0" cy="94.0" r="6" fill="#00d4ff"/>
+        <circle cx="110.0" cy="184.0" r="6" fill="#f5a623"/>
+        <text x="110.0" y="76.0" text-anchor="middle" fill="#eef2ff" font-size="16">0</text>
+        <text x="110.0" y="214.0" text-anchor="middle" fill="#eef2ff" font-size="16">−14,7</text>
+        <text x="110.0" y="240.0" text-anchor="middle" fill="#8892b0" font-size="15">vacío</text>
+        <line x1="257.0" y1="84.0" x2="257.0" y2="194.0" stroke="#8892b0" stroke-width="1.5" stroke-dasharray="5 5"/>
+        <circle cx="257.0" cy="94.0" r="6" fill="#00d4ff"/>
+        <circle cx="257.0" cy="184.0" r="6" fill="#f5a623"/>
+        <text x="257.0" y="76.0" text-anchor="middle" fill="#eef2ff" font-size="16">14,7</text>
+        <text x="257.0" y="214.0" text-anchor="middle" fill="#eef2ff" font-size="16">0</text>
+        <text x="257.0" y="240.0" text-anchor="middle" fill="#8892b0" font-size="15">atmósfera</text>
+        <line x1="597.0" y1="84.0" x2="597.0" y2="194.0" stroke="#8892b0" stroke-width="1.5" stroke-dasharray="5 5"/>
+        <circle cx="597.0" cy="94.0" r="6" fill="#00d4ff"/>
+        <circle cx="597.0" cy="184.0" r="6" fill="#f5a623"/>
+        <text x="597.0" y="76.0" text-anchor="middle" fill="#eef2ff" font-size="16">48,7</text>
+        <text x="597.0" y="214.0" text-anchor="middle" fill="#eef2ff" font-size="16">34</text>
+        <text x="611.0" y="240.0" text-anchor="end" fill="#8892b0" font-size="15">rueda inflada</text>
+        <text x="620.0" y="28.0" text-anchor="end" fill="#8892b0" font-size="15">psi</text>
+      </g>
+    </svg>
+    <figcaption>El ejemplo de OpenStax: un medidor que marca 34 psi indica una presión absoluta de 48,7 psi, unos 336 kPa [3]. El medidor marca cero a la presión atmosférica, y por eso lo más bajo que puede marcar es menos una atmósfera.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Un zoológico de unidades</h2>
   <p>La presión se mide en muchas unidades, herencia de los instrumentos con que se midió en cada época. Los meteorólogos usan milibares, porque la presión media al nivel del mar es de unos 1013 mbar; la presión también se expresa en milímetros de mercurio, la altura de la columna de mercurio que equilibra la atmósfera; y en la gomería se habla de libras por pulgada cuadrada [3]. Las equivalencias que da OpenStax son estas [3]:</p>
   <div class="math-block">1 atm = 760 mmHg = 1,013 × 10<sup>5</sup> Pa = 14,7 psi = 1013 mbar<br>1 bar = 10<sup>5</sup> Pa · 1 torr = 1 mmHg = 133,3 Pa · 1 psi = 6,895 × 10<sup>3</sup> Pa</div>
+  <figure class="figura">
+    <div class="esq">
+      <p class="esq-nota">una atmósfera es igual a</p>
+      <div class="esq-fila">
+        <div class="esq-caja"><span class="esq-tit">SI</span>1,013 × 10<sup>5</sup> Pa</div>
+        <div class="esq-caja"><span class="esq-tit">COLUMNA</span>760 mmHg</div>
+        <div class="esq-caja"><span class="esq-tit">GOMERÍA</span>14,7 psi</div>
+        <div class="esq-caja"><span class="esq-tit">METEOROLOGÍA</span>1013 mbar</div>
+      </div>
+    </div>
+    <figcaption>Cuatro maneras de escribir la misma presión, con las equivalencias de OpenStax [3].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
   <p>Cómo varía la presión con la profundidad, y cómo se miden presiones con columnas de líquido, es el tema del artículo sobre la <a href="ley-hidrostatica.html">ley fundamental de la hidrostática</a>.</p>
 
   <div class="tech-note">

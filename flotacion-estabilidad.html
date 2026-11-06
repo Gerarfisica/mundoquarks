@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -60,6 +64,37 @@
   <p>Cuando un barco se inclina un poco hacia un lado, ese lado se hunde más y el otro sale un poco del agua. El centro de empuje se corre hacia el lado hundido, a una nueva posición B′ [3]. La vertical que pasa por B′ corta la línea que antes unía B y G en un punto M, el <strong>metacentro</strong>, que para inclinaciones chicas queda prácticamente fijo [3]. Si M está por encima de G, el peso y el empuje forman una cupla que endereza el barco; si M está por debajo, la cupla lo vuelca [3]. La distancia entre los dos es la <strong>altura metacéntrica</strong> [3]:</p>
   <div class="math-block">GM = BM − BG<br>GM &gt; 0 (M arriba de G): equilibrio estable · GM = 0: equilibrio indiferente · GM &lt; 0 (M abajo de G): equilibrio inestable</div>
   <p>Es decir: lo que decide la estabilidad de un cuerpo que flota no es la posición relativa de B y G, sino la de M y G [3].</p>
+  <figure class="figura" id="met">
+    <canvas id="met-c" width="1280" height="720" role="img" aria-label="Sección de una barcaza inclinada sobre el agua, con el centro de gravedad G, el centro de empuje B y el metacentro M. Si G está debajo de M, la cupla endereza la barcaza; si está arriba, la vuelca."></canvas>
+    <div class="int-control"><label for="met-a">Inclinación</label><input type="range" id="met-a" min="0" max="20" step="1" value="15"><output id="met-ao" for="met-a">15°</output></div>
+    <div class="int-control"><label for="met-g">Altura de G</label><input type="range" id="met-g" min="0.4" max="2.6" step="0.05" value="0.8"><output id="met-go" for="met-g">0,80 m</output></div>
+    <p class="int-estado" id="met-e" aria-live="polite"></p>
+    <figcaption>Una barcaza rectangular de 4 m de ancho y 1 m de calado, con alturas medidas desde el fondo. B está a 0,5 m y BM = I<sub>0</sub>/V<sub>sum</sub> vale 1,33 m, así que M queda a 1,83 m (cálculo propio con la fórmula del artículo [4]). Si G está por debajo de M, peso y empuje forman una cupla que endereza; si está por encima, la cupla vuelca [3]. El cálculo vale para inclinaciones chicas.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('met-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 360;
+    var sa = document.getElementById('met-a'), sg = document.getElementById('met-g'), ao = document.getElementById('met-ao'), go = document.getElementById('met-go'), es = document.getElementById('met-e');
+    var S = 62, CX = 320, YW = 214, L = 2, D = 1, HC = 2.4, ZB = 0.5, BM = 4 / 3, ZM = ZB + BM, CI = '#00d4ff', NA = '#f5a623', VE = '#5ee0a0', GR = '#8892b0';
+    function flecha(x, y1, y2, c) { var s = y2 > y1 ? 1 : -1; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = 3.5; g.beginPath(); g.moveTo(x, y1); g.lineTo(x, y2 - s * 10); g.stroke(); g.beginPath(); g.moveTo(x, y2); g.lineTo(x - 7, y2 - s * 12); g.lineTo(x + 7, y2 - s * 12); g.closePath(); g.fill(); }
+    function poner() {
+      var d = +sa.value, zg = +sg.value, a = d * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), t = Math.tan(a), gm = ZM - zg;
+      function P(x, z) { var dz = z - D; return [CX + S * (x * c + dz * s), YW - S * (-x * s + dz * c)]; }
+      var bx = BM * t, bz = ZB + BM * t * t / 2, pb = P(bx, bz), pg = P(0, zg), pm = P(0, ZM), q, k;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.2)'; g.fillRect(16, YW, 608, H - YW - 12); g.strokeStyle = CI; g.lineWidth = 2; g.beginPath(); g.moveTo(16, YW); g.lineTo(624, YW); g.stroke();
+      g.fillStyle = 'rgba(38,52,95,0.92)'; g.strokeStyle = GR; g.lineWidth = 2.5; g.beginPath(); [[-L, 0], [L, 0], [L, HC], [-L, HC]].forEach(function (v, i) { q = P(v[0], v[1]); if (i) g.lineTo(q[0], q[1]); else g.moveTo(q[0], q[1]); }); g.closePath(); g.fill(); g.stroke();
+      g.strokeStyle = 'rgba(136,146,176,0.5)'; g.setLineDash([5, 5]); g.lineWidth = 1.5; q = P(0, 0); g.beginPath(); g.moveTo(q[0], q[1]); g.lineTo(pm[0], pm[1]); g.stroke(); g.setLineDash([]);
+      flecha(pb[0], pb[1], pb[1] - 74, VE); flecha(pg[0], pg[1], pg[1] + 74, NA);
+      function pto(p, n, col) { g.fillStyle = col; g.beginPath(); g.arc(p[0], p[1], 6, 0, 6.3); g.fill(); g.font = "700 16px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillText(n, p[0] + 10, p[1] - 8); }
+      pto(pb, 'B′', VE); pto(pg, 'G', NA); pto(pm, 'M', '#eef2ff');
+      ao.textContent = d + '°'; go.textContent = zg.toFixed(2).replace('.', ',') + ' m';
+      es.innerHTML = 'GM = ' + gm.toFixed(2).replace('.', ',').replace('-', '−') + ' m: ' + (gm > 0.01 ? 'la cupla <strong>endereza</strong> la barcaza.' : gm < -0.01 ? 'la cupla la <strong>vuelca</strong>.' : 'equilibrio <strong>indiferente</strong>.');
+    }
+    sa.addEventListener('input', poner); sg.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El péndulo invisible:</strong> un barco estable se comporta como si colgara del metacentro. Si M está arriba de G, el barco es como un péndulo colgado de un clavo: al inclinarlo, vuelve. Si M está abajo de G, es como un péndulo parado sobre su punta: cualquier empujón lo tira.</p>
@@ -69,6 +104,38 @@
   <p>Cuánto se corre el centro de empuje depende de la forma de la superficie de flotación, el «dibujo» que hace el casco al nivel del agua. En los apuntes del curso de mecánica de fluidos del IIT Guwahati, la altura metacéntrica se escribe así [4]:</p>
   <div class="math-block">MG = I<sub>0</sub> / V<sub>sum</sub> − GB<br>I<sub>0</sub>: momento de inercia de área de la superficie de flotación respecto del eje de inclinación · V<sub>sum</sub>: volumen sumergido · GB: distancia entre G y B</div>
   <p>El momento de inercia de área crece muy rápido con el ancho: para un rectángulo, con el cubo del ancho. Los mismos apuntes resuelven el caso de una barcaza de sección rectangular, de ancho 2L y calado H, con el centro de gravedad justo en la línea de flotación. El resultado es que es estable si L² &gt; 3H²/2: cuanto más ancha es comparada con lo que se hunde, más estable [4]. Por eso una balsa ancha es difícil de volcar y un tronco redondo gira con facilidad.</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 362" role="img" aria-labelledby="flo2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="flo2-t">Curva de la altura metacéntrica relativa según el ancho relativo de una barcaza. Es negativa para anchos chicos y positiva a partir de L sobre H igual a 1,22.</title>
+      <rect width="640" height="362" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="18">Una barcaza: ¿cuán ancha para ser estable?</text>
+        <line x1="84.0" y1="300.0" x2="610.0" y2="300.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="76.0" y="305.0" text-anchor="end" fill="#8892b0" font-size="15">−1</text>
+        <line x1="84.0" y1="243.0" x2="610.0" y2="243.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="76.0" y="248.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="84.0" y1="186.0" x2="610.0" y2="186.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="76.0" y="191.0" text-anchor="end" fill="#8892b0" font-size="15">1</text>
+        <line x1="84.0" y1="129.0" x2="610.0" y2="129.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="76.0" y="134.0" text-anchor="end" fill="#8892b0" font-size="15">2</text>
+        <line x1="84.0" y1="72.0" x2="610.0" y2="72.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="76.0" y="77.0" text-anchor="end" fill="#8892b0" font-size="15">3</text>
+        <text x="84.0" y="324.0" text-anchor="middle" fill="#8892b0" font-size="15">0</text>
+        <text x="259.3" y="324.0" text-anchor="middle" fill="#8892b0" font-size="15">1</text>
+        <text x="434.7" y="324.0" text-anchor="middle" fill="#8892b0" font-size="15">2</text>
+        <text x="610.0" y="324.0" text-anchor="middle" fill="#8892b0" font-size="15">3</text>
+        <text x="347.0" y="348.0" text-anchor="middle" fill="#8892b0" font-size="16">L / H</text>
+        <text x="20.0" y="50.0" text-anchor="start" fill="#8892b0" font-size="15">MG / H</text>
+        <polyline points="84.0,271.5 85.8,271.5 87.5,271.5 89.3,271.5 91.0,271.5 92.8,271.5 94.5,271.4 96.3,271.4 98.0,271.4 99.8,271.3 101.5,271.3 103.3,271.3 105.0,271.2 106.8,271.2 108.5,271.1 110.3,271.1 112.1,271.0 113.8,271.0 115.6,270.9 117.3,270.8 119.1,270.7 120.8,270.7 122.6,270.6 124.3,270.5 126.1,270.4 127.8,270.3 129.6,270.2 131.3,270.1 133.1,270.0 134.8,269.9 136.6,269.8 138.4,269.7 140.1,269.6 141.9,269.4 143.6,269.3 145.4,269.2 147.1,269.0 148.9,268.9 150.6,268.8 152.4,268.6 154.1,268.5 155.9,268.3 157.6,268.1 159.4,268.0 161.1,267.8 162.9,267.7 164.7,267.5 166.4,267.3 168.2,267.1 169.9,266.9 171.7,266.8 173.4,266.6 175.2,266.4 176.9,266.2 178.7,266.0 180.4,265.8 182.2,265.5 183.9,265.3 185.7,265.1 187.4,264.9 189.2,264.7 191.0,264.4 192.7,264.2 194.5,264.0 196.2,263.7 198.0,263.5 199.7,263.2 201.5,263.0 203.2,262.7 205.0,262.5 206.7,262.2 208.5,261.9 210.2,261.7 212.0,261.4 213.7,261.1 215.5,260.8 217.3,260.5 219.0,260.2 220.8,259.9 222.5,259.6 224.3,259.3 226.0,259.0 227.8,258.7 229.5,258.4 231.3,258.1 233.0,257.8 234.8,257.4 236.5,257.1 238.3,256.8 240.0,256.5 241.8,256.1 243.6,255.8 245.3,255.4 247.1,255.1 248.8,254.7 250.6,254.4 252.3,254.0 254.1,253.6 255.8,253.3 257.6,252.9 259.3,252.5 261.1,252.1 262.8,251.7 264.6,251.3 266.3,250.9 268.1,250.6 269.9,250.2 271.6,249.7 273.4,249.3 275.1,248.9 276.9,248.5 278.6,248.1 280.4,247.7 282.1,247.2 283.9,246.8 285.6,246.4 287.4,245.9 289.1,245.5 290.9,245.0 292.6,244.6 294.4,244.1 296.2,243.7 297.9,243.2 299.7,242.8 301.4,242.3 303.2,241.8 304.9,241.3 306.7,240.9 308.4,240.4 310.2,239.9 311.9,239.4 313.7,238.9 315.4,238.4 317.2,237.9 318.9,237.4 320.7,236.9 322.5,236.4 324.2,235.8 326.0,235.3 327.7,234.8 329.5,234.3 331.2,233.7 333.0,233.2 334.7,232.6 336.5,232.1 338.2,231.6 340.0,231.0 341.7,230.4 343.5,229.9 345.2,229.3 347.0,228.8 348.8,228.2 350.5,227.6 352.3,227.0 354.0,226.4 355.8,225.9 357.5,225.3 359.3,224.7 361.0,224.1 362.8,223.5 364.5,222.9 366.3,222.3 368.0,221.6 369.8,221.0 371.5,220.4 373.3,219.8 375.1,219.1 376.8,218.5 378.6,217.9 380.3,217.2 382.1,216.6 383.8,215.9 385.6,215.3 387.3,214.6 389.1,214.0 390.8,213.3 392.6,212.6 394.3,212.0 396.1,211.3 397.8,210.6 399.6,209.9 401.4,209.3 403.1,208.6 404.9,207.9 406.6,207.2 408.4,206.5 410.1,205.8 411.9,205.1 413.6,204.3 415.4,203.6 417.1,202.9 418.9,202.2 420.6,201.5 422.4,200.7 424.1,200.0 425.9,199.3 427.7,198.5 429.4,197.8 431.2,197.0 432.9,196.3 434.7,195.5 436.4,194.7 438.2,194.0 439.9,193.2 441.7,192.4 443.4,191.7 445.2,190.9 446.9,190.1 448.7,189.3 450.4,188.5 452.2,187.7 454.0,186.9 455.7,186.1 457.5,185.3 459.2,184.5 461.0,183.7 462.7,182.9 464.5,182.0 466.2,181.2 468.0,180.4 469.7,179.5 471.5,178.7 473.2,177.9 475.0,177.0 476.7,176.2 478.5,175.3 480.3,174.5 482.0,173.6 483.8,172.7 485.5,171.9 487.3,171.0 489.0,170.1 490.8,169.2 492.5,168.4 494.3,167.5 496.0,166.6 497.8,165.7 499.5,164.8 501.3,163.9 503.0,163.0 504.8,162.1 506.6,161.1 508.3,160.2 510.1,159.3 511.8,158.4 513.6,157.5 515.3,156.5 517.1,155.6 518.8,154.6 520.6,153.7 522.3,152.8 524.1,151.8 525.8,150.8 527.6,149.9 529.3,148.9 531.1,148.0 532.9,147.0 534.6,146.0 536.4,145.0 538.1,144.0 539.9,143.1 541.6,142.1 543.4,141.1 545.1,140.1 546.9,139.1 548.6,138.1 550.4,137.1 552.1,136.1 553.9,135.0 555.6,134.0 557.4,133.0 559.2,132.0 560.9,130.9 562.7,129.9 564.4,128.9 566.2,127.8 567.9,126.8 569.7,125.7 571.4,124.7 573.2,123.6 574.9,122.5 576.7,121.5 578.4,120.4 580.2,119.3 581.9,118.3 583.7,117.2 585.5,116.1 587.2,115.0 589.0,113.9 590.7,112.8 592.5,111.7 594.2,110.6 596.0,109.5 597.7,108.4 599.5,107.3 601.2,106.2 603.0,105.0 604.7,103.9 606.5,102.8 608.2,101.6 610.0,100.5" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="298.7" y1="243.0" x2="298.7" y2="300.0" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <circle cx="298.7" cy="243.0" r="6" fill="#f5a623"/>
+        <text x="310.7" y="267.0" text-anchor="start" fill="#f5a623" font-size="16">L/H = 1,22</text>
+        <text x="171.7" y="280.4" text-anchor="start" fill="#ff7a7a" font-size="16">inestable</text>
+        <text x="461.0" y="217.4" text-anchor="start" fill="#5ee0a0" font-size="16">estable</text>
+      </g>
+    </svg>
+    <figcaption>Altura metacéntrica de la barcaza de los apuntes del IIT Guwahati, de ancho 2L y calado H, con G en la línea de flotación [4]. Con I<sub>0</sub>/V<sub>sum</sub> = L²/(3H) y GB = H/2, es estable si L² &gt; 3H²/2, es decir, L/H &gt; 1,22 (la curva es un cálculo propio).<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Cuando la carga se mueve</h2>
   <p>Hay un enemigo de la estabilidad que no está en el casco sino adentro. Si un barco lleva líquido con superficie libre y se inclina, el líquido se corre para mantener su superficie horizontal, y el centro de gravedad se mueve hacia el mismo lado que el centro de empuje [3]. Eso reduce la estabilidad. Por eso los líquidos que lleva un barco se reparten en varios compartimentos separados, para limitar su movimiento [3]. Lo mismo vale si se corre la carga: los apuntes de NPTEL aclaran que suponer G fijo no siempre es cierto en los barcos, justamente porque la carga puede desplazarse [3].</p>
@@ -76,6 +143,22 @@
   <div class="tech-note">
     <p><strong>Rolido y cabeceo:</strong> un barco puede inclinarse alrededor de dos ejes. La rotación alrededor de su eje longitudinal, de proa a popa, es el rolido; la rotación alrededor del eje transversal es el cabeceo [3]. Como un barco es mucho más largo que ancho, la superficie de flotación tiene un momento de inercia mucho mayor para el cabeceo, y por eso un barco vuelca de costado y no de punta (un razonamiento propio a partir de la fórmula de MG).</p>
   </div>
+  <figure class="figura">
+    <svg viewBox="0 0 640 344" role="img" aria-labelledby="flo3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="flo3-t">Superficie de flotación de un barco vista desde arriba, larga y angosta. El eje de rolido va de proa a popa y el eje de cabeceo cruza el barco.</title>
+      <rect width="640" height="344" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Un barco visto desde arriba</text>
+        <path d="M70,180 Q190,104 450,114 Q560,122 600,180 Q560,238 450,246 Q190,256 70,180 Z" fill="#00d4ff33" stroke="#00d4ff" stroke-width="2.5"/>
+        <line x1="36.0" y1="180.0" x2="620.0" y2="180.0" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="8 6"/>
+        <line x1="330.0" y1="70.0" x2="330.0" y2="300.0" stroke="#5ee0a0" stroke-width="2.5" stroke-dasharray="8 6"/>
+        <text x="130.0" y="168.0" text-anchor="start" fill="#f5a623" font-size="15">eje de rolido</text>
+        <text x="342.0" y="86.0" text-anchor="start" fill="#5ee0a0" font-size="15">eje de cabeceo</text>
+        <text x="320.0" y="326.0" text-anchor="middle" fill="#8892b0" font-size="15">superficie de flotación</text>
+      </g>
+    </svg>
+    <figcaption>Los dos ejes de inclinación de un barco [3]. Respecto del eje de cabeceo, la superficie de flotación tiene mucha más longitud lejos del eje: su momento de inercia de área es mucho mayor, y por eso un barco vuelca de costado y no de punta.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <p>Flotar depende de la densidad; flotar derecho depende de la geometría. El metacentro resume en un punto cómo responde el empuje a una inclinación, y su altura sobre el centro de gravedad decide si un barco se endereza o vuelca. Es una idea que empezó con Arquímedes y que hoy calcula cada ingeniero naval antes de que un barco toque el agua.</p>
 

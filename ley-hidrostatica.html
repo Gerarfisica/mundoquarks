@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -56,6 +58,46 @@
   <p>Tomemos una capa delgada de fluido en reposo, a cierta profundidad. Sobre ella actúan la presión de arriba, la presión de abajo y su propio peso. Como no se acelera, esas fuerzas se equilibran, y de ahí sale una ecuación diferencial: la presión cambia con la altura en proporción a la densidad del fluido [1]. Si la densidad es constante, como en un líquido en una pileta, se integra y queda la ley fundamental [1]:</p>
   <div class="math-block">dp/dy = −ρg &nbsp;→&nbsp; p = p<sub>0</sub> + ρgh<br>p: presión a la profundidad h · p<sub>0</sub>: presión en la superficie (la atmosférica) · ρ: densidad del fluido · g: gravedad · h: profundidad<br>Vale para un fluido de densidad constante</div>
   <p>Con agua, cada diez metros de profundidad suman aproximadamente una atmósfera: con ρ = 1000 kg/m³ y g = 9,8 m/s², diez metros dan unos 98 000 Pa (un cálculo propio). Por eso un buzo a 30 metros está a unas cuatro atmósferas absolutas: una del aire y tres del agua.</p>
+  <figure class="figura" id="buz">
+    <canvas id="buz-c" width="1280" height="760" role="img" aria-label="Corte vertical del mar con un buzo que se puede bajar hasta 40 metros, una regla de profundidad y un medidor de presión absoluta en atmósferas."></canvas>
+    <div class="int-control"><label for="buz-h">Profundidad</label><input type="range" id="buz-h" min="0" max="40" step="1" value="10"><output id="buz-o" for="buz-h">10 m</output></div>
+    <p class="int-estado" id="buz-e" aria-live="polite"></p>
+    <figcaption>La ley p = p<sub>0</sub> + ρgh con ρ = 1000 kg/m³, g = 9,8 m/s² y p<sub>0</sub> = 1,013 × 10<sup>5</sup> Pa. Cada diez metros de agua suman casi una atmósfera [1]. Arrastrá el buzo o mové el control.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('buz-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 380;
+    var sl = document.getElementById('buz-h'), so = document.getElementById('buz-o'), es = document.getElementById('buz-e');
+    var X0 = 70, X1 = 400, YS = 34, YF = 358, HM = 40, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', arr = false;
+    function Y(h) { return YS + (YF - YS) * h / HM; }
+    function poner() {
+      var h = +sl.value, p = 101300 + 1000 * 9.8 * h, atm = p / 101300, y = Y(h), k, gr, a;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      gr = g.createLinearGradient(0, YS, 0, YF); gr.addColorStop(0, 'rgba(0,212,255,0.20)'); gr.addColorStop(1, 'rgba(26,108,245,0.34)'); g.fillStyle = gr; g.fillRect(X0, YS, X1 - X0, YF - YS);
+      g.strokeStyle = CI; g.lineWidth = 2; g.beginPath(); g.moveTo(X0, YS); g.lineTo(X1, YS); g.stroke();
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'right';
+      for (k = 0; k <= 40; k += 10) { g.strokeStyle = '#1c2c55'; g.lineWidth = 1; g.beginPath(); g.moveTo(X0, Y(k)); g.lineTo(X1, Y(k)); g.stroke(); g.fillStyle = GR; g.fillText(k + ' m', X0 - 8, Y(k) + 5); }
+      g.fillStyle = '#eef2ff'; g.strokeStyle = '#eef2ff'; g.lineWidth = 3; g.lineCap = 'round';
+      g.beginPath(); g.arc(235, y - 16, 8, 0, 6.3); g.fill(); g.beginPath(); g.moveTo(235, y - 8); g.lineTo(235, y + 12); g.moveTo(235, y + 12); g.lineTo(227, y + 26); g.moveTo(235, y + 12); g.lineTo(243, y + 26); g.moveTo(235, y); g.lineTo(224, y + 10); g.moveTo(235, y); g.lineTo(246, y + 10); g.stroke(); g.lineCap = 'butt';
+      a = -Math.PI * 0.75 + Math.PI * 1.5 * Math.min(1, (atm - 1) / 4);
+      g.strokeStyle = GR; g.lineWidth = 3; g.beginPath(); g.arc(520, 150, 84, Math.PI * 0.75, Math.PI * 2.25); g.stroke();
+      g.textAlign = 'center'; g.fillStyle = GR; for (k = 1; k <= 5; k++) { var b = -Math.PI * 1.25 + Math.PI * 1.5 * (k - 1) / 4; g.fillText(String(k), 520 + 66 * Math.cos(b), 155 + 66 * Math.sin(b)); }
+      g.strokeStyle = NA; g.lineWidth = 4; g.beginPath(); g.moveTo(520, 150); g.lineTo(520 + 76 * Math.cos(a - Math.PI / 2), 150 + 76 * Math.sin(a - Math.PI / 2)); g.stroke();
+      g.fillStyle = NA; g.beginPath(); g.arc(520, 150, 7, 0, 6.3); g.fill();
+      g.font = "700 22px 'Space Mono',monospace"; g.fillStyle = '#eef2ff'; g.fillText(atm.toFixed(2).replace('.', ',') + ' atm', 520, 268);
+      g.font = "14px 'Space Mono',monospace"; g.fillStyle = GR; g.fillText('presión absoluta', 520, 292);
+      so.textContent = h + ' m';
+      es.innerHTML = 'A ' + h + ' m, la presión es de <strong>' + atm.toFixed(2).replace('.', ',') + ' atm</strong>: 1 del aire y ' + (atm - 1).toFixed(2).replace('.', ',') + ' del agua.';
+    }
+    function py(e) { var r = cv.getBoundingClientRect(); return (e.clientY - r.top) * H / r.height; }
+    function fijar(e) { sl.value = Math.round(Math.max(0, Math.min(HM, (py(e) - YS) / (YF - YS) * HM))); poner(); }
+    sl.addEventListener('input', poner);
+    cv.addEventListener('pointerdown', function (e) { arr = true; cv.setPointerCapture(e.pointerId); fijar(e); e.preventDefault(); });
+    cv.addEventListener('pointermove', function (e) { if (arr) fijar(e); });
+    cv.addEventListener('pointerup', function () { arr = false; }); cv.addEventListener('pointercancel', function () { arr = false; });
+    poner(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <h2>La forma del recipiente no importa</h2>
   <p>La ley tiene una consecuencia sorprendente: la presión en un fluido depende solo de la profundidad, y no de la forma del recipiente [1]. Por eso, en un recipiente donde el líquido puede moverse entre varias partes, el nivel queda a la misma altura en todas, sea cual sea su forma: si no fuera así, el fluido correría hasta igualar las presiones [1]. Es el principio de los vasos comunicantes, y el origen de la <a href="paradoja-hidrostatica.html">paradoja hidrostática</a>.</p>
@@ -69,9 +111,49 @@
   <p>En el aire la densidad no es constante: a más altura, menos presión y menos densidad. Suponiendo una temperatura constante y que el aire se comporta como un gas ideal, la misma ecuación da que la presión <strong>baja exponencialmente</strong> con la altura [1]:</p>
   <div class="math-block">p(y) = p<sub>0</sub> e<sup>−αy</sup> &nbsp;·&nbsp; α = mg / (k<sub>B</sub>T)<br>Con la masa de una molécula de nitrógeno y T = 300 K: 1/α ≈ 8800 m (estimación de OpenStax)</div>
   <p>Cada 8800 metros, aproximadamente, la presión se divide por e, es decir, baja a un tercio de su valor [1]. OpenStax aclara que es una estimación gruesa, porque supone una temperatura y una gravedad constantes en distancias enormes, y ninguna de las dos cosas es cierta [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 352" role="img" aria-labelledby="ley2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="ley2-t">Curva exponencial de la presión relativa según la altura hasta treinta kilómetros. A 8800 metros vale uno sobre e, cerca de un tercio.</title>
+      <rect width="640" height="352" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">La presión baja con la altura</text>
+        <line x1="90.0" y1="310.0" x2="610.0" y2="310.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="315.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="90.0" y1="248.5" x2="610.0" y2="248.5" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="253.5" text-anchor="end" fill="#8892b0" font-size="15">0,25</text>
+        <line x1="90.0" y1="187.0" x2="610.0" y2="187.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="192.0" text-anchor="end" fill="#8892b0" font-size="15">0,5</text>
+        <line x1="90.0" y1="125.5" x2="610.0" y2="125.5" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="130.5" text-anchor="end" fill="#8892b0" font-size="15">0,75</text>
+        <line x1="90.0" y1="64.0" x2="610.0" y2="64.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="69.0" text-anchor="end" fill="#8892b0" font-size="15">1</text>
+        <line x1="90.0" y1="310.0" x2="90.0" y2="316.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="90.0" y="335.0" text-anchor="middle" fill="#8892b0" font-size="15">0 km</text>
+        <line x1="263.3" y1="310.0" x2="263.3" y2="316.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="263.3" y="335.0" text-anchor="middle" fill="#8892b0" font-size="15">10 km</text>
+        <line x1="436.7" y1="310.0" x2="436.7" y2="316.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="436.7" y="335.0" text-anchor="middle" fill="#8892b0" font-size="15">20 km</text>
+        <line x1="610.0" y1="310.0" x2="610.0" y2="316.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="610.0" y="335.0" text-anchor="middle" fill="#8892b0" font-size="15">30 km</text>
+        <line x1="90.0" y1="310.0" x2="610.0" y2="310.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="24.0" y="48.0" text-anchor="start" fill="#8892b0" font-size="15">p / p<tspan dy="5" font-size="70%">0</tspan><tspan dy="-5">​</tspan></text>
+        <polyline points="90.0,64.0 95.2,72.2 100.4,80.2 105.6,87.9 110.8,95.4 116.0,102.6 121.2,109.5 126.4,116.2 131.6,122.7 136.8,129.0 142.0,135.1 147.2,140.9 152.4,146.6 157.6,152.1 162.8,157.4 168.0,162.5 173.2,167.4 178.4,172.2 183.6,176.8 188.8,181.3 194.0,185.6 199.2,189.8 204.4,193.8 209.6,197.7 214.8,201.5 220.0,205.1 225.2,208.6 230.4,212.0 235.6,215.3 240.8,218.5 246.0,221.5 251.2,224.5 256.4,227.4 261.6,230.1 266.8,232.8 272.0,235.4 277.2,237.9 282.4,240.3 287.6,242.7 292.8,244.9 298.0,247.1 303.2,249.2 308.4,251.2 313.6,253.2 318.8,255.1 324.0,256.9 329.2,258.7 334.4,260.4 339.6,262.1 344.8,263.7 350.0,265.3 355.2,266.8 360.4,268.2 365.6,269.6 370.8,271.0 376.0,272.3 381.2,273.5 386.4,274.8 391.6,275.9 396.8,277.1 402.0,278.2 407.2,279.3 412.4,280.3 417.6,281.3 422.8,282.2 428.0,283.2 433.2,284.1 438.4,284.9 443.6,285.8 448.8,286.6 454.0,287.4 459.2,288.1 464.4,288.9 469.6,289.6 474.8,290.3 480.0,290.9 485.2,291.6 490.4,292.2 495.6,292.8 500.8,293.4 506.0,293.9 511.2,294.5 516.4,295.0 521.6,295.5 526.8,296.0 532.0,296.4 537.2,296.9 542.4,297.3 547.6,297.8 552.8,298.2 558.0,298.6 563.2,298.9 568.4,299.3 573.6,299.7 578.8,300.0 584.0,300.4 589.2,300.7 594.4,301.0 599.6,301.3 604.8,301.6 610.0,301.9" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="242.5" y1="310.0" x2="242.5" y2="219.5" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <line x1="90.0" y1="219.5" x2="242.5" y2="219.5" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <circle cx="242.5" cy="219.5" r="6" fill="#f5a623"/>
+        <text x="256.5" y="185.5" text-anchor="start" fill="#f5a623" font-size="16">a 8800 m: 1/e</text>
+        <text x="256.5" y="205.5" text-anchor="start" fill="#f5a623" font-size="16">cerca de un tercio</text>
+      </g>
+    </svg>
+    <figcaption>La curva p(y) = p<sub>0</sub> e<sup>−αy</sup> con 1/α ≈ 8800 m, la estimación de OpenStax [1]. Supone temperatura y gravedad constantes, así que es una aproximación gruesa, como aclara el libro.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Medir presiones con columnas de líquido</h2>
   <p>La ley también sirve para medir. En un <strong>manómetro</strong> de tubo en U abierto de un lado, la presión manométrica que se quiere medir sostiene una columna de líquido de altura h, y vale p = hρg [2]. En 1643, Evangelista Torricelli inventó el <strong>barómetro</strong>: un tubo de vidrio cerrado de un lado, lleno de mercurio y dado vuelta sobre una cubeta de mercurio. Arriba queda un vacío casi perfecto, así que la columna mide la presión atmosférica [2]. A nivel del mar, la columna mide unos 760 mm, y por eso 760 mmHg equivale a una atmósfera [2]. Con agua en lugar de mercurio, la columna tendría unos diez metros (un cálculo propio).</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/ley-hidrostatica-barometro.jpg" width="500" height="1500" loading="lazy" style="width:min(13rem,100%);margin:0 auto" alt="Barómetro de mercurio antiguo, largo y angosto, con su tubo de vidrio montado sobre una tabla de madera y una escala en la parte superior.">
+    <figcaption>Un barómetro de mercurio alemán del siglo XIX. Es el instrumento de Torricelli: la columna de mercurio equilibra la presión de la atmósfera, y a nivel del mar mide unos 760 mm [2].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Mercury_barometer_-_Pariser_Maasz_-_Germany_-_19th_century.jpg" target="_blank" rel="noopener">Franz van Duns</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></figcaption>
+  </figure>
   <p>Según MacTutor, Blaise Pascal observó en agosto de 1648 que la presión de la atmósfera disminuye con la altura, y dedujo que por encima de la atmósfera había un vacío [3]. Hoy el barómetro también se usa como altímetro, porque la presión atmosférica media disminuye con la altura [2].</p>
 
   <div class="tech-note">

@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -54,6 +56,34 @@
 
   <h2>De dónde sale el empuje</h2>
   <p>El empuje no es una fuerza misteriosa: sale de la presión. La presión de un fluido aumenta con la profundidad, así que la parte de abajo de un objeto sumergido recibe más presión que la de arriba [1]. La presión empuja perpendicular a cada superficie: abajo, hacia arriba; arriba, hacia abajo; a los costados, hacia adentro, y esas fuerzas laterales se cancelan [1]. Lo que sobra es una fuerza neta hacia arriba.</p>
+  <figure class="figura" id="emp">
+    <canvas id="emp-c" width="1280" height="700" role="img" aria-label="Un cubo que se baja dentro del agua. Una flecha muestra la presión sobre la cara de abajo y otra sobre la de arriba. La diferencia es el empuje, que crece hasta que el cubo queda sumergido y después se mantiene."></canvas>
+    <div class="int-control"><label for="emp-p">Cuánto baja el cubo</label><input type="range" id="emp-p" min="0" max="60" step="1" value="10"><output id="emp-o" for="emp-p">10 cm</output></div>
+    <p class="int-estado" id="emp-e" aria-live="polite"></p>
+    <figcaption>Un cubo de 20 cm de lado en agua, con ρ = 1000 kg/m³ y g = 9,8 m/s², contando solo la presión del agua. La fuerza sobre la cara de abajo menos la fuerza sobre la de arriba da el empuje, igual al peso del agua desplazada [1]. Una vez sumergido del todo, ya no cambia: las dos caras aumentan lo mismo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('emp-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 350;
+    var sl = document.getElementById('emp-p'), so = document.getElementById('emp-o'), es = document.getElementById('emp-e');
+    var YS = 70, K = 3.2, LADO = 20, CX = 200, RHO = 1000, G = 9.8, A = 0.04, NA = '#f5a623', CI = '#00d4ff', GR = '#8892b0', VE = '#5ee0a0';
+    function flecha(x, y1, y2, c, w) { var s = y2 > y1 ? 1 : -1; if (Math.abs(y2 - y1) < 8) return; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x, y1); g.lineTo(x, y2 - s * 10); g.stroke(); g.beginPath(); g.moveTo(x, y2); g.lineTo(x - 8, y2 - s * 12); g.lineTo(x + 8, y2 - s * 12); g.closePath(); g.fill(); }
+    function poner() {
+      var d = +sl.value, top = d - LADO, zt = Math.max(0, top) / 100, zb = d / 100, Ft = RHO * G * zt * A, Fb = RHO * G * zb * A, Em = Fb - Ft, l = LADO * K, y = YS + top * K, q = 0.42, r;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.18)'; g.fillRect(16, YS, 400, H - YS - 16); g.strokeStyle = CI; g.lineWidth = 2; g.beginPath(); g.moveTo(16, YS); g.lineTo(416, YS); g.stroke();
+      g.fillStyle = '#26345f'; g.fillRect(CX - l / 2, y, l, l); g.strokeStyle = GR; g.lineWidth = 2; g.strokeRect(CX - l / 2, y, l, l);
+      flecha(CX, y - 8 - Ft * 0.6, y - 2, NA, 4); flecha(CX, Math.min(H - 6, y + l + 8 + Fb * 0.6), y + l + 2, NA, 4);
+      r = Math.min(200, Em * 2.2); flecha(520, 300, 300 - r, VE, 6);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = VE; g.fillText('empuje', 520, 324); g.fillText(Em.toFixed(1).replace('.', ',') + ' N', 520, 344);
+      g.textAlign = 'left'; g.fillStyle = NA; g.fillText('arriba: ' + Ft.toFixed(1).replace('.', ',') + ' N', 432, 30); g.fillText('abajo: ' + Fb.toFixed(1).replace('.', ',') + ' N', 432, 52);
+      so.textContent = d + ' cm';
+      es.innerHTML = 'Empuje: <strong>' + Em.toFixed(1).replace('.', ',') + ' N</strong>, el peso de ' + (Em / G).toFixed(1).replace('.', ',') + ' kg de agua desplazada.' + (d >= LADO ? ' El cubo ya está sumergido: el empuje no cambia aunque baje más.' : '');
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <h2>El principio</h2>
   <p>Según OpenStax, el principio de Arquímedes dice que el empuje sobre un objeto es igual al peso del fluido que desplaza [1]:</p>
@@ -68,6 +98,10 @@
   <p>Un pedazo de arcilla se hunde en el agua. La misma arcilla, moldeada como un barquito, flota: por su forma desplaza más agua y recibe más empuje, aunque su masa sea la misma [1]. Lo mismo pasa con los barcos de acero [1]. Lo que decide si algo flota es su <strong>densidad media</strong>: si es menor que la del fluido, flota; si es mayor, se hunde [1]. Y la fracción que queda sumergida es justamente el cociente de las densidades [1]:</p>
   <div class="math-block">fracción sumergida = V<sub>sum</sub> / V<sub>obj</sub> = ρ<sub>obj</sub> / ρ<sub>fl</sub><br>ρ<sub>obj</sub>: densidad media del objeto · ρ<sub>fl</sub>: densidad del fluido</div>
   <p>OpenStax lo ejemplifica con una mujer de 60 kg que flota en agua dulce con el 97 % del volumen sumergido, con los pulmones llenos de aire: su densidad media es de 970 kg/m³, menor que la del agua [1]. Los ejemplos de cosas menos densas que flotan en fluidos más densos son muchos: aceite sobre agua, un globo de aire caliente en la atmósfera, un corcho en el vino, un iceberg en el mar, la cera de una lámpara de lava [1]. Y uno menos obvio: las cordilleras, que «flotan» sobre la corteza y el manto, más densos, que tienen debajo [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/principio-arquimedes-iceberg.jpg" width="960" height="720" loading="lazy" alt="Iceberg tabular de paredes verticales celestes, con una cueva al nivel del agua, sobre el mar oscuro bajo un cielo nublado.">
+    <figcaption>Un iceberg tabular en la península Antártica. Flota porque es menos denso que el mar, y lo que se ve es solo la parte que sobresale: la fracción sumergida es el cociente de las densidades [1].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Anta0071_-_Flickr_-_NOAA_Photo_Library.jpg" target="_blank" rel="noopener">David Demer, NOAA</a> · Dominio público</span></figcaption>
+  </figure>
   <p>Los submarinos aprovechan esto al revés: tienen tanques de lastre que les permiten ajustar su densidad para flotar o hundirse a voluntad [1]. Por qué un objeto que flota no se da vuelta es otra historia, la de la <a href="flotacion-estabilidad.html">estabilidad de los cuerpos flotantes</a>.</p>
 
   <h2>Pesar bajo el agua</h2>
@@ -76,6 +110,38 @@
   <h2>La corona de Hierón</h2>
   <p>La historia más famosa de la física antigua viene del arquitecto romano Vitruvio, en el siglo I a. C. Según él, el rey Hierón II de Siracusa sospechaba que el orfebre que le hizo una corona de oro había reemplazado parte del oro por plata, y le pidió a Arquímedes que lo averiguara [3]. Al meterse en la bañera y ver que el agua rebalsaba, Arquímedes encontró la solución: sumergir en un recipiente lleno hasta el borde un peso de oro puro igual al de la corona, y después la corona. La plata, más liviana, haría la corona más voluminosa y rebalsaría más agua [3]. OpenStax recuerda que el grito de «¡Eureka!» («¡Lo encontré!») se le atribuye a menudo, y que algunos dicen que todo empezó en una bañera [1].</p>
   <p>Chris Rorres, que desde 1995 reúne en un sitio web materiales sobre Arquímedes, hace la cuenta y muestra que el método de Vitruvio es difícil de aplicar. Con una corona de 1000 gramos con 30 % de plata y un recipiente de 20 cm de boca, el nivel del agua subiría solo 0,41 mm más que con oro puro: demasiado poco para medirlo bien [3]. Propone en cambio un método que usa la palanca y el empuje: colgar la corona y un peso igual de oro de los extremos de una balanza y sumergir las dos. La corona, más voluminosa, recibe más empuje, y la balanza se desequilibra en unos 13 gramos, algo que las balanzas de la época podían detectar fácilmente [3].</p>
+  <figure class="figura" id="cor">
+    <canvas id="cor-c" width="1280" height="660" role="img" aria-label="Balanza con una corona de un lado y un peso igual de oro puro del otro. En el aire está equilibrada. Sumergida, la corona recibe más empuje porque es más voluminosa, y la balanza se inclina hacia el oro."></canvas>
+    <div class="int-botones" role="group" aria-label="Medio"><button type="button" data-m="0">en el aire</button><button type="button" data-m="1">sumergidas</button></div>
+    <div class="int-control"><label for="cor-p">Plata en la corona</label><input type="range" id="cor-p" min="0" max="50" step="1" value="30"><output id="cor-o" for="cor-p">30 %</output></div>
+    <p class="int-estado" id="cor-e" aria-live="polite"></p>
+    <figcaption>El método que propone Rorres: una corona de 1000 g y un peso igual de oro, con densidades de 19,3 g/cm³ para el oro y 10,5 g/cm³ para la plata. Con 30 % de plata, el desequilibrio es de unos 13 g [3]. La inclinación del dibujo está exagerada.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cor-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 330;
+    var sl = document.getElementById('cor-p'), so = document.getElementById('cor-o'), es = document.getElementById('cor-e'), bs = document.querySelectorAll('#cor .int-botones button');
+    var CX = 320, CY = 64, BR = 190, M = 1, DO = 19.3, DP = 10.5, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function volC(p) { return 1000 * (1 - p) / DO + 1000 * p / DP; }
+    function poner() {
+      var p = +sl.value / 100, vo = 1000 / DO, vc = volC(p), dif = vc - vo, a = M ? dif * 0.005 : 0, xi = CX - BR * Math.cos(a), yi = CY - BR * Math.sin(a), xd = CX + BR * Math.cos(a), yd = CY + BR * Math.sin(a), LA = 96;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      if (M) { g.fillStyle = 'rgba(0,212,255,0.22)'; g.fillRect(16, 128, 608, 188); g.strokeStyle = CI; g.lineWidth = 2; g.beginPath(); g.moveTo(16, 128); g.lineTo(624, 128); g.stroke(); }
+      g.strokeStyle = GR; g.lineWidth = 5; g.beginPath(); g.moveTo(CX, 14); g.lineTo(CX, CY); g.stroke(); g.lineWidth = 6; g.beginPath(); g.moveTo(xi, yi); g.lineTo(xd, yd); g.stroke();
+      g.lineWidth = 2; g.beginPath(); g.moveTo(xi, yi); g.lineTo(xi, yi + LA); g.moveTo(xd, yd); g.lineTo(xd, yd + LA); g.stroke();
+      var rc = 22 * Math.cbrt(vc / vo), ro = 22;
+      g.strokeStyle = NA; g.lineWidth = 7; g.beginPath(); g.ellipse(xi, yi + LA + rc, rc, rc * 0.62, 0, 0, 6.3); g.stroke();
+      g.fillStyle = NA; g.beginPath(); g.arc(xd, yd + LA + ro, ro * 0.8, 0, 6.3); g.fill();
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = '#eef2ff'; g.fillText('corona', xi, yi + LA + 2 * rc + 26); g.fillText('oro', xd, yd + LA + 2 * ro + 20);
+      so.textContent = Math.round(p * 100) + ' %';
+      es.innerHTML = M ? 'Sumergidas, la corona desplaza ' + vc.toFixed(1).replace('.', ',') + ' g de agua y el oro, ' + vo.toFixed(1).replace('.', ',') + ' g: desequilibrio de <strong>' + dif.toFixed(1).replace('.', ',') + ' g</strong>.' : 'En el aire pesan lo mismo y la balanza queda <strong>equilibrada</strong>.';
+    }
+    function modo(m, b0) { M = m; bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); poner(); }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-m'), b); }); });
+    sl.addEventListener('input', poner); modo(1, bs[1]);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="tech-note">
     <p><strong>El empuje del aire:</strong> el principio vale para cualquier fluido, también para el aire. Por eso un globo de helio tira hacia arriba de su hilo [1]: el helio es mucho menos denso que el aire que desplaza. Y es el principio de los <a href="globos-aerostaticos-dirigibles.html">globos aerostáticos y los dirigibles</a>.</p>

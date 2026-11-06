@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -57,11 +59,67 @@
   <p>El caso más simple es un tanque que acelera en línea recta, como un camión cisterna que arranca. El libro de Genick Bar-Meir muestra que la gravedad efectiva queda inclinada, y la superficie del líquido se inclina con ella, un ángulo β tal que [1]:</p>
   <div class="math-block">tan β = a / g<br>a: aceleración horizontal del recipiente · g: gravedad<br>El módulo de la gravedad efectiva es √(g² + a²)</div>
   <p>Con una aceleración de 5 m/s², que es la que el propio Bar-Meir propone como ejercicio, la superficie se inclina unos 27 grados (un cálculo propio). Por eso el café se derrama cuando frenás de golpe con la taza en la mano.</p>
+  <figure class="figura" id="tan">
+    <canvas id="tan-c" width="1280" height="620" role="img" aria-label="Un tanque con agua que acelera hacia la derecha. La superficie se inclina y queda perpendicular a la gravedad efectiva, la suma de la gravedad y del efecto de la aceleración."></canvas>
+    <div class="int-control"><label for="tan-a">Aceleración</label><input type="range" id="tan-a" min="0" max="10" step="0.5" value="5"><output id="tan-o" for="tan-a">5 m/s²</output></div>
+    <p class="int-estado" id="tan-e" aria-live="polite"></p>
+    <figcaption>La superficie forma con la horizontal un ángulo β tal que tan β = a/g, y queda perpendicular a la gravedad efectiva, de módulo √(g² + a²) [1]. Con los 5 m/s² del ejercicio de Bar-Meir, β es de unos 27 grados.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('tan-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310;
+    var sl = document.getElementById('tan-a'), so = document.getElementById('tan-o'), es = document.getElementById('tan-e');
+    var X0 = 40, X1 = 380, YB = 286, YA = 40, H0 = 120, G = 9.8, K = 12, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function flecha(x1, y1, x2, y2, c, w) { var a = Math.atan2(y2 - y1, x2 - x1), h = 12; if (Math.hypot(x2 - x1, y2 - y1) < 14) return; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - h * Math.cos(a), y2 - h * Math.sin(a)); g.stroke(); g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - h * Math.cos(a) - 6 * Math.sin(a), y2 - h * Math.sin(a) + 6 * Math.cos(a)); g.lineTo(x2 - h * Math.cos(a) + 6 * Math.sin(a), y2 - h * Math.sin(a) - 6 * Math.cos(a)); g.closePath(); g.fill(); }
+    function poner() {
+      var a = +sl.value, b = Math.atan(a / G), w = X1 - X0, d = Math.tan(b) * w / 2, yi = YB - H0 - d, yd = YB - H0 + d, ge = Math.hypot(G, a), ox = 500, oy = 86;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.3)'; g.beginPath(); g.moveTo(X0, YB); g.lineTo(X0, yi); g.lineTo(X1, yd); g.lineTo(X1, YB); g.closePath(); g.fill();
+      g.strokeStyle = CI; g.lineWidth = 3; g.beginPath(); g.moveTo(X0, yi); g.lineTo(X1, yd); g.stroke();
+      g.strokeStyle = GR; g.lineWidth = 3; g.beginPath(); g.moveTo(X0, YA - 8); g.lineTo(X0, YB); g.lineTo(X1, YB); g.lineTo(X1, YA - 8); g.stroke();
+      flecha(X0 + 60, 22, X0 + 60 + a * 14, 22, NA, 4);
+      flecha(ox, oy, ox, oy + G * K, GR, 3); flecha(ox, oy, ox - a * K, oy, GR, 3); flecha(ox, oy, ox - a * K, oy + G * K, '#eef2ff', 4);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = GR; g.fillText('g', ox + 16, oy + G * K - 4); g.fillStyle = '#eef2ff'; g.fillText('gravedad efectiva', 510, 262); g.fillStyle = NA; g.textAlign = 'left'; g.fillText('a', X0 + 40, 27);
+      so.textContent = String(a).replace('.', ',') + ' m/s²';
+      es.innerHTML = 'La superficie se inclina <strong>' + (b * 180 / Math.PI).toFixed(1).replace('.', ',') + '°</strong>, y la gravedad efectiva vale ' + ge.toFixed(1).replace('.', ',') + ' m/s².';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <h2>El balde que gira: un paraboloide</h2>
   <p>Si el recipiente gira con velocidad angular ω alrededor de un eje vertical y el líquido termina girando con él, cada porción de líquido necesita una fuerza hacia el centro para seguir su círculo. Visto desde el balde, eso equivale a una gravedad efectiva que tiene una parte hacia abajo, g, y otra hacia afuera, ω²r, que crece con la distancia r al eje [2]. Como la parte hacia afuera crece con r, la superficie se inclina cada vez más hacia los bordes, y las líneas de presión constante dejan de ser rectas para volverse parábolas [2]:</p>
   <div class="math-block">z − z<sub>0</sub> = ω² r² / (2g)<br>z: altura de la superficie a una distancia r del eje · z<sub>0</sub>: altura en el centro · ω: velocidad angular · g: gravedad</div>
   <p>Girada alrededor del eje, esa parábola es un <strong>paraboloide</strong>. La altura que sube el agua crece con el cuadrado de la velocidad de giro: si el balde gira el doble de rápido, el agua sube cuatro veces más en los bordes. Bar-Meir aplica la misma fórmula a un tubo en U que gira, en el que los dos brazos quedan a distinta altura según su distancia al eje [2].</p>
+  <figure class="figura" id="pab">
+    <canvas id="pab-c" width="1280" height="680" role="img" aria-label="Corte de un balde que gira. La superficie del agua es plana sin giro y se vuelve una parábola, más baja en el centro y más alta en los bordes, al aumentar la velocidad angular."></canvas>
+    <div class="int-control"><label for="pab-w">Velocidad angular</label><input type="range" id="pab-w" min="0" max="18" step="0.5" value="10"><output id="pab-o" for="pab-w">10 rad/s</output></div>
+    <p class="int-estado" id="pab-e" aria-live="polite"></p>
+    <figcaption>La superficie z − z<sub>0</sub> = ω²r²/(2g) en un balde de 15 cm de radio con 20 cm de agua en reposo [2]. El volumen de agua no cambia: lo que baja en el centro sube en los bordes, y por eso z<sub>0</sub> baja al girar (un cálculo propio). Si ω se duplica, la diferencia de altura se multiplica por cuatro.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('pab-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 340;
+    var sl = document.getElementById('pab-w'), so = document.getElementById('pab-o'), es = document.getElementById('pab-e');
+    var CX = 250, YB = 318, K = 680, R = 0.15, H0 = 0.2, BO = 0.42, G = 9.8, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function poner() {
+      var w = +sl.value, c = w * w / (2 * G), z0 = H0 - c * R * R / 2, sube = c * R * R, k, r, z, n = 60;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.3)'; g.beginPath(); g.moveTo(CX - R * K, YB);
+      for (k = 0; k <= n; k++) { r = -R + 2 * R * k / n; z = z0 + c * r * r; g.lineTo(CX + r * K, YB - z * K); } g.lineTo(CX + R * K, YB); g.closePath(); g.fill();
+      g.strokeStyle = CI; g.lineWidth = 3; g.beginPath(); for (k = 0; k <= n; k++) { r = -R + 2 * R * k / n; z = z0 + c * r * r; if (k) g.lineTo(CX + r * K, YB - z * K); else g.moveTo(CX + r * K, YB - z * K); } g.stroke();
+      g.strokeStyle = GR; g.lineWidth = 3; g.beginPath(); g.moveTo(CX - R * K, YB - BO * K); g.lineTo(CX - R * K, YB); g.lineTo(CX + R * K, YB); g.lineTo(CX + R * K, YB - BO * K); g.stroke();
+      g.setLineDash([6, 6]); g.lineWidth = 1.5; g.strokeStyle = GR; g.beginPath(); g.moveTo(CX, 14); g.lineTo(CX, YB); g.moveTo(CX - R * K, YB - H0 * K); g.lineTo(CX + R * K, YB - H0 * K); g.stroke(); g.setLineDash([]);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#eef2ff'; g.fillText('borde − centro:', 430, 120); g.font = "700 20px 'Space Mono',monospace"; g.fillStyle = NA; g.fillText((sube * 100).toFixed(1).replace('.', ',') + ' cm', 430, 148);
+      g.font = "15px 'Space Mono',monospace"; g.fillStyle = GR; g.fillText('centro: ' + (z0 * 100).toFixed(1).replace('.', ',') + ' cm', 430, 186); g.fillText('borde: ' + ((z0 + sube) * 100).toFixed(1).replace('.', ',') + ' cm', 430, 210);
+      so.textContent = String(w).replace('.', ',') + ' rad/s';
+      es.innerHTML = w ? 'El agua sube <strong>' + (sube * 100).toFixed(1).replace('.', ',') + ' cm</strong> más en el borde que en el centro.' : 'Sin giro, la superficie es <strong>plana</strong>.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La calesita:</strong> en una calesita, cuanto más lejos del centro estás, más fuerte te tira hacia afuera. Si pudieras inclinarte para no caerte, te inclinarías más en el borde que cerca del eje. El agua del balde hace exactamente eso: cada parte de la superficie se inclina lo justo para quedar perpendicular a su gravedad efectiva, y el resultado es una curva que se empina hacia los bordes.</p>

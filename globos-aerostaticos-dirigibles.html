@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -61,6 +63,31 @@
 
   <h2>Aire caliente</h2>
   <p>La otra opción es usar el mismo aire, pero caliente. Un gas a presión constante se vuelve menos denso cuando se calienta: según la ley de los gases ideales, a la misma presión la densidad es inversamente proporcional a la temperatura absoluta [2]. Si el aire de adentro del globo está a 100 °C y el de afuera a 0 °C, la densidad baja en el cociente 273/373, y cada metro cúbico levanta unos 0,35 kg (un cálculo propio). Es mucho menos que el helio, así que un globo aerostático tiene que ser enorme: para levantar unos cientos de kilos hacen falta miles de metros cúbicos.</p>
+  <figure class="figura" id="lev">
+    <canvas id="lev-c" width="1280" height="620" role="img" aria-label="Barras con lo que levanta cada metro cúbico de hidrógeno, helio y aire caliente. La barra del aire caliente crece con la temperatura interior."></canvas>
+    <div class="int-control"><label for="lev-t">Aire de adentro</label><input type="range" id="lev-t" min="20" max="120" step="1" value="100"><output id="lev-o" for="lev-t">100 °C</output></div>
+    <p class="int-estado" id="lev-e" aria-live="polite"></p>
+    <figcaption>Masa que levanta cada metro cúbico, ρ<sub>aire</sub> − ρ<sub>gas</sub>, con aire exterior a 0 °C y presión atmosférica [2]. El aire caliente usa la densidad inversamente proporcional a la temperatura absoluta. Los valores son cálculos propios con las densidades de OpenStax, y no descuentan la tela ni la canasta.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('lev-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310;
+    var sl = document.getElementById('lev-t'), so = document.getElementById('lev-o'), es = document.getElementById('lev-e');
+    var X0 = 160, X1 = 600, RA = 1.29, CI = '#00d4ff', NA = '#f5a623', VI = '#b48cff';
+    function fila(y, n, v, c) { var l = (X1 - X0) * v / 1.3; g.fillStyle = c; g.fillRect(X0, y, l, 44); g.font = "16px 'Space Mono',monospace"; g.textAlign = 'right'; g.fillText(n, X0 - 12, y + 28); g.textAlign = 'left'; g.fillStyle = '#eef2ff'; if (l > 90) { g.fillStyle = '#070d22'; g.textAlign = 'right'; g.fillText(v.toFixed(2).replace('.', ',') + ' kg', X0 + l - 8, y + 28); } else g.fillText(v.toFixed(2).replace('.', ',') + ' kg', X0 + l + 8, y + 28); }
+    function poner() {
+      var t = +sl.value, ca = RA * (1 - 273 / (273 + t)), v = 300 / ca;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.font = "19px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#eef2ff'; g.fillText('Cuánto levanta un metro cúbico', 20, 32);
+      fila(64, 'hidrógeno', RA - 0.09, VI); fila(126, 'helio', RA - 0.18, CI); fila(188, 'aire caliente', ca, NA);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = '#8892b0'; g.fillText('300 kg de aire caliente a ' + t + ' °C piden ' + String(Math.round(v)).replace(/\B(?=(\d{3})+$)/g, ' ') + ' m³', W / 2, 276);
+      so.textContent = t + ' °C';
+      es.innerHTML = 'A ' + t + ' °C, cada metro cúbico de aire caliente levanta <strong>' + ca.toFixed(2).replace('.', ',') + ' kg</strong>.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El corcho en el aire:</strong> un corcho sube en el agua porque es más liviano que el agua que desaloja. Un globo es un «corcho de aire»: una bolsa enorme que pesa menos que el aire que ocupa su lugar. Cuanto más grande es la bolsa y más liviano su contenido, más fuerte sube.</p>
@@ -68,11 +95,43 @@
 
   <h2>1783: el año de los globos</h2>
   <p>Los hermanos Joseph y Étienne Montgolfier, nacidos en Ardèche, en Francia, empezaron a experimentar en 1782 con una tela que se inflaba sobre un fuego de lana y paja húmeda [4]. El 19 de septiembre de 1783 hicieron una demostración ante Luis XVI en el palacio de Versalles: el globo, de tela de algodón con papel pegado de los dos lados, medía 18,47 metros de alto y pesaba 400 kg, y llevó en su canasta una oveja, un pato y un gallo [4].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/globos-aerostaticos-1783.jpg" width="590" height="1000" loading="lazy" style="width:min(24rem,100%);margin:0 auto" alt="Grabado de un globo con una canasta que lleva una oveja, un gallo y un pato, mientras una multitud lo mira desde abajo.">
+    <figcaption>«The Ascent of the Aerial Balloon», una caricatura publicada en noviembre de 1783, con la oveja, el gallo y el pato del vuelo de Versalles [4]. Es una sátira de la época, no un retrato fiel del globo.<span class="credito">Grabado: <a href="https://commons.wikimedia.org/wiki/File:First_demonstration_Montgolfier_balloon_-_Sep._19._1783.jpg" target="_blank" rel="noopener">European Magazine, 1783</a> · Dominio público</span></figcaption>
+  </figure>
   <p>Ese mismo año se sucedieron los hitos. El 15 de octubre, Pilâtre de Rozier subió en un globo atado con una soga; el 21 de noviembre, él y el marqués d'Arlandes hicieron el primer vuelo libre tripulado, del centro de París a las afueras, unos 9 km en 25 minutos [3]. El 1 de diciembre, menos de dos semanas después, Jacques Alexandre César Charles lanzó un globo de hidrógeno [3]. Los Montgolfier creían haber descubierto un gas nuevo, más liviano que el aire; en realidad era aire común, que se volvía más liviano al calentarse [3].</p>
 
   <div class="tech-note">
     <p><strong>Globos y dirigibles:</strong> un globo va a donde lo lleva el viento; un dirigible tiene forma alargada, motores y timones para elegir su rumbo, pero se sostiene igual, con un gas más liviano que el aire. En los dos casos el empuje cambia con la altura: como la <a href="ley-hidrostatica.html">presión y la densidad del aire bajan con la altura</a>, el empuje también baja, y un globo sube hasta la altura donde su densidad media iguala a la del aire de alrededor (un razonamiento propio a partir de esas leyes).</p>
   </div>
+  <figure class="figura">
+    <svg viewBox="0 0 640 370" role="img" aria-labelledby="glo3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="glo3-t">El empuje baja con la altura en una curva exponencial y el peso es una recta horizontal. Se cruzan en el punto de equilibrio, cerca de 4,5 kilómetros.</title>
+      <rect width="640" height="370" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Un globo sube hasta donde flota</text>
+        <line x1="76.0" y1="306.0" x2="76.0" y2="312.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="76.0" y="331.0" text-anchor="middle" fill="#8892b0" font-size="15">0 km</text>
+        <line x1="254.0" y1="306.0" x2="254.0" y2="312.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="254.0" y="331.0" text-anchor="middle" fill="#8892b0" font-size="15">4 km</text>
+        <line x1="432.0" y1="306.0" x2="432.0" y2="312.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="432.0" y="331.0" text-anchor="middle" fill="#8892b0" font-size="15">8 km</text>
+        <line x1="610.0" y1="306.0" x2="610.0" y2="312.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="610.0" y="331.0" text-anchor="middle" fill="#8892b0" font-size="15">12 km</text>
+        <line x1="76.0" y1="306.0" x2="610.0" y2="306.0" stroke="#8892b0" stroke-width="2"/>
+        <line x1="76.0" y1="60.0" x2="76.0" y2="306.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="343.0" y="354.0" text-anchor="middle" fill="#8892b0" font-size="16">altura</text>
+        <polyline points="76.0,60.0 81.3,63.3 86.7,66.6 92.0,69.9 97.4,73.1 102.7,76.2 108.0,79.3 113.4,82.4 118.7,85.4 124.1,88.4 129.4,91.4 134.7,94.3 140.1,97.1 145.4,100.0 150.8,102.8 156.1,105.5 161.4,108.2 166.8,110.9 172.1,113.5 177.5,116.1 182.8,118.7 188.1,121.3 193.5,123.8 198.8,126.2 204.2,128.7 209.5,131.1 214.8,133.4 220.2,135.8 225.5,138.1 230.9,140.4 236.2,142.6 241.5,144.8 246.9,147.0 252.2,149.1 257.6,151.3 262.9,153.4 268.2,155.4 273.6,157.5 278.9,159.5 284.3,161.5 289.6,163.4 294.9,165.4 300.3,167.3 305.6,169.1 311.0,171.0 316.3,172.8 321.6,174.6 327.0,176.4 332.3,178.2 337.7,179.9 343.0,181.6 348.3,183.3 353.7,184.9 359.0,186.6 364.4,188.2 369.7,189.8 375.0,191.4 380.4,192.9 385.7,194.5 391.1,196.0 396.4,197.5 401.7,198.9 407.1,200.4 412.4,201.8 417.8,203.2 423.1,204.6 428.4,206.0 433.8,207.3 439.1,208.7 444.5,210.0 449.8,211.3 455.1,212.6 460.5,213.8 465.8,215.1 471.2,216.3 476.5,217.5 481.8,218.7 487.2,219.9 492.5,221.1 497.9,222.2 503.2,223.4 508.5,224.5 513.9,225.6 519.2,226.7 524.6,227.8 529.9,228.8 535.2,229.9 540.6,230.9 545.9,231.9 551.3,232.9 556.6,233.9 561.9,234.9 567.3,235.8 572.6,236.8 578.0,237.7 583.3,238.7 588.6,239.6 594.0,240.5 599.3,241.4 604.7,242.2 610.0,243.1" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="76.0" y1="158.4" x2="610.0" y2="158.4" stroke="#f5a623" stroke-width="3"/>
+        <circle cx="276.0" cy="158.4" r="7" fill="#eef2ff"/>
+        <line x1="276.0" y1="158.4" x2="276.0" y2="306.0" stroke="#eef2ff" stroke-width="1.5" stroke-dasharray="5 5"/>
+        <text x="521.0" y="253.3" text-anchor="middle" fill="#00d4ff" font-size="17">empuje</text>
+        <text x="610.0" y="148.4" text-anchor="end" fill="#f5a623" font-size="17">peso</text>
+        <text x="286.0" y="146.4" text-anchor="start" fill="#eef2ff" font-size="16">equilibrio</text>
+      </g>
+    </svg>
+    <figcaption>Un ejemplo con números elegidos: un globo rígido cuyo peso es el 60 % del empuje al nivel del mar. Como la densidad del aire baja con la altura [1], el empuje también baja, y el globo se detiene donde iguala al peso, cerca de los 4,5 km (un cálculo propio con la escala de 8800 m; un globo real se comporta distinto si su volumen cambia).<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <p>Un globo es el principio de Arquímedes llevado al aire: flota porque pesa menos que el aire que desplaza. El helio y el hidrógeno levantan mucho por metro cúbico; el aire caliente, bastante menos, pero es barato y no explota. Con esa idea simple, en un solo año, 1783, los seres humanos pasaron de mirar el cielo a recorrerlo.</p>
 

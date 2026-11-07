@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -51,6 +53,10 @@
 </div>
 <div class="article-container">
   <p>Algunas tardes se ven en el cielo nubes con forma de olas que rompen: una hilera de rulos perfectos, todos inclinados para el mismo lado. Son la huella de un fenómeno que aparece cada vez que dos capas de fluido se deslizan una sobre otra a distinta velocidad: la <strong>inestabilidad de Kelvin-Helmholtz</strong>.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/inestabilidad-kelvin-helmholtz-nubes.jpg" width="960" height="240" loading="lazy" alt="Nubes oscuras al atardecer con una hilera de rulos iguales, todos inclinados para el mismo lado.">
+    <figcaption>Rulos de Kelvin-Helmholtz en las nubes del atardecer, sobre Hartford, en Estados Unidos.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Kelvin_Helmholtz_cloud_formation_during_Hartford_sunset.jpg" target="_blank" rel="noopener">Paul Danese</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.es" target="_blank" rel="noopener">CC0</a> · recortada</span></figcaption>
+  </figure>
 
   <h2>Dos capas que se deslizan</h2>
   <p>David Tong, de la Universidad de Cambridge, la plantea así: dos fluidos, el más liviano arriba, que se mueven en la misma dirección pero a velocidades distintas [1]. Entre ellos hay una superficie de separación plana. La pregunta es si esa situación es estable, y Tong adelanta la respuesta: no lo es [1]. Si la superficie se ondula un poco, la ondulación crece.</p>
@@ -58,6 +64,34 @@
 
   <h2>Una lámina de vórtice que se enrolla</h2>
   <p>Hay otra manera de verlo. Como las velocidades a cada lado de la superficie son distintas, toda la vorticidad del flujo está concentrada en la propia superficie: es una <strong>lámina de vórtice</strong> [1]. La inestabilidad es una deformación de esa lámina, que, cuando entran en juego los efectos no lineales, se enrolla [1]. Según Tong, ese enrollamiento produce, entre otras cosas, las hermosas formaciones de nubes en forma de olas que rompen [1].</p>
+  <figure class="figura" id="kel">
+    <canvas id="kel-c" width="1280" height="620" role="img" aria-label="Una superficie entre dos capas de fluido que se deslizan en sentidos contrarios. Una ondulación chica crece y la superficie se enrolla en rulos."></canvas>
+    <div class="int-control"><label for="kel-u">Diferencia de velocidades</label><input type="range" id="kel-u" min="0.4" max="2" step="0.1" value="1"><output id="kel-o" for="kel-u">1,0</output></div>
+    <div class="int-botones"><button type="button" id="kel-b">Reiniciar</button></div>
+    <p class="int-estado" id="kel-e" aria-live="polite"></p>
+    <figcaption>Una lámina de vórtice calculada en vivo: la superficie se representa con 240 vórtices que se mueven entre sí, con una pequeña suavización para que el cálculo no se rompa. Como en el artículo, toda la vorticidad está en la superficie, y la ondulación termina enrollándose [1]. Las velocidades son relativas, y no se incluyen la gravedad, la viscosidad ni la tensión superficial, que en la realidad frenan a parte de las ondulaciones [1].<span class="credito">Simulación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('kel-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310, sl = document.getElementById('kel-u'), so = document.getElementById('kel-o'), es = document.getElementById('kel-e'), bt = document.getElementById('kel-b');
+    var N = 240, D = 0.3, X, Y, U, Vv, T = 0, DU = 1, vis = true, PI2 = 2 * Math.PI;
+    function reset() { X = new Float64Array(N); Y = new Float64Array(N); U = new Float64Array(N); Vv = new Float64Array(N); T = 0; for (var i = 0; i < N; i++) { var a = i / N; X[i] = a + 0.01 * Math.sin(PI2 * a); Y[i] = -0.01 * Math.sin(PI2 * a); } }
+    function vel(x, y, u, v) { var i, j, a, b, c, s, d, du, dv; for (i = 0; i < N; i++) { du = 0; dv = 0; for (j = 0; j < N; j++) { a = PI2 * (x[i] - x[j]); b = PI2 * (y[i] - y[j]); c = Math.cosh(b); s = Math.cos(a); d = c - s + D * D; du += Math.sinh(b) / d; dv += Math.sin(a) / d; } u[i] = -du / (2 * N); v[i] = dv / (2 * N); } }
+    var X2 = new Float64Array(N), Y2 = new Float64Array(N), U2 = new Float64Array(N), V2 = new Float64Array(N);
+    function paso() { var i, dt = 0.014 * DU; vel(X, Y, U, Vv); for (i = 0; i < N; i++) { X2[i] = X[i] + dt * U[i]; Y2[i] = Y[i] + dt * Vv[i]; } vel(X2, Y2, U2, V2); for (i = 0; i < N; i++) { X[i] += dt * 0.5 * (U[i] + U2[i]); Y[i] += dt * 0.5 * (Vv[i] + V2[i]); } T += dt; }
+    function dibujar() {
+      var k, i, S = W / 2, y0 = H / 2, x, y, nx = 3;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#23407a'; g.fillRect(0, 0, W, H);
+      for (k = -1; k <= nx; k++) { g.beginPath(); for (i = 0; i <= N; i++) { x = (X[i % N] + (i === N ? 1 : 0) + k) * S / 1; y = y0 - Y[i % N] * S; if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.lineTo((k + 1) * S, H + 2000); g.lineTo(k * S, H + 2000); g.closePath(); g.fillStyle = '#f5a623'; g.fill('nonzero'); }
+      g.fillStyle = 'rgba(7,13,34,0.75)'; g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#eef2ff'; g.fillText('← la capa de arriba', 16, 28); g.fillStyle = '#070d22'; g.textAlign = 'right'; g.fillText('la capa de abajo →', W - 16, H - 16);
+    }
+    function poner() { DU = +sl.value; so.textContent = DU.toFixed(1).replace('.', ','); es.innerHTML = 'Con esta diferencia, los rulos crecen a un ritmo <strong>' + (DU < 0.8 ? 'lento' : DU < 1.4 ? 'medio' : 'rápido') + '</strong>: el tiempo de crecimiento es inverso a la diferencia.'; }
+    function frame() { if (vis && T < 2.9) { paso(); dibujar(); } requestAnimationFrame(frame); }
+    sl.addEventListener('input', function () { poner(); reset(); }); bt.addEventListener('click', reset);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    reset(); poner(); dibujar(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El mazo de cartas que se tuerce:</strong> si empujás la mitad de arriba de un mazo de cartas hacia un lado y la de abajo hacia el otro, la frontera entre las dos mitades no se queda plana: se arruga. En un fluido, esa arruga no tiene nada que la frene, crece y termina enrollándose como un rulo.</p>
@@ -77,6 +111,10 @@
   <div class="tech-note">
     <p><strong>Un caso límite:</strong> si las dos capas están quietas y la de arriba es la más densa, la misma matemática da la <a href="inestabilidad-rayleigh-taylor.html">inestabilidad de Rayleigh-Taylor</a> [1]. Las dos son, en el fondo, la misma familia de inestabilidades de una superficie entre dos fluidos.</p>
   </div>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/inestabilidad-kelvin-helmholtz-saturno.jpg" width="961" height="551" loading="lazy" alt="Imagen en blanco y negro de la atmósfera de Saturno con una frontera entre dos bandas que se curva en rulos a lo largo del borde.">
+    <figcaption>La misma inestabilidad en Saturno, en una imagen infrarroja de la sonda Cassini de 2004: la frontera entre dos bandas de la atmósfera se enrosca una y otra vez. La NASA señala que debería ser común en los planetas gigantes, con sus chorros alternados [2].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Saturn_Kelvin_Helmholtz.jpg" target="_blank" rel="noopener">NASA</a> · Dominio público</span></figcaption>
+  </figure>
 
   <p>Dos capas de fluido que se deslizan a distinta velocidad no pueden mantener plana la superficie que las separa: cualquier ondulación crece, la lámina de vórtice se enrolla y forma rulos. La viscosidad y la tensión superficial frenan las ondulaciones cortas y la gravedad las largas, así que hace falta una diferencia de velocidad mínima. En el cielo deja nubes como olas; sobre el mar, apenas olitas de centímetros.</p>
 
@@ -88,6 +126,7 @@
 
   <ol class="refs">
     <li>D. Tong, <em>Lectures on Fluid Mechanics</em>, apuntes de clase, Universidad de Cambridge (DAMTP), §5.1 «Kelvin-Helmholtz Instability». <a href="https://www.damtp.cam.ac.uk/user/tong/fluids.html" target="_blank" rel="noopener">damtp.cam.ac.uk</a></li>
+    <li>NASA/JPL/Space Science Institute, imagen PIA06502 de la sonda Cassini, Planetary Photojournal. <a href="https://photojournal.jpl.nasa.gov/catalog/PIA06502" target="_blank" rel="noopener">photojournal.jpl.nasa.gov</a></li>
   </ol>
 </div>
 <div class="article-footer">

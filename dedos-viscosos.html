@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -58,7 +60,39 @@
 
   <h2>Por qué se forman dedos</h2>
   <p>Casademunt describe el fenómeno como una inestabilidad morfológica de la superficie entre los dos fluidos, que aparece cuando uno menos viscoso empuja a uno más viscoso en condiciones de flujo de Darcy, como en un medio poroso o en una celda de Hele-Shaw [1]. Es la llamada inestabilidad de Saffman-Taylor [1]. La idea es simple: si una parte del frente se adelanta un poco, delante de ella queda menos fluido espeso que empujar, la resistencia es menor y avanza todavía más rápido. Las protuberancias crecen solas (un razonamiento a partir de la ley de Darcy).</p>
+  <figure class="figura" id="ded">
+    <canvas id="ded-c" width="840" height="840" style="max-width:26rem;margin:0 auto" role="img" aria-label="Un fluido inyectado desde el centro empuja a otro. Si los dos tienen la misma viscosidad avanza como un círculo; si el de afuera es mucho más viscoso, se abre en dedos ramificados."></canvas>
+    <div class="int-botones" role="group" aria-label="Viscosidad del fluido de afuera"><button type="button" data-m="1">igual viscosidad</button><button type="button" data-m="20">20 veces</button><button type="button" data-m="1000">1000 veces</button></div>
+    <p class="int-estado" id="ded-e" aria-live="polite"></p>
+    <figcaption>Un cálculo en vivo con la ley de Darcy [1]: en cada paso se resuelve la presión en una grilla de 141 × 141 y el frente avanza donde el fluido fluye más, con algo de azar. No incluye la tensión superficial, que en la realidad frena a los dedos más finos, así que las puntas salen más finas e irregulares que en una celda real [1].<span class="credito">Simulación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('ded-c'), g = cv.getContext('2d'), es = document.getElementById('ded-e'), bs = document.querySelectorAll('#ded .int-botones button');
+    var N = 141, C = 70, M = 1000, ocu, p, of = document.createElement('canvas'), og, im, vis = true, listo = false, R2 = 66 * 66;
+    of.width = N; of.height = N; og = of.getContext('2d'); im = og.createImageData(N, N);
+    function reset() { ocu = new Uint8Array(N * N); p = new Float32Array(N * N); var i, j, k; for (j = 0; j < N; j++) for (i = 0; i < N; i++) { k = i + j * N; var d = Math.hypot(i - C, j - C); if (d < 3) ocu[k] = 1; p[k] = d >= 68 ? 0 : Math.max(0, 1 - Math.log(Math.max(d, 3) / 3) / Math.log(68 / 3)); } listo = false; }
+    function cond(k) { return ocu[k] ? M : 1; }
+    function arm(a, b) { return 2 * a * b / (a + b); }
+    function sor(n) { var it, i, j, k, a, b, c, d, s; for (it = 0; it < n; it++) for (j = 1; j < N - 1; j++) for (i = 1; i < N - 1; i++) { k = i + j * N; if (Math.hypot(i - C, j - C) < 3) { p[k] = 1; continue; } if ((i - C) * (i - C) + (j - C) * (j - C) >= 68 * 68) { p[k] = 0; continue; } s = cond(k); a = arm(s, cond(k - 1)); b = arm(s, cond(k + 1)); c = arm(s, cond(k - N)); d = arm(s, cond(k + N)); p[k] += 1.7 * ((a * p[k - 1] + b * p[k + 1] + c * p[k - N] + d * p[k + N]) / (a + b + c + d) - p[k]); } }
+    function crecer() {
+      var F = [], tot = 0, i, j, k, f, n, q, u, m; for (j = 1; j < N - 1; j++) for (i = 1; i < N - 1; i++) { k = i + j * N; if (ocu[k]) continue; f = 0; [k - 1, k + 1, k - N, k + N].forEach(function (o) { if (ocu[o]) f += Math.max(0, p[o] - p[k]) * arm(M, 1); }); if (f > 0) { F.push([k, f]); tot += f; } }
+      m = Math.max(4, Math.round(F.length / 16));
+      for (n = 0; n < m; n++) { u = Math.random() * tot; for (q = 0; q < F.length; q++) { u -= F[q][1]; if (u <= 0) break; } if (q >= F.length) q = F.length - 1; k = F[q][0]; ocu[k] = 1; i = k % N; j = (k - i) / N; if ((i - C) * (i - C) + (j - C) * (j - C) > R2) listo = true; }
+    }
+    function dibujar() { var k, d = im.data, i, j; for (j = 0; j < N; j++) for (i = 0; i < N; i++) { k = i + j * N; var o = (i - C) * (i - C) + (j - C) * (j - C) >= 68 * 68; d[4 * k] = o ? 7 : ocu[k] ? 0 : 150; d[4 * k + 1] = o ? 13 : ocu[k] ? 212 : 96; d[4 * k + 2] = o ? 34 : ocu[k] ? 255 : 20; d[4 * k + 3] = 255; } og.putImageData(im, 0, 0); g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = false; g.drawImage(of, 0, 0, cv.width, cv.height); }
+    function frame() { if (vis && !listo) { sor(M > 100 ? 26 : 10); crecer(); dibujar(); } requestAnimationFrame(frame); }
+    function modo(m, b0) { M = m; reset(); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); es.innerHTML = m === 1 ? 'Con la misma viscosidad, el frente avanza casi <strong>como un círculo</strong>.' : m < 100 ? 'El de afuera es más viscoso: empiezan a formarse <strong>dedos</strong>.' : 'Mucho más viscoso: <strong>cada dedo que se adelanta se adelanta más</strong>, y se ramifica.'; }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-m'), b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(1000, bs[2]); dibujar(); requestAnimationFrame(frame);
+  })();
+  </script>
   <p>Lo que frena a los dedos más finos es la <a href="tension-superficial.html">tensión superficial</a>, que se opone a curvar mucho la frontera. Casademunt subraya que su papel es sutil: el problema con tensión superficial y sin ella son esencialmente distintos, aunque la tensión sea muy chica [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/dedos-viscosos-canal.jpg" width="960" height="275" loading="lazy" alt="Dos canales con una mancha negra alargada: arriba un dedo liso, abajo uno irregular con ramas.">
+    <figcaption>Aire que invade un canal de Hele-Shaw lleno de aceite de silicona, visto en negro: (a) un dedo liso y (b) un patrón complejo, con ramas.<span class="credito">Imagen: <a href="https://commons.wikimedia.org/wiki/File:Viscous_fingering_patterns.jpg" target="_blank" rel="noopener">Jlaw98</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.es" target="_blank" rel="noopener">CC0</a></span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>El agua que se abre camino:</strong> si echás agua sobre arena seca y compacta, no se esparce en un círculo perfecto: avanza más rápido por donde encuentra menos resistencia, y esos caminos se alargan. En la celda de Hele-Shaw pasa algo parecido: cada dedo que se adelanta encuentra menos resistencia y se adelanta más.</p>

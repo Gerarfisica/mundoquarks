@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -54,7 +56,40 @@
 
   <h2>Qué es</h2>
   <p>OpenStax la describe así: en un flujo turbulento, las capas del fluido se mezclan con remolinos y torbellinos, y aparecen velocidades importantes en direcciones distintas de la del flujo [1]. Señala dos causas principales: cualquier obstáculo o esquina filosa, como en una canilla, que le da al fluido velocidades perpendiculares al flujo; y las velocidades altas, cuando el arrastre entre capas vecinas forma remolinos [1]. Y destaca una consecuencia: el flujo turbulento mezcla el fluido, lo calienta más y opone mucha más resistencia que el laminar [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/turbulencia-sahumerios.jpg" width="960" height="1467" loading="lazy" style="width:min(18rem,100%);margin:0 auto" alt="Varillas de sahumerio encendidas con hilos de humo que suben rectos y arriba se enroscan y se deshacen.">
+    <figcaption>Sahumerios encendidos. Abajo el humo sube en hilos lisos; más arriba se ondula y se deshace en remolinos.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Smoke_of_Incense_sticks.jpg" target="_blank" rel="noopener">Sneha G Gupta</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></figcaption>
+  </figure>
   <p>David Tong, de la Universidad de Cambridge, lo cuenta con otra imagen: los flujos laminares, calmos y serenos, se vuelven inestables y son reemplazados por algo desordenado, con el fluido moviéndose en direcciones aparentemente al azar, y remolinos que se forman, se estiran y se rompen en remolinos más chicos [2].</p>
+  <figure class="figura" id="mez">
+    <canvas id="mez-c" width="1280" height="640" role="img" aria-label="Una mancha de tinta en un fluido. Con flujo ordenado apenas se estira; con remolinos se estira, se pliega y se reparte por todo el recuadro."></canvas>
+    <div class="int-botones" role="group" aria-label="Tipo de flujo"><button type="button" data-m="0">laminar</button><button type="button" data-m="1">transición</button><button type="button" data-m="2">turbulento</button></div>
+    <p class="int-estado" id="mez-e" aria-live="polite"></p>
+    <figcaption>Una ilustración de la idea, no una solución de las ecuaciones: el movimiento sale de unos remolinos elegidos para el dibujo, con más remolinos y más chicos en cada paso. Muestra lo que dice OpenStax: el flujo turbulento mezcla mucho más [1].<span class="credito">Animación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('mez-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 320, es = document.getElementById('mez-e'), bs = document.querySelectorAll('#mez .int-botones button');
+    var P = [], M = 2, T = 0, vis = true, N = 3500, V = [], i;
+    function campo() { V = []; var n = [0, 5, 16][M], k; for (k = 0; k < n; k++) V.push([Math.random() * W, Math.random() * H, (k % 2 ? 1 : -1) * (M === 2 ? 26 + 22 * (k % 3) : 30), M === 2 ? 26 + 40 * (k % 3) : 80, Math.random() * 6.3, 0.3 + Math.random() * 0.5]); }
+    function reset() { P = []; for (i = 0; i < N; i++) { var a = Math.random() * 6.3, r = 26 * Math.sqrt(Math.random()); P.push([150 + r * Math.cos(a), H / 2 + r * Math.sin(a)]); } T = 0; campo(); }
+    function mover() {
+      var q, k, p, u, v, c, dx, dy, d, x0, y0, s;
+      for (q = 0; q < N; q++) { p = P[q]; u = M === 2 ? 14 : 22; v = 0;
+        for (k = 0; k < V.length; k++) { c = V[k]; x0 = c[0] + 30 * Math.sin(T * c[5] + c[4]); y0 = c[1] + 30 * Math.cos(T * c[5] * 0.8 + c[4]); dx = p[0] - x0; dy = p[1] - y0; d = dx * dx + dy * dy + 40; s = 1.6 * c[2] * Math.exp(-d / (2 * c[3] * c[3])) / Math.sqrt(d); u += -s * dy; v += s * dx; }
+        if (M === 0) u = 16 + 10 * Math.sin((p[1] / H) * Math.PI);
+        p[0] += u * 0.016 + (M ? (Math.random() - 0.5) * 0.5 : 0); p[1] += v * 0.016 + (M ? (Math.random() - 0.5) * 0.5 : 0);
+        p[0] = ((p[0] % W) + W) % W; if (p[1] < 2) p[1] = 4 - p[1]; if (p[1] > H - 2) p[1] = 2 * (H - 2) - p[1]; }
+      T += 0.016;
+    }
+    function dibujar() { var q; g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H); g.fillStyle = 'rgba(0,212,255,0.75)'; for (q = 0; q < N; q++) g.fillRect(P[q][0], P[q][1], 1.5, 1.5); }
+    function frame() { if (vis) { mover(); mover(); dibujar(); } if (T > 44) reset(); requestAnimationFrame(frame); }
+    function modo(m, b0) { M = m; reset(); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); es.innerHTML = ['La mancha viaja y <strong>apenas se estira</strong>: las capas no se mezclan.', 'Unos pocos remolinos la <strong>estiran y la doblan</strong>.', 'Muchos remolinos de varios tamaños la <strong>reparten</strong> por todo el recuadro.'][m]; }
+    bs.forEach(function (b, k) { b.addEventListener('click', function () { modo(k, b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(2, bs[2]); dibujar(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Cuándo aparece</h2>
   <p>La turbulencia aparece cuando el <a href="numero-reynolds.html">número de Reynolds</a> supera un valor crítico [2]. Ese valor depende del flujo. Tong da un ejemplo llamativo: el flujo entre dos placas que se deslizan, el <a href="flujo-couette.html">flujo de Couette</a>, es matemáticamente estable frente a perturbaciones arbitrariamente chicas, y sin embargo los experimentos y las simulaciones muestran que se vuelve turbulento a partir de Re ≈ 400 [2]. La transición no siempre se puede predecir con un análisis simple.</p>
@@ -66,6 +101,29 @@
   <h2>Determinista pero impredecible</h2>
   <p>Hay algo paradójico en la turbulencia. Tong subraya que hay buenas razones para creer que la describen correctamente las <a href="navier-stokes.html">ecuaciones de Navier-Stokes</a>, como muestran las simulaciones numéricas directas [2]. Esas ecuaciones son deterministas. Sin embargo, el movimiento turbulento parece aleatorio [2]. La razón es la sensibilidad a las condiciones iniciales propia de los sistemas caóticos: el término no lineal de la ecuación lleva al sistema a un estado caótico, donde el movimiento depende muchísimo de cómo empezó [2].</p>
   <p>Por eso, en lugar de buscar soluciones exactas, que no es viable, la turbulencia se estudia de manera estadística, mirando propiedades promedio [2]. Una herramienta es separar la velocidad en un flujo medio y unas fluctuaciones, el promedio de Reynolds, que se cuenta en <a href="flujo-estacionario.html">flujo estacionario</a> [2].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 336" role="img" aria-labelledby="tur2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="tur2-t">Curva irregular de velocidad en el tiempo, que oscila sin patrón alrededor de una línea horizontal, la media.</title>
+      <rect width="640" height="336" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">La velocidad medida en un punto</text>
+        <line x1="76.0" y1="270.7" x2="610.0" y2="270.7" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="275.7" text-anchor="end" fill="#8892b0" font-size="15">5</text>
+        <line x1="76.0" y1="174.0" x2="610.0" y2="174.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="179.0" text-anchor="end" fill="#8892b0" font-size="15">10</text>
+        <line x1="76.0" y1="77.3" x2="610.0" y2="77.3" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="82.3" text-anchor="end" fill="#8892b0" font-size="15">15</text>
+        <line x1="76.0" y1="290.0" x2="610.0" y2="290.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="343.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">tiempo</text>
+        <text x="20.0" y="52.0" text-anchor="start" fill="#8892b0" font-size="15">velocidad</text>
+        <polyline points="76.0,94.2 77.3,92.4 78.7,92.8 80.0,95.0 81.3,97.5 82.7,98.3 84.0,96.5 85.3,92.6 86.7,88.2 88.0,85.2 89.3,84.7 90.7,86.3 92.0,88.6 93.4,89.8 94.7,88.6 96.0,85.3 97.4,81.2 98.7,78.1 100.0,77.3 101.4,79.1 102.7,82.7 104.0,86.8 105.4,90.6 106.7,93.8 108.0,96.7 109.4,100.2 110.7,104.5 112.0,109.6 113.4,115.1 114.7,120.3 116.0,125.0 117.4,129.2 118.7,133.0 120.1,136.4 121.4,139.3 122.7,141.4 124.1,142.7 125.4,144.1 126.7,146.7 128.1,152.0 129.4,160.8 130.7,172.7 132.1,186.2 133.4,199.2 134.7,209.6 136.1,215.9 137.4,218.0 138.7,217.1 140.1,214.5 141.4,211.7 142.8,209.7 144.1,208.7 145.4,208.8 146.8,209.6 148.1,210.3 149.4,210.4 150.8,209.0 152.1,205.4 153.4,199.6 154.8,192.4 156.1,185.3 157.4,180.3 158.8,178.9 160.1,181.4 161.4,186.8 162.8,193.0 164.1,198.1 165.4,201.1 166.8,202.4 168.1,203.4 169.4,205.8 170.8,210.1 172.1,215.3 173.5,219.3 174.8,219.4 176.1,214.4 177.5,205.0 178.8,194.0 180.1,184.9 181.5,181.0 182.8,183.3 184.1,190.5 185.5,199.6 186.8,207.0 188.1,210.2 189.5,208.8 190.8,204.4 192.1,199.7 193.5,197.1 194.8,198.0 196.2,202.2 197.5,208.0 198.8,213.7 200.2,217.7 201.5,220.1 202.8,221.7 204.2,224.3 205.5,229.3 206.8,236.9 208.2,246.0 209.5,254.5 210.8,259.9 212.2,260.6 213.5,256.9 214.8,250.8 216.2,245.5 217.5,244.0 218.8,247.7 220.2,255.4 221.5,263.8 222.8,268.9 224.2,267.3 225.5,258.3 226.9,244.0 228.2,228.3 229.5,215.4 230.9,207.5 232.2,204.3 233.5,203.3 234.9,201.2 236.2,196.3 237.5,188.8 238.9,181.7 240.2,178.2 241.5,180.5 242.9,188.1 244.2,198.0 245.5,206.2 246.9,209.6 248.2,207.8 249.6,203.0 250.9,199.0 252.2,199.0 253.6,204.0 254.9,212.2 256.2,220.1 257.6,224.4 258.9,223.5 260.2,218.5 261.6,212.3 262.9,207.9 264.2,207.1 265.6,209.1 266.9,211.9 268.2,213.0 269.6,211.1 270.9,206.7 272.2,201.8 273.6,198.7 274.9,198.6 276.2,200.9 277.6,203.8 278.9,205.4 280.3,204.3 281.6,200.7 282.9,195.9 284.3,191.4 285.6,188.2 286.9,185.8 288.3,183.3 289.6,179.5 290.9,174.0 292.3,167.2 293.6,160.6 294.9,155.3 296.3,152.0 297.6,150.1 298.9,148.3 300.3,145.3 301.6,140.6 302.9,134.6 304.3,128.7 305.6,124.4 307.0,122.6 308.3,123.5 309.6,125.7 311.0,127.4 312.3,127.1 313.6,123.9 315.0,118.3 316.3,112.0 317.6,107.3 319.0,106.3 320.3,109.7 321.6,117.1 323.0,126.4 324.3,135.0 325.6,140.4 327.0,141.6 328.3,139.0 329.6,134.5 331.0,130.7 332.3,129.6 333.7,131.8 335.0,136.6 336.3,142.1 337.7,146.5 339.0,149.1 340.3,149.9 341.7,150.1 343.0,150.8 344.3,152.4 345.7,154.4 347.0,155.6 348.3,155.3 349.7,153.3 351.0,150.8 352.3,149.5 353.7,150.5 355.0,154.2 356.4,159.4 357.7,164.1 359.0,166.8 360.4,166.7 361.7,164.4 363.0,161.4 364.4,158.9 365.7,157.0 367.0,154.8 368.4,150.6 369.7,143.5 371.0,133.9 372.4,123.5 373.7,115.2 375.0,111.2 376.4,112.2 377.7,117.2 379.0,123.6 380.4,128.7 381.7,130.8 383.1,129.7 384.4,126.7 385.7,123.7 387.1,122.4 388.4,123.6 389.7,127.4 391.1,133.3 392.4,140.7 393.7,149.0 395.1,157.7 396.4,165.7 397.7,172.1 399.1,175.6 400.4,175.8 401.7,173.1 403.1,168.7 404.4,164.5 405.7,162.2 407.1,162.2 408.4,164.3 409.8,167.3 411.1,169.9 412.4,171.5 413.8,172.0 415.1,171.7 416.4,171.2 417.8,170.4 419.1,168.9 420.4,166.3 421.8,162.8 423.1,159.0 424.4,156.0 425.8,154.6 427.1,155.0 428.4,156.3 429.8,157.4 431.1,157.4 432.4,156.2 433.8,155.0 435.1,155.3 436.4,158.3 437.8,163.6 439.1,169.5 440.5,173.9 441.8,174.7 443.1,171.7 444.5,166.6 445.8,162.1 447.1,160.9 448.5,164.3 449.8,171.3 451.1,179.3 452.5,184.8 453.8,185.4 455.1,180.8 456.5,172.6 457.8,164.0 459.1,157.9 460.5,156.3 461.8,159.2 463.1,164.8 464.5,170.8 465.8,174.9 467.2,175.9 468.5,174.2 469.8,171.0 471.2,168.1 472.5,167.2 473.8,168.9 475.2,173.1 476.5,178.6 477.8,184.1 479.2,188.3 480.5,190.7 481.8,191.6 483.2,192.1 484.5,193.0 485.8,195.2 487.2,198.2 488.5,201.3 489.9,203.2 491.2,203.4 492.5,202.3 493.9,200.9 495.2,200.9 496.5,202.9 497.9,206.5 499.2,210.2 500.5,211.8 501.9,209.8 503.2,204.1 504.5,196.2 505.9,188.5 507.2,183.3 508.5,181.6 509.9,182.8 511.2,185.2 512.5,186.9 513.9,186.9 515.2,185.6 516.5,184.4 517.9,184.9 519.2,187.3 520.6,190.9 521.9,193.7 523.2,193.9 524.6,191.0 525.9,185.7 527.2,180.0 528.6,176.1 529.9,175.3 531.2,177.4 532.6,181.2 533.9,184.7 535.2,186.6 536.6,186.7 537.9,185.4 539.2,183.7 540.6,182.1 541.9,180.7 543.2,179.2 544.6,177.5 545.9,176.0 547.3,175.7 548.6,177.8 549.9,182.7 551.3,189.9 552.6,197.9 553.9,204.7 555.3,208.5 556.6,208.7 557.9,205.8 559.3,201.0 560.6,196.0 561.9,191.8 563.3,189.2 564.6,188.4 565.9,189.3 567.3,191.5 568.6,194.8 570.0,198.5 571.3,201.9 572.6,204.2 574.0,204.7 575.3,203.4 576.6,200.8 578.0,197.4 579.3,194.2 580.6,191.4 582.0,189.0 583.3,186.8 584.6,185.0 586.0,183.9 587.3,184.5 588.6,187.1 590.0,191.4 591.3,196.1 592.6,199.2 594.0,199.2 595.3,195.6 596.6,189.3 598.0,182.7 599.3,178.1 600.7,177.2 602.0,179.6 603.3,183.5 604.7,186.4 606.0,186.5 607.3,183.3 608.7,177.9 610.0,172.2" fill="none" stroke="#00d4ff" stroke-width="1.8" stroke-linejoin="round"/>
+        <line x1="76.0" y1="174.0" x2="610.0" y2="174.0" stroke="#f5a623" stroke-width="3"/>
+        <text x="610.0" y="198.0" text-anchor="end" fill="#8892b0" font-size="16"></text>
+        <text x="604.0" y="60.0" text-anchor="end" fill="#f5a623" font-size="16">media</text>
+      </g>
+    </svg>
+    <figcaption>Datos simulados con ondas al azar, no una medición, para mostrar la idea: en un punto de un flujo turbulento, la velocidad fluctúa sin un patrón. Por eso se la separa en un flujo medio y unas fluctuaciones, el promedio de Reynolds [2]. Las unidades son arbitrarias.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Un problema abierto</h2>
   <p>Tong lo dice sin vueltas: la turbulencia es uno de los grandes problemas de la física y, a pesar de décadas de estudio, se la entiende poco [2]. Lo que sí se entiende bastante bien es qué pasa con la energía: entra por los remolinos grandes, pasa a remolinos cada vez más chicos y se disipa en calor en los más chicos, gracias a la viscosidad [2]. Esa idea, la <a href="cascada-energia.html">cascada de energía</a>, es la base de la teoría de Kolmogorov de 1941 [2].</p>

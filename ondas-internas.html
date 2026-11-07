@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -51,6 +53,10 @@
 </div>
 <div class="article-container">
   <p>Las olas que vemos viajan por la superficie del agua, en la frontera con el aire. Pero también hay olas que viajan por dentro del océano o de la atmósfera, sin que la superficie se mueva casi nada. Aparecen cuando el fluido está en capas, más denso abajo que arriba: se llaman <strong>ondas internas</strong>.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/ondas-internas-gibraltar.jpg" width="807" height="465" loading="lazy" alt="Vista desde el espacio del estrecho de Gibraltar, con el agua brillante marcada por ondulaciones paralelas entre las dos costas.">
+    <figcaption>El estrecho de Gibraltar visto desde la Estación Espacial Internacional. Las ondulaciones del mar son la huella en superficie de ondas internas causadas por el agua que pasa por el estrecho. Es un mosaico de dos fotos.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:InternalWaves_Gibraltar_ISS009-E-09952_54.jpg" target="_blank" rel="noopener">Laboratorio de Observaciones de la Tierra, NASA JSC</a> · Dominio público · recortada</span></figcaption>
+  </figure>
 
   <h2>Un fluido en capas</h2>
   <p>David Tong, de la Universidad de Cambridge, empieza con una aclaración con humor: las «ondas de gravedad» de la mecánica de fluidos no son las ondas gravitacionales del espacio-tiempo, sino el fenómeno mucho más cotidiano de fluidos que suben y bajan por efecto de la gravedad [1]. Las olas de la superficie son un ejemplo; las ondas internas viajan en cambio por el interior del fluido [1].</p>
@@ -76,6 +82,34 @@
   <div class="tech-note">
     <p><strong>Grandes y lentas:</strong> como la diferencia de densidad entre las capas del océano es pequeña, la fuerza que devuelve el agua a su lugar es débil, y las ondas internas pueden tener amplitudes enormes y moverse despacio (un razonamiento a partir de la frecuencia de flotación: un cambio de densidad chico da un N chico). Las ondas internas también son parientes de las inestabilidades de un fluido en capas, como la de <a href="inestabilidad-rayleigh-taylor.html">Rayleigh-Taylor</a>, que aparece cuando la estratificación está al revés: lo denso arriba [1].</p>
   </div>
+  <figure class="figura" id="int">
+    <canvas id="int-c" width="1280" height="560" role="img" aria-label="Dos capas de agua, liviana arriba y densa abajo. Entre ellas viaja una onda enorme y lenta, mientras la superficie casi no se mueve."></canvas>
+    <div class="int-control"><label for="int-d">Diferencia de densidad</label><input type="range" id="int-d" min="0.1" max="5" step="0.1" value="0.2"><output id="int-o" for="int-d">0,2 %</output></div>
+    <p class="int-estado" id="int-e" aria-live="polite"></p>
+    <figcaption>Dos capas de 100 m y 400 m de espesor, valores elegidos. Es el caso más simple, dos capas en lugar de un cambio gradual: la velocidad sale de reemplazar g por la gravedad reducida gΔρ/ρ en la fórmula de las aguas someras (un cálculo propio). Muestra la idea del artículo: con poca diferencia de densidad, la fuerza que devuelve el agua es débil, y la onda es lenta y grande. La altura de la onda está dibujada, no calculada.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('int-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, sl = document.getElementById('int-d'), so = document.getElementById('int-o'), es = document.getElementById('int-e');
+    var P = 0, vis = true, t0 = 0, YS = 40, YI = 150, CI = '#00d4ff';
+    function vel() { return Math.sqrt(9.8 * sl.value / 100 * 100 * 400 / 500); }
+    function dibujar() {
+      var i, x, y, d = +sl.value, c = vel(), k = 2 * Math.PI / 400, A = 56, As = A * d / 100 * 0.8;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#0f6d8c'; g.beginPath(); g.moveTo(0, YS); for (i = 0; i <= 320; i++) { x = i * 2; g.lineTo(x, YS - As * Math.cos(k * x - P)); } g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fill();
+      g.fillStyle = '#0a3350'; g.beginPath(); g.moveTo(0, H); for (i = 0; i <= 320; i++) { x = i * 2; g.lineTo(x, YI + A * Math.cos(k * x - P)); } g.lineTo(W, H); g.closePath(); g.fill();
+      g.strokeStyle = CI; g.lineWidth = 2.5; g.beginPath(); for (i = 0; i <= 320; i++) { x = i * 2; y = YI + A * Math.cos(k * x - P); if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+      g.strokeStyle = '#eef2ff'; g.lineWidth = 2; g.beginPath(); for (i = 0; i <= 320; i++) { x = i * 2; y = YS - As * Math.cos(k * x - P); if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#eef2ff'; g.fillText('superficie', 12, 26); g.fillText('agua liviana', 12, 72); g.fillText('agua densa', 12, 262);
+      so.textContent = d.toFixed(1).replace('.', ',') + ' %';
+      es.innerHTML = 'La onda interna va a <strong>' + c.toFixed(1).replace('.', ',') + ' m/s</strong>; una ola de superficie en el mismo lugar, a unos 70 m/s.';
+    }
+    function paso(t) { var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016; t0 = t; if (vis) { P -= dt * vel() * 0.6; dibujar(); } requestAnimationFrame(paso); }
+    sl.addEventListener('input', dibujar);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <p>En un fluido estratificado, más denso abajo, cada porción de fluido que se desplaza oscila con la frecuencia de flotación N. Las ondas internas son ese vaivén organizado: viajan por dentro del océano o de la atmósfera, nunca oscilan más rápido que N, su frecuencia depende de su dirección y su energía viaja de costado respecto de las crestas. Son olas que existen sin que la superficie lo note.</p>
 

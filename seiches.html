@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -54,6 +56,33 @@
 
   <h2>Una onda estacionaria</h2>
   <p>Según la Administración Nacional Oceánica y Atmosférica de Estados Unidos (NOAA), un seiche es una onda estacionaria que oscila en un cuerpo de agua [1]. Se mueve como un subibaja: las oscilaciones verticales más grandes están en los extremos, y en el centro, el «nodo», casi no hay movimiento [1]. La NOAA explica que una onda estacionaria así se puede ver como la suma de dos ondas que viajan en sentidos opuestos [1]. Pueden formarse en cualquier cuerpo de agua cerrado o semicerrado, desde un lago enorme hasta una taza de café [1].</p>
+  <figure class="figura" id="sei">
+    <canvas id="sei-c" width="1280" height="560" role="img" aria-label="Corte de un lago con la superficie que sube en un extremo y baja en el otro, como un subibaja. El centro casi no se mueve en el primer modo; en el segundo hay dos puntos quietos."></canvas>
+    <div class="int-botones" role="group" aria-label="Modo"><button type="button" data-m="1">modo fundamental</button><button type="button" data-m="2">segundo modo</button></div>
+    <p class="int-estado" id="sei-e" aria-live="polite"></p>
+    <figcaption>Una onda estacionaria en un recipiente rectangular, con la altura muy exagerada [1]. El tiempo está acelerado. El período del ejemplo es el de una pileta de 25 m y 2 m de fondo, con T ≈ 2L/√(gH) dividido por el número de modo (un cálculo propio con la velocidad de Tong [2]). Las partículas muestran que en los nodos el agua no sube ni baja, pero va y viene de costado.<span class="credito">Animación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('sei-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, es = document.getElementById('sei-e'), bs = document.querySelectorAll('#sei .int-botones button');
+    var M = 1, F = 0, vis = true, t0 = 0, X0 = 40, X1 = 600, Y0 = 110, YF = 240, A = 44, CI = '#00d4ff', NA = '#f5a623';
+    function dibujar() {
+      var i, x, q, n = 150, s = Math.cos(F), L = X1 - X0;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.28)'; g.beginPath(); g.moveTo(X0, YF); for (i = 0; i <= n; i++) { q = i / n; g.lineTo(X0 + q * L, Y0 - A * Math.cos(M * Math.PI * q) * s); } g.lineTo(X1, YF); g.closePath(); g.fill();
+      g.strokeStyle = CI; g.lineWidth = 3; g.beginPath(); for (i = 0; i <= n; i++) { q = i / n; x = X0 + q * L; if (i) g.lineTo(x, Y0 - A * Math.cos(M * Math.PI * q) * s); else g.moveTo(x, Y0 - A * Math.cos(M * Math.PI * q) * s); } g.stroke();
+      g.strokeStyle = '#8892b0'; g.lineWidth = 4; g.beginPath(); g.moveTo(X0, 40); g.lineTo(X0, YF); g.lineTo(X1, YF); g.lineTo(X1, 40); g.stroke();
+      g.fillStyle = NA; for (i = 1; i <= 9; i++) { q = i / 10; var dx = -32 * Math.sin(M * Math.PI * q) * s, dz = A * Math.cos(M * Math.PI * q) * s * 0.45; g.beginPath(); g.arc(X0 + q * L + dx, 178 - dz, 4, 0, 6.3); g.fill(); }
+      g.strokeStyle = '#eef2ff'; g.lineWidth = 1.5; g.setLineDash([5, 5]); for (i = 0; i < M; i++) { x = X0 + L * (2 * i + 1) / (2 * M); g.beginPath(); g.moveTo(x, 40); g.lineTo(x, YF); g.stroke(); } g.setLineDash([]);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = '#eef2ff'; g.fillText(M === 1 ? 'nodo' : 'nodos', W / 2, 28);
+    }
+    function paso(t) { var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016; t0 = t; if (vis) { F += dt * 1.5 * M; dibujar(); } requestAnimationFrame(paso); }
+    function modo(m, b0) { M = m; bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); es.innerHTML = m === 1 ? 'Un subibaja: el agua sube en una punta y baja en la otra. En esta pileta, cada vaivén tarda unos <strong>11 s</strong>.' : 'Dos nodos: las puntas suben juntas. El período es la mitad, unos <strong>5,6 s</strong>.'; }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-m'), b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(1, bs[0]); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El subibaja:</strong> la imagen de la NOAA es la de un subibaja. Cuando un extremo sube, el otro baja, y el centro se queda casi quieto. En un seiche, el agua se amontona en una punta del lago mientras baja en la otra, y después al revés, una y otra vez.</p>
@@ -67,9 +96,66 @@
   <p>El período de un seiche se puede estimar con la velocidad de las olas en aguas poco profundas, c = √(gH), que da David Tong, de la Universidad de Cambridge [2]. En el modo más simple, la onda tiene que ir y volver a lo largo del lago, una distancia 2L, así que el período resulta (un cálculo propio a partir de la velocidad de Tong):</p>
   <div class="math-block">T ≈ 2L / √(gH)<br>T: período del modo fundamental · L: largo del cuerpo de agua · H: profundidad media · g: gravedad</div>
   <p>Para una pileta de 25 metros de largo y 2 de profundidad, da unos 11 segundos (un cálculo propio). Para un lago de decenas de kilómetros y pocas decenas de metros de profundidad, el período es de horas, como los que menciona la NOAA (un cálculo propio con la misma fórmula).</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 334" role="img" aria-labelledby="sei2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="sei2-t">Barras del período de un seiche calculado: dos décimas de segundo para una taza, once segundos para una pileta, ocho horas para el lago Superior, nueve horas y media para el Michigan y casi dieciséis para el Erie.</title>
+      <rect width="640" height="334" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Del café al lago Erie</text>
+        <text x="178.0" y="85.0" text-anchor="end" fill="#eef2ff" font-size="16">una taza</text>
+        <rect x="190.0" y="60.0" width="13.7" height="36.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="211.7" y="85.0" text-anchor="start" fill="#f5a623" font-size="15">0,2 s</text>
+        <text x="178.0" y="133.0" text-anchor="end" fill="#eef2ff" font-size="16">una pileta</text>
+        <rect x="190.0" y="108.0" width="109.3" height="36.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="307.3" y="133.0" text-anchor="start" fill="#f5a623" font-size="15">11 s</text>
+        <text x="178.0" y="181.0" text-anchor="end" fill="#eef2ff" font-size="16">lago Superior</text>
+        <rect x="190.0" y="156.0" width="291.3" height="36.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="489.3" y="181.0" text-anchor="start" fill="#f5a623" font-size="15">8,2 h</text>
+        <text x="178.0" y="229.0" text-anchor="end" fill="#eef2ff" font-size="16">lago Michigan</text>
+        <rect x="190.0" y="204.0" width="294.6" height="36.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="492.6" y="229.0" text-anchor="start" fill="#f5a623" font-size="15">9,5 h</text>
+        <text x="178.0" y="277.0" text-anchor="end" fill="#eef2ff" font-size="16">lago Erie</text>
+        <rect x="190.0" y="252.0" width="306.3" height="36.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="504.3" y="277.0" text-anchor="start" fill="#f5a623" font-size="15">15,8 h</text>
+        <text x="20.0" y="318.0" text-anchor="start" fill="#8892b0" font-size="14">el largo de cada barra es el tiempo, en escala logarítmica</text>
+      </g>
+    </svg>
+    <figcaption>T ≈ 2L/√(gH) con el largo de cada lago [3] y su profundidad media [4] (un cálculo propio). La taza de 8 cm y 8 cm es elegida. Es una estimación: la fórmula supone un recipiente rectangular de fondo parejo, y los lagos no lo son.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Cuando un lago se desborda</h2>
   <p>Un seiche puede ser peligroso. La NOAA cuenta que el lago Erie, en América del Norte, es conocido por sus seiches, sobre todo cuando soplan vientos fuertes del sudoeste al noreste [1]. En 1844, un seiche de unos 6,7 metros (22 pies) superó un muro de contención de 4,3 metros (14 pies), mató a 78 personas y represó el hielo de tal manera que las cataratas del Niágara dejaron de correr por un tiempo [1]. Y en 2008, vientos fuertes produjeron en el lago olas de entre 3,7 y 4,9 metros (12 a 16 pies) [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 344" role="img" aria-labelledby="sei3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="sei3-t">Registro del nivel del agua en Búfalo y Toledo a fines de enero de 2008. El 30 de enero, Búfalo sube casi tres metros y Toledo baja más de dos, y después oscilan al revés.</title>
+      <rect width="640" height="344" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">El lago Erie, de punta a punta</text>
+        <line x1="76.0" y1="260.6" x2="610.0" y2="260.6" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="265.6" text-anchor="end" fill="#8892b0" font-size="15">−2</text>
+        <line x1="76.0" y1="189.8" x2="610.0" y2="189.8" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="194.8" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="76.0" y1="119.1" x2="610.0" y2="119.1" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="124.1" text-anchor="end" fill="#8892b0" font-size="15">2</text>
+        <text x="129.4" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">29 ene</text>
+        <line x1="76.0" y1="296.0" x2="76.0" y2="66.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="236.2" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">30</text>
+        <line x1="182.8" y1="296.0" x2="182.8" y2="66.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="343.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">31</text>
+        <line x1="289.6" y1="296.0" x2="289.6" y2="66.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="449.8" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">1 feb</text>
+        <line x1="396.4" y1="296.0" x2="396.4" y2="66.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="556.6" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">2</text>
+        <line x1="503.2" y1="296.0" x2="503.2" y2="66.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="20.0" y="54.0" text-anchor="start" fill="#8892b0" font-size="15">nivel (m)</text>
+        <polyline points="76.0,191.0 80.5,192.7 84.9,191.6 89.3,191.4 93.8,189.1 98.2,190.9 102.7,188.2 107.2,190.5 111.6,193.4 116.0,186.5 120.5,192.2 125.0,190.4 129.4,190.3 133.8,186.8 138.3,187.2 142.8,188.7 147.2,186.2 151.7,186.6 156.1,189.6 160.6,189.1 165.0,190.5 169.4,190.8 173.9,191.4 178.3,191.2 182.8,192.3 187.2,192.3 191.7,191.6 196.2,192.2 200.6,192.1 205.1,191.0 209.5,192.6 213.9,189.5 218.4,186.3 222.8,171.0 227.3,128.4 231.8,97.4 236.2,89.5 240.7,107.9 245.1,111.2 249.6,123.9 254.0,135.4 258.4,152.7 262.9,156.5 267.4,157.4 271.8,158.1 276.2,160.3 280.7,159.6 285.1,152.4 289.6,153.3 294.1,158.6 298.5,162.8 302.9,169.0 307.4,171.6 311.9,175.1 316.3,178.4 320.8,183.1 325.2,184.1 329.6,187.5 334.1,191.4 338.6,192.2 343.0,191.7 347.4,192.1 351.9,192.4 356.4,191.6 360.8,190.7 365.2,188.7 369.7,187.5 374.1,188.7 378.6,190.0 383.1,189.9 387.5,192.6 391.9,194.1 396.4,195.8 400.9,196.9 405.3,200.5 409.8,204.7 414.2,205.1 418.6,207.2 423.1,207.2 427.6,207.1 432.0,204.0 436.4,201.4 440.9,198.7 445.4,191.5 449.8,195.1 454.2,191.7 458.7,192.5 463.1,196.1 467.6,198.3 472.1,196.8 476.5,192.5 480.9,195.6 485.4,194.0 489.9,191.5 494.3,189.2 498.8,186.9 503.2,186.8 507.6,184.6 512.1,181.0 516.5,169.4 521.0,163.0 525.5,162.2 529.9,166.2 534.4,170.4 538.8,169.7 543.2,172.2 547.7,180.8 552.1,181.2 556.6,182.5 561.0,184.2 565.5,185.1 570.0,187.0 574.4,183.9 578.9,185.2 583.3,181.9 587.8,183.7 592.2,186.3 596.6,186.2 601.1,185.7 605.5,189.2" fill="none" stroke="#00d4ff" stroke-width="2.6" stroke-linejoin="round"/>
+        <polyline points="76.0,188.4 80.5,187.8 84.9,188.9 89.3,188.7 93.8,188.6 98.2,189.6 102.7,188.9 107.2,188.9 111.6,188.4 116.0,189.5 120.5,190.3 125.0,190.9 129.4,190.6 133.8,190.5 138.3,190.3 142.8,190.5 147.2,191.5 151.7,191.1 156.1,193.1 160.6,192.6 165.0,191.7 169.4,189.8 173.9,189.3 178.3,186.1 182.8,185.9 187.2,186.6 191.7,185.8 196.2,189.0 200.6,189.5 205.1,193.7 209.5,204.6 213.9,216.1 218.4,227.0 222.8,232.7 227.3,239.8 231.8,249.3 236.2,258.2 240.7,265.3 245.1,270.9 249.6,274.5 254.0,272.7 258.4,266.9 262.9,261.9 267.4,253.0 271.8,237.2 276.2,217.0 280.7,207.0 285.1,205.6 289.6,204.4 294.1,208.8 298.5,215.7 302.9,219.7 307.4,218.2 311.9,214.7 316.3,209.9 320.8,205.1 325.2,198.0 329.6,191.6 334.1,188.4 338.6,187.4 343.0,187.3 347.4,187.6 351.9,188.7 356.4,189.3 360.8,188.0 365.2,189.2 369.7,190.6 374.1,190.8 378.6,190.8 383.1,189.6 387.5,186.9 391.9,185.6 396.4,184.0 400.9,180.8 405.3,178.7 409.8,175.9 414.2,172.1 418.6,169.8 423.1,170.6 427.6,171.7 432.0,172.2 436.4,173.9 440.9,175.1 445.4,176.3 449.8,179.9 454.2,183.2 458.7,184.0 463.1,185.7 467.6,187.1 472.1,187.7 476.5,186.6 480.9,184.8 485.4,184.4 489.9,184.5 494.3,186.5 498.8,189.8 503.2,193.4 507.6,197.1 512.1,200.6 516.5,202.5 521.0,204.2 525.5,206.7 529.9,205.9 534.4,204.1 538.8,203.5 543.2,201.6 547.7,200.7 552.1,201.6 556.6,197.8 561.0,192.8 565.5,187.5 570.0,188.2 574.4,189.7 578.9,191.5 583.3,191.6 587.8,193.8 592.2,195.0 596.6,194.4 601.1,193.1 605.5,193.1" fill="none" stroke="#f5a623" stroke-width="2.6" stroke-linejoin="round"/>
+        <text x="254.0" y="83.7" text-anchor="end" fill="#00d4ff" font-size="15">Búfalo, al este</text>
+        <text x="298.5" y="278.3" text-anchor="start" fill="#f5a623" font-size="15">Toledo, al oeste</text>
+      </g>
+    </svg>
+    <figcaption>Datos reales de los mareógrafos de NOAA en las dos puntas del lago Erie, en enero de 2008 [5]. Las curvas son el nivel respecto del promedio del primer día, hora por hora. Una punta sube y la otra baja, como en un subibaja, y después el lago sigue oscilando. Que el viento empujó el agua hacia el este es un razonamiento a partir de los registros.<span class="credito">Gráfico: Mundo Quarks, con datos de NOAA</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Lo mismo en la taza:</strong> la NOAA recuerda que si alguna vez viste el agua ir y venir en una pileta, una bañera o un vaso, viste un seiche en pequeño [1]. Cuando caminás con la taza, tus pasos la empujan con cierto ritmo; si ese ritmo coincide con el período propio del café, cada paso suma al anterior y la oscilación crece: es una resonancia (un razonamiento a partir de la idea de onda estacionaria).</p>
@@ -86,6 +172,9 @@
   <ol class="refs">
     <li>National Ocean Service, NOAA, «What is a seiche?». <a href="https://oceanservice.noaa.gov/facts/seiche.html" target="_blank" rel="noopener">oceanservice.noaa.gov</a></li>
     <li>D. Tong, <em>Lectures on Fluid Mechanics</em>, apuntes de clase, Universidad de Cambridge (DAMTP), §4.1.2 «The Equations for Surface Waves». <a href="https://www.damtp.cam.ac.uk/user/tong/fluids.html" target="_blank" rel="noopener">damtp.cam.ac.uk</a></li>
+    <li>NOAA Great Lakes Environmental Research Laboratory, tabla de datos físicos de los Grandes Lagos. <a href="https://apps.glerl.noaa.gov/coastwatch/webdata/statistic/physical.html" target="_blank" rel="noopener">glerl.noaa.gov</a></li>
+    <li>Agencia de Protección Ambiental de Estados Unidos (EPA), «Physical Features of the Great Lakes». <a href="https://www.epa.gov/greatlakes/physical-features-great-lakes" target="_blank" rel="noopener">epa.gov</a></li>
+    <li>NOAA Tides and Currents, nivel horario de las estaciones Buffalo (9063020) y Toledo (9063085), 29 de enero al 2 de febrero de 2008. <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener">tidesandcurrents.noaa.gov</a></li>
   </ol>
 </div>
 <div class="article-footer">

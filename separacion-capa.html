@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -62,6 +64,36 @@
     <li>Con la presión subiendo en la dirección del flujo, el <strong>gradiente es adverso</strong>: el fluido de la capa límite, que ya iba lento por la viscosidad, se frena cada vez más.</li>
   </ul>
   <p>En algún punto, el fluido junto a la pared se frena del todo. Tong lo define así: es el punto donde la pendiente del perfil de velocidades en la pared se anula [1]. Más allá, el fluido junto a la pared empieza a ir para atrás, y la capa límite se despega del cuerpo y se mete en el fluido, dejando la estela [1].</p>
+  <figure class="figura" id="dif">
+    <canvas id="dif-c" width="1280" height="620" role="img" aria-label="Un canal que se ensancha, con perfiles de velocidad en tres lugares. Con poca apertura el flujo sigue las paredes. Con mucha, cerca de la pared de arriba aparece flujo hacia atrás: la capa límite se separó."></canvas>
+    <div class="int-control"><label for="dif-a">Apertura del difusor</label><input type="range" id="dif-a" min="1" max="20" step="1" value="6"><output id="dif-o" for="dif-a">6°</output></div>
+    <p class="int-estado" id="dif-e" aria-live="polite"></p>
+    <figcaption>Una ilustración, sin valores medidos: el ángulo en que aparece el flujo invertido es elegido para el dibujo. Como el canal se ensancha, el fluido se frena y la presión sube en la dirección del flujo: un gradiente adverso. Cuando la pendiente del perfil en la pared se anula, la capa se despega, y más allá el fluido va para atrás junto a la pared [1].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('dif-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310, sl = document.getElementById('dif-a'), so = document.getElementById('dif-o'), es = document.getElementById('dif-e'), X0 = 110, X1 = 610, YB = 270, H0 = 90, NA = '#f5a623', CI = '#00d4ff', GR = '#8892b0', RE = '#ff7a7a';
+    function poner() {
+      var d = +sl.value, t = Math.tan(d * Math.PI / 180), s = Math.max(0, Math.min(1, (d - 7) / 9)), k, e, j;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      function top(x) { return YB - H0 - (x > X0 ? (x - X0) * t : 0); }
+      g.fillStyle = 'rgba(0,212,255,0.14)'; g.beginPath(); g.moveTo(20, YB); g.lineTo(20, top(20)); g.lineTo(X0, top(X0)); g.lineTo(X1, top(X1)); g.lineTo(X1, YB); g.closePath(); g.fill();
+      g.strokeStyle = GR; g.lineWidth = 3; g.beginPath(); g.moveTo(20, YB); g.lineTo(X1, YB); g.moveTo(20, top(20)); g.lineTo(X0, top(X0)); g.lineTo(X1, top(X1)); g.stroke();
+      [[60, 0], [250, 0.4], [400, 0.7], [560, 1]].forEach(function (c) {
+        var x = c[0], f = c[1], Hh = YB - top(x), w = H0 / Hh, r = s * f, maxb = 0;
+        g.strokeStyle = '#1c2c55'; g.lineWidth = 1; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, YB); g.lineTo(x, top(x)); g.stroke(); g.setLineDash([]);
+        g.lineWidth = 2.5; g.strokeStyle = CI; g.beginPath();
+        for (k = 0; k <= 50; k++) { e = k / 50; j = 1 - e; var u = 6 * e * j * w - r * 3.4 * (j / 0.22) * Math.exp(-j / 0.22) * 0.55, px = x + u * 40, py = YB - e * Hh; if (u < -0.03) maxb = 1; if (k) g.lineTo(px, py); else g.moveTo(px, py); } g.stroke();
+        if (maxb) { g.fillStyle = RE; g.beginPath(); g.arc(x, YB - 0.9 * Hh, 4, 0, 6.3); g.fill(); }
+      });
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = GR; g.fillText('flujo →', 24, 30);
+      so.textContent = d + '°';
+      es.innerHTML = !s ? 'El flujo sigue las paredes: la capa límite está <strong>pegada</strong>.' : 'Cerca de la pared de arriba, el fluido va <strong>para atrás</strong>: la capa se separó.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
   <div class="math-block">Punto de separación: ∂u/∂y = 0 en la pared<br>u: velocidad paralela a la pared · y: distancia a la pared<br>Más allá: flujo invertido junto a la pared</div>
 
   <div class="analogy-box">
@@ -70,6 +102,10 @@
 
   <h2>La estela y el arrastre</h2>
   <p>La capa que se despega no desaparece: lleva consigo la vorticidad que se generó junto a la pared, y esa vorticidad forma la estela [1]. A números de Reynolds bajos forma dos remolinos quietos detrás del cuerpo; más arriba, remolinos que se desprenden de a uno, como la calle de vórtices de von Kármán del <a href="flujo-cilindro.html">flujo alrededor de un cilindro</a> [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/separacion-capa-hilos.jpg" width="960" height="755" loading="lazy" alt="Avión de la NASA en vuelo visto desde arriba, con ala y cola cubiertas de hilos cortos alineados con el aire.">
+    <figcaption>Un Ryan VZ-3RY de la NASA con hilos cortos pegados a las alas, una forma clásica de ver el flujo. Aquí los hilos están alineados, y eso indica un flujo pegado en toda el ala, gracias a unos slats en el borde de ataque.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:ARC-1962-A-29657-1.jpg" target="_blank" rel="noopener">NASA Ames, Dave West</a> · Dominio público</span></figcaption>
+  </figure>
   <p>Lo importante para el arrastre es la presión en la estela. Cuando la estela es turbulenta, la mezcla hace que la presión sea pareja en toda ella e igual a la del punto de separación [1]. Detrás del cuerpo queda una presión mucho más baja que adelante, y eso produce una fuerza de arrastre mucho mayor [1]. Es la asimetría que el fluido ideal no tenía, y la que resuelve la <a href="paradoja-dalembert.html">paradoja de d'Alembert</a>.</p>
 
   <h2>Retrasar la separación</h2>
@@ -78,6 +114,24 @@
   <div class="tech-note">
     <p><strong>Alas que pierden sustentación:</strong> la foto del cuerpo inclinado 5° es un adelanto de lo que le pasa a un ala cuando se la inclina demasiado: la presión en contra sobre la cara de arriba despega el flujo, y el ala deja de desviar el aire como antes (un razonamiento a partir del ejemplo de Tong). Para un ala, eso significa una pérdida brusca de sustentación.</p>
   </div>
+  <figure class="figura">
+    <svg viewBox="0 0 640 348" role="img" aria-labelledby="sep2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="sep2-t">Curva cualitativa de sustentación según el ángulo de ataque. Crece casi en línea recta y cae cuando el flujo se despega.</title>
+      <rect width="640" height="348" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Cuando el ala se pasa de ángulo</text>
+        <line x1="76.0" y1="300.0" x2="600.0" y2="300.0" stroke="#8892b0" stroke-width="2"/>
+        <line x1="76.0" y1="300.0" x2="76.0" y2="70.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="338.0" y="330.0" text-anchor="middle" fill="#8892b0" font-size="15">ángulo de ataque</text>
+        <text x="20.0" y="56.0" text-anchor="start" fill="#8892b0" font-size="15">sustentación</text>
+        <polyline points="76.0,300.0 81.2,296.5 86.5,293.0 91.7,289.4 97.0,285.9 102.2,282.4 107.4,278.9 112.7,275.3 117.9,271.8 123.2,268.3 128.4,264.8 133.6,261.2 138.9,257.7 144.1,254.2 149.4,250.7 154.6,247.2 159.8,243.6 165.1,240.1 170.3,236.6 175.6,233.1 180.8,229.6 186.0,226.1 191.3,222.6 196.5,219.1 201.8,215.6 207.0,212.1 212.2,208.6 217.5,205.1 222.7,201.7 228.0,198.2 233.2,194.7 238.4,191.3 243.7,187.9 248.9,184.4 254.2,181.0 259.4,177.7 264.6,174.3 269.9,170.9 275.1,167.6 280.4,164.3 285.6,161.0 290.8,157.7 296.1,154.5 301.3,151.3 306.6,148.1 311.8,144.9 317.0,141.8 322.3,138.7 327.5,135.7 332.8,132.7 338.0,129.8 343.2,126.8 348.5,124.0 353.7,121.2 359.0,118.5 364.2,115.8 369.4,113.2 374.7,110.6 379.9,108.1 385.2,105.7 390.4,103.4 395.6,101.1 400.9,99.0 406.1,100.5 411.4,104.9 416.6,112.0 421.8,121.3 427.1,132.3 432.3,144.6 437.6,157.4 442.8,170.2 448.0,182.7 453.3,194.3 458.5,204.8 463.8,214.0 469.0,221.9 474.2,228.5 479.5,233.9 484.7,238.1 490.0,241.4 495.2,243.8 500.4,245.7 505.7,247.0 510.9,247.9 516.2,248.6 521.4,249.0 526.6,249.3 531.9,249.5 537.1,249.6 542.4,249.6 547.6,249.7 552.8,249.7 558.1,249.7 563.3,249.7 568.6,249.7 573.8,249.7 579.0,249.7 584.3,249.7 589.5,249.7 594.8,249.7 600.0,249.7" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="400.9" y1="300.0" x2="400.9" y2="70.0" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <text x="412.9" y="84.0" text-anchor="start" fill="#f5a623" font-size="15">el flujo se despega</text>
+        <text x="206.0" y="280.0" text-anchor="start" fill="#5ee0a0" font-size="15">flujo pegado</text>
+      </g>
+    </svg>
+    <figcaption>La forma típica de la curva, sin valores: es un dibujo cualitativo, no datos de un ala en particular. Al inclinar demasiado el ala, la presión en contra despega el flujo y la sustentación cae de golpe.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <p>La capa límite se despega cuando la presión sube en la dirección del flujo y el fluido junto a la pared, ya frenado por la viscosidad, termina de detenerse. Lo que queda atrás es una estela de baja presión, y esa diferencia de presión entre adelante y atrás es una parte enorme del arrastre de un cuerpo romo. Por eso los cuerpos aerodinámicos tienen colas largas y suaves: suben la presión despacio para que el flujo no se despegue (un razonamiento a partir de lo anterior).</p>
 

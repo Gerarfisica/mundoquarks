@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -60,6 +62,32 @@
   <p>Tong estima el espesor con un argumento simple. Junto a la pared el flujo tiene vorticidad, y la viscosidad hace que la vorticidad se difunda, como el calor [1]. Mientras el fluido pasa junto a un cuerpo de largo L a velocidad U, tarda un tiempo L/U, y en ese tiempo la vorticidad se difunde una distancia que crece como la raíz del tiempo [1]:</p>
   <div class="math-block">δ ~ L / √Re &nbsp;&nbsp; con Re = UL/ν<br>δ: espesor de la capa límite · L: largo del cuerpo · ν: viscosidad cinemática</div>
   <p>Con Re = 10<sup>7</sup>, la capa límite resulta unas 3000 veces más delgada que el cuerpo (un cálculo propio con la estimación de Tong). Hay, entonces, dos escalas de longitud: el tamaño del cuerpo y el espesor de la capa donde importan la viscosidad y la vorticidad [1]. Afuera de la capa, la viscosidad se puede despreciar y el flujo es como el de un fluido ideal [1].</p>
+  <figure class="figura" id="cap">
+    <canvas id="cap-c" width="1280" height="560" role="img" aria-label="Una placa en una corriente de aire. La capa límite crece como la raíz de la distancia al borde de adelante, y se angosta al aumentar la velocidad."></canvas>
+    <div class="int-control"><label for="cap-u">Velocidad del aire</label><input type="range" id="cap-u" min="1" max="30" step="1" value="10"><output id="cap-o" for="cap-u">10 m/s</output></div>
+    <p class="int-estado" id="cap-e" aria-live="polite"></p>
+    <figcaption>Una placa de 1 m en aire, con ν = 1,5 × 10<sup>−5</sup> m²/s. El espesor se calcula como δ ≈ 5 √(νx/U), porque la velocidad llega casi a la de la corriente a unas cinco veces el espesor característico [1]. La altura del dibujo está muy exagerada. El cálculo es para una capa laminar, y deja de valer a Re de 10<sup>5</sup> o 10<sup>6</sup> [1].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cap-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, sl = document.getElementById('cap-u'), so = document.getElementById('cap-o'), es = document.getElementById('cap-e'), X0 = 50, X1 = 600, YP = 226, NU = 1.5e-5, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function flecha(x, y, l, c) { if (l < 9) return; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = 1.8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l - 6, y); g.stroke(); g.beginPath(); g.moveTo(x + l, y); g.lineTo(x + l - 8, y - 4); g.lineTo(x + l - 8, y + 4); g.closePath(); g.fill(); }
+    function poner() {
+      var U = +sl.value, d1 = 5 * Math.sqrt(NU / U), Z = 16000, k, x, dx = X1 - X0, Re = U / NU;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.25)'; g.beginPath(); g.moveTo(X0, YP); for (k = 0; k <= 60; k++) { x = k / 60; g.lineTo(X0 + x * dx, YP - Math.sqrt(x) * d1 * Z); } g.lineTo(X1, YP); g.closePath(); g.fill();
+      g.strokeStyle = CI; g.lineWidth = 2.5; g.beginPath(); for (k = 0; k <= 60; k++) { x = k / 60; if (k) g.lineTo(X0 + x * dx, YP - Math.sqrt(x) * d1 * Z); else g.moveTo(X0, YP); } g.stroke();
+      g.fillStyle = '#3a4668'; g.fillRect(X0, YP, dx, 10);
+      for (k = 0; k < 7; k++) { var q = k / 6, y = YP - q * Math.sqrt(0.7) * d1 * Z, m = q * (2 - q); flecha(X0 + 0.7 * dx - 60, y - 3, m * 60, NA); }
+      for (k = 0; k < 5; k++) flecha(10, 50 + k * 34, 30, GR);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'right'; g.fillStyle = '#eef2ff'; g.fillText('δ al final: ' + (d1 * 1000).toFixed(1).replace('.', ',') + ' mm', 616, 30); g.fillStyle = GR; g.fillText('Re = ' + (Re / 1e5).toFixed(1).replace('.', ',') + ' × 10⁵', 616, 54);
+      so.textContent = U + ' m/s';
+      es.innerHTML = 'Al final de la placa, la capa mide unos <strong>' + (d1 * 1000).toFixed(1).replace('.', ',') + ' mm</strong>.' + (Re > 5e5 ? ' A este Re ya puede volverse turbulenta.' : '');
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El tren y la gente del andén:</strong> cuando un tren pasa rápido por un andén, la gente pegada al borde siente el tirón del aire, y la que está lejos ni se entera. El efecto del tren se propaga hacia el andén, pero despacio, y el tren pasa antes de que llegue lejos. En la capa límite pasa lo mismo: la influencia de la pared llega solo a una franja delgada antes de que el fluido termine de pasar.</p>
@@ -67,6 +95,43 @@
 
   <h2>La capa sobre una placa</h2>
   <p>Para una placa plana en una corriente, Tong resuelve numéricamente las ecuaciones de la capa límite. La velocidad pasa de cero en la placa a la de la corriente, y llega prácticamente a ese valor a unas cuatro o cinco veces el espesor característico [1]. La capa es más delgada en el borde de adelante y se engrosa a lo largo de la placa [1]. Con esa solución calcula el arrastre sobre la placa, y encuentra que crece como la raíz del largo, no proporcional al largo: a medida que la capa se engrosa, el perfil de velocidades se vuelve menos empinado y la fricción baja [1]. Tong lo llama la primera resolución honesta de la paradoja de d'Alembert [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 356" role="img" aria-labelledby="cap2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="cap2-t">Perfil de velocidad de Blasius sobre una placa. La velocidad crece desde cero y llega al 99 por ciento de la corriente a eta casi cinco.</title>
+      <rect width="640" height="356" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">El perfil de Blasius</text>
+        <line x1="90.0" y1="296.0" x2="610.0" y2="296.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="301.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="90.0" y1="262.3" x2="610.0" y2="262.3" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="267.3" text-anchor="end" fill="#8892b0" font-size="15">1</text>
+        <line x1="90.0" y1="228.6" x2="610.0" y2="228.6" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="233.6" text-anchor="end" fill="#8892b0" font-size="15">2</text>
+        <line x1="90.0" y1="194.9" x2="610.0" y2="194.9" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="199.9" text-anchor="end" fill="#8892b0" font-size="15">3</text>
+        <line x1="90.0" y1="161.1" x2="610.0" y2="161.1" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="166.1" text-anchor="end" fill="#8892b0" font-size="15">4</text>
+        <line x1="90.0" y1="127.4" x2="610.0" y2="127.4" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="132.4" text-anchor="end" fill="#8892b0" font-size="15">5</text>
+        <line x1="90.0" y1="93.7" x2="610.0" y2="93.7" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="98.7" text-anchor="end" fill="#8892b0" font-size="15">6</text>
+        <line x1="90.0" y1="60.0" x2="610.0" y2="60.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="65.0" text-anchor="end" fill="#8892b0" font-size="15">7</text>
+        <text x="90.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0</text>
+        <text x="213.8" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0,25</text>
+        <text x="337.6" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0,5</text>
+        <text x="461.4" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0,75</text>
+        <text x="585.2" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">1</text>
+        <line x1="90.0" y1="296.0" x2="610.0" y2="296.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="350.0" y="342.0" text-anchor="middle" fill="#8892b0" font-size="15">u / U</text>
+        <text x="20.0" y="52.0" text-anchor="start" fill="#8892b0" font-size="17">η</text>
+        <polyline points="90.0,296.0 106.4,292.6 122.9,289.3 139.3,285.9 155.8,282.5 172.2,279.1 188.5,275.8 204.8,272.4 221.1,269.0 237.3,265.7 253.3,262.3 269.2,258.9 285.0,255.5 300.6,252.2 316.0,248.8 331.1,245.4 345.9,242.1 360.5,238.7 374.6,235.3 388.5,231.9 401.9,228.6 414.9,225.2 427.4,221.8 439.5,218.5 451.0,215.1 462.1,211.7 472.6,208.3 482.5,205.0 491.9,201.6 500.7,198.2 509.0,194.9 516.7,191.5 523.9,188.1 530.5,184.7 536.6,181.4 542.2,178.0 547.3,174.6 551.9,171.3 556.1,167.9 559.8,164.5 563.2,161.1 566.2,157.8 568.9,154.4 571.2,151.0 573.3,147.7 575.1,144.3 576.7,140.9 578.0,137.5 579.2,134.2 580.2,130.8 581.1,127.4 581.8,124.1 582.4,120.7 582.9,117.3 583.3,113.9 583.7,110.6 584.0,107.2 584.2,103.8 584.4,100.5 584.6,97.1 584.7,93.7 584.8,90.3 584.9,87.0 585.0,83.6 585.0,80.2 585.1,76.9 585.1,73.5 585.2,70.1 585.2,66.7 585.2,63.4 585.2,60.0" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="90.0" y1="130.5" x2="580.3" y2="130.5" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <text x="104.0" y="122.5" text-anchor="start" fill="#f5a623" font-size="16">99 % de U a η = 4,9</text>
+      </g>
+    </svg>
+    <figcaption>La solución numérica de las ecuaciones de la capa límite sobre una placa, calculada con η = y√(U/(νx)) (un cálculo propio). Llega prácticamente a la velocidad de la corriente a unas cinco veces el espesor característico, como dice Tong [1].<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Prandtl</h2>
   <p>Según MacTutor, Prandtl respondió al problema del flujo con viscosidad muy pequeña introduciendo lo que él llamaba la capa de fricción sobre las paredes, y lo presentó en agosto de 1904 en el Congreso Internacional de Matemáticos de Heidelberg [2]. Tong fecha la idea en 1905 [1]. La capa límite no fue una demostración rigurosa, y su importancia tardó en entenderse [1], pero cambió la aerodinámica para siempre.</p>

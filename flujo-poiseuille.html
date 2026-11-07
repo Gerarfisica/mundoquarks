@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -59,11 +61,74 @@
   <p>David Tong, de la Universidad de Cambridge, resuelve las <a href="navier-stokes.html">ecuaciones de Navier-Stokes</a> para un tubo circular de radio R con un gradiente de presión constante [2]. Con la condición de no deslizamiento en la pared, la velocidad resulta [2]:</p>
   <div class="math-block">u(r) = −(1/4μ) (dP/dx) (R² − r²)<br>u: velocidad a una distancia r del eje · μ: viscosidad · dP/dx: gradiente de presión a lo largo del tubo · R: radio del tubo</div>
   <p>Es una parábola: cero en la pared, máxima en el centro. El signo menos dice que el fluido corre de la presión alta hacia la baja [2]. Tong la llama flujo de Hagen-Poiseuille [2].</p>
+  <figure class="figura" id="poi">
+    <canvas id="poi-c" width="1280" height="560" role="img" aria-label="Un tubo con flechas de velocidad que forman una parábola, cero en la pared y máxima en el centro. Al cambiar el radio o la presión, cambia el caudal."></canvas>
+    <div class="int-control"><label for="poi-r">Radio</label><input type="range" id="poi-r" min="1" max="6" step="0.1" value="2"><output id="poi-ro" for="poi-r">2,0 mm</output></div>
+    <div class="int-control"><label for="poi-p">Diferencia de presión</label><input type="range" id="poi-p" min="10" max="500" step="10" value="100"><output id="poi-po" for="poi-p">100 Pa</output></div>
+    <p class="int-estado" id="poi-e" aria-live="polite"></p>
+    <figcaption>La ley de Poiseuille, Q = Δp π r⁴/(8ηl), para agua a 20 °C (η = 0,001 Pa·s) en un tubo de 1 m [1]. La escala de las flechas se adapta en cada caso: mirá la forma, y los números para el tamaño. Si el número de Reynolds supera unos 2000, la ley deja de valer, porque el flujo ya no es laminar [1].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('poi-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, sr = document.getElementById('poi-r'), sp = document.getElementById('poi-p'), ro = document.getElementById('poi-ro'), po = document.getElementById('poi-po'), es = document.getElementById('poi-e'), YC = 130, CI = '#00d4ff', GR = '#8892b0', NA = '#f5a623';
+    function num(x, d) { return x.toFixed(d).replace('.', ','); }
+    function flecha(x1, y, x2, c, w) { g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y); g.lineTo(x2 - 7, y); g.stroke(); g.beginPath(); g.moveTo(x2, y); g.lineTo(x2 - 9, y - 4); g.lineTo(x2 - 9, y + 4); g.closePath(); g.fill(); }
+    function poner() {
+      var r = +sr.value, dp = +sp.value, R = r / 1000, Q = dp * Math.PI * Math.pow(R, 4) / (8 * 0.001), v = Q / (Math.PI * R * R), Re = 2000 * v * R * 1000 / 1000 / 1, Px = 14 + r * 17.5, k, q, y, xm = 160;
+      Re = 2 * 1000 * v * R / 0.001;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.14)'; g.fillRect(24, YC - Px, 592, 2 * Px); g.strokeStyle = GR; g.lineWidth = 3; g.beginPath(); g.moveTo(24, YC - Px); g.lineTo(616, YC - Px); g.moveTo(24, YC + Px); g.lineTo(616, YC + Px); g.stroke();
+      for (k = -5; k <= 5; k++) { q = k / 6; y = YC + q * Px; if ((1 - q * q) * 260 > 14) flecha(60, y, 60 + (1 - q * q) * 260, CI, 2); }
+      g.strokeStyle = NA; g.lineWidth = 2; g.beginPath(); for (k = -40; k <= 40; k++) { q = k / 40; if (k > -40) g.lineTo(60 + (1 - q * q) * 260, YC + q * Px); else g.moveTo(60, YC - Px); } g.stroke();
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#eef2ff'; g.fillText('Q = ' + (Q > 1e-4 ? num(Q * 1000, 2) + ' L/s' : num(Q * 1e6, 2) + ' mL/s'), 390, 118); g.fillStyle = GR; g.fillText('centro: ' + num(2 * v, 2) + ' m/s', 390, 142); g.fillText('Re = ' + Math.round(Re), 390, 166);
+      ro.textContent = num(r, 1) + ' mm'; po.textContent = dp + ' Pa';
+      es.innerHTML = Re > 2000 ? 'Con Re = ' + Math.round(Re) + ', el flujo ya no sería laminar: <strong>la ley no vale</strong>.' : 'Caudal: <strong>' + (Q > 1e-4 ? num(Q * 1000, 2) + ' L/s' : num(Q * 1e6, 2) + ' mL/s') + '</strong>. Si duplicás el radio, se multiplica por 16.';
+    }
+    sr.addEventListener('input', poner); sp.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <h2>La ley de Poiseuille</h2>
   <p>Integrando la velocidad sobre toda la sección se obtiene el caudal. OpenStax lo escribe así [1]:</p>
   <div class="math-block">Q = (p<sub>2</sub> − p<sub>1</sub>) π r⁴ / (8ηl) &nbsp;·&nbsp; resistencia R = 8ηl / (πr⁴)<br>Q: caudal · p<sub>2</sub> − p<sub>1</sub>: diferencia de presión · r: radio · η: viscosidad · l: largo del tubo</div>
   <p>La ley dice cosas razonables: el caudal crece con la diferencia de presión y baja con la viscosidad y con el largo del tubo [1]. Lo sorprendente es la cuarta potencia del radio. Según OpenStax, cualquier cambio en el radio tiene un efecto enorme: si se duplica el radio, la resistencia baja 2⁴ = 16 veces [1]. En un ejemplo de OpenStax, un conducto de aire acondicionado que pasa de 18 a 9 cm de diámetro reduce su caudal al 6,25 % del original [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 356" role="img" aria-labelledby="poi2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="poi2-t">Curva del caudal relativo según el radio relativo. Crece con la cuarta potencia: dieciséis veces con el doble de radio y 6,25 por ciento con la mitad.</title>
+      <rect width="640" height="356" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="18">Duplicar el radio: dieciséis veces más</text>
+        <line x1="76.0" y1="296.0" x2="610.0" y2="296.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="301.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="76.0" y1="251.6" x2="610.0" y2="251.6" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="256.6" text-anchor="end" fill="#8892b0" font-size="15">5</text>
+        <line x1="76.0" y1="207.2" x2="610.0" y2="207.2" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="212.2" text-anchor="end" fill="#8892b0" font-size="15">10</text>
+        <line x1="76.0" y1="162.8" x2="610.0" y2="162.8" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="167.8" text-anchor="end" fill="#8892b0" font-size="15">15</text>
+        <line x1="76.0" y1="118.4" x2="610.0" y2="118.4" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="123.4" text-anchor="end" fill="#8892b0" font-size="15">20</text>
+        <line x1="76.0" y1="74.0" x2="610.0" y2="74.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="79.0" text-anchor="end" fill="#8892b0" font-size="15">25</text>
+        <text x="76.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0,5</text>
+        <text x="228.6" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">1</text>
+        <text x="381.1" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">1,5</text>
+        <text x="533.7" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">2</text>
+        <line x1="76.0" y1="296.0" x2="610.0" y2="296.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="343.0" y="342.0" text-anchor="middle" fill="#8892b0" font-size="15">radio relativo</text>
+        <text x="20.0" y="52.0" text-anchor="start" fill="#8892b0" font-size="14">caudal relativo</text>
+        <polyline points="76.0,295.4 81.3,295.4 86.7,295.3 92.0,295.2 97.4,295.1 102.7,294.9 108.0,294.8 113.4,294.7 118.7,294.5 124.1,294.3 129.4,294.2 134.7,294.0 140.1,293.7 145.4,293.5 150.8,293.3 156.1,293.0 161.4,292.7 166.8,292.4 172.1,292.1 177.5,291.7 182.8,291.4 188.1,291.0 193.5,290.6 198.8,290.1 204.2,289.6 209.5,289.1 214.8,288.6 220.2,288.1 225.5,287.5 230.9,286.9 236.2,286.2 241.5,285.5 246.9,284.8 252.2,284.0 257.6,283.2 262.9,282.4 268.2,281.5 273.6,280.6 278.9,279.6 284.3,278.6 289.6,277.6 294.9,276.5 300.3,275.3 305.6,274.1 311.0,272.9 316.3,271.6 321.6,270.2 327.0,268.8 332.3,267.4 337.7,265.8 343.0,264.3 348.3,262.6 353.7,260.9 359.0,259.1 364.4,257.3 369.7,255.4 375.0,253.4 380.4,251.3 385.7,249.2 391.1,247.0 396.4,244.7 401.7,242.4 407.1,240.0 412.4,237.4 417.8,234.8 423.1,232.2 428.4,229.4 433.8,226.5 439.1,223.6 444.5,220.5 449.8,217.4 455.1,214.1 460.5,210.8 465.8,207.4 471.2,203.8 476.5,200.2 481.8,196.4 487.2,192.5 492.5,188.6 497.9,184.5 503.2,180.3 508.5,176.0 513.9,171.5 519.2,166.9 524.6,162.3 529.9,157.4 535.2,152.5 540.6,147.4 545.9,142.2 551.3,136.9 556.6,131.4 561.9,125.8 567.3,120.0 572.6,114.1 578.0,108.0 583.3,101.8 588.6,95.4 594.0,88.9 599.3,82.2 604.7,75.4 610.0,68.4" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="533.7" y1="296.0" x2="533.7" y2="153.9" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <line x1="76.0" y1="153.9" x2="533.7" y2="153.9" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <circle cx="533.7" cy="153.9" r="6" fill="#f5a623"/>
+        <text x="521.7" y="141.9" text-anchor="end" fill="#f5a623" font-size="16">16 veces</text>
+        <circle cx="76.0" cy="295.4" r="6" fill="#5ee0a0"/>
+        <text x="90.0" y="283.4" text-anchor="start" fill="#5ee0a0" font-size="16">6,25 %</text>
+      </g>
+    </svg>
+    <figcaption>Con la misma diferencia de presión, el caudal crece con r⁴. Con el doble de radio es 16 veces mayor; con la mitad, baja al 6,25 %, como el conducto del ejemplo de OpenStax [1].<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>Por qué cuatro:</strong> la cuarta potencia sale de dos efectos que se multiplican. Un tubo más ancho tiene más área por donde pasar, y eso da r². Pero además, en un tubo más ancho el centro está más lejos de las paredes que lo frenan, y el fluido de adentro corre más rápido, y eso da otro r². Juntos, r⁴ (un razonamiento a partir del perfil parabólico).</p>
@@ -71,6 +136,10 @@
 
   <h2>Poiseuille y la sangre</h2>
   <p>Según OpenStax, la ley lleva el nombre del científico francés J. L. Poiseuille (1799–1869), que la dedujo intentando entender el flujo de la sangre en el cuerpo [1]. Por eso la cuarta potencia importa tanto en medicina: un pequeño estrechamiento de un vaso sanguíneo aumenta mucho su resistencia (un razonamiento a partir de la ley). La física de la circulación está en el <a href="flujo-sanguineo.html">flujo sanguíneo</a>.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/flujo-poiseuille-retrato.jpg" width="305" height="445" loading="lazy" style="width:min(14rem,100%);margin:0 auto" alt="Retrato en blanco y negro de Jean Léonard Marie Poiseuille, mayor, sentado, con saco oscuro.">
+    <figcaption>Jean Léonard Marie Poiseuille, que buscaba entender el flujo de la sangre en el cuerpo [1].<span class="credito">Retrato: <a href="https://commons.wikimedia.org/wiki/File:Poiseuille.jpg" target="_blank" rel="noopener">autor desconocido</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Solo para flujo laminar:</strong> OpenStax aclara que la ley vale para el flujo laminar de un fluido incompresible [1]. Si el flujo se vuelve turbulento, la resistencia aumenta muchísimo [1]. Cuándo pasa eso lo dice el <a href="numero-reynolds.html">número de Reynolds</a>. Tong muestra además la versión plana, entre dos placas quietas, que también tiene un perfil parabólico [2].</p>

@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -55,10 +57,51 @@
   <h2>Suspensiones, coloides y soluciones</h2>
   <p>El libro <em>Chemistry 2e</em> de OpenStax distingue tres tipos de mezcla según el tamaño de lo que está disperso [1]. En una <strong>suspensión</strong>, como el barro en agua, las partículas son relativamente grandes, visibles o casi, la mezcla es turbia y las partículas se depositan con el tiempo [1]. En una <strong>solución</strong>, las moléculas o iones son invisibles, la mezcla es transparente y nada se deposita [1]. En el medio están los <strong>coloides</strong>, cuyas partículas son más grandes que la mayoría de las moléculas, pero lo bastante chicas para no depositarse [1].</p>
   <p>Una manera de reconocer un coloide es iluminarlo: sus partículas son lo bastante grandes para dispersar la luz, y el haz se ve atravesando la mezcla. Es el efecto Tyndall [1].</p>
+  <figure class="figura" id="sed">
+    <canvas id="sed-c" width="1280" height="620" role="img" aria-label="Un vaso con partículas en agua. Las grandes y densas bajan, las gotas de aceite suben, y las muy chicas casi no se mueven."></canvas>
+    <div class="int-botones" role="group" aria-label="Sustancia"><button type="button" data-r="2600" data-n="grano de arena fina o barro">grano mineral</button><button type="button" data-r="920" data-n="gota de aceite">gota de aceite</button></div>
+    <div class="int-control"><label for="sed-d">Diámetro</label><input type="range" id="sed-d" min="-1" max="2.3" step="0.05" value="1.3"><output id="sed-o" for="sed-d">20 μm</output></div>
+    <p class="int-estado" id="sed-e" aria-live="polite"></p>
+    <figcaption>La velocidad se calcula con la ley de Stokes en agua a 20 °C, v = 2r²Δρ g/(9η), un cálculo propio con densidades elegidas: 2600 kg/m³ para el grano y 920 kg/m³ para el aceite. Da una idea de por qué el barro se deposita y un coloide no [1]. Los granos del dibujo se mueven mucho más rápido que los reales, y el vaivén al azar es ilustrativo: en las partículas muy chicas, ese movimiento gana.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('sed-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310, sl = document.getElementById('sed-d'), so = document.getElementById('sed-o'), es = document.getElementById('sed-e'), bs = document.querySelectorAll('#sed .int-botones button');
+    var P = [], i, RHO = 2600, NOM = '', vis = true, CI = '#00d4ff', GR = '#8892b0', X0 = 190, X1 = 450, Y0 = 20, Y1 = 290;
+    for (i = 0; i < 170; i++) P.push([X0 + Math.random() * (X1 - X0), Y0 + Math.random() * (Y1 - Y0)]);
+    function vel() { var d = Math.pow(10, +sl.value) * 1e-6, r = d / 2; return 2 * r * r * Math.abs(RHO - 998) * 9.8 / (9 * 0.001); }
+    function tiempo(s) { return s < 60 ? Math.round(s) + ' segundos' : s < 3600 ? Math.round(s / 60) + ' minutos' : s < 86400 ? Math.round(s / 3600) + ' horas' : s < 31536000 ? Math.round(s / 86400) + ' días' : Math.round(s / 31536000) + ' años'; }
+    function poner() {
+      var v = vel(), d = Math.pow(10, +sl.value), t = 0.1 / v;
+      so.textContent = (d < 1 ? d.toFixed(1).replace('.', ',') : d < 10 ? d.toFixed(0) : String(Math.round(d / 5) * 5)) + ' μm';
+      es.innerHTML = (RHO > 998 ? 'Baja' : 'Sube') + ' 10 cm en unos <strong>' + tiempo(t) + '</strong>.' + (d < 1 ? ' Con ese tamaño ya es un coloide: casi no se separa.' : '');
+    }
+    function frame() {
+      var v = vel(), d = Math.pow(10, +sl.value), s = (RHO > 998 ? 1 : -1) * Math.min(3, 0.15 * Math.max(0, Math.log(v / 1e-8) / Math.log(10))) * Math.min(1, v * 2e4 + 0.02), b = 1.2 / Math.sqrt(d), q, p;
+      if (vis) {
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = 'rgba(0,212,255,0.12)'; g.fillRect(X0, Y0, X1 - X0, Y1 - Y0); g.strokeStyle = GR; g.lineWidth = 3; g.beginPath(); g.moveTo(X0, Y0); g.lineTo(X0, Y1); g.lineTo(X1, Y1); g.lineTo(X1, Y0); g.stroke();
+        g.fillStyle = RHO > 998 ? '#c49a6c' : '#f5a623';
+        for (q = 0; q < P.length; q++) { p = P[q]; p[0] += (Math.random() - 0.5) * b; p[1] += s + (Math.random() - 0.5) * b; if (p[0] < X0 + 3) p[0] = X0 + 3; if (p[0] > X1 - 3) p[0] = X1 - 3; if (p[1] < Y0 + 3) p[1] = Y0 + 3; if (p[1] > Y1 - 3) p[1] = Y1 - 3; g.beginPath(); g.arc(p[0], p[1], 2.4, 0, 6.3); g.fill(); }
+      }
+      requestAnimationFrame(frame);
+    }
+    function mezclar() { for (i = 0; i < P.length; i++) P[i][1] = Y0 + Math.random() * (Y1 - Y0); }
+    function modo(b0) { RHO = +b0.getAttribute('data-r'); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); mezclar(); poner(); }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(b); }); });
+    sl.addEventListener('input', function () { mezclar(); poner(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(bs[0]); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Las emulsiones</h2>
   <p>Una <strong>emulsión</strong> es un coloide de un líquido dentro de otro: OpenStax da como ejemplos la leche, la mayonesa y la manteca [1]. Se prepara agitando o licuando dos líquidos que no se mezclan [1]. Pero en muchas emulsiones, las gotitas tienden a juntarse, formar gotas grandes y separarse [1]. Por eso se las estabiliza con un <strong>emulsionante</strong>, una sustancia que impide que las gotas se fusionen [1].</p>
   <p>OpenStax da ejemplos de cocina: la leche es una emulsión de grasa de manteca en agua, estabilizada por la proteína caseína; la mayonesa es una emulsión de aceite en vinagre, estabilizada por componentes de la yema de huevo [1]. Las moléculas de los emulsionantes son anfifílicas: tienen una parte que «odia» el agua y otra que la «ama» [1], de modo que se ubican en la superficie de las gotas.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/suspensiones-emulsiones-microscopio.jpg" width="620" height="590" loading="lazy" style="width:min(22rem,100%);margin:0 auto" alt="Vista circular de microscopio con gotas redondas de distintos tamaños sobre un fondo claro.">
+    <figcaption>Gotas de aceite de silicona en agua vistas al microscopio óptico: una emulsión real, aunque no es mayonesa. Las gotas son de tamaños muy distintos.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Particles_in_polydimethylsiloxane_(PDMS)_oil-in_water_emulsion_seen_through_an_optical_microscope.jpg" target="_blank" rel="noopener">Kushina Dahlia</a> · <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank" rel="noopener">CC BY 4.0</a> · recortada</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>Los guardias en la frontera:</strong> imaginá cada gotita de aceite rodeada por una fila de guardias, con un pie en el aceite y otro en el agua. Cuando dos gotas se acercan, los guardias de una chocan con los de la otra y no las dejan fusionarse. Eso hacen las moléculas anfifílicas de la yema en la mayonesa.</p>
@@ -68,6 +111,37 @@
   <p>Agregar partículas a un líquido lo vuelve más viscoso. Jonas Einarsson y colaboradores, de la Universidad de Stanford, recuerdan que el primer cálculo de ese efecto lo hizo Einstein en su tesis doctoral: para una suspensión diluida de esferas rígidas en un fluido newtoniano, la viscosidad es [2]:</p>
   <div class="math-block">η = μ (1 + 2,5 φ + ...)<br>η: viscosidad de la suspensión · μ: viscosidad del líquido solo · φ: fracción del volumen ocupada por las partículas</div>
   <p>La viscosidad aumenta porque las partículas se resisten a deformarse [2]. La fórmula vale para suspensiones diluidas, en las que se pueden ignorar las interacciones entre partículas [2]. Un 2 % de esferas, por ejemplo, sube la viscosidad un 5 % (un cálculo propio con la fórmula).</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 362" role="img" aria-labelledby="sus2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="sus2-t">Dos curvas de la viscosidad relativa. La de Einstein es casi plana; la curva concentrada se dispara por encima de la mitad del volumen.</title>
+      <rect width="640" height="362" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Cuánto se espesa</text>
+        <line x1="76.0" y1="296.0" x2="600.0" y2="296.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="301.0" text-anchor="end" fill="#8892b0" font-size="15">1</text>
+        <line x1="76.0" y1="243.5" x2="600.0" y2="243.5" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="248.5" text-anchor="end" fill="#8892b0" font-size="15">3</text>
+        <line x1="76.0" y1="186.0" x2="600.0" y2="186.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="191.0" text-anchor="end" fill="#8892b0" font-size="15">10</text>
+        <line x1="76.0" y1="133.5" x2="600.0" y2="133.5" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="138.5" text-anchor="end" fill="#8892b0" font-size="15">30</text>
+        <line x1="76.0" y1="76.0" x2="600.0" y2="76.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="81.0" text-anchor="end" fill="#8892b0" font-size="15">100</text>
+        <text x="76.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0 %</text>
+        <text x="250.7" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">20 %</text>
+        <text x="425.3" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">40 %</text>
+        <text x="600.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">60 %</text>
+        <line x1="76.0" y1="296.0" x2="600.0" y2="296.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="338.0" y="342.0" text-anchor="middle" fill="#8892b0" font-size="15">fracción del volumen ocupada</text>
+        <text x="20.0" y="54.0" text-anchor="start" fill="#8892b0" font-size="15">viscosidad relativa</text>
+        <polyline points="76.0,296.0 81.2,295.3 86.5,294.6 91.7,293.9 97.0,293.2 102.2,292.5 107.4,291.9 112.7,291.2 117.9,290.6 123.2,290.0 128.4,289.3 133.6,288.7 138.9,288.1 144.1,287.5 149.4,286.9 154.6,286.3 159.8,285.7 165.1,285.1 170.3,284.6 175.6,284.0 180.8,283.5 186.0,282.9 191.3,282.4 196.5,281.8 201.8,281.3 207.0,280.8 212.2,280.3 217.5,279.8 222.7,279.2 228.0,278.7 233.2,278.2 238.4,277.8 243.7,277.3 248.9,276.8 254.2,276.3 259.4,275.8 264.6,275.4 269.9,274.9 275.1,274.5 280.4,274.0 285.6,273.5 290.8,273.1 296.1,272.7 301.3,272.2 306.6,271.8 311.8,271.4 317.0,270.9 322.3,270.5 327.5,270.1 332.8,269.7 338.0,269.3 343.2,268.9 348.5,268.5 353.7,268.1 359.0,267.7 364.2,267.3 369.4,266.9 374.7,266.5 379.9,266.1 385.2,265.7 390.4,265.3 395.6,265.0 400.9,264.6 406.1,264.2 411.4,263.9 416.6,263.5 421.8,263.1 427.1,262.8 432.3,262.4 437.6,262.1 442.8,261.7 448.0,261.4 453.3,261.0 458.5,260.7 463.8,260.3 469.0,260.0 474.2,259.7 479.5,259.3 484.7,259.0 490.0,258.7 495.2,258.3 500.4,258.0 505.7,257.7 510.9,257.4 516.2,257.0 521.4,256.7 526.6,256.4 531.9,256.1 537.1,255.8 542.4,255.5 547.6,255.2 552.8,254.9 558.1,254.6 563.3,254.3 568.6,254.0 573.8,253.7 579.0,253.4 584.3,253.1 589.5,252.8 594.8,252.5 600.0,252.2" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <polyline points="76.0,296.0 81.1,295.3 86.1,294.6 91.2,293.9 96.3,293.2 101.3,292.5 106.4,291.7 111.5,291.0 116.5,290.2 121.6,289.5 126.7,288.7 131.7,288.0 136.8,287.2 141.8,286.4 146.9,285.6 152.0,284.8 157.0,284.0 162.1,283.2 167.2,282.4 172.2,281.6 177.3,280.7 182.4,279.9 187.4,279.0 192.5,278.1 197.6,277.3 202.6,276.4 207.7,275.5 212.8,274.6 217.8,273.6 222.9,272.7 228.0,271.7 233.0,270.8 238.1,269.8 243.2,268.8 248.2,267.8 253.3,266.8 258.4,265.8 263.4,264.8 268.5,263.7 273.5,262.7 278.6,261.6 283.7,260.5 288.7,259.4 293.8,258.3 298.9,257.1 303.9,256.0 309.0,254.8 314.1,253.6 319.1,252.4 324.2,251.1 329.3,249.9 334.3,248.6 339.4,247.3 344.5,246.0 349.5,244.6 354.6,243.3 359.7,241.9 364.7,240.4 369.8,239.0 374.9,237.5 379.9,236.0 385.0,234.5 390.1,232.9 395.1,231.3 400.2,229.7 405.2,228.0 410.3,226.3 415.4,224.6 420.4,222.8 425.5,221.0 430.6,219.1 435.6,217.2 440.7,215.2 445.8,213.2 450.8,211.1 455.9,209.0 461.0,206.8 466.0,204.5 471.1,202.2 476.2,199.8 481.2,197.3 486.3,194.8 491.4,192.1 496.4,189.4 501.5,186.5 506.6,183.6 511.6,180.5 516.7,177.3 521.7,173.9 526.8,170.4 531.9,166.8 536.9,162.9 542.0,158.9 547.1,154.6 552.1,150.0 557.2,145.2 562.3,140.1 567.3,134.5 572.4,128.6 577.5,122.1 582.5,115.1" fill="none" stroke="#f5a623" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 6"/>
+        <text x="586.9" y="276.2" text-anchor="end" fill="#00d4ff" font-size="16">Einstein</text>
+        <text x="381.7" y="148.3" text-anchor="end" fill="#f5a623" font-size="15">concentrada (ilustrativa)</text>
+      </g>
+    </svg>
+    <figcaption>La fórmula de Einstein, 1 + 2,5 φ, vale para suspensiones diluidas [2]. La curva punteada es solo ilustrativa, con la forma de Krieger-Dougherty y un límite elegido de φ = 0,64: muestra el crecimiento enorme de las suspensiones concentradas, que no es parte de la fórmula de Einstein.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
   <p>Cuando la suspensión es muy concentrada, todo cambia: aparece el comportamiento de la maicena con agua, que se endurece al golpearla, que se cuenta en <a href="fluidos-no-newtonianos.html">fluidos no newtonianos</a> [3]. Y las emulsiones muy concentradas, según Daniel Bonn y colaboradores, se vuelven sólidas cuando la fracción de gotas supera un empaquetamiento crítico: es una verdadera transición de atascamiento [4]. Bonn y colaboradores cuentan a la mayonesa entre los materiales con tensión de fluencia, que no fluyen hasta que se los empuja con cierta fuerza [4]; su mucho aceite en gotas apretadas ayuda a entender por qué se sostiene sobre una cuchara (un razonamiento a partir de esa transición).</p>
 
   <h2>Las gotas grandes se comen a las chicas</h2>

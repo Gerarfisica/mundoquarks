@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -51,6 +53,10 @@
 </div>
 <div class="article-container">
   <p>Debajo de nuestros pies hay agua: no en ríos subterráneos, sino metida en los poros de la arena, la grava y la roca, avanzando despacio a través de pasadizos diminutos. Lo mismo hace el petróleo en un yacimiento, o el café a través del filtro. Para describir esos flujos hace falta una ley sencilla que un ingeniero francés encontró a mediados del siglo XIX, filtrando agua para una ciudad.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/flujos-medios-porosos-arenisca.jpg" width="960" height="960" loading="lazy" style="width:min(22rem,100%);margin:0 auto" alt="Fotografía circular antigua en blanco y negro de granos claros y angulosos, de distintos tamaños, sobre fondo oscuro.">
+    <figcaption>Una lámina delgada de arenisca de Seneca, fotografiada en 1898 con 10 aumentos y luz polarizada. Se ven los granos, en un círculo de unos 8,5 mm, pero no se distinguen los poros, que son los espacios entre ellos.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Photomicrograph_of_Seneca_Sandstone_Fig_14_WBClark_1898.jpg" target="_blank" rel="noopener">William Bullock Clark</a> · Dominio público</span></figcaption>
+  </figure>
 
   <h2>Los filtros de Dijon</h2>
   <p>Según el libro de hidrogeología de William Woessner y Eileen Poeter, publicado por The Groundwater Project, en 1856 Henry Darcy dio a conocer experimentos para mejorar el paso del agua por los filtros de arena que la ciudad de Dijon, en Francia, usaba para tratar su agua [1]. Como ingeniero, quería diseñar lechos de arena que filtraran de manera eficiente el volumen de agua que la ciudad necesitaba cada día [1].</p>
@@ -64,6 +70,41 @@
   <div class="analogy-box">
     <p><strong>La pendiente invisible:</strong> la carga hidráulica es como la altura del terreno para una pelota: el agua subterránea siempre «baja» de donde la carga es mayor a donde es menor. La ley de Darcy dice que cuanto más empinada esa pendiente invisible, y cuanto más abierto el material, más agua pasa.</p>
   </div>
+  <figure class="figura" id="dar">
+    <canvas id="dar-c" width="1280" height="560" role="img" aria-label="Un filtro de arena con dos tubos a los lados que marcan la carga del agua. Al subir la diferencia de altura o cambiar el material, cambia el caudal."></canvas>
+    <div class="int-botones" role="group" aria-label="Material"><button type="button" data-k="3e-2">grava</button><button type="button" data-k="3e-4">arena limpia</button><button type="button" data-k="3e-7">limo</button><button type="button" data-k="1e-8">arenisca</button><button type="button" data-k="3e-11">arcilla marina</button></div>
+    <div class="int-control"><label for="dar-g">Diferencia de carga</label><input type="range" id="dar-g" min="0.1" max="2" step="0.1" value="1"><output id="dar-o" for="dar-g">1,0 m</output></div>
+    <p class="int-estado" id="dar-e" aria-live="polite"></p>
+    <figcaption>La ley de Darcy, q = K Δh/ΔL, en un filtro de 1 m de largo [1]. Los valores de K son aproximados, a ojo y cerca del centro de cada rango de la figura de Woessner y Poeter, donde cada material ocupa varios órdenes de magnitud [1]. La velocidad real usa una porosidad efectiva de 0,25, elegida [1] (un cálculo propio). La velocidad del dibujo no es proporcional: está comprimida para que se vean todos los materiales.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('dar-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, sl = document.getElementById('dar-g'), so = document.getElementById('dar-o'), es = document.getElementById('dar-e'), bs = document.querySelectorAll('#dar .int-botones button');
+    var K = 3e-4, F = 0, vis = true, X0 = 150, X1 = 490, YT = 130, YB = 230, CI = '#00d4ff', NA = '#c49a6c', GR = '#8892b0', GRN = [], i;
+    for (i = 0; i < 60; i++) GRN.push([X0 + 12 + (i % 15) * 22 + (Math.floor(i / 15) % 2) * 11, YT + 16 + Math.floor(i / 15) * 22]);
+    function tiempo(s) { return s < 60 ? Math.round(s) + ' segundos' : s < 3600 ? Math.round(s / 60) + ' minutos' : s < 86400 ? Math.round(s / 3600) + ' horas' : s < 31536000 ? Math.round(s / 86400) + ' días' : Math.round(s / 31536000) + ' años'; }
+    function dibujar() {
+      var dh = +sl.value, q = K * dh, v = q / 0.25, hL = 100, hR = hL - dh * 34, s = Math.max(0.02, (Math.log(v) / Math.log(10) + 12) / 11), k, x;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.25)'; g.fillRect(X0 - 80, YT, 80, YB - YT); g.fillRect(X1, YT, 80, YB - YT); g.fillRect(X0 - 56, 230 - hL - 100 + 0, 32, YT - (230 - hL - 100)); g.fillRect(X1 + 24, 130 - hR + 0, 32, hR);
+      g.strokeStyle = CI; g.lineWidth = 3; g.beginPath(); g.moveTo(X0 - 56, 30); g.lineTo(X0 - 24, 30); g.moveTo(X1 + 24, 130 - hR); g.lineTo(X1 + 56, 130 - hR); g.stroke();
+      g.fillStyle = '#26345f'; g.fillRect(X0, YT, X1 - X0, YB - YT); g.fillStyle = NA; for (k = 0; k < GRN.length; k++) { g.beginPath(); g.arc(GRN[k][0], GRN[k][1], K > 1e-5 ? 9 : K > 1e-9 ? 7 : 5, 0, 6.3); g.fill(); }
+      g.strokeStyle = GR; g.lineWidth = 3; g.strokeRect(X0, YT, X1 - X0, YB - YT);
+      g.fillStyle = CI; for (k = 0; k < 7; k++) { x = X0 + ((k / 7 + F) % 1) * (X1 - X0); g.beginPath(); g.moveTo(x + 11, YT + 50); g.lineTo(x - 3, YT + 43); g.lineTo(x - 3, YT + 57); g.closePath(); g.fill(); }
+      g.strokeStyle = '#f5a623'; g.lineWidth = 1.5; g.setLineDash([5, 5]); g.beginPath(); g.moveTo(X0 - 24, 30); g.lineTo(X1 + 24, 130 - hR); g.stroke(); g.setLineDash([]);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = '#f5a623'; g.fillText('Δh', 320, 44); g.fillStyle = GR; g.fillText('ΔL = 1 m', 320, 258);
+      so.textContent = dh.toFixed(1).replace('.', ',') + ' m';
+      es.innerHTML = 'El agua tarda unos <strong>' + tiempo(1 / v) + '</strong> en cruzar el metro de material.' + (K > 1e-3 ? ' Con poros tan grandes, la ley puede dejar de valer.' : '');
+      return s;
+    }
+    function frame() { var dh = +sl.value, v = K * dh / 0.25, s = Math.max(0.02, (Math.log(v) / Math.log(10) + 12) / 11); if (vis) { F = (F + 0.008 * s) % 1; dibujar(); } requestAnimationFrame(frame); }
+    function modo(b0) { K = +b0.getAttribute('data-k'); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); dibujar(); }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(b); }); });
+    sl.addEventListener('input', dibujar);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(bs[1]); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Dos velocidades</h2>
   <p>Si se divide el caudal por el área, se obtiene la <strong>descarga específica</strong> q, que tiene unidades de velocidad pero no es la velocidad real del agua: Woessner y Poeter la llaman también velocidad aparente [1]. El agua, en realidad, solo pasa por la parte del área ocupada por poros conectados, la porosidad efectiva n<sub>e</sub>, así que va más rápido [1]:</p>

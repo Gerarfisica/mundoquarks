@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -55,6 +57,10 @@
   <h2>Granos que solo se tocan</h2>
   <p>Un grupo de investigadores franceses que firmó como GDR MiDi, el Grupo de Investigación sobre Medios Divididos del CNRS, reunió en 2004 los resultados de muchos laboratorios sobre el flujo de granos secos [1]. Explican que, cuando los granos son lo bastante grandes, de más de unos 250 micrómetros, y el fluido que los rodea no es muy viscoso, lo que manda son los contactos entre granos: las fuerzas capilares, las de van der Waals y las viscosas se pueden despreciar, y todo depende de los choques y de la fricción entre los granos [1].</p>
   <p>Aun así, advierten, el flujo de estos materiales no es fácil de describir [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/flujos-granulares-duna.jpg" width="790" height="690" loading="lazy" alt="Ladera empinada de una duna, cubierta de surcos que bajan, y una zona central por donde la arena se deslizó.">
+    <figcaption>La ladera de una duna en Great Sand Dunes, en Estados Unidos, marcada por pequeñas avalanchas de arena: granos quietos que, cuando la pendiente se pasa, fluyen.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Avalanche_Slope_on_Dunes_(46116909755).jpg" target="_blank" rel="noopener">Patrick Myers, NPS</a> · Dominio público · recortada</span></figcaption>
+  </figure>
 
   <h2>Tres regímenes</h2>
   <p>Según el GDR MiDi, los flujos granulares suelen dividirse en tres clases según la velocidad [1]:</p>
@@ -67,11 +73,75 @@
   <div class="analogy-box">
     <p><strong>La cancha de fútbol:</strong> una tribuna llena y quieta es como el régimen cuasiestático: cada uno en su lugar, apretado contra los vecinos. A la salida del estadio, la multitud que avanza empujándose es el flujo denso. Y en el recreo de una escuela, con chicos corriendo y chocándose de a dos, tenés el régimen «gaseoso».</p>
   </div>
+  <figure class="figura" id="gra">
+    <canvas id="gra-c" width="1000" height="640" style="max-width:32rem;margin:0 auto" role="img" aria-label="Granos en una caja que se sacude. Con poca agitación forman una pila quieta; con más, se reacomodan y fluyen; con mucha, saltan y chocan como un gas."></canvas>
+    <div class="int-control"><label for="gra-a">Agitación</label><input type="range" id="gra-a" min="0" max="100" step="1" value="0"><output id="gra-o" for="gra-a">0 %</output></div>
+    <p class="int-estado" id="gra-e" aria-live="polite"></p>
+    <figcaption>Una simulación simple de 130 discos con gravedad, en dos dimensiones. Cada contacto es un resorte amortiguado, sin fricción entre granos, y el fondo de la caja vibra. Muestra la idea de los tres regímenes de GDR MiDi [1], pero en una caja sacudida, no en los flujos que ellos comparan. Los límites del texto son elegidos.<span class="credito">Simulación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('gra-c'), g = cv.getContext('2d'), sl = document.getElementById('gra-a'), so = document.getElementById('gra-o'), es = document.getElementById('gra-e');
+    var E = 2, W = 500, H = 320, N = 130, R = 9, X = new Float32Array(N), Y = new Float32Array(N), VX = new Float32Array(N), VY = new Float32Array(N), T = 0, vis = true, i, CI = '#c49a6c';
+    for (i = 0; i < N; i++) { X[i] = 22 + (i % 23) * 20.2 + (Math.floor(i / 23) % 2) * 6; Y[i] = 300 - Math.floor(i / 23) * 18.5; }
+    function paso(dt, A) {
+      var i, j, dx, dy, d, n, nx, ny, f, vn, k = 2600, c = 11, gr = 330, fl = 312 + A * Math.sin(T * 34), vf = A * 34 * Math.cos(T * 34);
+      for (i = 0; i < N; i++) {
+        VY[i] += gr * dt;
+        if (Y[i] + R > fl) { n = Y[i] + R - fl; f = k * n - c * (VY[i] - vf); if (f > 0) VY[i] -= f * dt; VX[i] *= 0.998; }
+        if (X[i] < R) { VX[i] += (k * (R - X[i]) - c * VX[i]) * dt; } if (X[i] > W - R) { VX[i] -= (k * (X[i] - W + R) + c * VX[i]) * dt; }
+        if (Y[i] < R) VY[i] += k * (R - Y[i]) * dt;
+        for (j = i + 1; j < N; j++) { dx = X[j] - X[i]; if (dx > 2 * R || dx < -2 * R) continue; dy = Y[j] - Y[i]; d = dx * dx + dy * dy; if (d >= 4 * R * R || d === 0) continue; d = Math.sqrt(d); nx = dx / d; ny = dy / d; n = 2 * R - d; vn = (VX[j] - VX[i]) * nx + (VY[j] - VY[i]) * ny; f = k * n - c * vn; if (f < 0) f = 0; VX[i] -= f * nx * dt; VY[i] -= f * ny * dt; VX[j] += f * nx * dt; VY[j] += f * ny * dt; }
+      }
+      for (i = 0; i < N; i++) { X[i] += VX[i] * dt; Y[i] += VY[i] * dt; }
+      T += dt;
+    }
+    function dibujar(A) {
+      var i; g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H); g.fillStyle = CI; for (i = 0; i < N; i++) { g.beginPath(); g.arc(X[i], Y[i], R - 0.6, 0, 6.3); g.fill(); }
+      g.fillStyle = '#3a4668'; g.fillRect(0, 312 + A * Math.sin(T * 34), W, 12);
+    }
+    function poner() { var v = +sl.value; so.textContent = v + ' %'; es.innerHTML = v < 12 ? 'Casi <strong>como un sólido</strong>: una pila donde cada grano está apretado contra sus vecinos.' : v < 55 ? 'Como un <strong>líquido</strong>: los granos se reacomodan y siguen en contacto.' : 'Como un <strong>gas</strong>: los granos saltan, separados, y chocan de a dos.'; }
+    function frame() { var k, A = sl.value * 0.11; if (vis) { for (k = 0; k < 14; k++) paso(0.0013, A); dibujar(A); } requestAnimationFrame(frame); }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Un número para el flujo denso</h2>
   <p>El GDR MiDi comparó seis configuraciones: corte entre dos placas, corte anular, caída por un canal vertical, flujo sobre un plano inclinado, flujo sobre una pila y flujo en un tambor rotante [1]. Encontraron que, para materiales granulares comunes, las propiedades del flujo denso (la velocidad, la dilatancia y la fricción efectiva) están controladas por un único número adimensional, el <strong>número inercial</strong> [1]:</p>
   <div class="math-block">I = γ̇ d / √(P / ρ)<br>γ̇: tasa de corte · d: diámetro de los granos · P: presión · ρ: densidad de los granos</div>
   <p>El número inercial compara la importancia de la inercia con la de la presión que confina a los granos [1]. Con I chico el flujo es denso; con I grande se vuelve un régimen colisional diluido [1]. La <strong>fricción efectiva</strong>, el cociente entre la tensión de corte y la presión dentro del material, depende de I [1]. Es como si el material granular fuera un fluido con un coeficiente de fricción que cambia según lo rápido que se lo deforma (una lectura propia de ese resultado).</p>
+  <figure class="figura" id="inr">
+    <canvas id="inr-c" width="1280" height="600" role="img" aria-label="Curva de la fricción efectiva según el número inercial, en escala logarítmica: casi constante a I chico y creciente en el flujo denso."></canvas>
+    <div class="int-control"><label for="inr-i">Número inercial I</label><input type="range" id="inr-i" min="-4" max="0" step="0.05" value="-2"><output id="inr-o" for="inr-i">0,01</output></div>
+    <p class="int-estado" id="inr-e" aria-live="polite"></p>
+    <figcaption>La ley μ(I) que propusieron Jop, Forterre y Pouliquen después de GDR MiDi, con sus valores para esferas de vidrio: μ<sub>s</sub> = tan 20,9°, μ<sub>2</sub> = tan 32,76° e I<sub>0</sub> = 0,279 [4]. GDR MiDi ubica el régimen cuasiestático por debajo de I ≈ 10<sup>−3</sup>, y en sus simulaciones el flujo deja de ser denso cerca de I ≈ 0,1, según qué tan elásticos sean los granos [1]. Más allá de ese punto, la curva ya no se aplica.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('inr-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 300, sl = document.getElementById('inr-i'), so = document.getElementById('inr-o'), es = document.getElementById('inr-e');
+    var MS = Math.tan(20.9 * Math.PI / 180), M2 = Math.tan(32.76 * Math.PI / 180), I0 = 0.279, X0 = 70, X1 = 610, Y0 = 250, Y1 = 40, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function mu(I) { return MS + (M2 - MS) / (I0 / I + 1); }
+    function XX(l) { return X0 + (X1 - X0) * (l + 4) / 4; } function YY(m) { return Y0 - (Y0 - Y1) * (m - 0.3) / 0.4; }
+    function poner() {
+      var l = +sl.value, I = Math.pow(10, l), m = mu(I), k, v;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.07)'; g.fillRect(X0, Y1, XX(-3) - X0, Y0 - Y1); g.fillStyle = 'rgba(255,122,122,0.07)'; g.fillRect(XX(-1), Y1, X1 - XX(-1), Y0 - Y1);
+      g.strokeStyle = '#1c2c55'; g.lineWidth = 1; g.font = "15px 'Space Mono',monospace"; g.fillStyle = GR; g.textAlign = 'right';
+      for (v = 0.3; v < 0.71; v += 0.1) { g.beginPath(); g.moveTo(X0, YY(v)); g.lineTo(X1, YY(v)); g.stroke(); g.fillText(v.toFixed(1).replace('.', ','), X0 - 8, YY(v) + 5); }
+      g.textAlign = 'center'; [['10⁻⁴', -4], ['10⁻³', -3], ['10⁻²', -2], ['0,1', -1], ['1', 0]].forEach(function (q) { g.fillText(q[0], XX(q[1]), Y0 + 22); }); g.fillText('número inercial I', 340, Y0 + 44);
+      g.textAlign = 'left'; g.fillText('μ', 14, 34); g.font = "14px 'Space Mono',monospace"; g.fillStyle = CI; g.fillText('cuasiestático', X0 + 8, Y1 + 18); g.fillStyle = '#ff7a7a'; g.textAlign = 'right'; g.fillText('colisional', X1 - 8, Y1 + 18);
+      g.strokeStyle = CI; g.lineWidth = 3; g.beginPath(); for (k = 0; k <= 120; k++) { var q = -4 + 3 * k / 120; if (k) g.lineTo(XX(q), YY(mu(Math.pow(10, q)))); else g.moveTo(XX(q), YY(mu(Math.pow(10, q)))); } g.stroke();
+      g.strokeStyle = CI; g.setLineDash([5, 5]); g.beginPath(); for (k = 0; k <= 30; k++) { q = -1 + k / 30; if (k) g.lineTo(XX(q), YY(mu(Math.pow(10, q)))); else g.moveTo(XX(q), YY(mu(Math.pow(10, q)))); } g.stroke(); g.setLineDash([]);
+      g.fillStyle = NA; g.beginPath(); g.arc(XX(l), YY(m), 7, 0, 6.3); g.fill();
+      so.textContent = I >= 0.01 ? I.toFixed(2).replace('.', ',') : I.toFixed(4).replace('.', ',');
+      es.innerHTML = l < -3 ? 'Cuasiestático: la fricción es <strong>' + m.toFixed(2).replace('.', ',') + '</strong> y casi no depende de la velocidad.' : l <= -1 ? 'Flujo denso: la fricción sube a <strong>' + m.toFixed(2).replace('.', ',') + '</strong>.' : 'Hacia el régimen colisional: el flujo deja de ser denso y <strong>la curva ya no vale</strong>.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <h2>Atascarse</h2>
   <p>Si un flujo de granos se frena o se aprietan los granos, el material puede pasar de fluir a sostenerse como un sólido. Eric Brown y Heinrich Jaeger explican que en el <strong>atascamiento</strong> (jamming, en inglés) ocurre una transición de fase de fluido a sólido, y que esa idea, venida de la física de los materiales granulares, inyectó nuevas ideas en el estudio de las suspensiones densas [2]. Daniel Bonn y colaboradores agregan que también las espumas y las emulsiones de gotas grandes se vuelven sólidas cuando su densidad supera un empaquetamiento crítico: una verdadera transición de atascamiento [3].</p>
@@ -92,6 +162,7 @@
     <li>GDR MiDi, «On dense granular flows», <em>European Physical Journal E</em> <strong>14</strong>, 341–365 (2004); arXiv:cond-mat/0312502. <a href="https://doi.org/10.1140/epje/i2003-10153-0" target="_blank" rel="noopener">doi:10.1140/epje/i2003-10153-0</a></li>
     <li>E. Brown y H. M. Jaeger, «Shear thickening in concentrated suspensions: phenomenology, mechanisms and relations to jamming», <em>Reports on Progress in Physics</em> <strong>77</strong>, 046602 (2014); arXiv:1307.0269. <a href="https://doi.org/10.1088/0034-4885/77/4/046602" target="_blank" rel="noopener">doi:10.1088/0034-4885/77/4/046602</a></li>
     <li>D. Bonn, M. M. Denn, L. Berthier, T. Divoux y S. Manneville, «Yield stress materials in soft condensed matter», <em>Reviews of Modern Physics</em> <strong>89</strong>, 035005 (2017); arXiv:1502.05281. <a href="https://doi.org/10.1103/RevModPhys.89.035005" target="_blank" rel="noopener">doi:10.1103/RevModPhys.89.035005</a></li>
+    <li>P. Jop, Y. Forterre y O. Pouliquen, «A constitutive law for dense granular flows», <em>Nature</em> 441, 727–730 (2006); arXiv:cond-mat/0612110. <a href="https://doi.org/10.1038/nature04801" target="_blank" rel="noopener">doi:10.1038/nature04801</a></li>
   </ol>
 </div>
 <div class="article-footer">

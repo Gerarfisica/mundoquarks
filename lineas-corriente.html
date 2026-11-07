@@ -38,7 +38,12 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+    .figura video{display:block;width:100%;height:auto;border:1px solid var(--border);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -63,6 +68,35 @@
 
   <h2>Cuándo coinciden</h2>
   <p>Si el flujo es estacionario, es decir, si el campo de velocidades no cambia con el tiempo, las trayectorias y las líneas de corriente coinciden [1]. Pero si el flujo cambia con el tiempo, son distintas [1]. Tong lo muestra con un ejemplo de un flujo bidimensional cuya velocidad horizontal crece con el tiempo: las trayectorias resultan curvas cúbicas, las líneas de corriente son parábolas, y además las líneas de corriente cambian de un instante al siguiente [1].</p>
+  <figure class="figura" id="lin">
+    <canvas id="lin-c" width="1280" height="700" role="img" aria-label="Un flujo cuyo sentido oscila con el tiempo. La trayectoria de una partícula, la línea de traza de la tinta y la línea de corriente salen de un mismo punto y son tres curvas distintas. Si el flujo es estacionario, coinciden."></canvas>
+    <div class="int-botones" role="group" aria-label="Tipo de flujo"><button type="button" data-m="1">flujo que cambia</button><button type="button" data-m="0">flujo estacionario</button></div>
+    <div class="int-control"><label for="lin-t">Tiempo</label><input type="range" id="lin-t" min="0" max="100" step="1" value="70"></div>
+    <p class="int-estado" id="lin-e" aria-live="polite"></p>
+    <figcaption>Un flujo uniforme cuya dirección oscila con el tiempo, un ejemplo con números elegidos. La <strong>trayectoria</strong> es el camino de una partícula; la <strong>línea de corriente</strong> es tangente a la velocidad en este instante [1]; la <strong>línea de traza</strong> es lo que dibuja una tinta soltada sin parar desde el mismo punto. Las tres se calculan de forma exacta para este flujo (un cálculo propio).<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('lin-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 350;
+    var sl = document.getElementById('lin-t'), es = document.getElementById('lin-e'), bs = document.querySelectorAll('#lin .int-botones button');
+    var OX = 40, OY = 175, U = 1, V = 1.1, W0 = 0.022, M = 1, CI = '#00d4ff', NA = '#f5a623', VE = '#5ee0a0', GR = '#8892b0';
+    function poner() {
+      var T = sl.value * 5.6, k, t, x, y, n = 160, vv = M ? V : 0.3, ww = M ? W0 : 0, ang = M ? vv * Math.sin(ww * T) : vv, c = M ? 0 : 0;
+      function yp(tt) { return M ? vv / ww * (1 - Math.cos(ww * tt)) : vv * tt; }
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.save(); g.beginPath(); g.rect(0, 40, W, H - 40); g.clip(); g.lineWidth = 3; g.strokeStyle = NA; g.beginPath(); for (k = 0; k <= n; k++) { t = T * k / n; x = OX + U * t; y = OY - yp(t) + (M ? 60 : 0) * 0; if (k) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+      g.strokeStyle = VE; g.beginPath(); for (k = 0; k <= n; k++) { t = T * k / n; x = OX + U * (T - t); y = OY - (M ? vv / ww * (Math.cos(ww * t) - Math.cos(ww * T)) : vv * (T - t)); if (k) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+      g.strokeStyle = CI; g.setLineDash(M ? [9, 6] : [5, 11]); g.beginPath(); g.moveTo(OX, OY); g.lineTo(OX + 540, OY - ang * 540); g.stroke(); g.setLineDash([]);
+      g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(OX, OY, 6, 0, 6.3); g.fill(); g.fillStyle = NA; g.beginPath(); g.arc(OX + U * T, OY - yp(T), 6, 0, 6.3); g.fill(); g.restore();
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('trayectoria', 24, 28); g.fillStyle = VE; g.fillText('línea de traza', 180, 28); g.fillStyle = CI; g.fillText('línea de corriente', 372, 28);
+      es.innerHTML = M ? 'En un flujo que cambia, las tres curvas son <strong>distintas</strong>.' : 'En un flujo estacionario, las tres <strong>coinciden</strong>.';
+    }
+    function modo(m, b0) { M = m; bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); poner(); }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-m'), b); }); });
+    sl.addEventListener('input', poner); modo(1, bs[0]);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La foto y el video:</strong> imaginá un estacionamiento donde las flechas pintadas en el piso cambian cada minuto. Una foto de las flechas es el mapa de líneas de corriente. El recorrido de un auto que sigue las flechas durante media hora es su trayectoria. Si las flechas nunca cambian, el auto recorre exactamente el camino que muestra la foto; si cambian, el camino del auto no se parece a ninguna foto.</p>
@@ -78,8 +112,33 @@
   <div class="tech-note">
     <p><strong>El tubo de corriente:</strong> si se toma un manojo de líneas de corriente que pasan por un pequeño anillo, se forma un tubo. Como la velocidad es tangente a sus paredes, el fluido no las cruza, y lo que entra por un extremo sale por el otro (un razonamiento a partir de la definición). Por eso el tubo de corriente es la herramienta natural para la <a href="ecuacion-continuidad.html">ecuación de continuidad</a>.</p>
   </div>
+  <figure class="figura">
+    <svg viewBox="0 0 640 330" role="img" aria-labelledby="lin3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="lin3-t">Un tubo formado por líneas de corriente. La velocidad es tangente a sus paredes, así que el fluido no las cruza y lo que entra por un extremo sale por el otro.</title>
+      <rect width="640" height="330" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Un tubo de corriente</text>
+        <path d="M60,110 C240,110 330,150 580,150 L580,214 C330,214 240,270 60,270 Z" fill="#00d4ff2a" stroke="#00d4ff" stroke-width="2.5"/>
+        <ellipse cx="60" cy="190" rx="16" ry="80" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+        <ellipse cx="580" cy="182" rx="8" ry="32" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+        <line x1="10.0" y1="190.0" x2="30.0" y2="190.0" stroke="#f5a623" stroke-width="4"/>
+        <polygon points="44.0,190.0 30.0,196.3 30.0,183.7" fill="#f5a623"/>
+        <line x1="588.0" y1="182.0" x2="616.0" y2="182.0" stroke="#f5a623" stroke-width="4"/>
+        <polygon points="630.0,182.0 616.0,188.3 616.0,175.7" fill="#f5a623"/>
+        <text x="320.0" y="84.0" text-anchor="middle" fill="#eef2ff" font-size="15">la velocidad es tangente a la pared</text>
+        <line x1="300.0" y1="134.0" x2="338.2" y2="140.1" stroke="#5ee0a0" stroke-width="3"/>
+        <polygon points="350.0,142.0 337.3,145.4 339.0,134.8" fill="#5ee0a0"/>
+        <text x="320.0" y="312.0" text-anchor="middle" fill="#f5a623" font-size="15">lo que entra por un extremo sale por el otro</text>
+      </g>
+    </svg>
+    <figcaption>Como las paredes del tubo están hechas de líneas de corriente, la velocidad es tangente a ellas y nada las cruza (un razonamiento a partir de la definición).<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <p>Las líneas de corriente son la foto de un flujo en un instante; las trayectorias, la historia de cada partícula. Solo coinciden si el flujo no cambia con el tiempo. Saber cuál de las dos se está mirando es la primera condición para leer bien cualquier imagen de un flujo, desde un mapa de vientos hasta una foto de humo en un túnel de viento.</p>
+  <figure class="figura">
+    <video controls muted loop playsinline preload="metadata" poster="img/mecanica-fluidos/lineas-corriente-humo.jpg" width="320" height="240" style="width:min(30rem,100%);margin:0 auto" aria-label="Video en un túnel de viento: pulsos de humo pasan alrededor de un perfil de ala y marcan las líneas de corriente."><source src="img/mecanica-fluidos/lineas-corriente-humo.webm" type="video/webm"></video>
+    <figcaption>Pulsos de humo sobre un perfil de ala en un túnel de viento. Con el flujo estacionario, los hilos de humo marcan las líneas de corriente [1]. El video dura casi dos minutos, y la calidad es baja porque es un original chico.<span class="credito">Video: <a href="https://commons.wikimedia.org/wiki/File:Flow_over_aerofoils.webm" target="_blank" rel="noopener">Holger Babinsky, University of Cambridge</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.es" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></figcaption>
+  </figure>
 
   <div class="question-box">
     <p><strong>Pregunta para la comunidad:</strong> Si filmás el humo de un sahumerio en una habitación con una ventana que se abre y se cierra, y congelás un cuadro del video, ¿estás viendo líneas de corriente, trayectorias o ninguna de las dos? ¿Qué tendría que pasar con la ventana para que la respuesta fuera más simple?</p>

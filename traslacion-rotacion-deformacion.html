@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -64,6 +68,32 @@
     <li><strong>Deformación angular (de corte):</strong> mide cuánto se tuerce el cuadradito, cuánto cambian sus ángulos rectos, y sale de la suma de derivadas cruzadas [2].</li>
   </ul>
   <p>En el ejemplo, el cuadradito se estira en x, se aplasta en y y no gira (un cálculo propio con las fórmulas de Cimbala: ∂u/∂x = 3 y ∂v/∂y = −3). Las dos tasas suman cero, como corresponde a un flujo que conserva el volumen.</p>
+  <figure class="figura" id="cua">
+    <canvas id="cua-c" width="1280" height="620" role="img" aria-label="Un cuadradito de fluido que se traslada, gira, se estira y se tuerce, según el botón elegido."></canvas>
+    <div class="int-botones" role="group" aria-label="Movimiento"><button type="button" data-m="0">traslación</button><button type="button" data-m="1">rotación</button><button type="button" data-m="2">deformación lineal</button><button type="button" data-m="3">de corte</button><button type="button" data-m="4">todas juntas</button></div>
+    <p class="int-estado" id="cua-e" aria-live="polite"></p>
+    <figcaption>Las cuatro partes del movimiento de un cuadradito, por separado y sumadas [2]. La línea punteada es el cuadradito inicial. La deformación lineal es la del ejemplo de Cimbala: se estira en x y se aplasta en y.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cua-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310;
+    var es = document.getElementById('cua-e'), bs = document.querySelectorAll('#cua .int-botones button');
+    var M = 0, t0 = 0, T = 0, vis = true, L = 52, CX = 250, CY = 155, CI = '#00d4ff', GR = '#8892b0', TX = ['El cuadradito <strong>avanza</strong> sin cambiar.', 'El cuadradito <strong>gira</strong> sin cambiar de forma.', 'Se <strong>estira</strong> en una dirección y se aplasta en la otra.', 'Sus ángulos rectos <strong>se tuercen</strong>: se vuelve un rombo.', 'Las cuatro cosas <strong>a la vez</strong>.'];
+    function dibujar() {
+      var s = 0.5 - 0.5 * Math.cos(T), q = M === 4, tx = (M === 0 || q) ? 150 * s : 0, a = (M === 1 || q) ? 0.7 * s : 0, e = (M === 2 || q) ? 0.45 * s : 0, c = (M === 3 || q) ? 0.45 * s : 0, P = [[-L, -L], [L, -L], [L, L], [-L, L]], i, x, y, X, Y;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = GR; g.lineWidth = 1.5; g.setLineDash([6, 6]); g.strokeRect(CX - L, CY - L, 2 * L, 2 * L); g.setLineDash([]);
+      g.fillStyle = 'rgba(0,212,255,0.3)'; g.strokeStyle = CI; g.lineWidth = 3; g.beginPath();
+      P.forEach(function (p, k) { x = p[0] * (1 + e) + p[1] * c; y = p[1] * (1 - e) + p[0] * c; X = CX + tx + x * Math.cos(a) - y * Math.sin(a); Y = CY + x * Math.sin(a) + y * Math.cos(a); if (k) g.lineTo(X, Y); else g.moveTo(X, Y); });
+      g.closePath(); g.fill(); g.stroke();
+    }
+    function paso(t) { var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016; t0 = t; if (vis) { T += dt * 1.5; dibujar(); } requestAnimationFrame(paso); }
+    function modo(m, b0) { M = m; T = 0; bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); es.innerHTML = TX[m]; }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-m'), b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(4, bs[4]); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
   <div class="math-block">Deformación lineal: ε<sub>xx</sub> = ∂u/∂x · ε<sub>yy</sub> = ∂v/∂y<br>Deformación de corte: ε<sub>xy</sub> = ½ (∂u/∂y + ∂v/∂x)<br>Rotación: ω<sub>z</sub> = ½ (∂v/∂x − ∂u/∂y)</div>
 
   <div class="analogy-box">
@@ -72,10 +102,50 @@
 
   <h2>El tensor de deformación</h2>
   <p>Cimbala junta las deformaciones lineales y de corte en una tabla de tres por tres, el <strong>tensor de tasa de deformación</strong> [2]. David Tong, de la Universidad de Cambridge, muestra por qué tiene sentido: las nueve derivadas de la velocidad se separan en una parte simétrica, que es ese tensor, y una antisimétrica, que es la rotación y contiene la misma información que la <a href="vorticidad.html">vorticidad</a> [3].</p>
+  <figure class="figura">
+    <div class="esq">
+      <div class="esq-fila">
+        <div class="esq-caja"><span class="esq-tit">GRADIENTE DE VELOCIDAD</span>∂u<sub>i</sub>/∂x<sub>j</sub><span class="esq-sub">nueve derivadas</span></div><span class="esq-flecha"><span class="esq-h">=</span><span class="esq-v">=</span></span>
+        <div class="esq-caja esq-ok"><span class="esq-tit">PARTE SIMÉTRICA</span>tensor de deformación<span class="esq-sub">estira y tuerce</span></div><span class="esq-flecha"><span class="esq-h">+</span><span class="esq-v">+</span></span>
+        <div class="esq-caja"><span class="esq-tit">PARTE ANTISIMÉTRICA</span>rotación<span class="esq-sub">la misma información que la vorticidad</span></div>
+      </div>
+    </div>
+    <figcaption>Las nueve derivadas de la velocidad se separan en dos partes [3]. En un fluido newtoniano e incompresible, los esfuerzos viscosos dependen solo de la parte simétrica.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
   <p>Tong da dos ejemplos que separan los dos efectos [3]. El flujo <strong>u</strong> = (−αx, αy, 0) tiene deformación pero no vorticidad: aplasta el fluido en una dirección y lo estira en la otra. El flujo <strong>u</strong> = (−y, x, 0) tiene vorticidad pero no deformación: gira como un cuerpo rígido. Y agrega una propiedad: como el tensor es simétrico, siempre se puede encontrar un sistema de ejes donde solo hay estiramientos, sin corte; en un fluido incompresible esos tres estiramientos suman cero, así que en alguna dirección el fluido se estira y en otra se aplasta [3].</p>
 
   <h2>Corte simple: rotar y deformar a la vez</h2>
   <p>El caso más común en la naturaleza mezcla las dos cosas. Es el flujo entre una placa quieta y otra que se mueve, donde la velocidad crece con la altura (u = γy). En ese flujo, ∂u/∂y = γ y las otras derivadas son cero: la rotación vale −γ/2 y la deformación de corte vale γ/2 (un cálculo propio con las fórmulas de arriba). Un cuadradito, entonces, gira y se tuerce a la vez. Es el flujo entre dos placas con que se define la <a href="viscosidad.html">viscosidad</a>, llamado flujo de Couette [3].</p>
+  <figure class="figura" id="cou">
+    <canvas id="cou-c" width="1280" height="500" role="img" aria-label="Tres cuadraditos. El primero solo gira, el segundo solo se tuerce y el tercero, que es la suma, se inclina como en un flujo entre dos placas."></canvas>
+    <div class="int-control"><label for="cou-t">Tiempo</label><input type="range" id="cou-t" min="0" max="100" step="1" value="50"></div>
+    <p class="int-estado" id="cou-e" aria-live="polite"></p>
+    <figcaption>En el corte simple, u = γy, la rotación vale −γ/2 y la deformación de corte, γ/2 [3]. La suma de las dos partes da el cuadradito inclinado de la derecha. El dibujo suma las dos tasas, así que vale para tiempos cortos.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cou-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 250;
+    var sl = document.getElementById('cou-t'), es = document.getElementById('cou-e'), L = 42, CY = 120, CI = '#00d4ff', NA = '#f5a623', VE = '#5ee0a0', GR = '#8892b0';
+    function cuad(cx, f, c, tit) {
+      var P = [[-L, -L], [L, -L], [L, L], [-L, L]], k, q;
+      g.strokeStyle = GR; g.lineWidth = 1.5; g.setLineDash([5, 5]); g.strokeRect(cx - L, CY - L, 2 * L, 2 * L); g.setLineDash([]);
+      g.strokeStyle = c; g.fillStyle = c === CI ? 'rgba(0,212,255,0.3)' : c === NA ? 'rgba(245,166,35,0.3)' : 'rgba(94,224,160,0.3)'; g.lineWidth = 3; g.beginPath();
+      P.forEach(function (p, i) { q = f(p[0], p[1]); if (i) g.lineTo(cx + q[0], CY + q[1]); else g.moveTo(cx + q[0], CY + q[1]); }); g.closePath(); g.fill(); g.stroke();
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = c; g.fillText(tit, cx, 232);
+    }
+    function poner() {
+      var s = +sl.value / 100 * 0.9;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      cuad(100, function (x, y) { return [x - y * s / 2, y + x * s / 2]; }, NA, 'rotación');
+      cuad(320, function (x, y) { return [x - y * s / 2, y - x * s / 2]; }, VE, 'corte');
+      cuad(540, function (x, y) { return [x - y * s, y]; }, CI, 'suma');
+      g.font = "700 22px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = '#eef2ff'; g.fillText('+', 210, 128); g.fillText('=', 430, 128);
+      es.innerHTML = 'Gira y se tuerce <strong>a la vez</strong>: la suma de las dos partes da el corte simple.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="tech-note">
     <p><strong>Por qué importa:</strong> Tong muestra que, en un fluido newtoniano e incompresible, los esfuerzos viscosos son proporcionales al tensor de tasa de deformación, y no a la rotación [3]. Un fluido que gira como un sólido, sin deformarse, no tiene fricción interna. Por eso el tensor de deformación es la pieza que conecta la cinemática con las <a href="navier-stokes.html">ecuaciones de Navier-Stokes</a>.</p>

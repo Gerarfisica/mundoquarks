@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -59,11 +63,48 @@
     <li>Un <strong>volumen de control</strong>, o sistema abierto, es una región del espacio elegida para estudiar; la masa puede cruzar su superficie.</li>
   </ul>
   <p>Las leyes de conservación de la masa, la cantidad de movimiento y la energía valen directamente para sistemas [1]. Pero en mecánica de fluidos casi siempre conviene trabajar con volúmenes de control, por la misma razón por la que se prefiere la descripción euleriana a la lagrangiana [1]. Hace falta, entonces, traducir las leyes de un lenguaje al otro.</p>
+  <figure class="figura" id="sis">
+    <canvas id="sis-c" width="1280" height="560" role="img" aria-label="Un sistema de partículas marcadas que avanza con el flujo y va saliendo de una caja fija, el volumen de control. Un contador muestra cuántas siguen adentro y cuántas salieron."></canvas>
+    <div class="int-botones"><button type="button" id="sis-r">Volver a empezar</button></div>
+    <p class="int-estado" id="sis-e" aria-live="polite"></p>
+    <figcaption>El sistema, en naranja, es siempre la misma materia. El volumen de control es la caja fija [1]. Lo que tiene el sistema es lo que queda adentro de la caja más lo que ya salió por su borde: la contabilidad del teorema.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('sis-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280;
+    var es = document.getElementById('sis-e'), P = [], Q = [], i, t0 = 0, vis = true, BX = 120, BW = 260, BY = 50, BH = 170, N = 120, ult = '', CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function ini() { P = []; Q = []; for (i = 0; i < N; i++) P.push([BX + 14 + Math.random() * (BW - 28), BY + 8 + Math.random() * (BH - 16)]); for (i = 0; i < 90; i++) Q.push([Math.random() * 640, BY + 8 + Math.random() * (BH - 16)]); }
+    function dibujar() {
+      var k, ad = 0;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(136,146,176,0.5)'; for (k = 0; k < Q.length; k++) g.fillRect(Q[k][0], Q[k][1], 2.4, 2.4);
+      g.fillStyle = NA; for (k = 0; k < N; k++) { if (P[k][0] < BX + BW) ad++; g.beginPath(); g.arc(P[k][0], P[k][1], 3, 0, 6.3); g.fill(); }
+      g.strokeStyle = '#00d4ff'; g.lineWidth = 3; g.setLineDash([9, 7]); g.strokeRect(BX, BY, BW, BH); g.setLineDash([]);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = CI; g.fillText('volumen de control', BX + BW / 2, 38);
+      g.fillStyle = NA; g.textAlign = 'left'; g.fillText('adentro: ' + ad, 20, 258); g.textAlign = 'center'; g.fillText('salió: ' + (N - ad), 320, 258); g.textAlign = 'right'; g.fillText('sistema: ' + N, 620, 258);
+      var s = ad === N ? 'El sistema está dentro de la caja.' : ad ? 'El sistema tiene siempre <strong>' + N + '</strong>: ' + ad + ' adentro de la caja y ' + (N - ad) + ' que ya salieron.' : 'Todo el sistema <strong>salió</strong> de la caja.'; if (s !== ult) { ult = s; es.innerHTML = s; }
+    }
+    function paso(t) { var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016, k; t0 = t; if (vis) { var mo = false; for (k = 0; k < N; k++) { if (P[k][0] < 660) { P[k][0] += 40 * dt; mo = true; } } for (k = 0; k < Q.length; k++) Q[k][0] = (Q[k][0] + 40 * dt) % 640; dibujar(); } requestAnimationFrame(paso); }
+    document.getElementById('sis-r').addEventListener('click', function () { ini(); dibujar(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    ini(); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <h2>El teorema</h2>
   <p>Sea B una propiedad que se puede sumar, como la masa, la energía o la cantidad de movimiento, y b la misma propiedad por unidad de masa [1]. Para un volumen de control fijo, el teorema dice [1]:</p>
   <div class="math-block">dB<sub>sist</sub>/dt = d/dt ∫<sub>VC</sub> ρ b dV + ∫<sub>SC</sub> ρ b (<strong>V</strong> · <strong>n</strong>) dA<br>Cambio en el sistema = cambio adentro del volumen de control + flujo neto que sale por su superficie</div>
   <p>Leído en palabras: lo que cambia una propiedad de la materia que estamos siguiendo es lo que cambia adentro de la caja más lo que se escapa por sus paredes. El producto <strong>V</strong> · <strong>n</strong> es la componente de la velocidad perpendicular a la superficie: positiva donde el fluido sale, negativa donde entra.</p>
+  <figure class="figura">
+    <div class="esq">
+      <div class="esq-fila">
+        <div class="esq-caja"><span class="esq-tit">EN EL SISTEMA</span>dB<sub>sist</sub>/dt<span class="esq-sub">lo que le pasa a la materia que seguimos</span></div><span class="esq-flecha"><span class="esq-h">=</span><span class="esq-v">=</span></span>
+        <div class="esq-caja esq-ok"><span class="esq-tit">ADENTRO DE LA CAJA</span>d/dt ∫<sub>VC</sub> ρ b dV<span class="esq-sub">lo que cambia adentro</span></div><span class="esq-flecha"><span class="esq-h">+</span><span class="esq-v">+</span></span>
+        <div class="esq-caja"><span class="esq-tit">POR LAS PAREDES</span>∫<sub>SC</sub> ρ b (V · n) dA<span class="esq-sub">lo que sale menos lo que entra</span></div>
+      </div>
+    </div>
+    <figcaption>El teorema, término a término [1]. Si el flujo es estacionario, el término del medio se anula: solo importa lo que entra y lo que sale.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>La cuenta bancaria del aula:</strong> pensá en el dinero de un grupo de alumnos (el sistema) y en el dinero que hay en un aula (el volumen de control). Si los alumnos entran y salen del aula, lo que cambió la plata de los alumnos es lo que cambió la plata del aula, más la plata que los alumnos se llevaron al salir, menos la que trajeron al entrar. El teorema de Reynolds es esa misma contabilidad, para un fluido.</p>
@@ -81,6 +122,36 @@
     <li>Si el volumen de control se mueve o se deforma, la fórmula es la misma, usando la velocidad del fluido <em>relativa</em> a la superficie.</li>
   </ul>
   <p>Si B es la masa, b = 1 y el teorema da la <a href="ecuacion-continuidad.html">ecuación de continuidad</a>: la masa adentro cambia solo si entra más de lo que sale. Por ejemplo, un tanque que recibe 2 litros por segundo y pierde 0,5 litros por segundo gana 1,5 litros por segundo (un cálculo propio). Si B es la cantidad de movimiento, el teorema da <a href="cantidad-movimiento-chorro.html">la fuerza que hace un chorro</a>.</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 340" role="img" aria-labelledby="tra3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="tra3-t">Volumen de un tanque según el tiempo. Sube un litro y medio por segundo durante cuarenta segundos y después baja medio litro por segundo.</title>
+      <rect width="640" height="340" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Un tanque con entrada y salida</text>
+        <line x1="76.0" y1="296.0" x2="610.0" y2="296.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="301.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="76.0" y1="237.0" x2="610.0" y2="237.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="242.0" text-anchor="end" fill="#8892b0" font-size="15">20</text>
+        <line x1="76.0" y1="178.0" x2="610.0" y2="178.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="183.0" text-anchor="end" fill="#8892b0" font-size="15">40</text>
+        <line x1="76.0" y1="119.0" x2="610.0" y2="119.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="124.0" text-anchor="end" fill="#8892b0" font-size="15">60</text>
+        <line x1="76.0" y1="60.0" x2="610.0" y2="60.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="65.0" text-anchor="end" fill="#8892b0" font-size="15">80</text>
+        <text x="76.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0 s</text>
+        <text x="254.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">40 s</text>
+        <text x="432.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">80 s</text>
+        <text x="610.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">120 s</text>
+        <line x1="76.0" y1="296.0" x2="610.0" y2="296.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="20.0" y="52.0" text-anchor="start" fill="#8892b0" font-size="15">litros</text>
+        <polyline points="76.0,296.0 80.5,291.6 84.9,287.1 89.3,282.7 93.8,278.3 98.2,273.9 102.7,269.4 107.2,265.0 111.6,260.6 116.0,256.2 120.5,251.8 125.0,247.3 129.4,242.9 133.8,238.5 138.3,234.1 142.8,229.6 147.2,225.2 151.7,220.8 156.1,216.3 160.6,211.9 165.0,207.5 169.4,203.1 173.9,198.7 178.3,194.2 182.8,189.8 187.2,185.4 191.7,180.9 196.2,176.5 200.6,172.1 205.1,167.7 209.5,163.2 213.9,158.8 218.4,154.4 222.8,150.0 227.3,145.6 231.8,141.1 236.2,136.7 240.7,132.3 245.1,127.8 249.6,123.4 254.0,119.0 258.4,120.5 262.9,121.9 267.4,123.4 271.8,124.9 276.2,126.4 280.7,127.8 285.1,129.3 289.6,130.8 294.1,132.3 298.5,133.8 302.9,135.2 307.4,136.7 311.9,138.2 316.3,139.7 320.8,141.1 325.2,142.6 329.6,144.1 334.1,145.6 338.6,147.0 343.0,148.5 347.4,150.0 351.9,151.4 356.4,152.9 360.8,154.4 365.2,155.9 369.7,157.3 374.1,158.8 378.6,160.3 383.1,161.8 387.5,163.2 391.9,164.7 396.4,166.2 400.9,167.7 405.3,169.2 409.8,170.6 414.2,172.1 418.6,173.6 423.1,175.1 427.6,176.5 432.0,178.0 436.4,179.5 440.9,180.9 445.4,182.4 449.8,183.9 454.2,185.4 458.7,186.8 463.1,188.3 467.6,189.8 472.1,191.3 476.5,192.8 480.9,194.2 485.4,195.7 489.9,197.2 494.3,198.7 498.8,200.1 503.2,201.6 507.6,203.1 512.1,204.6 516.5,206.0 521.0,207.5 525.5,209.0 529.9,210.4 534.4,211.9 538.8,213.4 543.2,214.9 547.7,216.3 552.1,217.8 556.6,219.3 561.0,220.8 565.5,222.2 570.0,223.7 574.4,225.2 578.9,226.7 583.3,228.2 587.8,229.6 592.2,231.1 596.6,232.6 601.1,234.1 605.5,235.5 610.0,237.0" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="254.0" y1="119.0" x2="254.0" y2="296.0" stroke="#f5a623" stroke-width="2" stroke-dasharray="6 5"/>
+        <text x="84.9" y="83.6" text-anchor="start" fill="#5ee0a0" font-size="15">entra 2, sale 0,5</text>
+        <text x="271.8" y="83.6" text-anchor="start" fill="#f5a623" font-size="15">se corta la entrada</text>
+      </g>
+    </svg>
+    <figcaption>El ejemplo del artículo: entran 2 L/s y salen 0,5 L/s, así que el tanque gana 1,5 L/s. A los 40 s se corta la entrada (un agregado para el ejemplo) y el tanque pierde 0,5 L/s. Es un cálculo propio con el teorema aplicado a la masa.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>La misma idea, en pequeño:</strong> David Tong, de la Universidad de Cambridge, deduce la conservación de la masa con el mismo razonamiento: la masa en una región fija cambia solo si hay un flujo neto de masa a través de su borde, algo que sale del teorema de la divergencia [3]. El teorema del transporte de Reynolds es esa misma cuenta, generalizada a cualquier propiedad y a regiones que se mueven.</p>

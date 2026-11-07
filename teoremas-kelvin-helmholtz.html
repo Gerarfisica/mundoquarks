@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -61,6 +65,37 @@
   <p>Tomemos un lazo que se mueve con el fluido: cada uno de sus puntos va donde lo lleva la corriente. ¿Qué le pasa a la circulación alrededor de ese lazo? Tong demuestra, a partir de la ecuación de Euler para un fluido ideal con fuerzas conservativas, que no cambia [1]:</p>
   <div class="math-block">DΓ/Dt = 0<br>La circulación alrededor de un lazo que viaja con un fluido ideal se mantiene constante</div>
   <p>Es el <strong>teorema de la circulación de Kelvin</strong> [1]. Una consecuencia inmediata: un fluido que arranca sin vorticidad sigue sin vorticidad [1]. Por eso la vorticidad tiene que venir de fuerzas no conservativas, como la viscosidad cerca de una pared [1].</p>
+  <figure class="figura" id="lzo">
+    <canvas id="lzo-c" width="1280" height="700" role="img" aria-label="Un lazo de partículas que rodea un vórtice y se deforma mucho al viajar con el fluido, mientras la circulación calculada a su alrededor se mantiene constante."></canvas>
+    <div class="int-botones"><button type="button" id="lzo-r">Volver a empezar</button></div>
+    <p class="int-estado" id="lzo-e" aria-live="polite"></p>
+    <figcaption>Un lazo de partículas que viaja con un vórtice ideal. Se estira y se enrosca, pero la circulación ∮u·dx, calculada en tu navegador sumando sobre los puntos del lazo, no cambia: es el teorema de Kelvin [1]. El vórtice es un ejemplo con números elegidos, y se marca en el centro.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('lzo-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 350;
+    var es = document.getElementById('lzo-e'), P = [], t0 = 0, vis = true, T = 0, CX = 320, CY = 165, GA = 16000, N = 900, ult = '', CI = '#00d4ff', NA = '#f5a623';
+    function ini() { P = []; for (var k = 0; k < N; k++) { var a = k / N * 6.28318; P.push([CX + 50 + 80 * Math.cos(a), CY + 80 * Math.sin(a)]); } T = 0; }
+    function vel(x, y) { var dx = x - CX, dy = y - CY, r2 = dx * dx + dy * dy + 9; return [-GA / 6.28318 * dy / r2, GA / 6.28318 * dx / r2]; }
+    function circ() { var s = 0, k, a, b, u, v; for (k = 0; k < N; k++) { a = P[k]; b = P[(k + 1) % N]; u = vel((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); s += u[0] * (b[0] - a[0]) + u[1] * (b[1] - a[1]); } return s; }
+    function dibujar() {
+      var k, c = circ() / GA;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = CI; g.lineWidth = 2.5; g.beginPath(); for (k = 0; k < N; k++) { if (k) g.lineTo(P[k][0], P[k][1]); else g.moveTo(P[k][0], P[k][1]); } g.closePath(); g.stroke();
+      g.fillStyle = NA; g.beginPath(); g.arc(CX, CY, 6, 0, 6.3); g.fill();
+      g.font = "16px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('circulación / Γ = ' + c.toFixed(2).replace('.', ','), 24, 30);
+      var s = T < 0.5 ? 'El lazo rodea al vórtice.' : 'El lazo se deforma, pero la circulación <strong>no cambia</strong>.'; if (s !== ult) { ult = s; es.innerHTML = s; }
+    }
+    function paso(t) {
+      var dt = t0 ? Math.min(0.03, (t - t0) / 1000) : 0.016, k, p, a, b; t0 = t;
+      if (vis) { if (T < 9) { for (k = 0; k < N; k++) { p = P[k]; a = vel(p[0], p[1]); b = vel(p[0] + a[0] * dt / 2, p[1] + a[1] * dt / 2); p[0] += b[0] * dt; p[1] += b[1] * dt; } T += dt; } dibujar(); }
+      requestAnimationFrame(paso);
+    }
+    document.getElementById('lzo-r').addEventListener('click', function () { ini(); dibujar(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    ini(); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <h2>Los teoremas de Helmholtz</h2>
   <p>Según MacTutor, en su trabajo de 1858 sobre el movimiento de un fluido perfecto, Helmholtz definió las <strong>líneas de vórtice</strong>, que siguen en cada punto la dirección del eje de rotación del fluido, y los <strong>tubos de vórtice</strong>, manojos de líneas de vórtice que pasan por una pequeña área [2]. Y mostró dos cosas [2]:</p>
@@ -69,6 +104,27 @@
     <li>las partículas que están en un tubo de vórtice en un instante se quedan en el tubo para siempre, aunque el tubo se deforme.</li>
   </ul>
   <p>Tong lo explica con la circulación: como el flujo de vorticidad a través de un tubo no puede cambiar a lo largo del tubo, la vorticidad no puede quedar encerrada en un punto, sino que tiene que formar un tubo, que se extiende hasta el infinito o se cierra en un anillo; no puede simplemente terminar en el medio del fluido [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 290" role="img" aria-labelledby="kel3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="kel3-t">A la izquierda, un tubo de vórtice cerrado en un anillo, permitido. A la derecha, un tubo que termina en medio del fluido, imposible.</title>
+      <rect width="640" height="290" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="18">Un tubo de vórtice no termina en el aire</text>
+        <ellipse cx="170" cy="190" rx="110" ry="60" fill="none" stroke="#00d4ff" stroke-width="22" stroke-opacity="0.4"/>
+        <text x="170.0" y="104.0" text-anchor="middle" fill="#5ee0a0" font-size="15">se cierra en un anillo</text>
+        <text x="170.0" y="196.0" text-anchor="middle" fill="#5ee0a0" font-size="17">sí</text>
+        <line x1="380.0" y1="190.0" x2="540.0" y2="190.0" stroke="#00d4ff" stroke-width="22"/>
+        <line x1="380.0" y1="190.0" x2="540.0" y2="190.0" stroke="#070d22" stroke-width="0"/>
+        <text x="460.0" y="104.0" text-anchor="middle" fill="#ff7a7a" font-size="15">termina en el fluido</text>
+        <text x="460.0" y="150.0" text-anchor="middle" fill="#ff7a7a" font-size="17">no</text>
+        <line x1="366.0" y1="170.0" x2="394.0" y2="210.0" stroke="#ff7a7a" stroke-width="3"/>
+        <line x1="394.0" y1="170.0" x2="366.0" y2="210.0" stroke="#ff7a7a" stroke-width="3"/>
+        <line x1="526.0" y1="170.0" x2="554.0" y2="210.0" stroke="#ff7a7a" stroke-width="3"/>
+        <line x1="554.0" y1="170.0" x2="526.0" y2="210.0" stroke="#ff7a7a" stroke-width="3"/>
+      </g>
+    </svg>
+    <figcaption>El flujo de vorticidad no puede cambiar a lo largo de un tubo, así que el tubo no puede terminar en medio del fluido: se cierra en un anillo o llega a un borde [1].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>La patinadora:</strong> Tong usa esta imagen. Cuando un tubo de vórtice se estira y se angosta, la vorticidad crece para que el flujo a través del tubo no cambie [1]. Es la versión fluida de la patinadora que gira más rápido cuando cierra los brazos: en el fondo, conservación del momento angular [1].</p>
@@ -76,6 +132,10 @@
 
   <h2>Anillos de humo y átomos de vórtice</h2>
   <p>Tong cuenta que Kelvin se entusiasmó tanto con la estabilidad de los vórtices, y de los anillos de humo en particular, que propuso que podían ser la base de toda la materia: los distintos átomos serían distintos nudos de vórtices [1]. Según MacTutor, expuso esas ideas en «On vortex motion», publicado en 1867 [3]. Vista hoy, la idea parece demasiado optimista, dice Tong, pero tiene una pizca de verdad: en las teorías cuánticas de campos algunas partículas aparecen como «solitones», configuraciones estables de los campos no muy distintas de los vórtices de un fluido [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/teoremas-kelvin-helmholtz-etna.jpg" width="960" height="559" loading="lazy" alt="Cielo azul con un anillo blanco perfecto de vapor sobre el cono del volcán Etna y su penacho.">
+    <figcaption>Un anillo de vórtice sobre el Etna, en Sicilia, llevado por el viento junto con el penacho de gases del volcán. Es la versión gigante de un anillo de humo.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:VortexRingEtna.jpg" target="_blank" rel="noopener">David M. Pyle</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Cuándo valen:</strong> los teoremas de Kelvin y Helmholtz son exactos para un fluido ideal, sin viscosidad, con fuerzas conservativas [1]. En un fluido real, la viscosidad es justamente una de esas fuerzas no conservativas [1]: puede crear vorticidad y, con el tiempo, también ir desarmando los vórtices. Por eso un anillo de humo real termina deshaciéndose (un razonamiento a partir de lo anterior).</p>

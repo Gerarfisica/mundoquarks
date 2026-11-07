@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -59,6 +63,36 @@
 
   <h2>Un chorro contra una placa</h2>
   <p>La hoja de problemas de hidráulica de John Fenton resuelve el caso más simple: un chorro de agua que sale a 6 m/s por una boquilla de 645 mm² y choca de frente contra una placa quieta [3]. Si el agua, después del choque, se va por los costados, paralela a la placa, toda su cantidad de movimiento en la dirección del chorro se pierde, y la fuerza sobre la placa es ρU²A, unos 24,4 N (Fenton incluye un pequeño factor de corrección, el coeficiente de Boussinesq, de 1,05) [3]. Y si en cambio el agua rebota hacia atrás, sin perder velocidad, la cantidad de movimiento no solo se anula sino que se invierte, y la fuerza es el doble: 48,8 N [3].</p>
+  <figure class="figura" id="cho">
+    <canvas id="cho-c" width="1280" height="620" role="img" aria-label="Un chorro de agua que choca contra una placa y se desvía un ángulo. La fuerza sobre la placa crece con la velocidad al cuadrado y con el ángulo de desvío."></canvas>
+    <div class="int-botones" role="group" aria-label="Casos"><button type="button" data-t="90">placa plana</button><button type="button" data-t="180">rebote</button></div>
+    <div class="int-control"><label for="cho-u">Velocidad</label><input type="range" id="cho-u" min="1" max="20" step="0.5" value="6"><output id="cho-uo" for="cho-u">6 m/s</output></div>
+    <div class="int-control"><label for="cho-t">Desvío del agua</label><input type="range" id="cho-t" min="20" max="180" step="5" value="90"><output id="cho-to" for="cho-t">90°</output></div>
+    <p class="int-estado" id="cho-e" aria-live="polite"></p>
+    <figcaption>F = ρU²A(1 − cos θ), con la boquilla de 645 mm² del problema de Fenton. Con θ = 90° es el chorro que se escurre por los costados, y con θ = 180°, el que rebota sin perder velocidad y hace el doble de fuerza [3]. Fenton obtiene 24,4 N porque incluye un factor de 1,05, que acá no se usa (un cálculo propio).<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cho-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310;
+    var su = document.getElementById('cho-u'), st = document.getElementById('cho-t'), uo = document.getElementById('cho-uo'), to = document.getElementById('cho-to'), es = document.getElementById('cho-e'), bs = document.querySelectorAll('#cho .int-botones button');
+    var A = 645e-6, RHO = 1000, YC = 155, XP = 360, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function flecha(x1, y1, x2, y2, c, w) { var a = Math.atan2(y2 - y1, x2 - x1), h = 12; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - h * Math.cos(a), y2 - h * Math.sin(a)); g.stroke(); g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - h * Math.cos(a - 0.45) * 1.1, y2 - h * Math.sin(a - 0.45) * 1.1); g.lineTo(x2 - h * Math.cos(a + 0.45) * 1.1, y2 - h * Math.sin(a + 0.45) * 1.1); g.closePath(); g.fill(); }
+    function poner() {
+      var u = +su.value, t = +st.value, th = t * Math.PI / 180, F = RHO * u * u * A * (1 - Math.cos(th)), q, lf = Math.min(190, 30 + 34 * Math.log(1 + F) ), x2, y2, L = 170;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = CI; g.lineWidth = 12; g.lineCap = 'round'; g.beginPath(); g.moveTo(30, YC); g.lineTo(XP - 12, YC); g.stroke(); g.lineWidth = 6;
+      [1, -1].forEach(function (s) { x2 = XP - 12 + L * Math.cos(th); y2 = YC - s * L * Math.sin(th); g.beginPath(); g.moveTo(XP - 12, YC); g.quadraticCurveTo(XP - 8 + 26 * Math.cos(th / 2), YC - s * 26 * Math.sin(th / 2), x2, t >= 175 ? YC - s * 14 : y2); g.stroke(); });
+      g.lineCap = 'butt'; g.fillStyle = '#3a4668'; g.fillRect(XP, 40, 14, 230);
+      flecha(XP + 18, YC, XP + 18 + lf, YC, NA, 5);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('F = ' + F.toFixed(1).replace('.', ',') + ' N', XP + 24, YC - 18);
+      uo.textContent = String(u).replace('.', ',') + ' m/s'; to.textContent = t + '°';
+      es.innerHTML = 'La fuerza sobre la placa es de <strong>' + F.toFixed(1).replace('.', ',') + ' N</strong>, unos ' + (F / 9.8).toFixed(1).replace('.', ',') + ' kg de peso.';
+    }
+    bs.forEach(function (b) { b.addEventListener('click', function () { st.value = b.getAttribute('data-t'); poner(); }); });
+    su.addEventListener('input', poner); st.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
   <p>La fuerza crece con el cuadrado de la velocidad. En otro problema de Fenton, un chorro de 50 mm de diámetro a 18 m/s le hace a una placa una fuerza de unos 668 N [3].</p>
 
   <div class="analogy-box">
@@ -68,10 +102,36 @@
   <h2>Por qué patea la manguera</h2>
   <p>Fenton también resuelve el caso de una manguera de bomberos de 100 mm de diámetro, con una boquilla que angosta el chorro a 50 mm y un caudal de 20 litros por segundo [3]. Al angostarse, el agua acelera, como dice la <a href="ecuacion-continuidad.html">ecuación de continuidad</a>, y para acelerarla hace falta una fuerza. Juntando la cantidad de movimiento con la presión del agua dentro de la manguera, la fuerza sobre la boquilla resulta de unos 315 N [3].</p>
   <p>Fenton lo pone en perspectiva: es casi la mitad del peso de una persona de 80 kg. La boquilla tiende a tirar de la manguera para enderezarla y, si nada la sujeta, la tienen que sujetar los bomberos [3].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/cantidad-movimiento-bomberos.jpg" width="960" height="640" loading="lazy" alt="Tres bomberos con trajes aluminizados sostienen una manguera y lanzan un chorro de agua hacia un gran incendio.">
+    <figcaption>Bomberos de la Marina de EE. UU. en un ejercicio. Hacen falta varias personas para sostener la lanza, porque el chorro que sale acelerado empuja la boquilla hacia atrás [3].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Aircraft_Rescue_Firefighting_training.jpg" target="_blank" rel="noopener">Manuel F. Guerrero, U.S. Marine Corps</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Del chorro al avión:</strong> la misma cuenta explica cómo empuja un motor a reacción o una hélice: el aire sale con más cantidad de movimiento que la que entra, y la reacción empuja al motor hacia adelante. El libro de Genick Bar-Meir dedica una sección a la hélice y a la propulsión a chorro con esta idea [4].</p>
   </div>
+  <figure class="figura">
+    <svg viewBox="0 0 640 352" role="img" aria-labelledby="cho2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="cho2-t">Un codo de cañería con un volumen de control. La cantidad de movimiento entra en una dirección y sale en otra.</title>
+      <rect width="640" height="352" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Fuerzas en un codo</text>
+        <path d="M60,150 L290,150 Q370,150 370,230 L370,320 L300,320 L300,240 Q300,220 280,220 L60,220 Z" fill="#00d4ff2a" stroke="#8892b0" stroke-width="2.5"/>
+        <rect x="120.0" y="120.0" width="290.0" height="190.0" fill="none" stroke="#00d4ff" stroke-width="2.5" stroke-dasharray="9 7"/>
+        <text x="420.0" y="134.0" text-anchor="start" fill="#00d4ff" font-size="15">volumen de control</text>
+        <line x1="30.0" y1="185.0" x2="98.0" y2="185.0" stroke="#5ee0a0" stroke-width="4"/>
+        <polygon points="112.0,185.0 98.0,191.3 98.0,178.7" fill="#5ee0a0"/>
+        <text x="26.0" y="106.0" text-anchor="start" fill="#5ee0a0" font-size="15">entra</text>
+        <text x="26.0" y="126.0" text-anchor="start" fill="#5ee0a0" font-size="15">ρU²A</text>
+        <line x1="335.0" y1="290.0" x2="335.0" y2="328.0" stroke="#f5a623" stroke-width="4"/>
+        <polygon points="335.0,342.0 328.7,328.0 341.3,328.0" fill="#f5a623"/>
+        <text x="350.0" y="334.0" text-anchor="start" fill="#f5a623" font-size="15">sale ρU²A</text>
+        <text x="420.0" y="210.0" text-anchor="start" fill="#eef2ff" font-size="15">la fuerza sobre el codo</text>
+        <text x="420.0" y="232.0" text-anchor="start" fill="#8892b0" font-size="15">sale de ese balance</text>
+      </g>
+    </svg>
+    <figcaption>El mismo balance aplicado a un codo: la cantidad de movimiento entra hacia la derecha y sale hacia abajo, así que hace falta una fuerza para cambiarla [1]. Las presiones en las secciones se suman a ese balance, como en la boquilla del artículo [3].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <p>Un chorro hace fuerza porque cambia de cantidad de movimiento al chocar o al acelerarse. La cuenta es la segunda ley de Newton aplicada a una caja por la que el fluido pasa: la fuerza es lo que sale por segundo menos lo que entra. Por eso un chorro que rebota empuja el doble que uno que se escurre, y por eso una manguera de bomberos tira con casi medio peso de una persona.</p>
 

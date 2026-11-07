@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -64,6 +66,39 @@
     <li><strong>La vuelta al mundo (vórtice libre):</strong> las partículas dan vueltas alrededor del centro, pero cada cabina queda siempre derecha: no gira sobre sí misma. Este flujo es irrotacional, aunque todo se mueva en círculos.</li>
   </ul>
   <p>Tong lo muestra con molinetes de playa tirados al agua: en un flujo con vorticidad, los molinetes cambian de orientación mientras dan la vuelta; en el vórtice libre, cuya velocidad cae como 1/r, viajan alrededor del centro sin cambiar de orientación [1]. Pero hay una trampa: en ese vórtice, la circulación alrededor del centro no es cero, así que toda la vorticidad tiene que estar concentrada en el eje [1]. Tong dice que no es una mala aproximación de lo que pasa al vaciar una bañera, con la rejilla en el papel del eje [1].</p>
+  <figure class="figura" id="rue">
+    <canvas id="rue-c" width="1280" height="700" role="img" aria-label="Tres rueditas de paletas dan vueltas alrededor de un centro. En la rotación rígida, cada una además gira sobre sí misma. En el vórtice libre, dan la vuelta sin cambiar de orientación."></canvas>
+    <div class="int-botones" role="group" aria-label="Tipo de flujo"><button type="button" data-m="0">rotación rígida</button><button type="button" data-m="1">vórtice libre</button></div>
+    <p class="int-estado" id="rue-e" aria-live="polite"></p>
+    <figcaption>La calesita y la vuelta al mundo de Cimbala [2]. En la rotación rígida, la velocidad crece con el radio y cada ruedita gira sobre sí misma. En el vórtice libre, la velocidad cae como 1/r y las rueditas viajan sin cambiar de orientación: no hay vorticidad, salvo en el eje [1]. Las rueditas son exploradoras ideales, y no perturban el flujo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('rue-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 350;
+    var es = document.getElementById('rue-e'), bs = document.querySelectorAll('#rue .int-botones button');
+    var CX = 320, CY = 175, M = 0, R = [[60, 0, 0, 0], [105, 2.1, 0, 0], [150, 4.2, 0, 0]], t0 = 0, vis = true, OM = 0.8, GA = 90, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function rueda(x, y, a) {
+      var k, q; g.strokeStyle = NA; g.lineWidth = 3; for (k = 0; k < 2; k++) { q = a + k * 1.5708; g.beginPath(); g.moveTo(x - 17 * Math.cos(q), y - 17 * Math.sin(q)); g.lineTo(x + 17 * Math.cos(q), y + 17 * Math.sin(q)); g.stroke(); }
+      g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(x + 17 * Math.cos(a), y + 17 * Math.sin(a), 3.5, 0, 6.3); g.fill();
+    }
+    function dibujar() {
+      var k, r;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = '#1c2c55'; g.lineWidth = 1; for (k = 0; k < 3; k++) { g.beginPath(); g.arc(CX, CY, R[k][0], 0, 6.3); g.stroke(); }
+      g.fillStyle = M ? CI : GR; g.beginPath(); g.arc(CX, CY, 5, 0, 6.3); g.fill();
+      for (k = 0; k < 3; k++) { r = R[k]; rueda(CX + r[0] * Math.cos(r[1]), CY + r[0] * Math.sin(r[1]), r[2]); }
+    }
+    function paso(t) {
+      var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016, k, r, w; t0 = t;
+      if (vis) { for (k = 0; k < 3; k++) { r = R[k]; w = M ? GA / r[0] : OM; r[1] += w * dt; if (!M) r[2] += w * dt; } dibujar(); }
+      requestAnimationFrame(paso);
+    }
+    function modo(m, b0) { M = m; R.forEach(function (r) { r[2] = 0; }); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); es.innerHTML = m ? 'Vórtice libre: las rueditas dan la vuelta <strong>sin girar sobre sí mismas</strong>. Vorticidad cero, salvo en el eje.' : 'Rotación rígida: cada ruedita <strong>gira sobre sí misma</strong>. La vorticidad es la misma en todas partes.'; }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-m'), b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(0, bs[0]); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La ruedita de paletas:</strong> poné mentalmente una ruedita de paletas en el agua. Si el agua empuja más fuerte de un lado de la ruedita que del otro, la ruedita gira: hay vorticidad. Si la empuja igual de los dos lados, la ruedita viaja sin girar, aunque el agua la lleve en círculos.</p>
@@ -71,11 +106,27 @@
 
   <h2>Dónde hay vorticidad</h2>
   <p>Cimbala da un ejemplo clave: dentro de una <a href="capa-limite.html">capa límite</a>, donde la viscosidad importa, el flujo es rotacional; afuera de ella, donde la viscosidad no importa, el flujo es irrotacional [2]. Tong responde de dónde sale la vorticidad: si en algún momento es cero en todo el fluido, en un fluido ideal con fuerzas conservativas sigue siendo cero para siempre, así que tiene que venir de fuerzas no conservativas, como la fricción por viscosidad o la fuerza de Coriolis [1]. OpenStax muestra un mapa del huracán Arthur, de 2014, donde los colores representan la vorticidad relativa del aire [3].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 346" role="img" aria-labelledby="vor2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="vor2-t">Mapa de color de la vorticidad de una capa de corte. La vorticidad está concentrada en una fila de remolinos y es casi nula arriba y abajo.</title>
+      <rect width="640" height="346" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Una capa de corte que se enrosca</text>
+        <image x="30" y="56" width="580" height="260" href="img/mecanica-fluidos/vorticidad-mapa.png"/>
+        <text x="320.0" y="334.0" text-anchor="middle" fill="#8892b0" font-size="15">más claro: más vorticidad</text>
+      </g>
+    </svg>
+    <figcaption>Vorticidad calculada para un modelo de capa de corte, donde dos corrientes de distinta velocidad se deslizan una sobre otra (un cálculo propio). La vorticidad se junta en remolinos, y lejos de la capa casi desaparece.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Vórtices que se estiran</h2>
   <p>En un fluido ideal e incompresible, la vorticidad cambia según una ecuación sencilla [1]:</p>
   <div class="math-block">D<strong>ω</strong>/Dt = (<strong>ω</strong> · ∇)<strong>u</strong><br>Las líneas de vórtice se estiran y se retuercen como si fueran hilos de fluido</div>
   <p>Tong muestra que las líneas de vórtice «se mueven con el fluido»: se estiran y se retuercen como líneas pintadas en el agua [1]. Y que cuando un flujo estira un vórtice a lo largo de su eje, la vorticidad crece mientras el vórtice se angosta: es el estiramiento de vórtices [1]. Es la versión fluida de la patinadora que gira más rápido cuando cierra los brazos [1]. La conservación de la circulación detrás de este efecto es el tema de los <a href="teoremas-kelvin-helmholtz.html">teoremas de Kelvin y Helmholtz</a>.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/vorticidad-b727.jpg" width="960" height="760" loading="lazy" alt="Avión Boeing 727 visto desde abajo, con dos estelas de humo blanco que salen de las puntas de sus alas y se enroscan.">
+    <figcaption>Un Boeing 727 con generadores de humo en las puntas de las alas, en un estudio de la NASA de 1974. El humo marca dos vórtices de estela, concentrados y largos.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:B-727_in_flight_during_vortex_study_with_wingtip_smoke_generators_ECN-3831.jpg" target="_blank" rel="noopener">NASA</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>El tensor de deformación:</strong> en un fluido incompresible, la suma de las tres tasas de estiramiento principales es cero: si el fluido se estira en una dirección, tiene que aplastarse en otra [1]. Cómo se combinan la rotación y la deformación en un pedacito de fluido está en <a href="traslacion-rotacion-deformacion.html">traslación, rotación y deformación</a>.</p>

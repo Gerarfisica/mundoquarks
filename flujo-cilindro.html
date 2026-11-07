@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -67,12 +69,58 @@
   <div class="analogy-box">
     <p><strong>Los remos que se turnan:</strong> imaginá dos remeros, uno a cada lado de un bote, que reman por turnos: primero uno, después el otro. El bote avanza zigzagueando un poco. Los remolinos que se desprenden de un cilindro hacen algo parecido: primero de un lado, después del otro, y el cilindro siente un empujón lateral que cambia de sentido con cada remolino.</p>
   </div>
+  <figure class="figura" id="rec">
+    <canvas id="rec-c" width="1280" height="640" role="img" aria-label="Partículas que pasan alrededor de un cilindro. Según el número de Reynolds elegido, detrás aparecen dos remolinos quietos, una hilera alternada de vórtices o una estela desordenada."></canvas>
+    <div class="int-botones" role="group" aria-label="Número de Reynolds"><button type="button" data-r="0">Re ≈ 10</button><button type="button" data-r="1">Re ≈ 26</button><button type="button" data-r="2">Re ≈ 100</button><button type="button" data-r="3">Re ≈ 2000</button></div>
+    <p class="int-estado" id="rec-e" aria-live="polite"></p>
+    <figcaption>Una ilustración de la secuencia que describe Tong [1], no una solución de las ecuaciones: el flujo ideal alrededor del cilindro más remolinos agregados a mano para mostrar cada etapa.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('rec-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 320, D = [];
+    var es = document.getElementById('rec-e'), bs = document.querySelectorAll('#rec .int-botones button');
+    var CX = 170, CY = 160, A = 40, U = 90, M = 0, T = [], V = [], t0 = 0, vis = true, cron = 0, sg = 1, CI = '#00d4ff', GR = '#8892b0', i;
+    var TX = ['El flujo ya <strong>se separa</strong>, y lo de atrás no es igual a lo de adelante.', 'Detrás aparecen <strong>dos remolinos quietos</strong>. El flujo es estacionario.', 'Los remolinos se desprenden de a uno: la <strong>calle de vórtices</strong>. El flujo es periódico.', 'La capa límite se separa cerca de arriba y de abajo, y la estela es <strong>turbulenta</strong>.'];
+    function nuevo(x) { var y; do { y = Math.random() * H; } while ((x - CX) * (x - CX) + (y - CY) * (y - CY) < (A + 3) * (A + 3)); return [x, y]; }
+    for (i = 0; i < 700; i++) T.push(nuevo(Math.random() * W));
+    function vel(x, y) { var dx = x - CX, dy = y - CY, r2 = dx * dx + dy * dy, a2 = A * A / (r2 * r2), u = U * (1 - a2 * (dx * dx - dy * dy)), v = -U * a2 * 2 * dx * dy, k, q, d2; for (k = 0; k < V.length; k++) { q = V[k]; dx = x - q[0]; dy = y - q[1]; d2 = dx * dx + dy * dy + 150; u += -q[2] * dy / d2; v += q[2] * dx / d2; } return [u, v]; }
+    function fijos() { V.length = 0; if (M === 0) { V.push([CX + A + 16, CY - 22, 420], [CX + A + 16, CY + 22, -420]); } if (M === 1) { V.push([CX + A + 30, CY - 28, 1500], [CX + A + 30, CY + 28, -1500]); } }
+    function paso(t) {
+      var dt = t0 ? Math.min(0.04, (t - t0) / 1000) : 0.016, k, p, w, dx, dy, r; t0 = t;
+      if (vis) {
+        if (M >= 2) { cron -= dt; if (cron <= 0) { cron = M === 2 ? 0.75 : 0.5; sg = -sg; V.push([CX + A + 24, CY - sg * 24, sg * 1000]); } for (k = V.length - 1; k >= 0; k--) { V[k][0] += U * 0.62 * dt; if (M === 3) V[k][1] += (Math.random() - 0.5) * 90 * dt; if (V[k][0] > W + 60) V.splice(k, 1); } }
+        for (k = 0; k < T.length; k++) { p = T[k]; w = vel(p[0], p[1]); p[0] += w[0] * dt; p[1] += w[1] * dt; if (M === 3 && p[0] > CX) { p[0] += (Math.random() - 0.5) * 3; p[1] += (Math.random() - 0.5) * 3; } dx = p[0] - CX; dy = p[1] - CY; r = Math.hypot(dx, dy); if (r < A + 1) { p[0] = CX + dx / r * (A + 1); p[1] = CY + dy / r * (A + 1); } if (p[0] > W + 4 || p[0] < -40 || p[1] < -4 || p[1] > H + 4) T[k] = nuevo(-Math.random() * 30 - 2); }
+        D.push([CX + 8, CY - A - 3], [CX + 8, CY + A + 3]); for (k = D.length - 1; k >= 0; k--) { p = D[k]; w = vel(p[0], p[1]); p[0] += w[0] * dt; p[1] += w[1] * dt; if (M === 3 && p[0] > CX + A) { p[0] += (Math.random() - 0.5) * 3; p[1] += (Math.random() - 0.5) * 3; } if (p[0] > W + 4 || p[1] < 0 || p[1] > H) D.splice(k, 1); } while (D.length > 1800) D.shift();
+        dibujar();
+      }
+      requestAnimationFrame(paso);
+    }
+    function dibujar() {
+      var k, p, w; g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = 'rgba(0,212,255,0.4)'; g.lineWidth = 1.5; g.beginPath(); for (k = 0; k < T.length; k++) { p = T[k]; w = vel(p[0], p[1]); g.moveTo(p[0], p[1]); g.lineTo(p[0] - w[0] * 0.07, p[1] - w[1] * 0.07); } g.stroke();
+      g.fillStyle = '#f5a623'; for (k = 0; k < D.length; k++) g.fillRect(D[k][0], D[k][1], 1.8, 1.8);
+      g.fillStyle = '#26345f'; g.strokeStyle = GR; g.lineWidth = 2; g.beginPath(); g.arc(CX, CY, A, 0, 6.3); g.fill(); g.stroke();
+    }
+    function modo(m, b0) { M = m; cron = 0; D.length = 0; fijos(); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); es.innerHTML = TX[m]; }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(+b.getAttribute('data-r'), b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(2, bs[2]); dibujar(); requestAnimationFrame(paso);
+  })();
+  </script>
 
   <h2>Por qué se separa el flujo</h2>
   <p>Tong explica la separación con la presión. Adelante del cilindro, la presión baja a medida que el flujo rodea el cuerpo, y eso lo acelera. Atrás, la presión vuelve a subir, y eso lo frena. En la capa límite, pegada a la pared, el fluido ya iba lento por la viscosidad; con la presión en contra, en algún punto se frena del todo y empieza a ir para atrás: ahí la capa límite se despega del cilindro [1]. La capa que se despega lleva vorticidad, generada por la condición de que el fluido no resbale sobre la pared, y esa vorticidad forma la estela [1]. El fenómeno se cuenta en detalle en <a href="separacion-capa.html">la separación de la capa límite</a>.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/flujo-cilindro-karman.jpg" width="960" height="1023" loading="lazy" style="width:min(24rem,100%);margin:0 auto" alt="Vista desde el espacio de un manto de nubes con una doble hilera de remolinos oscuros que nace en una isla.">
+    <figcaption>Una calle de vórtices de von Kármán en las nubes, detrás de las islas Juan Fernández (Chile), fotografiada por el satélite Landsat 7 en 1999. Es lo mismo que pasa detrás de un cilindro, a una escala enorme.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Vortex-street-1.jpg" target="_blank" rel="noopener">Robert Cahalan, NASA</a> · Dominio público · recortada</span></figcaption>
+  </figure>
 
   <h2>La crisis del arrastre</h2>
   <p>Con Re alrededor de 10<sup>4</sup>, la estela es turbulenta, la presión detrás del cilindro queda muy baja y el arrastre es grande [1]. Y cerca de Re ≈ 10<sup>5</sup> pasa algo sorprendente: la propia capa límite se vuelve turbulenta [1]. Eso tiene dos efectos opuestos: la fricción de la capa turbulenta aumenta, pero la capa se despega más atrás, la estela se angosta y el arrastre por presión baja mucho [1]. El segundo efecto gana, y el arrastre cae de golpe. Tong lo llama <strong>crisis del arrastre</strong> [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/flujo-cilindro-eiffel.jpg" width="564" height="392" loading="lazy" style="width:min(30rem,100%);margin:0 auto" alt="Gráfico antiguo con puntos medidos y una curva que baja y luego queda plana.">
+    <figcaption>La crisis del arrastre en un gráfico histórico: los coeficientes de resistencia de cilindros medidos por Eiffel, según el producto de la velocidad por el diámetro. Cerca de VD = 3 m²/s, en aire eso es un Re de unos 2 × 10<sup>5</sup> (un cálculo propio), el coeficiente cae a cerca de un tercio [1].<span class="credito">Figura: <a href="https://commons.wikimedia.org/wiki/File:Crise_du_cylindre_par_Eiffel.png" target="_blank" rel="noopener">Bernard de Go Mars, según Eiffel</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Medir el ritmo de los vórtices:</strong> cuando un flujo tiene un tiempo característico T, como el período con que se desprenden los vórtices, Tong define el número de Strouhal, Sr = L/(UT), que compara ese ritmo con el tiempo que tarda el fluido en recorrer la longitud L del cuerpo [1]. Si se le agrega circulación al cilindro, aparece además una fuerza de sustentación: es el <a href="sustentacion-bernoulli.html">efecto Magnus</a> [1].</p>

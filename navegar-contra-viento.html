@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -57,11 +61,63 @@
 
   <h2>La vela como ala</h2>
   <p>Wolfe propone un experimento: sacá la mano por la ventanilla. Si la mano está plana, solo sentís el arrastre; si levantás un poco la parte de adelante, el aire se desvía hacia abajo y empuja la mano hacia arriba además de hacia atrás [1]. Navegar contra el viento usa la forma de la vela para producir esa fuerza [1]. El viento, para rodear la vela, tiene que cambiar de dirección; la vela le cambia la velocidad al aire y, por la tercera ley de Newton, el aire empuja la vela en sentido contrario [1]. Wolfe agrega que también hay un efecto de Bernoulli, que contribuye de manera secundaria [1].</p>
+  <figure class="figura" id="vel">
+    <canvas id="vel-c" width="1280" height="760" role="img" aria-label="Un velero visto desde arriba con el viento que viene de arriba del dibujo. Al cambiar el rumbo, cambia la fuerza de la vela. Su parte lateral la cancela la quilla y queda una parte hacia adelante."></canvas>
+    <div class="int-control"><label for="vel-a">Ángulo con el viento</label><input type="range" id="vel-a" min="20" max="170" step="1" value="50"><output id="vel-o" for="vel-a">50°</output></div>
+    <p class="int-estado" id="vel-e" aria-live="polite"></p>
+    <figcaption>Un modelo de juguete de la idea de Wolfe [1], sin valores reales. La vela recibe una fuerza más o menos perpendicular a ella, y la quilla cancela la parte lateral. Cerca de 45° del viento real está el límite de un velero típico [1]. Para simplificar, el dibujo no tiene en cuenta el viento aparente.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('vel-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 380, sl = document.getElementById('vel-a'), so = document.getElementById('vel-o'), es = document.getElementById('vel-e');
+    var CX = 320, CY = 214, CI = '#00d4ff', NA = '#f5a623', VE = '#5ee0a0', GR = '#8892b0';
+    function flecha(x1, y1, x2, y2, c, w) { var a = Math.atan2(y2 - y1, x2 - x1), h = 12; if (Math.hypot(x2 - x1, y2 - y1) < 14) return; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - h * Math.cos(a), y2 - h * Math.sin(a)); g.stroke(); g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - h * Math.cos(a) - 6 * Math.sin(a), y2 - h * Math.sin(a) + 6 * Math.cos(a)); g.lineTo(x2 - h * Math.cos(a) + 6 * Math.sin(a), y2 - h * Math.sin(a) - 6 * Math.cos(a)); g.closePath(); g.fill(); }
+    function poner() {
+      var d = +sl.value, a = d * Math.PI / 180, hx = Math.sin(a), hy = -Math.cos(a), nx = Math.cos(a), ny = Math.sin(a), ve = Math.min(a / 2, 1.4), F = 120 * Math.max(0, Math.min(1, (d - 38) / 8)), fw = F * Math.sin(ve), lat = F * Math.cos(ve), k;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      for (k = 0; k < 5; k++) flecha(70 + k * 125, 14, 70 + k * 125, 58, 'rgba(136,146,176,0.55)', 2);
+      g.save(); g.translate(CX, CY); g.rotate(a);
+      g.fillStyle = '#3a4668'; g.beginPath(); g.moveTo(0, -60); g.quadraticCurveTo(26, -8, 16, 50); g.lineTo(-16, 50); g.quadraticCurveTo(-26, -8, 0, -60); g.fill();
+      g.strokeStyle = '#eef2ff'; g.lineWidth = 4; g.beginPath(); g.moveTo(0, -16); g.lineTo(58 * Math.sin(ve), -16 + 58 * Math.cos(ve)); g.stroke();
+      g.restore();
+      flecha(CX, CY, CX + hx * fw, CY + hy * fw, VE, 5); flecha(CX, CY, CX + nx * lat, CY + ny * lat, NA, 4); flecha(CX, CY, CX - nx * lat, CY - ny * lat, CI, 4);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = VE; g.fillText('avance', 24, 318); g.fillStyle = NA; g.fillText('lateral de la vela', 24, 340); g.fillStyle = CI; g.fillText('quilla', 24, 362); g.textAlign = 'right'; g.fillStyle = GR; g.fillText('viento', 616, 84);
+      so.textContent = d + '°';
+      es.innerHTML = d < 38 ? 'Demasiado cerca del viento: la vela <strong>flamea</strong> y no empuja.' : d < 90 ? 'La fuerza es sobre todo <strong>lateral</strong>: la quilla la cancela y queda una parte hacia adelante.' : 'Con el viento más de atrás, una parte mayor de la fuerza <strong>empuja hacia adelante</strong>.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
   <p>La vela funciona, entonces, como un ala puesta en vertical, como cuenta el artículo de <a href="sustentacion-bernoulli.html">sustentación y circulación</a>. El problema es la dirección de la fuerza: es sobre todo hacia el costado del barco, y más de costado cuanto más se acerca el rumbo al viento. Solo una parte apunta hacia adelante [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/navegar-contra-viento-velero.jpg" width="960" height="701" loading="lazy" alt="Velero de regata con su tripulación, navegando escorado sobre el mar azul.">
+    <figcaption>Un velero J/29 navegando contra el viento frente a la isla Block, en Rhode Island. Las velas funcionan como un ala puesta en vertical [1].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:J29upwind.jpg" target="_blank" rel="noopener">Jeff Johnstone</a> · Uso libre con derechos reservados</span></figcaption>
+  </figure>
 
   <h2>La quilla: el ala bajo el agua</h2>
   <p>¿Por qué el barco no se va de costado? Un poco sí se va, explica Wolfe, pero al hacerlo la quilla, una superficie grande, casi plana y casi vertical bajo el casco, tiene que empujar mucha agua hacia el costado [1]. El agua se resiste y empuja la quilla con una fuerza lateral que cancela la componente lateral de la fuerza del viento [1]. Lo que queda es la componente hacia adelante, que acelera el barco hasta que la resistencia del agua la equilibra [1].</p>
   <p>Así, un velero típico puede navegar a unos 45° del viento real, y los barcos de alto rendimiento todavía más cerca [1]. Para ir a un lugar que está justo de donde viene el viento, se navega en zigzag, cambiando de lado: es la virada [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 270" role="img" aria-labelledby="vel2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="vel2-t">Tres fuerzas sobre un velero: la parte lateral del viento, la fuerza contraria de la quilla y lo que queda, hacia adelante.</title>
+      <rect width="640" height="270" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Dos alas: la vela y la quilla</text>
+        <line x1="320.0" y1="180.0" x2="454.3" y2="206.9" stroke="#f5a623" stroke-width="5"/>
+        <polygon points="470.0,210.0 452.9,213.9 455.7,199.8" fill="#f5a623"/>
+        <text x="620.0" y="240.0" text-anchor="end" fill="#f5a623" font-size="15">lateral del viento</text>
+        <line x1="320.0" y1="180.0" x2="185.7" y2="153.1" stroke="#00d4ff" stroke-width="5"/>
+        <polygon points="170.0,150.0 187.1,146.1 184.3,160.2" fill="#00d4ff"/>
+        <text x="300.0" y="126.0" text-anchor="end" fill="#00d4ff" font-size="15">fuerza de la quilla</text>
+        <line x1="320.0" y1="180.0" x2="338.8" y2="87.7" stroke="#5ee0a0" stroke-width="5"/>
+        <polygon points="342.0,72.0 345.9,89.1 331.8,86.2" fill="#5ee0a0"/>
+        <text x="352.0" y="84.0" text-anchor="start" fill="#5ee0a0" font-size="15">lo que queda: avance</text>
+        <circle cx="320.0" cy="180.0" r="7" fill="#eef2ff"/>
+      </g>
+    </svg>
+    <figcaption>La parte lateral de la fuerza del viento la cancela la quilla. Lo que queda es la parte hacia adelante, que acelera el barco hasta que la resistencia del agua la equilibra [1].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>El carozo apretado:</strong> apretá un carozo húmedo de aceituna entre dos dedos y sale disparado hacia un costado, aunque los dedos empujan uno contra el otro. Un velero hace algo parecido: el viento empuja la vela de un lado, el agua empuja la quilla del otro, y entre las dos fuerzas el barco «se escurre» hacia adelante.</p>

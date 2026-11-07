@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -63,6 +67,30 @@
     <li><strong>Los pedales antipar</strong> cambian el ángulo de las palas del rotor de cola, y con eso controlan hacia dónde apunta la nariz [1].</li>
   </ul>
   <p>El manual explica una sutileza del cíclico: como el disco del rotor se comporta como un giróscopo, una pala alcanza su máxima subida unos 90° de giro después del punto donde se le aumentó el ángulo [1]. Es la precesión giroscópica, y los mandos están diseñados teniendo eso en cuenta.</p>
+  <figure class="figura" id="hel">
+    <canvas id="hel-c" width="1280" height="620" role="img" aria-label="Un helicóptero visto de costado. El colectivo cambia el largo de la flecha de empuje y el cíclico inclina el disco del rotor, y con él la dirección del empuje."></canvas>
+    <div class="int-control"><label for="hel-c1">Colectivo</label><input type="range" id="hel-c1" min="20" max="100" step="1" value="60"></div>
+    <div class="int-control"><label for="hel-c2">Cíclico</label><input type="range" id="hel-c2" min="-15" max="15" step="1" value="10"></div>
+    <p class="int-estado" id="hel-e" aria-live="polite"></p>
+    <figcaption>Una ilustración de los dos mandos del rotor principal, según el manual de la FAA, sin valores reales [1]. El colectivo cambia cuánto empuja el rotor; el cíclico inclina el disco, y el empuje se inclina con él. La parte vertical sostiene y la horizontal hace avanzar.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('hel-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310, s1 = document.getElementById('hel-c1'), s2 = document.getElementById('hel-c2'), es = document.getElementById('hel-e'), CI = '#00d4ff', NA = '#f5a623', VE = '#5ee0a0', CX = 300, CY = 190;
+    function flecha(x1, y1, x2, y2, c, w) { var a = Math.atan2(y2 - y1, x2 - x1), h = 12; if (Math.hypot(x2 - x1, y2 - y1) < 13) return; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - h * Math.cos(a), y2 - h * Math.sin(a)); g.stroke(); g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - h * Math.cos(a) - 6 * Math.sin(a), y2 - h * Math.sin(a) + 6 * Math.cos(a)); g.lineTo(x2 - h * Math.cos(a) + 6 * Math.sin(a), y2 - h * Math.sin(a) - 6 * Math.cos(a)); g.closePath(); g.fill(); }
+    function poner() {
+      var co = +s1.value, a = +s2.value * Math.PI / 180, T = co * 1.25, tx = Math.sin(a) * T, ty = -Math.cos(a) * T, RY = CY - 54;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#3a4668'; g.beginPath(); g.ellipse(CX + 18, CY, 58, 30, 0, 0, 6.3); g.fill(); g.fillRect(CX - 170, CY - 12, 170, 12); g.beginPath(); g.arc(CX - 170, CY - 14, 18, 0, 6.3); g.strokeStyle = '#8892b0'; g.lineWidth = 3; g.stroke(); g.fillRect(CX + 14, RY, 8, 26);
+      g.strokeStyle = CI; g.lineWidth = 5; g.beginPath(); g.moveTo(CX + 18 - 150 * Math.cos(a), RY - 150 * Math.sin(a)); g.lineTo(CX + 18 + 150 * Math.cos(a), RY + 150 * Math.sin(a)); g.stroke();
+      flecha(CX + 18, RY, CX + 18 + tx, RY + ty, NA, 5); flecha(CX + 18, RY, CX + 18 + tx, RY, VE, 3);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('empuje del rotor', 24, 26); g.fillStyle = VE; g.fillText('parte horizontal', 24, 48);
+      es.innerHTML = !a ? 'Disco horizontal: el empuje va <strong>solo para arriba</strong>.' : 'El disco inclinado empuja también hacia <strong>' + (a > 0 ? 'adelante' : 'atrás') + '</strong>.';
+    }
+    s1.addEventListener('input', poner); s2.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El paraguas que se inclina:</strong> imaginá el disco del rotor como un paraguas que empuja el aire hacia abajo. Con el colectivo, el paraguas empuja más fuerte o más suave. Con el cíclico, se inclina hacia un costado, y el empuje, que antes iba solo para arriba, ahora también va para ese lado: el helicóptero avanza en esa dirección.</p>
@@ -70,6 +98,32 @@
 
   <h2>El par de giro y el rotor de cola</h2>
   <p>Cuando el motor hace girar el rotor principal hacia un lado, la tercera ley de Newton empuja al fuselaje a girar hacia el otro. El manual de la FAA llama «par» a esa tendencia del helicóptero a girar en sentido contrario al rotor [1]. Para compensarla, la mayoría de los helicópteros tienen un <strong>rotor de cola</strong>: un rotor chico, montado vertical en la cola, que empuja o tira de ella para contrarrestar el par [1]. Cuanta más potencia le da el motor al rotor principal, más empuje tiene que dar el rotor de cola, y eso se ajusta con los pedales [1]. Según el manual, es el diseño que eligió Igor Sikorsky para su VS-300, y se convirtió en la convención para los helicópteros [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 330" role="img" aria-labelledby="hel2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="hel2-t">Helicóptero visto desde arriba. El rotor gira en un sentido y empuja al fuselaje en el contrario; el rotor de cola compensa ese par.</title>
+      <rect width="640" height="330" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Por qué hace falta el rotor de cola</text>
+        <ellipse cx="220" cy="176" rx="140" ry="140" fill="#00d4ff14" stroke="#00d4ff" stroke-width="2" stroke-dasharray="7 6"/>
+        <path d="M188,176 Q220,142 252,176 Q220,210 188,176" fill="#3a4668"/>
+        <rect x="250.0" y="171.0" width="220.0" height="10.0" fill="#3a4668"/>
+        <line x1="470.0" y1="152.0" x2="470.0" y2="200.0" stroke="#00d4ff" stroke-width="5"/>
+        <path d="M108,136 A118,118 0 0 1 180,64" fill="none" stroke="#00d4ff" stroke-width="4"/>
+        <line x1="174.0" y1="66.0" x2="178.8" y2="64.2" stroke="#00d4ff" stroke-width="3"/>
+        <polygon points="190.0,60.0 180.7,69.3 176.9,59.2" fill="#00d4ff"/>
+        <text x="24.0" y="64.0" text-anchor="start" fill="#00d4ff" font-size="15">rotor</text>
+        <path d="M270,132 A66,66 0 0 0 214,110" fill="none" stroke="#f5a623" stroke-width="4"/>
+        <line x1="224.0" y1="110.0" x2="219.9" y2="110.5" stroke="#f5a623" stroke-width="3"/>
+        <polygon points="208.0,112.0 219.2,105.2 220.6,115.9" fill="#f5a623"/>
+        <text x="280.0" y="112.0" text-anchor="start" fill="#f5a623" font-size="15">par sobre el fuselaje</text>
+        <line x1="470.0" y1="182.0" x2="470.0" y2="232.0" stroke="#5ee0a0" stroke-width="4"/>
+        <polygon points="470.0,246.0 463.7,232.0 476.3,232.0" fill="#5ee0a0"/>
+        <text x="478.0" y="246.0" text-anchor="start" fill="#5ee0a0" font-size="15">empuje</text>
+        <text x="478.0" y="266.0" text-anchor="start" fill="#5ee0a0" font-size="15">de cola</text>
+      </g>
+    </svg>
+    <figcaption>Cuando el motor hace girar el rotor hacia un lado, el fuselaje tiende a girar hacia el otro. El rotor de cola empuja la cola para compensarlo [1].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
   <p>El rotor de cola trae su propio efecto: al empujar la cola hacia un costado, todo el helicóptero tiende a desplazarse en esa dirección cuando está quieto en el aire. El manual lo llama tendencia a la traslación [1].</p>
 
   <h2>Autorrotación: aterrizar sin motor</h2>

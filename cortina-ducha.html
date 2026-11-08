@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -65,10 +69,52 @@
 
   <h2>El remolino de costado</h2>
   <p>La simulación mostró que el spray pone en marcha un <a href="vorticidad.html">vórtice</a> [1]. El centro de ese remolino, como el centro de un ciclón, es una región de baja presión, y esa región de baja presión es la que tira de la cortina hacia adentro [1]. El vórtice gira alrededor de un eje perpendicular a la cortina: es algo así como un remolino de polvo acostado [1]. Pero, a diferencia de un remolino de polvo, no se apaga, porque la ducha lo alimenta continuamente [1].</p>
+  <figure class="figura" id="duc">
+    <canvas id="duc-c" width="1280" height="640" role="img" aria-label="Vista a través de la cortina: las gotas caen desde la flor de la ducha, el aire baja con ellas, se desvía en el fondo de la bañera y vuelve a subir, formando un remolino. En su centro, la presión es baja."></canvas>
+    <div class="int-botones"><button type="button" id="duc-b">Ducha abierta</button></div>
+    <p class="int-estado" id="duc-e" aria-live="polite"></p>
+    <figcaption>Una ilustración del resultado de la simulación de David Schmidt: las gotas arrastran el aire y arman un remolino cuyo eje es perpendicular a la cortina, con presión baja en el centro [1]. Por eso se lo ve de frente, mirando a través de la cortina. La forma y el tamaño del remolino son elegidos para el dibujo.<span class="credito">Animación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('duc-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 320, es = document.getElementById('duc-e'), bt = document.getElementById('duc-b');
+    var ON = true, A = 0, D = [], P = [], vis = true, i, CX = 330, CY = 170, CI = '#00d4ff', GR = '#8892b0';
+    for (i = 0; i < 260; i++) P.push([Math.random() * 520 + 60, Math.random() * 230 + 50]);
+    function vel(x, y) { var dx = x - CX, dy = y - CY, r2 = dx * dx / 1.8 + dy * dy, f = A * 3800 / (r2 + 900); return [-dy * f / 60, dx * f / 60 / 1.8]; }
+    function frame() {
+      var k, p, w;
+      if (vis) {
+        A += ((ON ? 1 : 0) - A) * 0.01;
+        if (ON) for (k = 0; k < 3; k++) D.push([150 + Math.random() * 60, 60, 2 + Math.random()]);
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#26345f'; g.fillRect(40, 286, 560, 22); g.fillStyle = '#3a4668'; g.fillRect(150, 40, 70, 12); g.fillRect(180, 18, 10, 24);
+        g.strokeStyle = 'rgba(0,212,255,0.65)'; g.lineWidth = 1.4; g.beginPath(); for (k = 0; k < P.length; k++) { p = P[k]; w = vel(p[0], p[1]); p[0] += w[0] * 0.5; p[1] += w[1] * 0.5; if (p[0] < 50 || p[0] > 590 || p[1] < 40 || p[1] > 284) { p[0] = Math.random() * 520 + 60; p[1] = Math.random() * 230 + 50; } g.moveTo(p[0], p[1]); g.lineTo(p[0] - w[0] * 6, p[1] - w[1] * 6); } g.stroke();
+        g.fillStyle = '#eef2ff'; for (k = D.length - 1; k >= 0; k--) { D[k][1] += 5 * D[k][2]; if (D[k][1] > 286) D.splice(k, 1); else g.fillRect(D[k][0], D[k][1], 1.6, 5); }
+        g.fillStyle = 'rgba(245,166,35,' + (0.35 * A) + ')'; g.beginPath(); g.arc(CX, CY, 26, 0, 6.3); g.fill();
+        g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = 'rgba(245,166,35,' + Math.max(0.15, A) + ')'; g.fillText('presión baja', CX, CY + 5); g.fillStyle = GR; g.textAlign = 'left'; g.fillText('flor de la ducha', 230, 34); g.fillText('bañera', 48, 280);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { bt.textContent = ON ? 'Cerrar la ducha' : 'Abrir la ducha'; es.innerHTML = ON ? 'Las gotas arrastran el aire y lo ponen a <strong>girar</strong>: la cortina va hacia el centro del remolino.' : 'Sin gotas, el aire <strong>se frena</strong> de a poco.'; }
+    bt.addEventListener('click', function () { ON = !ON; poner(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La rueda de agua:</strong> imaginá que las gotas que caen junto a la cortina empujan el aire hacia abajo, como el agua empuja las paletas de una rueda de molino. El aire baja con las gotas, se desvía en el fondo de la bañera y vuelve a subir más lejos: queda girando como una rueda. Y en el eje de esa rueda de aire, la presión es más baja (una imagen propia para visualizar el vórtice de Schmidt).</p>
   </div>
+  <figure class="figura">
+    <div class="esq">
+      <div class="esq-fila">
+        <div class="esq-caja esq-mal"><span class="esq-tit">BERNOULLI</span>el aire rápido tiene menos presión<span class="esq-sub">no tiene en cuenta las gotas</span><span class="esq-veredicto esq-no">no alcanza</span></div>
+        <div class="esq-caja esq-mal"><span class="esq-tit">FLOTACIÓN</span>el aire caliente es más liviano<span class="esq-sub">pero también pasa con agua fría</span><span class="esq-veredicto esq-no">no alcanza</span></div>
+        <div class="esq-caja esq-ok"><span class="esq-tit">VÓRTICE</span>las gotas arman un remolino<span class="esq-sub">baja presión en su centro</span><span class="esq-veredicto esq-si">la de Schmidt</span></div>
+      </div>
+    </div>
+    <figcaption>Las tres explicaciones, según David Schmidt, que descartó las dos primeras como causa principal [1].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Cómo evitarlo</h2>
   <p>Schmidt aclara que las fuerzas que produce este flujo de aire son bastante débiles: solo alcanzan para mover cortinas livianas y finas [1]. Por eso, dice, quienes tienen cortinas de plástico pesado no suelen tener el problema, y tampoco quienes tienen poca presión de agua o una flor que no pulveriza bien el agua [1]. Como la fuerza es débil, la solución más fácil es coser pesos en el borde de abajo de la cortina o, si la bañera es de metal, sostenerla con imanes [1].</p>

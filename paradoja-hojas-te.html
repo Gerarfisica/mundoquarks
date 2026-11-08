@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -55,10 +57,49 @@
   <h2>La taza de Einstein</h2>
   <p>El 7 de enero de 1926, Einstein leyó ante la Academia Prusiana un trabajo sobre la causa de la formación de los meandros de los ríos, publicado ese año en <em>Die Naturwissenschaften</em> [1][2]. Según la traducción al español de Enrique Padilla, Birgit Emberger y Manuel Díez-Minguito, Einstein proponía un experimento que cualquiera puede repetir [1]:</p>
   <div class="math-block">«Imagine una taza de fondo plano llena de té. En la parte inferior debe haber algunas hojas de té, que permanecen ahí por ser bastante más pesadas que el líquido que han desalojado. Si se hace girar el líquido con una cuchara, las hojas pronto se acumularán en el centro del fondo de la taza.»<br>A. Einstein (1926), traducción de Padilla, Emberger y Díez-Minguito</div>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/paradoja-hojas-te-taza.jpg" width="960" height="942" loading="lazy" style="width:min(20rem,100%);margin:0 auto" alt="Taza de té vista desde arriba, con un montoncito de hojas oscuras en el centro del fondo.">
+    <figcaption>Las hojas, juntas en el centro del fondo después de revolver: la paradoja que explicó Einstein.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Teacup_with_Tealeaves_on_Wooden_Table.jpg" target="_blank" rel="noopener">Apoc2400</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.es" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></figcaption>
+  </figure>
 
   <h2>La explicación: un flujo secundario</h2>
   <p>La clave está en la fricción. Cuando el té gira, la fuerza centrífuga empuja el líquido hacia afuera y la superficie se curva: queda más baja en el centro y más alta junto a las paredes [3]. Eso crea una diferencia de presión que, en el cuerpo del líquido, equilibra justo la fuerza centrífuga [3]. Pero, como explica Einstein, cerca de las paredes y del fondo el movimiento del líquido es retenido por la fricción, y circula más despacio que más adentro [1].</p>
   <p>Zurab Silagadze, del Instituto Budker de Novosibirsk, lo explica así: en la capa de líquido frenada junto al fondo, la fuerza centrífuga es menor, pero la diferencia de presión es la misma, así que ya no se equilibran, y el líquido del fondo se mueve hacia el centro [3]. Para cerrar el circuito, el líquido sube por el centro, se aleja del centro cerca de la superficie y baja junto a las paredes [3]. Es un <strong>flujo secundario</strong>, un movimiento circular que se suma al giro principal. Y, según Einstein, las hojas de té son barridas hacia el centro por ese movimiento y actúan como prueba de su existencia [1].</p>
+  <figure class="figura" id="tes">
+    <canvas id="tes-c" width="1280" height="620" role="img" aria-label="Corte vertical de una taza revuelta. El líquido baja por las paredes, corre por el fondo hacia el centro, sube por el medio y vuelve por arriba. Las hojas del fondo terminan juntas en el centro."></canvas>
+    <div class="int-botones"><button type="button" id="tes-b">Revolver de nuevo</button></div>
+    <p class="int-estado" id="tes-e" aria-live="polite"></p>
+    <figcaption>Un corte de la taza con el flujo secundario que describen Einstein y Silagadze: hacia el centro por el fondo, hacia arriba por el medio, hacia afuera por arriba y hacia abajo junto a las paredes [1, 3]. El giro principal, alrededor del eje, no se ve en este corte. Es una ilustración: la forma de la circulación es elegida, y su intensidad, exagerada.<span class="credito">Animación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('tes-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 310, es = document.getElementById('tes-e'), bt = document.getElementById('tes-b');
+    var CX = 320, R = 230, Y0 = 40, Y1 = 280, P = [], F = [], T = 0, vis = true, i, CI = '#00d4ff', NA = '#6b4423';
+    function vel(r, z) { var s = r >= 0 ? 1 : -1, a = Math.abs(r), u = -Math.sin(Math.PI * a) * Math.cos(Math.PI * z) * 0.9, w = (Math.sin(Math.PI * a) / Math.max(a, 0.02) + Math.PI * Math.cos(Math.PI * a)) * Math.sin(Math.PI * z) * 0.3; return [s * u, w]; }
+    function reset() { var k; P = []; F = []; for (k = 0; k < 360; k++) P.push([Math.random() * 2 - 1, Math.random()]); for (k = 0; k < 26; k++) F.push([(Math.random() * 2 - 1) * 0.85, 0.02]); T = 0; }
+    function dibujar() {
+      var k, p, x, y, w;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(160,82,45,0.35)'; g.beginPath(); g.moveTo(CX - R, Y0 + 14); g.quadraticCurveTo(CX, Y0 + 34, CX + R, Y0 + 14); g.lineTo(CX + R, Y1); g.lineTo(CX - R, Y1); g.closePath(); g.fill();
+      g.strokeStyle = '#eef2ff'; g.lineWidth = 4; g.beginPath(); g.moveTo(CX - R - 4, Y0 - 10); g.lineTo(CX - R - 4, Y1 + 4); g.lineTo(CX + R + 4, Y1 + 4); g.lineTo(CX + R + 4, Y0 - 10); g.stroke();
+      g.strokeStyle = 'rgba(0,212,255,0.75)'; g.lineWidth = 1.4; g.beginPath(); for (k = 0; k < P.length; k++) { p = P[k]; w = vel(p[0], p[1]); x = CX + p[0] * R; y = Y1 - p[1] * (Y1 - Y0 - 30); g.moveTo(x, y); g.lineTo(x - w[0] * 30, y + w[1] * 30); } g.stroke();
+      g.fillStyle = NA; for (k = 0; k < F.length; k++) { x = CX + F[k][0] * R; g.beginPath(); g.ellipse(x, Y1 - 4, 7, 3, 0, 0, 6.3); g.fill(); }
+    }
+    function frame() {
+      var k, p, w, f = Math.max(0, 1 - T / 14);
+      if (vis) {
+        for (k = 0; k < P.length; k++) { p = P[k]; w = vel(p[0], p[1]); p[0] += w[0] * 0.01 * f; p[1] += w[1] * 0.01 * f; if (Math.abs(p[0]) > 0.98 || p[1] < 0.01 || p[1] > 0.99) { p[0] = Math.random() * 2 - 1; p[1] = Math.random(); } }
+        for (k = 0; k < F.length; k++) { w = vel(F[k][0], 0.06); F[k][0] += w[0] * 0.012 * f; if (Math.abs(F[k][0]) < 0.04 + 0.002 * k) F[k][0] = (F[k][0] < 0 ? -1 : 1) * (0.04 + 0.002 * k); }
+        T += 0.016; dibujar();
+      }
+      requestAnimationFrame(frame);
+    }
+    es.innerHTML = 'Junto al fondo, el líquido corre <strong>hacia el centro</strong> y arrastra las hojas.';
+    bt.addEventListener('click', reset);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    reset(); dibujar(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>El tobogán al revés:</strong> imaginá que el té, al girar, arma una rampa invisible de presión que empuja todo hacia el centro, y que la fuerza centrífuga empuja hacia afuera con la misma fuerza. En el cuerpo del té, las dos se empatan. Abajo, donde el fondo frena el giro, la fuerza centrífuga pierde y la rampa gana: el agua del fondo «cae» hacia el centro, y lleva las hojas con ella.</p>
@@ -67,6 +108,10 @@
   <h2>De la taza al río</h2>
   <p>Einstein usó la taza para entender los ríos. Recordaba que los geógrafos sabían que los ríos del hemisferio norte tienden a erosionar principalmente la orilla derecha, y los del sur, la izquierda: es la llamada ley de Baer [1]. Y razonaba que la erosión de una orilla tiene que ser más fuerte cuanto mayor sea la velocidad de la corriente cerca de ella [1].</p>
   <p>En una curva del río pasa lo mismo que en la taza: una fuerza centrífuga empuja el agua hacia el exterior de la curva, pero es menor en el fondo, donde la fricción frena la corriente, y así se forma una circulación [1]. Según Einstein, esa circulación lleva las partes más rápidas del agua, las de arriba en el centro del cauce, hacia la orilla exterior, mientras que la otra orilla recibe agua lenta que viene del fondo; por eso la erosión es más intensa en la orilla exterior [1]. Aun donde el río no tiene curvas, la rotación de la Tierra produce, a través de la fuerza de Coriolis, una circulación parecida aunque más débil, y eso explica la ley de Baer [1]. Con esto, escribe, quedan dilucidadas las causas de la formación de los meandros [1]: una curva pequeña erosiona más su orilla exterior, y así la curva crece (una lectura del argumento de Einstein).</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/paradoja-hojas-te-ucayali.jpg" width="960" height="639" loading="lazy" alt="Vista desde el espacio de un río marrón que serpentea en curvas muy cerradas entre selva verde, con nubes blancas.">
+    <figcaption>El río Ucayali, en Perú, fotografiado por el astronauta Kjell Lindgren desde la Estación Espacial Internacional. Se ven meandros, y lagos en forma de medialuna que dejaron curvas abandonadas.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:ISS-45_StoryOfWater,_Meandering_River_-_Rio_Ucayali.jpg" target="_blank" rel="noopener">NASA, Kjell Lindgren</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Ríos más grandes, curvas más largas:</strong> Einstein agrega dos detalles. El flujo secundario tarda en armarse, así que la erosión máxima ocurre un poco aguas abajo del punto de mayor curvatura, y los meandros avanzan en el sentido de la corriente [1]. Y cuanto mayor es la sección del río, más lentamente la fricción apaga el flujo secundario, así que la longitud de onda de los meandros crece con el tamaño del río [1].</p>

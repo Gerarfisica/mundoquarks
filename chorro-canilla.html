@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -51,6 +53,10 @@
 </div>
 <div class="article-container">
   <p>Abrí la canilla apenas y mirá el chorro de perfil. Arriba, donde sale, es grueso; unos centímetros más abajo, es bastante más fino. Si sigue cayendo, empieza a ondularse y termina cortándose en gotas. Tres cosas explican todo eso: la gravedad, la conservación del caudal y la tensión superficial.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/chorro-canilla-real.jpg" width="960" height="1291" loading="lazy" style="width:min(15rem,100%);margin:0 auto" alt="Canilla de metal con un chorro de agua transparente que sale ancho y se va afinando al caer.">
+    <figcaption>Un chorro real: se afina al alejarse de la canilla. En esta foto no llega a cortarse en gotas.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Tap-gb0fe5d2cc_1920.jpg" target="_blank" rel="noopener">Vien Hoang</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.es" target="_blank" rel="noopener">CC0</a></span></figcaption>
+  </figure>
 
   <h2>El agua que cae se acelera</h2>
   <p>David Tong, de la Universidad de Cambridge, dedica una sección de sus apuntes a esta pregunta, con un título claro: la gravedad hace que el chorro sea más fino [1]. Señala que el efecto más importante de la gravedad no está en las ondulaciones del chorro, sino en su forma misma [1]. Su punto de partida es el <a href="teorema-bernoulli.html">teorema de Bernoulli</a>: a medida que el agua cae, la gravedad la acelera hacia abajo y su velocidad aumenta [1].</p>
@@ -59,8 +65,67 @@
   <p>La segunda pieza es la <a href="ecuacion-continuidad.html">conservación de la masa</a>. Tong explica que el caudal a lo largo del chorro, proporcional al cuadrado del radio por la velocidad, tiene que ser constante [1]:</p>
   <div class="math-block">R<sub>0</sub>² U<sub>0</sub> = R(z)² U(z)<br>R: radio del chorro · U: velocidad del agua · z: distancia recorrida hacia abajo desde la canilla</div>
   <p>Si el agua va más rápido más abajo, y por cada sección tiene que pasar la misma cantidad de agua por segundo, el chorro tiene que ser más angosto. Combinando las dos ideas, y cuando la tensión superficial es poco importante, Tong obtiene [1]:</p>
+  <figure class="figura" id="cho">
+    <canvas id="cho-c" width="1280" height="660" role="img" aria-label="Un chorro que sale de una canilla y se afina al caer. Cuanto más lento sale el agua, más rápido se afina."></canvas>
+    <div class="int-control"><label for="cho-u">Velocidad de salida</label><input type="range" id="cho-u" min="0.2" max="1.5" step="0.05" value="0.5"><output id="cho-o" for="cho-u">0,50 m/s</output></div>
+    <p class="int-estado" id="cho-e" aria-live="polite"></p>
+    <figcaption>La forma del chorro según la fórmula de Tong, R = R<sub>0</sub>(1 + 2gz/U<sub>0</sub>²)<sup>−1/4</sup>, sin tensión superficial [1]. La canilla tiene 6 mm de radio, un valor elegido, y el ancho del chorro está exagerado tres veces para que se vea. Abajo, el chorro real se corta en gotas; eso no está dibujado.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cho-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 330, sl = document.getElementById('cho-u'), so = document.getElementById('cho-o'), es = document.getElementById('cho-e');
+    var R0 = 6, XC = 220, Y0 = 40, Y1 = 320, Z = 0.3, K = 3, CI = '#00d4ff', GR = '#8892b0';
+    function num(x, d) { return x.toFixed(d).replace('.', ','); }
+    function poner() {
+      var U = +sl.value, k, z, r, y, r20 = Math.pow(1 + 2 * 9.8 * 0.2 / (U * U), -0.25);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#8892b0'; g.fillRect(XC - 50, 14, 74, 16); g.fillRect(XC - 24, 14, 48, 26);
+      g.fillStyle = 'rgba(0,212,255,0.6)'; g.beginPath(); for (k = 0; k <= 80; k++) { z = Z * k / 80; r = R0 * K * Math.pow(1 + 2 * 9.8 * z / (U * U), -0.25); y = Y0 + (Y1 - Y0) * k / 80; if (k) g.lineTo(XC + r, y); else g.moveTo(XC + r, y); } for (k = 80; k >= 0; k--) { z = Z * k / 80; r = R0 * K * Math.pow(1 + 2 * 9.8 * z / (U * U), -0.25); y = Y0 + (Y1 - Y0) * k / 80; g.lineTo(XC - r, y); } g.closePath(); g.fill();
+      y = Y0 + (Y1 - Y0) * 0.2 / Z; g.strokeStyle = '#f5a623'; g.lineWidth = 1.5; g.setLineDash([5, 5]); g.beginPath(); g.moveTo(XC - 60, y); g.lineTo(XC + 120, y); g.stroke(); g.setLineDash([]);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#f5a623'; g.fillText('20 cm', XC + 126, y + 5); g.fillStyle = '#eef2ff'; g.fillText('radio: ' + num(R0 * r20, 1) + ' mm', 380, 90); g.fillStyle = GR; g.fillText('velocidad: ' + num(U / (r20 * r20), 1) + ' m/s', 380, 114);
+      so.textContent = num(U, 2) + ' m/s';
+      es.innerHTML = 'A 20 cm de la canilla, el radio es el <strong>' + Math.round(r20 * 100) + ' %</strong> del de la salida.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
   <div class="math-block">R(z) = R<sub>0</sub> (1 + 2 g z / U<sub>0</sub>²)<sup>−1/4</sup><br>R<sub>0</sub>, U<sub>0</sub>: radio y velocidad a la salida · g: gravedad</div>
   <p>Lejos de la canilla, el radio disminuye como z<sup>−1/4</sup> [1]. Por ejemplo, si el agua sale a 0,5 m/s, a 20 cm de la canilla el radio ya es la mitad, y el agua va cuatro veces más rápido, a unos 2 m/s (un cálculo propio con la fórmula).</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 362" role="img" aria-labelledby="cho2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="cho2-t">Curva del radio del chorro según la distancia a la canilla: baja rápido al principio y después despacio. A 20 centímetros es la mitad.</title>
+      <rect width="640" height="362" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Cómo se afina el chorro</text>
+        <line x1="76.0" y1="296.0" x2="600.0" y2="296.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="301.0" text-anchor="end" fill="#8892b0" font-size="15">0</text>
+        <line x1="76.0" y1="241.0" x2="600.0" y2="241.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="246.0" text-anchor="end" fill="#8892b0" font-size="15">0,25</text>
+        <line x1="76.0" y1="186.0" x2="600.0" y2="186.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="191.0" text-anchor="end" fill="#8892b0" font-size="15">0,5</text>
+        <line x1="76.0" y1="131.0" x2="600.0" y2="131.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="136.0" text-anchor="end" fill="#8892b0" font-size="15">0,75</text>
+        <line x1="76.0" y1="76.0" x2="600.0" y2="76.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="68.0" y="81.0" text-anchor="end" fill="#8892b0" font-size="15">1</text>
+        <text x="76.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">0</text>
+        <text x="180.8" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">10</text>
+        <text x="285.6" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">20</text>
+        <text x="390.4" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">30</text>
+        <text x="495.2" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">40</text>
+        <text x="600.0" y="320.0" text-anchor="middle" fill="#8892b0" font-size="15">50</text>
+        <line x1="76.0" y1="296.0" x2="600.0" y2="296.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="338.0" y="342.0" text-anchor="middle" fill="#8892b0" font-size="15">distancia a la canilla (cm)</text>
+        <text x="20.0" y="58.0" text-anchor="start" fill="#8892b0" font-size="15">radio / radio de salida</text>
+        <polyline points="76.0,76.0 81.2,93.5 86.5,105.6 91.7,114.9 97.0,122.2 102.2,128.3 107.4,133.4 112.7,137.8 117.9,141.7 123.2,145.2 128.4,148.3 133.6,151.1 138.9,153.6 144.1,156.0 149.4,158.2 154.6,160.2 159.8,162.0 165.1,163.8 170.3,165.4 175.6,167.0 180.8,168.4 186.0,169.8 191.3,171.1 196.5,172.3 201.8,173.5 207.0,174.6 212.2,175.7 217.5,176.8 222.7,177.7 228.0,178.7 233.2,179.6 238.4,180.5 243.7,181.3 248.9,182.1 254.2,182.9 259.4,183.7 264.6,184.4 269.9,185.1 275.1,185.8 280.4,186.5 285.6,187.1 290.8,187.8 296.1,188.4 301.3,189.0 306.6,189.6 311.8,190.1 317.0,190.7 322.3,191.2 327.5,191.7 332.8,192.2 338.0,192.7 343.2,193.2 348.5,193.7 353.7,194.2 359.0,194.6 364.2,195.1 369.4,195.5 374.7,195.9 379.9,196.3 385.2,196.7 390.4,197.1 395.6,197.5 400.9,197.9 406.1,198.3 411.4,198.7 416.6,199.0 421.8,199.4 427.1,199.7 432.3,200.1 437.6,200.4 442.8,200.7 448.0,201.1 453.3,201.4 458.5,201.7 463.8,202.0 469.0,202.3 474.2,202.6 479.5,202.9 484.7,203.2 490.0,203.5 495.2,203.8 500.4,204.0 505.7,204.3 510.9,204.6 516.2,204.8 521.4,205.1 526.6,205.4 531.9,205.6 537.1,205.9 542.4,206.1 547.6,206.4 552.8,206.6 558.1,206.8 563.3,207.1 568.6,207.3 573.8,207.5 579.0,207.8 584.3,208.0 589.5,208.2 594.8,208.4 600.0,208.6" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <polyline points="97.0,99.4 102.2,110.1 107.4,118.4 112.7,125.1 117.9,130.7 123.2,135.5 128.4,139.6 133.6,143.3 138.9,146.6 144.1,149.6 149.4,152.3 154.6,154.7 159.8,157.0 165.1,159.1 170.3,161.0 175.6,162.8 180.8,164.5 186.0,166.1 191.3,167.6 196.5,169.0 201.8,170.4 207.0,171.7 212.2,172.9 217.5,174.0 222.7,175.1 228.0,176.2 233.2,177.2 238.4,178.2 243.7,179.1 248.9,180.0 254.2,180.9 259.4,181.7 264.6,182.5 269.9,183.3 275.1,184.0 280.4,184.7 285.6,185.4 290.8,186.1 296.1,186.8 301.3,187.4 306.6,188.0 311.8,188.7 317.0,189.2 322.3,189.8 327.5,190.4 332.8,190.9 338.0,191.4 343.2,192.0 348.5,192.5 353.7,193.0 359.0,193.4 364.2,193.9 369.4,194.4 374.7,194.8 379.9,195.3 385.2,195.7 390.4,196.1 395.6,196.5 400.9,196.9 406.1,197.3 411.4,197.7 416.6,198.1 421.8,198.5 427.1,198.8 432.3,199.2 437.6,199.5 442.8,199.9 448.0,200.2 453.3,200.6 458.5,200.9 463.8,201.2 469.0,201.5 474.2,201.8 479.5,202.1 484.7,202.4 490.0,202.7 495.2,203.0 500.4,203.3 505.7,203.6 510.9,203.9 516.2,204.2 521.4,204.4 526.6,204.7 531.9,205.0 537.1,205.2 542.4,205.5 547.6,205.7 552.8,206.0 558.1,206.2 563.3,206.5 568.6,206.7 573.8,206.9 579.0,207.2 584.3,207.4 589.5,207.6 594.8,207.9 600.0,208.1" fill="none" stroke="#f5a623" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 6"/>
+        <circle cx="285.6" cy="187.1" r="6" fill="#f5a623"/>
+        <text x="297.6" y="175.1" text-anchor="start" fill="#f5a623" font-size="15">la mitad a 20 cm</text>
+        <text x="568.6" y="190.4" text-anchor="end" fill="#f5a623" font-size="14">proporcional a z elevado a −1/4</text>
+      </g>
+    </svg>
+    <figcaption>Agua que sale a 0,5 m/s, el ejemplo del artículo, con la fórmula de Tong [1] (un cálculo propio). La curva punteada es el comportamiento lejos de la canilla, proporcional a z<sup>−1/4</sup> [1].<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>La autopista que se abre:</strong> imaginá autos que salen de un peaje despacio y pegados, y después aceleran en la autopista. Como siguen pasando la misma cantidad de autos por minuto, pero cada uno va más rápido, quedan más separados. En el chorro, el agua no puede separarse a lo largo sin romperse, así que se estira y se afina.</p>

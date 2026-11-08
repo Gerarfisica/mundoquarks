@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -62,10 +66,81 @@
 
   <h2>La explicación con Coanda</h2>
   <p>Según la Universidad de Maryland, la explicación correcta tiene que ver con el <a href="efecto-coanda.html">efecto Coanda</a> [3]. Cuando el chorro pasa junto a la pelota, parte del aire sigue el contorno de la pelota y la abandona recién después de recorrer un buen trecho sobre su superficie [3]. En efecto, la pelota «tira» del aire alrededor de su superficie, y siempre tiene que haber una fuerza de reacción sobre la pelota [3]. Si la pelota se corre hacia un costado del chorro, el aire que se curva sobre ella se desvía hacia afuera, y la reacción la empuja de vuelta hacia el chorro (un razonamiento a partir de esa explicación).</p>
+  <figure class="figura" id="pel">
+    <canvas id="pel-c" width="1280" height="640" role="img" aria-label="Una pelotita que flota en un chorro de aire vertical. Si se la empuja de costado, se mueve y vuelve al centro del chorro."></canvas>
+    <div class="int-botones"><button type="button" id="pel-b">Empujarla de costado</button></div>
+    <div class="int-control"><label for="pel-a">Inclinación del secador</label><input type="range" id="pel-a" min="-25" max="25" step="1" value="0"><output id="pel-o" for="pel-a">0°</output></div>
+    <p class="int-estado" id="pel-e" aria-live="polite"></p>
+    <figcaption>Una ilustración. La altura sale de igualar el arrastre con el peso [1], en un chorro que se frena al subir. La fuerza que la devuelve al centro está dibujada con la explicación de la Universidad de Maryland: el aire se curva sobre la pelota y la reacción la empuja hacia el chorro [3]. Su intensidad es elegida, y el origen exacto del fenómeno todavía se discute [4].<span class="credito">Animación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('pel-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 320, bt = document.getElementById('pel-b'), sl = document.getElementById('pel-a'), so = document.getElementById('pel-o'), es = document.getElementById('pel-e');
+    var BX = 320, BY = 290, s = 0, z = 150, vs = 0, vz = 0, F = 0, vis = true, t0 = 0, CI = '#00d4ff', GR = '#8892b0', R = 18;
+    function frame(t) {
+      var dt = t0 ? Math.min(0.033, (t - t0) / 1000) : 0.016, th = sl.value * Math.PI / 180, c = Math.cos(th), sn = Math.sin(th), w, u, x, y, k, d;
+      t0 = t;
+      if (vis) {
+        w = 40 + 0.55 * z; u = 520 * 40 / w * Math.exp(-s * s / (w * w * 0.25));
+        vz += (0.0104 * u * u - 300 - (vz * 1.2) - 300 * (c - 1)) * dt; vs += (-1400 * s / w * Math.min(1, Math.abs(s) / 6 + 0.2) - vs * 1.6 - 300 * sn) * dt;
+        z += vz * dt; s += vs * dt; if (z < 30) { z = 30; vz = 0; } if (Math.abs(s) > 200) { s = 0; z = 150; vs = 0; vz = 0; }
+        F += dt;
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.save(); g.translate(BX, BY); g.rotate(th);
+        g.fillStyle = '#3a4668'; g.fillRect(-16, 0, 32, 40); g.fillRect(-26, 20, 52, 24);
+        for (k = 0; k < 14; k++) { d = ((k / 14 + F * 0.6) % 1) * 280; w = 40 + 0.55 * d; g.strokeStyle = 'rgba(0,212,255,' + (0.6 * (1 - d / 280)) + ')'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-w / 2, -d); g.lineTo(w / 2, -d); g.stroke(); }
+        g.restore();
+        x = BX + s * c + z * sn; y = BY - z * c + s * sn;
+        g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(x, y, R, 0, 6.3); g.fill(); g.strokeStyle = GR; g.lineWidth = 2; g.stroke();
+      }
+      requestAnimationFrame(frame);
+    }
+    bt.addEventListener('click', function () { vs += 260; });
+    sl.addEventListener('input', function () { so.textContent = sl.value + '°'; es.innerHTML = +sl.value ? 'Con el secador inclinado, la pelota <strong>sigue al chorro</strong>, un poco más baja.' : 'La pelota flota donde el arrastre <strong>iguala su peso</strong>.'; });
+    es.innerHTML = 'La pelota flota donde el arrastre <strong>iguala su peso</strong>.';
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La manguera que se curva:</strong> si sostenés una manguera curva con agua, sentís que la manguera te tira en sentido contrario a donde desvía el agua. La pelotita en el borde del chorro es como esa manguera: curva el aire hacia afuera, y el aire la empuja hacia adentro (una imagen propia).</p>
   </div>
+  <figure class="figura">
+    <svg viewBox="0 0 640 356" role="img" aria-labelledby="pel2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="pel2-t">Una pelota corrida hacia un costado del chorro: el peso hacia abajo, el arrastre hacia arriba y una fuerza hacia el centro del chorro, mientras el aire se curva sobre la pelota hacia afuera.</title>
+      <rect width="640" height="356" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Las fuerzas sobre la pelota</text>
+        <line x1="170.0" y1="320.0" x2="170.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="187.0" y1="320.0" x2="187.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="204.0" y1="320.0" x2="204.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="221.0" y1="320.0" x2="221.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="238.0" y1="320.0" x2="238.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="255.0" y1="320.0" x2="255.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="272.0" y1="320.0" x2="272.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="289.0" y1="320.0" x2="289.0" y2="250.0" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <path d="M282,300 C330,262 352,205 346,150" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+        <line x1="346.0" y1="150.0" x2="373.5" y2="112.8" stroke="#00d4ff" stroke-width="2.5"/>
+        <polygon points="380.0,104.0 377.4,115.8 369.5,109.9" fill="#00d4ff"/>
+        <circle cx="300" cy="170" r="40" fill="#eef2ff"/>
+        <line x1="300.0" y1="216.0" x2="300.0" y2="266.0" stroke="#ff7a7a" stroke-width="4"/>
+        <polygon points="300.0,280.0 293.7,266.0 306.3,266.0" fill="#ff7a7a"/>
+        <text x="312.0" y="274.0" text-anchor="start" fill="#ff7a7a" font-size="15">peso</text>
+        <line x1="250.0" y1="230.0" x2="250.0" y2="188.0" stroke="#5ee0a0" stroke-width="4"/>
+        <polygon points="250.0,174.0 256.3,188.0 243.7,188.0" fill="#5ee0a0"/>
+        <text x="240.0" y="210.0" text-anchor="end" fill="#5ee0a0" font-size="15">arrastre</text>
+        <line x1="254.0" y1="160.0" x2="204.0" y2="160.0" stroke="#f5a623" stroke-width="4"/>
+        <polygon points="190.0,160.0 204.0,153.7 204.0,166.3" fill="#f5a623"/>
+        <text x="184.0" y="154.0" text-anchor="end" fill="#f5a623" font-size="15">reacción:</text>
+        <text x="184.0" y="174.0" text-anchor="end" fill="#f5a623" font-size="15">hacia el chorro</text>
+        <text x="412.0" y="108.0" text-anchor="start" fill="#00d4ff" font-size="14">el aire se curva</text>
+        <text x="412.0" y="128.0" text-anchor="start" fill="#00d4ff" font-size="14">hacia afuera</text>
+        <text x="230.0" y="340.0" text-anchor="middle" fill="#8892b0" font-size="13">el chorro, con su centro a la izquierda de la pelota</text>
+      </g>
+    </svg>
+    <figcaption>El arrastre equilibra el peso [1]. Si la pelota se corre, el aire se curva sobre ella hacia afuera, y la reacción la empuja hacia el chorro: es la explicación de la Universidad de Maryland [3]. El tamaño de las flechas es ilustrativo.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>Lo que todavía no se sabe</h2>
   <p>El Laboratorio de Mecánica de Fluidos e Inestabilidades de la Escuela Politécnica Federal de Lausana, en Suiza, propone el problema como proyecto de investigación, con una frase reveladora: la levitación de una pelota de tenis de mesa en el chorro de un secador es un famoso experimento de mesa, pero el origen exacto del fenómeno todavía no está claro [4]. No se sabe, por ejemplo, si el giro de la pelota contribuye de manera significativa con el <a href="flujo-cilindro.html">efecto Magnus</a>, o si la fuerza está dominada por la división asimétrica del chorro al chocar con la esfera, el llamado efecto Coanda [4]. El proyecto propone estudiar primero un problema más simple: un cilindro en un chorro, en dos dimensiones [4].</p>
@@ -73,6 +148,10 @@
   <div class="tech-note">
     <p><strong>Pelotas sobre chorros de agua:</strong> el mismo fenómeno ocurre con otros fluidos. La página del proyecto de Lausana muestra, junto a la pelota de ping-pong en el secador, una pelota grande que levita sobre un chorro de agua, estudiada por García y Chomaz en 2000 [4].</p>
   </div>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/pelota-secador-soplador.jpg" width="800" height="1200" loading="lazy" style="width:min(15rem,100%);margin:0 auto" alt="Un soplador con forma de cono naranja, inclinado, y una pelota de colores que flota en el aire por encima de él.">
+    <figcaption>Una pelota en el chorro inclinado de un soplador de exhibición: no se cae, aunque el chorro no es vertical.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Papaventos_(Bernoulli_blower).jpg" target="_blank" rel="noopener">=mc2</a> · CC BY-SA 2.0</span></figcaption>
+  </figure>
 
   <p>Una pelotita flota en el chorro de un secador porque el arrastre del aire que sube iguala su peso. Que no se escape de costado es más sutil: la explicación habitual con Bernoulli es incorrecta, y la que se prefiere es que el aire se pega a la pelota y se curva sobre ella, como en el efecto Coanda, y la reacción la empuja hacia el chorro. Cuánto aporta el giro de la pelota es, todavía, una pregunta abierta.</p>
 

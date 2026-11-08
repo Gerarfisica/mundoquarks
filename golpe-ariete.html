@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -61,12 +65,61 @@
   <div class="analogy-box">
     <p><strong>El tren que frena:</strong> imaginá un tren de vagones que choca contra un paragolpes. El primer vagón frena enseguida, y el aviso de frenar va pasando de vagón en vagón, cada uno apretándose contra el anterior. El agua hace lo mismo, con la compresibilidad haciendo de resorte entre los «vagones», y con el aviso viajando a más de mil metros por segundo.</p>
   </div>
+  <figure class="figura" id="gol2">
+    <canvas id="gol2-c" width="1280" height="440" role="img" aria-label="Un caño entre un depósito y una válvula. Al cerrar la válvula, una zona de alta presión viaja hacia el depósito, se refleja, y la onda va y viene alternando presión alta y baja."></canvas>
+    <div class="int-botones"><button type="button" id="gol2-b">Cerrar la válvula</button></div>
+    <p class="int-estado" id="gol2-e" aria-live="polite"></p>
+    <figcaption>El ciclo ideal del golpe de ariete, sin fricción, en cámara muy lenta: en un caño real, la onda viaja a más de mil metros por segundo [2]. Naranja es presión alta y celeste, presión baja; las flechas son la velocidad del agua. Cada ida o vuelta tarda L/c, y el ciclo completo, 4L/c (un razonamiento a partir del tiempo 2L/c de León [2]). En un caño real, la fricción va apagando las oscilaciones.<span class="credito">Animación: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('gol2-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 220, es = document.getElementById('gol2-e'), bt = document.getElementById('gol2-b');
+    var X0 = 110, X1 = 560, Y = 120, T = -1, vis = true, t0 = 0, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    var fases = ['La onda de <strong>alta presión</strong> viaja hacia el depósito; detrás, el agua está quieta.', 'Llega al depósito y se refleja: el agua empieza a <strong>volver</strong> hacia el depósito.', 'La onda de <strong>baja presión</strong> viaja hacia el depósito.', 'Se refleja otra vez: el agua vuelve a <strong>avanzar</strong> y el ciclo se repite.'];
+    function estado(x) { var t = T % 4, f = Math.floor(t), s = t - f; if (T < 0) return [0, 1];
+      if (f === 0) return x > 1 - s ? [1, 0] : [0, 1]; if (f === 1) return x < s ? [0, -1] : [1, 0]; if (f === 2) return x > 1 - s ? [-1, 0] : [0, -1]; return x < s ? [0, 1] : [-1, 0]; }
+    function dibujar() {
+      var k, x, st, a;
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(0,212,255,0.3)'; g.fillRect(20, 40, 90, 140); g.strokeStyle = GR; g.lineWidth = 3; g.beginPath(); g.moveTo(20, 30); g.lineTo(20, 180); g.lineTo(110, 180); g.lineTo(110, 135); g.moveTo(110, 105); g.lineTo(110, 30); g.stroke();
+      for (k = 0; k < 90; k++) { x = (k + 0.5) / 90; st = estado(x); g.fillStyle = st[0] > 0 ? 'rgba(245,166,35,0.85)' : st[0] < 0 ? 'rgba(0,212,255,0.85)' : 'rgba(136,146,176,0.35)'; g.fillRect(X0 + x * (X1 - X0), Y - 15, (X1 - X0) / 90 + 1, 30); }
+      g.strokeStyle = GR; g.lineWidth = 3; g.strokeRect(X0, Y - 15, X1 - X0, 30);
+      g.fillStyle = '#eef2ff'; for (k = 0; k < 8; k++) { x = (k + 0.5) / 8; st = estado(x); if (!st[1]) continue; a = X0 + x * (X1 - X0); g.beginPath(); if (st[1] > 0) { g.moveTo(a + 9, Y); g.lineTo(a - 5, Y - 6); g.lineTo(a - 5, Y + 6); } else { g.moveTo(a - 9, Y); g.lineTo(a + 5, Y - 6); g.lineTo(a + 5, Y + 6); } g.closePath(); g.fill(); }
+      g.fillStyle = T < 0 ? GR : '#ff7a7a'; g.fillRect(X1, Y - (T < 0 ? 26 : 15), 10, T < 0 ? 12 : 30); g.fillRect(X1 - 8, Y - 40, 26, 8);
+      g.font = "15px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = GR; g.fillText('depósito', 65, 205); g.fillText('válvula', X1 + 5, 205); g.fillStyle = '#eef2ff'; g.fillText(T < 0 ? 'el agua fluye' : 't = ' + T.toFixed(1).replace('.', ',') + ' L/c', 335, 40);
+    }
+    function frame(t) { var dt = t0 ? Math.min(0.05, (t - t0) / 1000) : 0.016; t0 = t; if (vis) { if (T >= 0) { T += dt * 0.35; if (T > 8) T = 8; es.innerHTML = fases[Math.floor(T % 4)]; } dibujar(); } requestAnimationFrame(frame); }
+    bt.addEventListener('click', function () { if (T < 0) { T = 0; bt.textContent = 'Abrir y empezar de nuevo'; } else { T = -1; bt.textContent = 'Cerrar la válvula'; es.innerHTML = 'Con la válvula abierta, el agua fluye a velocidad constante.'; } });
+    es.innerHTML = 'Con la válvula abierta, el agua fluye a velocidad constante.';
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Por qué importa el tiempo de cierre</h2>
   <p>Cuando la onda llega al depósito del otro extremo, se refleja y vuelve hacia la válvula. Ese viaje de ida y vuelta tarda un tiempo que divide todo el problema en dos, como explica Arturo León, de la Universidad Internacional de Florida [2]:</p>
   <div class="math-block">t = 2L / c<br>L: largo de la cañería · c: velocidad de la onda</div>
   <p>Si la válvula se cierra en menos de ese tiempo, el cierre es <strong>brusco</strong> y vale Joukowsky entera: la onda de alivio no alcanza a volver a tiempo. Si tarda más, el cierre es <strong>gradual</strong>, y la sobrepresión es de aproximadamente ΔP = ρ L V₀ / t, proporcional al largo y a la velocidad, e inversamente proporcional al tiempo de cierre [2].</p>
   <p>En una instalación domiciliaria de 20 metros, 2L/c es de unas tres centésimas de segundo (un cálculo propio): una canilla de cierre rápido se cierra de golpe a estos efectos. En un acueducto de un kilómetro, 2L/c es de alrededor de 1,4 segundos, y cerrar la válvula en 30 segundos baja la sobrepresión de 1 m/s de agua a unos 33 kPa (un cálculo propio). Por eso las grandes válvulas se cierran despacio. Y no solo importa cuánto se tarda, sino cómo: en los ensayos de Damiani en redes del Acueducto Pugliese, analizados por Frega y coautores, las últimas vueltas de la válvula resultaron ser las peligrosas [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 292" role="img" aria-labelledby="gol2e-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="gol2e-t">La fórmula de Joukowsky con números: frenar agua que iba a un metro por segundo produce 1,45 megapascales. Abajo, los tiempos de ida y vuelta de la onda en una casa y en un acueducto.</title>
+      <rect width="640" height="292" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">La cuenta de Joukowsky</text>
+        <text x="320.0" y="78.0" text-anchor="middle" fill="#00d4ff" font-size="22">ΔP = ρ · c · ΔV</text>
+        <text x="320.0" y="118.0" text-anchor="middle" fill="#eef2ff" font-size="16">1000 kg/m³ × 1450 m/s × 1 m/s</text>
+        <text x="320.0" y="150.0" text-anchor="middle" fill="#f5a623" font-size="16">= 1,45 MPa ≈ 14 atmósferas ≈ 150 m de agua</text>
+        <line x1="60.0" y1="180.0" x2="580.0" y2="180.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="320.0" y="212.0" text-anchor="middle" fill="#eef2ff" font-size="17">tiempo de ida y vuelta: 2L/c</text>
+        <text x="170.0" y="246.0" text-anchor="middle" fill="#8892b0" font-size="15">casa, 20 m</text>
+        <text x="170.0" y="270.0" text-anchor="middle" fill="#f5a623" font-size="17">0,03 s</text>
+        <text x="470.0" y="246.0" text-anchor="middle" fill="#8892b0" font-size="15">acueducto, 1 km</text>
+        <text x="470.0" y="270.0" text-anchor="middle" fill="#f5a623" font-size="17">1,4 s</text>
+      </g>
+    </svg>
+    <figcaption>Los números del artículo, con c = 1450 m/s para un caño rígido [2] (cálculos propios). Si la válvula se cierra en menos de 2L/c, vale la sobrepresión completa [2].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Un caño que cede:</strong> un caño real no es rígido. Se ensancha un poco con la presión y eso hace la onda más lenta. La velocidad depende del material, de la relación entre el diámetro y el espesor de la pared y de cómo está anclada la cañería [2]. Para un caño de acero de 30 cm de diámetro y 1 cm de pared, sale del orden de 1270 m/s, en vez de 1450 (un cálculo propio con la fórmula de [2]). El caño absorbe parte del golpe: por eso, cuanto más rígido el material, mayor la sobrepresión.</p>
@@ -75,6 +128,10 @@
   <h2>De las centrales al baño de tu casa</h2>
   <p>Según la reseña de Frega, Costanzo y Frega, el problema fue estudiado por primera vez por Menabrea en 1858, y Michaud examinó en 1878 el uso de cámaras de aire y válvulas de seguridad para combatirlo [1]. Weston, Carpenter y Frizell intentaron después obtener expresiones para las variaciones de presión y velocidad, y las contribuciones decisivas llegaron con Joukowsky y con Allievi [1]. Los primeros trabajos de Allievi nacieron de accidentes por cierres rápidos de válvulas en centrales del norte de Italia [1]. El interés se extendió después a los acueductos [1].</p>
   <p>Las defensas siguen siendo esas ideas. Cerrar lentamente aleja el problema, y una cámara con aire ofrece un resorte blando que absorbe el golpe (un razonamiento propio a partir de lo anterior); también existen tanques supresores de sobrepresión [2]. El «toc» de la pared tiene una explicación simple: un pulso de presión recorre un caño que no está perfectamente fijo y lo sacude contra lo que tiene alrededor (un razonamiento propio).</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/golpe-ariete-chimeneas.jpg" width="960" height="540" loading="lazy" alt="Dos grandes estructuras de concreto con forma de tubo cortado, al costado de un camino, en una ladera.">
+    <figcaption>Las chimeneas de dos tanques de equilibrio de la central hidroeléctrica de Saguling, en Indonesia. Son de los tanques que absorben las oscilaciones de presión, una de las defensas contra el golpe de ariete [2].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Surge_Tank_Chimneys_of_Saguling_Hydroelectric_Power_Plant.jpg" target="_blank" rel="noopener">NFarras</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></figcaption>
+  </figure>
 
   <div class="info-box">
     <h3>También hay presiones bajas</h3>

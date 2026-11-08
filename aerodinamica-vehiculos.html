@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -56,7 +58,63 @@
   <p>La fuerza de arrastre se escribe con el coeficiente C, que se determina de manera experimental, por lo general en un túnel de viento [1][2]:</p>
   <div class="math-block">F = ½ · C · ρ · A · v² &nbsp;&nbsp;&nbsp; P = F · v = ½ · C · ρ · A · v³<br>F: fuerza de arrastre · C: coeficiente de arrastre · ρ: densidad del aire · A: área frontal · v: velocidad · P: potencia</div>
   <p>Si la fuerza va con el cuadrado de la velocidad, la potencia va con el cubo. Duplicar la velocidad multiplica por cuatro la fuerza y por ocho la potencia. Con C = 0,30, un área frontal de 2,2 m² y una densidad de 1,21 kg/m³, el arrastre a 120 km/h es de unos 440 newtons y consume unos 15 kW; a 100 km/h son 310 newtons y unos 9 kW (cálculos propios). Bajar de 120 a 100 km/h le quita más del 40 % a la potencia que se lleva el aire.</p>
+  <figure class="figura" id="aer">
+    <canvas id="aer-c" width="1280" height="560" role="img" aria-label="Dos curvas según la velocidad del auto: la fuerza de arrastre crece con el cuadrado y la potencia con el cubo."></canvas>
+    <div class="int-control"><label for="aer-v">Velocidad</label><input type="range" id="aer-v" min="20" max="160" step="5" value="120"><output id="aer-o" for="aer-v">120 km/h</output></div>
+    <p class="int-estado" id="aer-e" aria-live="polite"></p>
+    <figcaption>F = ½ C ρ A v² y P = F v, con los valores del artículo: C = 0,30, A = 2,2 m² y ρ = 1,21 kg/m³ [1, 2] (un cálculo propio). Es solo la potencia que se lleva el aire; el motor tiene que entregar bastante más, porque pierde energía en el camino.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('aer-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, sl = document.getElementById('aer-v'), so = document.getElementById('aer-o'), es = document.getElementById('aer-e');
+    var X0 = 70, X1 = 600, Y0 = 230, Y1 = 30, K = 0.5 * 0.3 * 1.21 * 2.2, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0';
+    function F(k) { var v = k / 3.6; return K * v * v; } function P(k) { return F(k) * k / 3.6; }
+    function XX(k) { return X0 + (X1 - X0) * k / 160; }
+    function poner() {
+      var k = +sl.value, i, q, f = F(k), p = P(k);
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = '#1c2c55'; g.lineWidth = 1; g.font = "15px 'Space Mono',monospace"; g.fillStyle = GR; g.textAlign = 'center';
+      for (i = 0; i <= 160; i += 40) { g.beginPath(); g.moveTo(XX(i), Y0); g.lineTo(XX(i), Y1); g.stroke(); g.fillText(String(i), XX(i), Y0 + 22); } g.fillText('velocidad (km/h)', 335, Y0 + 44);
+      g.lineWidth = 3; g.strokeStyle = CI; g.beginPath(); for (i = 0; i <= 160; i++) { q = Y0 - (Y0 - Y1) * F(i) / F(160); if (i) g.lineTo(XX(i), q); else g.moveTo(XX(i), q); } g.stroke();
+      g.strokeStyle = NA; g.beginPath(); for (i = 0; i <= 160; i++) { q = Y0 - (Y0 - Y1) * P(i) / P(160); if (i) g.lineTo(XX(i), q); else g.moveTo(XX(i), q); } g.stroke();
+      g.fillStyle = CI; g.beginPath(); g.arc(XX(k), Y0 - (Y0 - Y1) * f / F(160), 6, 0, 6.3); g.fill(); g.fillStyle = NA; g.beginPath(); g.arc(XX(k), Y0 - (Y0 - Y1) * p / P(160), 6, 0, 6.3); g.fill();
+      g.textAlign = 'left'; g.fillStyle = CI; g.fillText('fuerza: ' + Math.round(f) + ' N', 90, 40); g.fillStyle = NA; g.fillText('potencia: ' + (p / 1000).toFixed(1).replace('.', ',') + ' kW', 90, 62); g.fillStyle = GR; g.fillText('cada curva, relativa a su valor a 160 km/h', 90, 84);
+      so.textContent = k + ' km/h';
+      es.innerHTML = 'A ' + k + ' km/h el aire se lleva <strong>' + (p / 1000).toFixed(1).replace('.', ',') + ' kW</strong>. A la mitad de velocidad, sería la octava parte.';
+    }
+    sl.addEventListener('input', poner); poner();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(poner);
+  })();
+  </script>
   <p>El coeficiente depende de la forma. El libro de OpenStax lista algunos valores típicos: un perfil de ala, 0,05; un Toyota Camry, 0,28; un Ford Focus, 0,32; una pickup Dodge Ram, 0,43; una esfera, 0,45; un Hummer H2, 0,64 [1]. Con la misma área frontal, el Hummer necesitaría a 120 km/h más del doble de fuerza que el Camry (un cálculo propio).</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 322" role="img" aria-labelledby="aer1-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="aer1-t">Barras del coeficiente de arrastre: perfil de ala 0,05; Toyota Camry 0,28; Ford Focus 0,32; Dodge Ram 0,43; esfera 0,45; Hummer H2 0,64.</title>
+      <rect width="640" height="322" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="30.0" text-anchor="start" fill="#eef2ff" font-size="19">Cuánto frena cada forma</text>
+        <text x="190.0" y="82.0" text-anchor="end" fill="#eef2ff" font-size="15">perfil de ala</text>
+        <rect x="200.0" y="58.0" width="25.7" height="32.0" fill="#8892b0" fill-opacity="0.8"/>
+        <text x="233.7" y="82.0" text-anchor="start" fill="#8892b0" font-size="15">0,05</text>
+        <text x="190.0" y="124.0" text-anchor="end" fill="#eef2ff" font-size="15">Toyota Camry</text>
+        <rect x="200.0" y="100.0" width="144.0" height="32.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="352.0" y="124.0" text-anchor="start" fill="#8892b0" font-size="15">0,28</text>
+        <text x="190.0" y="166.0" text-anchor="end" fill="#eef2ff" font-size="15">Ford Focus</text>
+        <rect x="200.0" y="142.0" width="164.6" height="32.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="372.6" y="166.0" text-anchor="start" fill="#8892b0" font-size="15">0,32</text>
+        <text x="190.0" y="208.0" text-anchor="end" fill="#eef2ff" font-size="15">Dodge Ram</text>
+        <rect x="200.0" y="184.0" width="221.1" height="32.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="429.1" y="208.0" text-anchor="start" fill="#8892b0" font-size="15">0,43</text>
+        <text x="190.0" y="250.0" text-anchor="end" fill="#eef2ff" font-size="15">esfera</text>
+        <rect x="200.0" y="226.0" width="231.4" height="32.0" fill="#8892b0" fill-opacity="0.8"/>
+        <text x="439.4" y="250.0" text-anchor="start" fill="#8892b0" font-size="15">0,45</text>
+        <text x="190.0" y="292.0" text-anchor="end" fill="#eef2ff" font-size="15">Hummer H2</text>
+        <rect x="200.0" y="268.0" width="329.1" height="32.0" fill="#00d4ff" fill-opacity="0.8"/>
+        <text x="537.1" y="292.0" text-anchor="start" fill="#8892b0" font-size="15">0,64</text>
+      </g>
+    </svg>
+    <figcaption>Los valores típicos que lista OpenStax [1]. En gris, dos formas de comparación que no son autos.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>El agujero en el aire:</strong> al pasar, un auto abre un hueco en el aire, y el aire tarda en volver a cerrarlo. Detrás queda una estela, una zona de baja presión que tira del auto hacia atrás. El trabajo del ingeniero es que ese hueco sea lo más chico posible, cerrando el flujo suavemente en la cola.</p>
@@ -65,6 +123,10 @@
   <h2>Un cuerpo romo</h2>
   <p>El arrastre tiene dos partes: de presión y de fricción. T. J. Marklund y L. Löfdahl, de la Universidad Tecnológica de Chalmers, citan una regla práctica: en un auto de pasajeros, entre el 80 y el 90 % del arrastre es de presión, y el resto, de fricción [3]. En un ala finita es al revés, con alrededor del 95 % de fricción [3]. Por eso se dice que un auto es un <strong>cuerpo romo</strong> y un ala, un cuerpo fuselado [3].</p>
   <p>Eso cambia dónde vale la pena trabajar. Pulir la pintura ayuda poco; lo que importa es la forma de la parte de atrás, donde se produce la <a href="separacion-capa.html">separación de la capa límite</a> y nace la estela. Es la misma física de la <a href="arrastre-viscoso.html">fuerza de arrastre</a> sobre cualquier objeto.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/aerodinamica-vehiculos-humo.jpg" width="960" height="640" loading="lazy" alt="Un auto rojo a escala con líneas de humo verdes que pasan por encima y se enredan detrás.">
+    <figcaption>Líneas de humo sobre un auto a escala: arriba pasan lisas; detrás del auto se enredan en la estela.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Aerodynamics_of_model_car.jpg" target="_blank" rel="noopener">Rob Bulmahn</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a></span></figcaption>
+  </figure>
 
   <h2>Lo que ganamos, y lo que falta</h2>
   <p>La aerodinámica es solo una parte del balance. El sitio oficial de economía de combustible de Estados Unidos estima que solo entre el 12 y el 30 % de la energía del combustible de un vehículo convencional llega a moverlo, según el ciclo de manejo; el resto se pierde en el motor y la transmisión o alimenta los accesorios [4]. Pero cada newton de arrastre evitado se ahorra multiplicado por todas esas pérdidas (un razonamiento propio). Según la misma fuente, las formas más suaves ya redujeron bastante el arrastre, y todavía sería posible reducirlo otro 20 a 30 % [4]. Y a las velocidades de autopista, el arrastre es la mayor fuerza de resistencia de un auto [3].</p>

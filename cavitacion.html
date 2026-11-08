@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -56,6 +58,36 @@
   <p>En su libro <em>Cavitation and Bubble Dynamics</em>, Christopher Brennen, del Instituto de Tecnología de California, distingue dos maneras de romper un líquido [1]. Una es calentarlo a presión aproximadamente constante hasta superar su temperatura de saturación: eso es <strong>ebullición</strong>. La otra es bajarle la presión a temperatura aproximadamente constante hasta llevarla por debajo de la <a href="densidad-peso-especifico-presion-vapor.html">presión de vapor</a>: eso es <strong>cavitación</strong> [1]. La física de base es parecida; lo que cambia es el camino [1].</p>
   <p>La presión de vapor del agua a 20 °C es de solo 2,34 kPa [2], más de cuarenta veces menor que la atmosférica. Según el <a href="teorema-bernoulli.html">teorema de Bernoulli</a>, la presión baja donde el fluido se acelera, así que un chorro que sale de agua quieta a presión atmosférica llegaría a esa presión a unos 14 m/s, unos 50 km/h (un cálculo propio, sin pérdidas). No es una velocidad extraordinaria para el borde de una pala.</p>
   <p>Para saber qué tan cerca está un flujo de cavitar, se usa el <strong>número de cavitación</strong>, que compara cuánta presión le sobra al líquido con la presión dinámica del flujo [1]:</p>
+  <figure class="figura" id="cav2">
+    <canvas id="cav2-c" width="1280" height="460" role="img" aria-label="Agua que pasa por un estrechamiento. Al subir la velocidad en la garganta, la presión baja; cuando llega a la presión de vapor aparecen burbujas."></canvas>
+    <div class="int-control"><label for="cav2-v">Velocidad en la garganta</label><input type="range" id="cav2-v" min="0" max="16" step="0.5" value="8"><output id="cav2-o" for="cav2-v">8,0 m/s</output></div>
+    <p class="int-estado" id="cav2-e" aria-live="polite"></p>
+    <figcaption>Agua a 20 °C que parte del reposo a presión atmosférica, con el teorema de Bernoulli y sin pérdidas, como en el artículo: p = p<sub>atm</sub> − ½ρv² (un cálculo propio). La presión de vapor es de 2,34 kPa [2]. Las burbujas del dibujo son ilustrativas: en la realidad, la cavitación arranca en los núcleos del agua [1].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cav2-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 230, sl = document.getElementById('cav2-v'), so = document.getElementById('cav2-o'), es = document.getElementById('cav2-e');
+    var B = [], vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', YC = 110;
+    function ancho(x) { var s = (x - 320) / 110; return 60 - 36 * Math.exp(-s * s); }
+    function frame() {
+      var v = +sl.value, p = 101.325 - 0.5 * v * v, cav = p <= 2.34, k, x, b;
+      if (vis) {
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = 'rgba(0,212,255,0.3)'; g.beginPath(); for (x = 20; x <= 620; x += 5) g.lineTo(x, YC - ancho(x)); for (x = 620; x >= 20; x -= 5) g.lineTo(x, YC + ancho(x)); g.closePath(); g.fill();
+        g.strokeStyle = GR; g.lineWidth = 3; [-1, 1].forEach(function (s) { g.beginPath(); for (x = 20; x <= 620; x += 5) { if (x === 20) g.moveTo(x, YC + s * ancho(x)); else g.lineTo(x, YC + s * ancho(x)); } g.stroke(); });
+        if (cav && Math.random() < 0.6) B.push([300 + Math.random() * 30, YC + (Math.random() - 0.5) * 36, 1]);
+        for (k = B.length - 1; k >= 0; k--) { b = B[k]; b[0] += 3 + v * 0.3; b[2] += b[0] < 380 ? 0.25 : -0.5; if (b[2] <= 0 || b[0] > 600) { B.splice(k, 1); continue; } g.strokeStyle = '#eef2ff'; g.lineWidth = 1.2; g.beginPath(); g.arc(b[0], b[1], b[2], 0, 6.3); g.stroke(); }
+        g.fillStyle = cav ? NA : CI; g.fillRect(470, 210 - 180 * Math.max(0, p) / 101.325, 30, 180 * Math.max(0, p) / 101.325); g.strokeStyle = GR; g.lineWidth = 1.5; g.strokeRect(470, 30, 30, 180); g.strokeStyle = '#ff7a7a'; g.beginPath(); g.moveTo(462, 210 - 180 * 2.34 / 101.325); g.lineTo(508, 210 - 180 * 2.34 / 101.325); g.stroke();
+        g.font = "15px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#eef2ff'; g.fillText('p = ' + Math.max(2.34, p).toFixed(1).replace('.', ',') + ' kPa', 512, 60); g.fillStyle = '#ff7a7a'; g.fillText('vapor', 512, 208);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var v = +sl.value, p = 101.325 - 0.5 * v * v; so.textContent = v.toFixed(1).replace('.', ',') + ' m/s'; es.innerHTML = p > 2.34 ? 'En la garganta quedan <strong>' + p.toFixed(0) + ' kPa</strong>: todavía no hierve.' : 'La presión llegó a la de vapor: el agua <strong>hierve en frío</strong> y aparecen burbujas.'; }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
   <div class="math-block">σ = (p − p<sub>V</sub>) / (½ ρ U²)<br>p: presión de referencia · p<sub>V</sub>: presión de vapor · ρ: densidad · U: velocidad del flujo</div>
   <p>Todo flujo tiene un valor de σ, cavite o no [1]. Cuanto más chico es, más propenso a cavitar: si la velocidad sube o la presión baja, σ cae hasta que empiezan a formarse burbujas [1].</p>
 
@@ -69,6 +101,10 @@
   <h2>Las hélices que se comían a sí mismas</h2>
   <p>La historia empieza con los barcos. En la segunda mitad del siglo XIX, las hélices giraban cada vez más rápido y se comportaban de manera extraña. Reynolds intentó explicarlo en 1873 con aire arrastrado hacia las estelas de las palas, pero fue Parsons, en 1906, quien reconoció el papel de la vaporización y realizó los primeros experimentos de «cavitación», una palabra sugerida por Froude [1]. Lord Rayleigh, por su parte, publicó en 1917 un cálculo de la presión desarrollada durante el colapso de una cavidad esférica [3], y derivó la ecuación básica de la dinámica de burbujas, sin viscosidad ni tensión superficial [1].</p>
   <p>Brennen considera el daño material el problema de ingeniería más ubicuo que causa la cavitación [1]. El colapso de una burbuja genera ondas de choque muy localizadas y microchorros de líquido. Cerca de una superficie sólida, esas perturbaciones producen tensiones intensas y transitorias, y su repetición por colapsos sucesivos causa fatiga local y el desprendimiento de pedacitos de material [1]. Eso deja un aspecto rugoso y cristalino, que se distingue de la erosión por partículas [1]. Si el culpable principal son los microchorros, las ondas de choque o las dos cosas se ha debatido durante muchos años [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/cavitacion-helice.jpg" width="960" height="720" loading="lazy" alt="Hélice metálica de una moto de agua con el borde de una pala carcomido y rugoso.">
+    <figcaption>La hélice de una moto de agua dañada por cavitación. El daño se concentra en el borde exterior de las palas, donde van más rápido.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Cavitation_Propeller_Damage.JPG" target="_blank" rel="noopener">Erik Axdahl</a> · <a href="https://creativecommons.org/licenses/by-sa/2.5/deed.es" target="_blank" rel="noopener">CC BY-SA 2.5</a></span></figcaption>
+  </figure>
 
   <h2>El camarón que dispara burbujas</h2>
   <p>Los camarones pistola cierran una pinza a gran velocidad y producen un chasquido. Se creía que el sonido venía del choque mecánico entre las dos partes de la pinza, hasta que M. Versluis, B. Schmitz, A. von der Heydt y D. Lohse lo filmaron con cámaras de alta velocidad en el año 2000 [4]. Al cerrarse, la pinza expulsa un chorro de agua, y en ese chorro rápido la presión baja por debajo de la de vapor [5]. Se forma una burbuja de cavitación; cuando la presión vuelve a su nivel normal, la burbuja colapsa [5]. El pico principal del sonido coincide siempre con el colapso, no con el cierre de la pinza [5]. Un modelo basado en la ecuación de Rayleigh-Plesset reproduce cuantitativamente las observaciones [6].</p>

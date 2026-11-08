@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -51,10 +53,54 @@
 </div>
 <div class="article-container">
   <p>Mirá un globo terráqueo: el Sahara, los desiertos de Australia, el sudoeste de Estados Unidos y México caen cerca de la misma latitud, unos 30° [1]. No es casualidad. Esa franja seca es la parte visible de una circulación gigantesca, que lleva aire desde el ecuador hasta los subtrópicos y lo deja caer.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/celdas-hadley-ndvi.jpg" width="1400" height="700" loading="lazy" alt="Mapa del mundo con la vegetación en verde: verde intenso en los trópicos y franjas pálidas en el Sahara, Arabia y Australia.">
+    <figcaption>El índice de vegetación medido por satélite (sensor MODIS) entre el 1 de noviembre y el 1 de diciembre de 2007: el verde intenso marca mucha vegetación, y los tonos pálidos, poca. El Sahara y los desiertos de Australia caen cerca de los 30° de latitud [1].<span class="credito">Mapa: <a href="https://commons.wikimedia.org/wiki/File:Globalndvi_tmo_200711_lrg.jpg" target="_blank" rel="noopener">NASA Earth Observatory, R. Stöckli y J. Allen, datos MODIS</a> · Dominio público</span></figcaption>
+  </figure>
 
   <h2>Una rueda de aire</h2>
   <p>Cerca del ecuador, la convección tropical profunda levanta el aire en la zona de convergencia intertropical [2]. Al llegar a la tropopausa, la fuerte estabilidad frena su movimiento vertical, y el aire empieza a migrar hacia el polo [2]. En los subtrópicos desciende, y vuelve hacia el ecuador cerca de la superficie [2]. Esa rueda es la <strong>celda de Hadley</strong>, nombrada por George Hadley, que en 1735 propuso una sola circulación para cada hemisferio [1].</p>
   <p>Donde el aire baja, se forma una banda de alta presión, alrededor de los 30° [1]. Y la alta presión suele ir con tiempo seco y caluroso [1]. El aire que desciende ya dejó su humedad en las lluvias tropicales (un razonamiento propio), y al bajar se comprime y se calienta [3]: es aire que seca, no que llueve. Del otro lado de la rueda, el ascenso en el ecuador da las lluvias de los trópicos.</p>
+  <figure class="figura" id="had">
+    <canvas id="had-c" width="1280" height="560" role="img" aria-label="Corte de la atmósfera del ecuador al polo. El aire sube en el ecuador, viaja hacia el polo por arriba, baja en el borde de la celda y vuelve por abajo. Una barra muestra el viento hacia el este que tendría el aire de altura si conservara su momento angular."></canvas>
+    <div class="int-control"><label for="had-l">Hasta dónde llega la celda</label><input type="range" id="had-l" min="10" max="60" step="1" value="30"><output id="had-o" for="had-l">30°</output></div>
+    <p class="int-estado" id="had-e" aria-live="polite"></p>
+    <figcaption>La celda de Hadley: el aire sube en el ecuador, viaja hacia el polo por la altura, baja en los subtrópicos y vuelve por abajo [2]. La celda real termina cerca de los 30° [1]. La barra da el viento hacia el este del aire de altura si conservara el momento angular desde el ecuador, u = Ω a sen²φ / cos φ [2] (un cálculo propio con esa fórmula). El movimiento de las partículas es ilustrativo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('had-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, sl = document.getElementById('had-l'), so = document.getElementById('had-o'), es = document.getElementById('had-e'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', P = [], k;
+    var X0 = 30, X1 = 430, YT = 50, YS = 220;
+    function lx(l) { return X0 + (X1 - X0) * l / 90; }
+    function uu(l) { var f = l * Math.PI / 180; return 7.292e-5 * 6.371e6 * Math.sin(f) * Math.sin(f) / Math.cos(f); }
+    for (k = 0; k < 70; k++) P.push(Math.random());
+    function pos(s, L) { var a = lx(0) + 14, b = lx(L) - 14, w = b - a, h = YS - YT - 30, per = 2 * (w + h), d = s * per;
+      if (d < h) return [a, YS - 15 - d]; d -= h; if (d < w) return [a + d, YT + 15]; d -= w; if (d < h) return [b, YT + 15 + d]; d -= h; return [b - d, YS - 15]; }
+    function frame() {
+      var L = +sl.value, i, p, x;
+      if (vis) {
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#1c2c55'; g.fillRect(X0, YS, X1 - X0, 14);
+        g.fillStyle = 'rgba(0,212,255,0.35)'; g.fillRect(lx(0), YS, lx(8) - lx(0), 14);
+        g.fillStyle = 'rgba(245,166,35,0.55)'; g.fillRect(lx(L - 5), YS, lx(10) - lx(0), 14);
+        g.strokeStyle = GR; g.setLineDash([4, 5]); g.beginPath(); g.moveTo(X0, YT); g.lineTo(X1, YT); g.stroke(); g.setLineDash([]);
+        g.strokeStyle = 'rgba(0,212,255,0.35)'; g.lineWidth = 1.5; g.strokeRect(lx(0) + 14, YT + 15, lx(L) - lx(0) - 28, YS - YT - 30);
+        g.fillStyle = '#eef2ff'; for (i = 0; i < P.length; i++) { P[i] = (P[i] + 0.0018 * 30 / Math.max(L, 10)) % 1; p = pos(P[i], L); g.beginPath(); g.arc(p[0], p[1], 2.4, 0, 6.3); g.fill(); }
+        g.font = "14px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = GR;
+        for (i = 0; i <= 90; i += 30) g.fillText(i + '°', lx(i), YS + 32);
+        g.fillText('ecuador', lx(0) + 30, YS + 50); g.fillText('polo', lx(90) - 12, YS + 50); g.fillText('tropopausa', lx(45), YT - 8);
+        g.fillStyle = CI; g.fillText('lluvia', lx(4) + 8, YS - 4); g.fillStyle = NA; g.fillText('seco', lx(L), YS - 4);
+        x = Math.min(uu(L), 700); g.fillStyle = '#1c2c55'; g.fillRect(500, 40, 36, 190); g.fillStyle = L > 32 ? '#ff7a7a' : NA; g.fillRect(500, 230 - 190 * x / 700, 36, 190 * x / 700);
+        g.textAlign = 'left'; g.fillStyle = '#eef2ff'; g.fillText(Math.round(uu(L)) + ' m/s', 546, 230 - 190 * x / 700 + 5); g.fillStyle = GR; g.fillText('viento', 486, 258); g.fillText('en altura', 486, 274);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var L = +sl.value, u = uu(L); so.textContent = L + '°'; es.innerHTML = 'Si la celda llegara a ' + L + '°, el aire de altura soplaría a <strong>' + Math.round(u) + ' m/s</strong>, unos ' + Math.round(u * 3.6) + ' km/h.' + (L > 32 ? ' Un viento así no se sostiene: la celda real termina antes.' : ''); }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Una esponja que se exprime y un secador:</strong> el aire tropical sube cargado de agua y se exprime al enfriarse en las tormentas. Después baja seco y calentándose, como el aire de un secador de pelo, sobre la franja de los 30°.</p>

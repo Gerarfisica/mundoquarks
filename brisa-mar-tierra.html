@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -58,6 +60,38 @@
   <h2>Una circulación cerrada</h2>
   <p>El Servicio Meteorológico de Estados Unidos describe el proceso paso a paso [2]. El aire caliente que sube crea una zona débil de baja presión junto al suelo, llamada <strong>baja térmica</strong>, porque disminuye la masa de aire en superficie [2]. A unos 1000 a 1500 metros de altura, ese aire se enfría y se acumula, con lo cual allí sube la presión [2].</p>
   <p>Esas diferencias de presión, tanto en superficie como en altura, son mayores sobre la tierra que sobre el agua [2]. La atmósfera busca igualarlas, y aparecen dos corrientes: una en altura, de la tierra hacia el mar, y otra en superficie, del mar hacia la tierra [2]. Esta segunda es la <strong>brisa de mar</strong>.</p>
+  <figure class="figura" id="bri">
+    <canvas id="bri-c" width="1280" height="520" role="img" aria-label="Corte de una costa con el mar a la izquierda y la tierra a la derecha. De día, el aire sube sobre la tierra, vuelve por arriba hacia el mar, baja sobre el agua y entra por abajo hacia la tierra. De noche, el giro se invierte."></canvas>
+    <div class="int-botones" role="group" aria-label="Momento del día"><button type="button" data-d="1">de día</button><button type="button" data-d="0">de noche</button></div>
+    <p class="int-estado" id="bri-e" aria-live="polite"></p>
+    <figcaption>De día, la tierra se calienta más rápido que el agua: el aire sube sobre la tierra y deja una baja térmica junto al suelo, y a unos 1000 a 1500 m de altura vuelve hacia el mar [2]. Abajo, el aire del mar entra hacia la tierra: la brisa de mar [1, 2]. De noche, la tierra se enfría más rápido y el giro se invierte: la brisa de tierra [1]. Las alturas del dibujo no están a escala.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('bri-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 260, es = document.getElementById('bri-e'), bs = document.querySelectorAll('#bri .int-botones button'), DIA = 1, P = [], vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', k;
+    var A = 110, B = 520, YB = 190, YA = 70; for (k = 0; k < 46; k++) P.push(Math.random());
+    function pos(s) { var w = B - A, h = YB - YA, per = 2 * (w + h), d = s * per;
+      if (d < w) return [A + d, YB]; d -= w; if (d < h) return [B, YB - d]; d -= h; if (d < w) return [B - d, YA]; d -= w; return [A, YA + d]; }
+    function frame() {
+      var i, p;
+      if (vis) {
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = DIA ? '#0c1a3d' : '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = 'rgba(0,212,255,0.35)'; g.fillRect(0, 214, 320, 46); g.fillStyle = '#5a4630'; g.fillRect(320, 206, 320, 54);
+        if (DIA) { g.fillStyle = NA; g.beginPath(); g.arc(590, 36, 16, 0, 6.3); g.fill(); } else { g.fillStyle = '#eef2ff'; g.beginPath(); g.arc(590, 36, 14, 0, 6.3); g.fill(); g.fillStyle = DIA ? '#0c1a3d' : '#070d22'; g.beginPath(); g.arc(597, 31, 12, 0, 6.3); g.fill(); }
+        g.strokeStyle = 'rgba(238,242,255,0.18)'; g.lineWidth = 1.5; g.strokeRect(A, YA, B - A, YB - YA);
+        g.fillStyle = '#eef2ff'; for (i = 0; i < P.length; i++) { P[i] = (P[i] + (DIA ? 0.0016 : -0.0016) + 1) % 1; p = pos(P[i]); g.beginPath(); g.arc(p[0], p[1], 3, 0, 6.3); g.fill(); }
+        g.font = "14px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = GR; g.fillText('mar', 160, 246); g.fillText('tierra', 480, 246);
+        g.fillStyle = DIA ? NA : CI; g.fillText(DIA ? 'brisa de mar →' : '← brisa de tierra', 315, 182); g.fillStyle = GR; g.fillText(DIA ? '← vuelve por arriba' : 'vuelve por arriba →', 315, 62);
+        g.textAlign = DIA ? 'right' : 'left'; g.fillText(DIA ? 'sube: tierra caliente' : 'sube: mar más templado', DIA ? B - 10 : A + 10, 132);
+      }
+      requestAnimationFrame(frame);
+    }
+    function modo(b0) { DIA = +b0.getAttribute('data-d'); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); es.innerHTML = DIA ? 'De día, el aire fresco del mar entra por abajo: <strong>brisa de mar</strong>.' : 'De noche, el aire fresco de la tierra sale hacia el mar: <strong>brisa de tierra</strong>.'; }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(bs[0]); requestAnimationFrame(frame);
+  })();
+  </script>
   <p>De dónde sale la fuerza se ve con la <a href="ley-hidrostatica.html">ley hidrostática</a>. Si una columna de 1000 metros de aire sobre la tierra está 5 °C más caliente que la del mar, su densidad es casi un 2 % menor, y la diferencia de presión que produce es de unos 200 pascales (un cálculo propio). Es poquísimo, un 0,2 % de la presión atmosférica, pero alcanza para mover el aire.</p>
 
   <div class="analogy-box">
@@ -66,7 +100,89 @@
 
   <h2>De noche, al revés</h2>
   <p>Por la noche se invierten los papeles. La tierra se enfría más rápido y el mar queda más templado. Entonces, el aire más caliente sobre el océano es el que flota y sube, y el aire fresco y denso de la tierra sale hacia el mar para reemplazarlo: es la <strong>brisa de tierra</strong> [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 420" role="img" aria-labelledby="bri2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="bri2-t">Gráfico del 12 de julio de 2023, hora local. El aire en tierra baja a 25 °C de madrugada y sube a 32 °C al mediodía; el agua del mar se mantiene entre 29 y 31 °C. Debajo, flechas del viento: de madrugada sopla desde el oeste, desde tierra; desde el mediodía, desde el este, desde el mar.</title>
+      <rect width="640" height="420" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="26.0" text-anchor="start" fill="#eef2ff" font-size="19">Un día en la costa de Florida</text>
+        <line x1="70.0" y1="300.0" x2="590.0" y2="300.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="305.0" text-anchor="end" fill="#8892b0" font-size="14">24</text>
+        <line x1="70.0" y1="253.2" x2="590.0" y2="253.2" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="258.2" text-anchor="end" fill="#8892b0" font-size="14">26</text>
+        <line x1="70.0" y1="206.4" x2="590.0" y2="206.4" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="211.4" text-anchor="end" fill="#8892b0" font-size="14">28</text>
+        <line x1="70.0" y1="159.6" x2="590.0" y2="159.6" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="164.6" text-anchor="end" fill="#8892b0" font-size="14">30</text>
+        <line x1="70.0" y1="112.8" x2="590.0" y2="112.8" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="117.8" text-anchor="end" fill="#8892b0" font-size="14">32</text>
+        <line x1="70.0" y1="66.0" x2="590.0" y2="66.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="62.0" y="71.0" text-anchor="end" fill="#8892b0" font-size="14">34</text>
+        <text x="70.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="14">0 h</text>
+        <text x="205.7" y="322.0" text-anchor="middle" fill="#8892b0" font-size="14">6 h</text>
+        <text x="341.3" y="322.0" text-anchor="middle" fill="#8892b0" font-size="14">12 h</text>
+        <text x="477.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="14">18 h</text>
+        <text x="590.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="14">23 h</text>
+        <line x1="70.0" y1="300.0" x2="590.0" y2="300.0" stroke="#8892b0" stroke-width="2"/>
+        <line x1="70.0" y1="300.0" x2="70.0" y2="66.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="14.0" y="54.0" text-anchor="start" fill="#8892b0" font-size="14">°C</text>
+        <polyline points="70.0,199.4 92.6,225.1 115.2,236.8 137.8,236.8 160.4,250.9 183.0,262.6 205.7,276.6 228.3,250.9 250.9,199.4 273.5,159.6 296.1,133.9 318.7,108.1 341.3,119.8 363.9,119.8 386.5,108.1 409.1,119.8 431.7,145.6 454.3,250.9 477.0,225.1 499.6,225.1 522.2,211.1 544.8,225.1 567.4,250.9 590.0,250.9" fill="none" stroke="#f5a623" stroke-width="3" stroke-linejoin="round"/>
+        <polyline points="70.0,185.3 92.6,185.3 115.2,185.3 137.8,183.0 160.4,183.0 183.0,183.0 205.7,183.0 228.3,183.0 250.9,183.0 273.5,183.0 296.1,180.7 318.7,180.7 341.3,178.3 363.9,176.0 386.5,157.3 409.1,143.2 431.7,138.5 454.3,131.5 477.0,133.9 499.6,136.2 522.2,126.8 544.8,129.2 567.4,133.9 590.0,138.5" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <text x="382.5" y="75.4" text-anchor="end" fill="#f5a623" font-size="14">aire en tierra</text>
+        <text x="590.0" y="118.2" text-anchor="end" fill="#00d4ff" font-size="14">agua del mar</text>
+        <text x="70.0" y="346.0" text-anchor="start" fill="#8892b0" font-size="14">viento en tierra:</text>
+        <line x1="65.5" y1="383.8" x2="69.5" y2="376.9" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="74.5,368.2 73.4,379.1 65.6,374.6" fill="#f5a623"/>
+        <line x1="84.8" y1="380.5" x2="91.7" y2="376.5" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="100.4,371.5 94.0,380.4 89.5,372.6" fill="#f5a623"/>
+        <line x1="107.4" y1="380.5" x2="114.4" y2="376.5" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="123.0,371.5 116.6,380.4 112.1,372.6" fill="#f5a623"/>
+        <line x1="129.0" y1="374.4" x2="136.8" y2="375.8" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="146.7,377.6 136.1,380.3 137.6,371.4" fill="#f5a623"/>
+        <line x1="151.4" y1="376.0" x2="159.4" y2="376.0" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="169.4,376.0 159.4,380.5 159.4,371.5" fill="#f5a623"/>
+        <line x1="174.0" y1="376.0" x2="182.0" y2="376.0" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="192.0,376.0 182.0,380.5 182.0,371.5" fill="#f5a623"/>
+        <line x1="196.7" y1="376.0" x2="204.7" y2="376.0" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="214.7,376.0 204.7,380.5 204.7,371.5" fill="#f5a623"/>
+        <line x1="219.4" y1="374.4" x2="227.3" y2="375.8" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="237.1,377.6 226.5,380.3 228.1,371.4" fill="#f5a623"/>
+        <line x1="241.9" y1="376.0" x2="249.9" y2="376.0" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="259.9,376.0 249.9,380.5 249.9,371.5" fill="#f5a623"/>
+        <line x1="267.7" y1="369.1" x2="272.8" y2="375.2" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="279.3,382.9 269.4,378.1 276.3,372.3" fill="#f5a623"/>
+        <line x1="289.2" y1="370.2" x2="295.3" y2="375.4" stroke="#f5a623" stroke-width="2"/>
+        <polygon points="303.0,381.8 292.4,378.8 298.2,371.9" fill="#f5a623"/>
+        <line x1="349.8" y1="372.9" x2="342.2" y2="375.7" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="332.8,379.1 340.7,371.4 343.8,379.9" fill="#00d4ff"/>
+        <line x1="372.8" y1="377.6" x2="364.9" y2="376.2" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="355.0,374.4 365.7,371.7 364.1,380.6" fill="#00d4ff"/>
+        <line x1="395.5" y1="376.0" x2="387.5" y2="376.0" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="377.5,376.0 387.5,371.5 387.5,380.5" fill="#00d4ff"/>
+        <line x1="418.1" y1="376.0" x2="410.1" y2="376.0" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="400.1,376.0 410.1,371.5 410.1,380.5" fill="#00d4ff"/>
+        <line x1="440.6" y1="374.4" x2="432.7" y2="375.8" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="422.9,377.6 431.9,371.4 433.5,380.3" fill="#00d4ff"/>
+        <line x1="461.2" y1="370.2" x2="455.1" y2="375.4" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="447.5,381.8 452.2,371.9 458.0,378.8" fill="#00d4ff"/>
+        <line x1="486.0" y1="376.0" x2="478.0" y2="376.0" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="468.0,376.0 478.0,371.5 478.0,380.5" fill="#00d4ff"/>
+        <line x1="506.5" y1="370.2" x2="500.3" y2="375.4" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="492.7,381.8 497.4,371.9 503.2,378.8" fill="#00d4ff"/>
+        <line x1="526.7" y1="383.8" x2="522.7" y2="376.9" stroke="#00d4ff" stroke-width="2"/>
+        <polygon points="517.7,368.2 526.6,374.6 518.8,379.1" fill="#00d4ff"/>
+        <text x="160.4" y="408.0" text-anchor="middle" fill="#f5a623" font-size="13">desde tierra (oeste)</text>
+        <text x="420.4" y="408.0" text-anchor="middle" fill="#00d4ff" font-size="13">desde el mar (este)</text>
+        <text x="590.0" y="346.0" text-anchor="end" fill="#00d4ff" font-size="14">mar →</text>
+      </g>
+    </svg>
+    <figcaption>El 12 de julio de 2023 en la costa atlántica de Florida, en hora local. El aire en tierra es el del aeropuerto de Melbourne (datos ASOS, vía Iowa Environmental Mesonet), y el agua, la de la boya 41009 de la NOAA, a 20 millas náuticas al este de Cabo Cañaveral, a unos 65 km del aeropuerto. Hay que tener en cuenta que se comparan el aire en tierra y el agua del mar. Al mediodía, cuando la tierra está más caliente, el viento pasa a soplar desde el mar: la brisa de mar [1, 2]. La caída de las 17 h es probablemente una tormenta (un razonamiento propio).<span class="credito">Gráfico: Mundo Quarks · datos: NOAA NDBC e Iowa Environmental Mesonet</span></figcaption>
+  </figure>
   <p>Una consecuencia práctica: la brisa de mar puede disparar nubes tierra adentro, porque la corriente en superficie empuja aire hacia un lugar donde ya está subiendo aire caliente (un razonamiento propio). Es una versión local de la convección que se describe en la <a href="estabilidad-atmosferica.html">estabilidad atmosférica</a>.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/brisa-mar-tierra-goes.jpg" width="1400" height="788" loading="lazy" alt="Imagen satelital en blanco y negro del sudeste de Estados Unidos: un campo de pequeñas nubes sobre tierra y una franja costera despejada.">
+    <figcaption>Imagen del satélite GOES del 2 de marzo de 2026 sobre el sudeste de Estados Unidos. Según el CIRA, un anticiclón sobre la costa este impulsa brisas de mar en partes de las costas del golfo de México y del Atlántico. Las nubes chicas están sobre tierra, y la franja junto al mar queda despejada (una lectura propia de la imagen).<span class="credito">Imagen: <a href="https://commons.wikimedia.org/wiki/File:Sea_Breeze_Clouds_Along_the_Coastal_Southeast_(CIRA_2026-03-02).png" target="_blank" rel="noopener">CSU/CIRA y NOAA</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Una celda de convección como las de laboratorio:</strong> la brisa de mar es de la misma familia que la <a href="conveccion-rayleigh-benard.html">convección de Rayleigh-Bénard</a> o el <a href="tiraje-chimenea.html">tiraje de una chimenea</a>: una diferencia de temperatura crea una diferencia de presión que mueve el fluido. Por su tamaño y duración, la rotación de la Tierra tiene un efecto secundario frente a una <a href="coriolis-viento-geostrofico.html">corriente geostrófica</a> (un comentario propio).</p>

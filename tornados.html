@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -54,11 +56,47 @@
 
   <h2>Qué es y de dónde viene</h2>
   <p>Un tornado es una columna de aire que rota violentamente y se extiende desde una tormenta hasta el suelo [1]. Como el viento es invisible, se ve solo si forma un embudo de condensación con gotas, polvo y escombros [1]. Sus vientos más fuertes no se conocen con certeza, porque destruyen los instrumentos; un radar Doppler móvil midió 318 millas por hora, unos 510 km/h, el 3 de mayo de 1999 en Oklahoma [2].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/tornados-kansas.jpg" width="1400" height="933" loading="lazy" alt="Un tornado en forma de embudo baja de una nube oscura sobre un campo llano, con molinos de viento a lo lejos.">
+    <figcaption>Un tornado sobre las llanuras de Kansas el 23 de mayo de 2008, uno de los muchos de un brote entre el este de Colorado y Oklahoma. Se ve porque forma un embudo de condensación [1].<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Tornado_over_the_Kansas_plains_(Nssl0232_-_Flickr_-_NOAA_Photo_Library).jpg" target="_blank" rel="noopener">Sean Waugh, NOAA/NSSL</a> · Dominio público</span></figcaption>
+  </figure>
   <p>La enorme mayoría de los tornados dañinos nacen de <strong>superceldas</strong>, tormentas cuya característica es una corriente ascendente persistente que rota, típicamente de 5 a 10 kilómetros de ancho [3]. Esa rotación se mide con la <strong>vorticidad</strong>, el rotor del campo de velocidades. En una supercelda, la vorticidad vertical es del orden de 10⁻² por segundo, unas 100 veces la que corresponde al giro de la Tierra en latitudes medias [3]. Esto importa: en un tornado, la rotación terrestre no pinta nada.</p>
 
   <h2>Los tres pasos</h2>
   <p>Paul Markowski e Yvette Richardson resumen la explicación actual en tres pasos [3].</p>
   <p><strong>Paso 1: el aire ya llega girando.</strong> Si el viento cambia con la altura, lo que se llama <strong>cizalladura</strong>, el aire tiene vorticidad horizontal, como un rodillo acostado. La corriente ascendente de la tormenta inclina esos rodillos hacia arriba y crea el <strong>mesociclón</strong>, una rotación de gran escala, más fuerte a alturas medias [3].</p>
+  <figure class="figura" id="tor">
+    <canvas id="tor-c" width="1280" height="560" role="img" aria-label="Un rodillo de aire acostado, que gira porque el viento es más fuerte arriba que abajo. Al subir la corriente ascendente, el centro del rodillo se levanta en forma de arco y sus patas quedan girando con eje vertical."></canvas>
+    <div class="int-control"><label for="tor-u">Corriente ascendente</label><input type="range" id="tor-u" min="0" max="1" step="0.01" value="0.6"><output id="tor-o" for="tor-u">60 %</output></div>
+    <p class="int-estado" id="tor-e" aria-live="polite"></p>
+    <figcaption>El primer paso de Markowski y Richardson [3]: el viento que cambia con la altura hace girar el aire como un rodillo acostado, y la corriente ascendente de la tormenta lo inclina hacia arriba. Así aparece giro con eje vertical a alturas medias: el mesociclón [3]. El dibujo es ilustrativo; el giro del tornado cerca del suelo necesita además los pasos 2 y 3 del artículo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('tor-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, sl = document.getElementById('tor-u'), es = document.getElementById('tor-e'), F = 0, vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', YG = 230;
+    function c(s, L) { var x = 150 + 440 * s, h = 150 * L * Math.exp(-Math.pow((x - 370) / 75, 2)); return [x, YG - 40 - h]; }
+    function frame() {
+      var L = +sl.value, s, p, q, tx, ty, n, nx, ny, ph, k, a, j;
+      if (vis) {
+        F += 0.08; g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#1c2c55'; g.fillRect(0, YG, W, H - YG);
+        g.strokeStyle = 'rgba(0,212,255,0.25)'; g.lineWidth = 22; g.lineCap = 'round'; g.beginPath(); for (s = 0; s <= 1; s += 0.01) { p = c(s, L); if (s === 0) g.moveTo(p[0], p[1]); else g.lineTo(p[0], p[1]); } g.stroke(); g.lineCap = 'butt';
+        for (j = 0; j < 2; j++) { g.strokeStyle = j ? 'rgba(238,242,255,0.85)' : 'rgba(238,242,255,0.3)'; g.lineWidth = 2; g.beginPath();
+          for (k = 0; k <= 400; k++) { s = k / 400; p = c(s, L); q = c(Math.min(s + 0.005, 1), L); tx = q[0] - p[0]; ty = q[1] - p[1]; n = Math.hypot(tx, ty) || 1; nx = -ty / n; ny = tx / n; ph = s * 60 - F + j * Math.PI; a = Math.sin(ph);
+            if (Math.cos(ph) * (j ? 1 : -1) > 0) { g.moveTo(p[0] + nx * 11 * a, p[1] + ny * 11 * a); } else g.lineTo(p[0] + nx * 11 * a, p[1] + ny * 11 * a); } g.stroke(); }
+        g.font = "14px 'Space Mono',monospace"; g.fillStyle = GR; g.textAlign = 'left';
+        g.fillStyle = CI; g.fillText('viento fuerte →→', 14, 40); g.fillText('viento débil →', 14, 64); g.fillStyle = GR; g.fillText('cizalladura: el aire', 14, 92); g.fillText('rueda como un rodillo', 14, 110);
+        if (L > 0.05) { g.fillStyle = NA; for (k = 0; k < 3; k++) { a = 360 + (k - 1) * 22; g.beginPath(); g.moveTo(a, YG - 4); g.lineTo(a, YG - 34 - 40 * L); g.strokeStyle = NA; g.lineWidth = 2.5; g.stroke(); g.beginPath(); g.moveTo(a - 6, YG - 28 - 40 * L); g.lineTo(a + 6, YG - 28 - 40 * L); g.lineTo(a, YG - 40 - 40 * L); g.fill(); } g.fillText('corriente ascendente', 300, YG + 22); }
+        if (L > 0.35) { p = c(0.43, L); g.fillStyle = '#eef2ff'; g.textAlign = 'right'; g.fillText('giro con eje vertical →', p[0] - 18, p[1] + 5); }
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var L = +sl.value; document.getElementById('tor-o').textContent = Math.round(L * 100) + ' %'; es.innerHTML = L < 0.05 ? 'Sin corriente ascendente, el rodillo gira acostado: todo su giro es horizontal.' : L < 0.35 ? 'El rodillo empieza a levantarse en el centro.' : 'Las patas del arco giran con <strong>eje vertical</strong>: así nace el mesociclón.'; }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
   <p><strong>Paso 2: giro cerca del suelo.</strong> El mesociclón no alcanza: la vorticidad vertical aparece recién cuando el aire se aleja del suelo, y un tornado por definición lo toca [3]. Hace falta otra fuente: las corrientes descendentes. Las diferencias de flotación entre aire tibio y fresco generan vorticidad horizontal, y al descender, esas parcelas la inclinan hacia arriba [3].</p>
   <p><strong>Paso 3: concentrar el giro.</strong> El mesociclón, con su fuerte succión, atrae esa rotación cercana al suelo. Al converger hacia el eje, la conservación del momento angular amplifica la vorticidad [3].</p>
 

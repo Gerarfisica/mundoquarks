@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -55,6 +57,10 @@
   <h2>Arriba manda el viento</h2>
   <p>El viento impulsa las corrientes en los 100 metros superiores del océano [1]. En mar abierto, esas corrientes superficiales dependen de un sistema global de vientos, y para entenderlas hace falta el efecto de Coriolis y la espiral de Ekman [2]. Por la rotación de la Tierra, lo que se mueve se desvía hacia la derecha en el hemisferio norte y hacia la izquierda en el sur [2], y por eso el agua no sigue exactamente al viento. Eso se cuenta en <a href="espiral-ekman-surgencia.html">la espiral de Ekman</a>.</p>
   <p>La Corriente del Golfo, una de las más conocidas, tiene una velocidad media de 6,4 km/h [3], unos 1,8 m/s (un cálculo propio). Parece poco, pero el agua es unas 800 veces más densa que el aire (un comentario propio).</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/corrientes-oceanicas-perpetual.jpg" width="1280" height="640" loading="lazy" alt="Remolinos y corrientes del océano dibujados como trazos blancos sobre azul, alrededor del sur de África.">
+    <figcaption>Las corrientes del océano alrededor del sur de África, en una visualización del Estudio de Visualización Científica de la NASA: cada trazo sigue el movimiento del agua. Los remolinos grandes y la corriente que bordea la costa este del continente muestran que el mar no está quieto.<span class="credito">Visualización: <a href="https://commons.wikimedia.org/wiki/File:Perpetual_Ocean_2-_Equirectangular_(SVS5505).png" target="_blank" rel="noopener">NASA Scientific Visualization Studio, G. Shirah, H. Mitchell y A. Saberi</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>Dos pisos:</strong> pensá el océano como un edificio. En el piso de arriba, el viento empuja a todos: es rápido y ruidoso. En el subsuelo, casi nada se mueve, salvo una fila larguísima que avanza despacio porque desde afuera entra gente que pesa más.</p>
@@ -63,6 +69,55 @@
   <h2>Abajo manda la densidad</h2>
   <p>Las corrientes también fluyen a miles de metros de profundidad, y ahí el viento no llega. Esas corrientes profundas dependen de la densidad del agua, que está controlada por la temperatura (<em>thermo</em>) y la salinidad (<em>haline</em>): de ahí el nombre de <strong>circulación termohalina</strong> [1].</p>
   <p>El proceso empieza en las regiones polares. El agua se enfría mucho y se forma hielo marino. Como el hielo deja la sal afuera, el agua de alrededor queda más salada y más densa, y se hunde [1]. El agua de la superficie entra a reemplazarla, se enfría y se sala a su vez, y así arranca la circulación profunda [1]. Es la misma física de la <a href="principio-arquimedes.html">flotación</a>, con una diferencia de densidad muy chica actuando sobre una masa enorme.</p>
+  <figure class="figura" id="tsd">
+    <canvas id="tsd-c" width="1280" height="560" role="img" aria-label="A la izquierda, un diagrama de temperatura y salinidad con líneas de igual densidad y un punto que se mueve con los controles. A la derecha, una columna de agua: la porción de agua elegida se hunde si es más densa que el agua profunda y flota si es más liviana."></canvas>
+    <div class="int-control"><label for="tsd-t">Temperatura</label><input type="range" id="tsd-t" min="-2" max="30" step="0.5" value="20"><output id="tsd-to" for="tsd-t">20 °C</output></div>
+    <div class="int-control"><label for="tsd-s">Salinidad</label><input type="range" id="tsd-s" min="32" max="38" step="0.1" value="36"><output id="tsd-so" for="tsd-s">36,0</output></div>
+    <p class="int-estado" id="tsd-e" aria-live="polite"></p>
+    <figcaption>La densidad del agua de mar depende de su temperatura y de su salinidad [1]. Aquí sale de la ecuación de estado de la UNESCO a presión atmosférica [6], y las líneas grises unen las combinaciones de igual densidad. El agua profunda de comparación, a 3 °C y salinidad 34,9, tiene valores elegidos para el ejemplo. Probá enfriar el agua y subirle la sal, como pasa cuando se forma hielo marino [1].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('tsd-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 280, st = document.getElementById('tsd-t'), ss = document.getElementById('tsd-s'), es = document.getElementById('tsd-e'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', zp = 60, vp = 0, txt = '';
+    function rho(s, t) { var T = t * 1.00024;
+      var w = 999.842594 + (6.793952e-2 + (-9.095290e-3 + (1.001685e-4 + (-1.120083e-6 + 6.536332e-9 * T) * T) * T) * T) * T;
+      return w + (8.24493e-1 + (-4.0899e-3 + (7.6438e-5 + (-8.2467e-7 + 5.3875e-9 * T) * T) * T) * T) * s + (-5.72466e-3 + (1.0227e-4 - 1.6546e-6 * T) * T) * s * Math.sqrt(s) + 4.8314e-4 * s * s; }
+    var X0 = 60, X1 = 330, Y0 = 240, Y1 = 30, RF = rho(34.9, 3);
+    function X(s) { return X0 + (X1 - X0) * (s - 32) / 6; } function Y(t) { return Y0 - (Y0 - Y1) * (t + 2) / 32; }
+    function nf(v, d) { return v.toFixed(d).replace('.', ',').replace('-', '−'); }
+    function frame() {
+      var t = +st.value, s = +ss.value, r = rho(s, t), k, sg, tt, a, b, m, j, dif;
+      if (vis) {
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.font = "13px 'Space Mono',monospace"; g.strokeStyle = 'rgba(136,146,176,0.45)'; g.lineWidth = 1;
+        for (sg = 20; sg <= 30; sg++) { g.beginPath(); m = 0;
+          for (k = 0; k <= 60; k++) { var S = 32 + 6 * k / 60; a = -2; b = 30; if (rho(S, a) - 1000 < sg || rho(S, b) - 1000 > sg) continue;
+            for (j = 0; j < 30; j++) { tt = (a + b) / 2; if (rho(S, tt) - 1000 > sg) a = tt; else b = tt; }
+            if (m++) g.lineTo(X(S), Y(tt)); else g.moveTo(X(S), Y(tt)); }
+          g.stroke(); }
+        g.fillStyle = GR; g.textAlign = 'center'; for (k = 32; k <= 38; k += 2) g.fillText(k, X(k), Y0 + 18); g.fillText('salinidad', (X0 + X1) / 2, Y0 + 34);
+        g.textAlign = 'right'; for (k = 0; k <= 30; k += 10) g.fillText(k + ' °C', X0 - 6, Y(k) + 4);
+        g.strokeStyle = GR; g.strokeRect(X0, Y1, X1 - X0, Y0 - Y1);
+        g.fillStyle = CI; g.beginPath(); g.arc(X(34.9), Y(3), 5, 0, 6.3); g.fill(); g.textAlign = 'left'; g.fillText('agua profunda', X(34.9) + 8, Y(3) - 6);
+        g.fillStyle = NA; g.beginPath(); g.arc(X(s), Y(t), 7, 0, 6.3); g.fill();
+        g.fillStyle = '#eef2ff'; g.textAlign = 'left'; g.fillText('más densa ↘', X1 - 96, Y0 - 8);
+        // columna
+        g.fillStyle = 'rgba(0,212,255,0.12)'; g.fillRect(400, 40, 200, 110); g.fillStyle = 'rgba(0,212,255,0.3)'; g.fillRect(400, 150, 200, 100);
+        g.fillStyle = GR; g.textAlign = 'center'; g.fillText('agua de superficie', 500, 32); g.fillText('agua profunda', 500, 240); g.fillText(nf(RF, 1) + ' kg/m³', 500, 226);
+        dif = r - RF; vp += (dif > 0 ? 0.04 : -0.04); vp *= 0.93; zp = Math.max(70, Math.min(205, zp + vp));
+        g.fillStyle = NA; g.fillRect(470, zp - 14, 60, 28); g.fillStyle = '#070d22'; g.fillText(nf(r, 1), 500, zp + 5);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var t = +st.value, s = +ss.value, r = rho(s, t), d = r - RF, n;
+      document.getElementById('tsd-to').textContent = nf(t, 1).replace(',0', '') + ' °C'; document.getElementById('tsd-so').textContent = nf(s, 1);
+      n = 'Densidad: <strong>' + nf(r, 2) + ' kg/m³</strong>. ' + (d > 0 ? 'Es más densa que el agua profunda: <strong>se hunde</strong>.' : 'Es más liviana que el agua profunda: <strong>se queda arriba</strong>.');
+      if (n !== txt) { txt = n; es.innerHTML = n; } }
+    st.addEventListener('input', poner); ss.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>La cinta transportadora</h2>
   <p>El agua fría y densa se hunde en el extremo norte y viaja hacia el sur a lo largo del Atlántico occidental, y la corriente se «recarga» al pasar por la Antártida, donde recoge más agua fría, salada y densa [4]. La vuelta completa no es rápida: se estima que una porción de agua puede tardar 1000 años en recorrer la cinta transportadora global [4].</p>
@@ -85,6 +140,7 @@
     <li>NOAA National Ocean Service, «How fast is the Gulf Stream?». <a href="https://oceanservice.noaa.gov/facts/gulfstreamspeed.html" target="_blank" rel="noopener">noaa.gov</a></li>
     <li>NOAA National Ocean Service, «The Global Conveyor Belt», <em>Currents</em>. <a href="https://oceanservice.noaa.gov/education/tutorial_currents/05conveyor2.html" target="_blank" rel="noopener">noaa.gov</a></li>
     <li>E. Frajka-Williams et al., «Atlantic Meridional Overturning Circulation: Observed Transport and Variability», <em>Frontiers in Marine Science</em> <strong>6</strong>, 260 (2019). <a href="https://doi.org/10.3389/fmars.2019.00260" target="_blank" rel="noopener">doi:10.3389/fmars.2019.00260</a></li>
+    <li>N. P. Fofonoff y R. C. Millard, <em>Algorithms for computation of fundamental properties of seawater</em>, UNESCO Technical Papers in Marine Science 44 (1983), ecuación de estado a presión atmosférica, en la implementación de python-seawater. <a href="https://github.com/pyoceans/python-seawater" target="_blank" rel="noopener">github.com</a></li>
   </ol>
 </div>
 <div class="article-footer">

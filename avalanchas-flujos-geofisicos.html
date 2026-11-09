@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -56,9 +60,52 @@
   <p>Para un bloque sobre una pendiente de ángulo θ, la gravedad tira hacia abajo con g sen θ, y la fricción frena con μ g cos θ, siendo μ el coeficiente de fricción. El bloque acelera si el primero gana (un cálculo propio de mecánica básica):</p>
   <div class="math-block">a = g (sen θ − μ cos θ)<br>a: aceleración · g: gravedad · θ: ángulo de la pendiente · μ: coeficiente de fricción</div>
   <p>Los <a href="flujos-granulares.html">flujos granulares</a> son más complicados que un bloque, pero la idea se mantiene. En la nieve se ve bien: las avalanchas son posibles en cualquier pendiente de más de 30°, y la mayoría ocurre entre 30° y 45°; en pendientes más empinadas, la nieve se desliza sola y regularmente [1].</p>
+  <figure class="figura" id="rep">
+    <canvas id="rep-c" width="1280" height="540" role="img" aria-label="Una ladera cuya pendiente cambia con el control, con una placa de nieve encima. Por debajo de 30 grados la placa queda quieta; por encima, resbala y acelera. Una escala marca las zonas de 30 a 45 grados y de más de 45 grados."></canvas>
+    <div class="int-control"><label for="rep-a">Pendiente</label><input type="range" id="rep-a" min="10" max="60" step="1" value="25"><output id="rep-o" for="rep-a">25°</output></div>
+    <p class="int-estado" id="rep-e" aria-live="polite"></p>
+    <figcaption>El bloque sobre la pendiente del artículo: acelera con a = g (sen θ − μ cos θ) si la gravedad gana a la fricción. Elegimos μ = tan 30° ≈ 0,58 para que arranque a los 30°, donde empiezan a ser posibles las avalanchas de nieve [1]; la mayoría ocurre entre 30° y 45°, y más arriba la nieve se desliza sola y seguido [1]. Una placa de nieve real no es un bloque: depende de sus capas [1].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('rep-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 270, sl = document.getElementById('rep-a'), es = document.getElementById('rep-e'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', MU = Math.tan(Math.PI / 6), s = 0, v = 0, txt = '';
+    var PX = 360, PY = 230, LL = 250;
+    function acc(t) { var r = t * Math.PI / 180; return 9.8 * (Math.sin(r) - MU * Math.cos(r)); }
+    function frame() {
+      var t = +sl.value, r = t * Math.PI / 180, a = acc(t), ux = -Math.cos(r), uy = -Math.sin(r), tx, ty, k, ang;
+      if (vis) {
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#1c2c55'; g.beginPath(); g.moveTo(PX, PY); g.lineTo(PX + ux * LL, PY + uy * LL); g.lineTo(PX + ux * LL, PY); g.closePath(); g.fill();
+        g.fillStyle = '#3a4668'; g.fillRect(0, PY, W, H - PY);
+        if (a > 0.01) { v += a * 0.016; s += v * 0.016 * 12; if (s > LL - 40) { s = 0; v = 0; } } else { s = 0; v = 0; }
+        tx = PX + ux * (LL - 70 - s); ty = PY + uy * (LL - 70 - s);
+        g.save(); g.translate(tx, ty); g.rotate(r); g.fillStyle = '#eef2ff'; g.fillRect(-30, -16, 60, 16); g.restore();
+        g.strokeStyle = GR; g.lineWidth = 1.5; g.beginPath(); g.arc(PX, PY, 50, Math.PI, Math.PI + r); g.stroke();
+        g.font = "14px 'Space Mono',monospace"; g.fillStyle = '#eef2ff'; g.textAlign = 'right'; g.fillText('θ = ' + t + '°', PX - 56, PY - 8);
+        // escala
+        for (k = 10; k <= 60; k++) { g.fillStyle = k < 30 ? '#3a4668' : k <= 45 ? NA : '#ff7a7a'; g.fillRect(420 + (k - 10) * 4, 60, 4, 16); }
+        g.fillStyle = '#eef2ff'; g.beginPath(); g.moveTo(420 + (t - 10) * 4 + 2, 80); g.lineTo(414 + (t - 10) * 4 + 2, 92); g.lineTo(426 + (t - 10) * 4 + 2, 92); g.fill();
+        g.font = "12px 'Space Mono',monospace"; g.fillStyle = GR; g.textAlign = 'center'; [10, 30, 45, 60].forEach(function (k) { g.fillText(k + '°', 420 + (k - 10) * 4, 54); });
+        g.textAlign = 'left'; g.fillStyle = NA; g.fillText('30° a 45°: la mayoría', 420, 112); g.fillStyle = '#ff7a7a'; g.fillText('más de 45°: se desliza sola', 420, 130);
+        g.fillStyle = CI; g.font = "14px 'Space Mono',monospace"; g.fillText('a = ' + (a > 0.01 ? a.toFixed(1).replace('.', ',') + ' m/s²' : '0: no arranca'), 420, 170);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var t = +sl.value, a = acc(t), n; document.getElementById('rep-o').textContent = t + '°';
+      n = a <= 0.01 ? 'Con ' + t + '°, la fricción gana: la placa <strong>no se mueve</strong>.' : 'Con ' + t + '°, la gravedad gana: la placa <strong>acelera a ' + a.toFixed(1).replace('.', ',') + ' m/s²</strong>.';
+      if (n !== txt) { txt = n; es.innerHTML = n; } s = 0; v = 0; }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Avalanchas de nieve</h2>
   <p>Según el Centro Nacional de Datos de Nieve y Hielo de Estados Unidos, una capa nueva depositada rápidamente sobre la nieve vieja puede hacer que una placa débil se fracture, y el riesgo es mayor durante una tormenta de nieve o justo después [1]. Las personas disparan el 90 % de los accidentes por avalancha: esquiadores, motos de nieve o escaladores cargan la nieve, y la capa débil de abajo colapsa [1]. Una avalancha muy grande en América del Norte puede liberar 100 000 metros cúbicos de nieve [1], y en todo el mundo mueren más de 150 personas por año por esta causa [1].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/avalanchas-flujos-geofisicos-placa.jpg" width="1400" height="1050" loading="lazy" style="width:min(760px,100%);margin:0 auto" alt="Ladera nevada de una montaña con una franja de nieve rota y bloques que bajaron por la pendiente.">
+    <figcaption>Una avalancha de placa de nieve húmeda al norte de la estación de esquí de Breckenridge, en la cordillera Tenmile de Colorado, Estados Unidos, el 24 de abril de 2019. Arriba se ve el borde de donde se cortó la placa, y abajo, los bloques que bajaron.<span class="credito">Foto: <a href="https://commons.wikimedia.org/wiki/File:Wet_slab_avalanche.jpg" target="_blank" rel="noopener">Runningonbrains</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></figcaption>
+  </figure>
 
   <div class="analogy-box">
     <p><strong>La alfombra sobre el piso encerado:</strong> una capa de nieve firme sobre una capa débil se parece a una alfombra sobre un piso encerado. Parece estable hasta que alguien la pisa en el lugar justo. Entonces, lo que resbala no es solo lo que pisaste, sino toda la alfombra.</p>
@@ -70,6 +117,50 @@
 
   <h2>Flujos piroclásticos</h2>
   <p>Son mezclas de alta densidad de bloques de lava, pómez, ceniza y gas volcánico, que bajan a gran velocidad por las laderas, por lo general siguiendo los valles [4]. La mayoría tiene dos partes: un flujo basal de fragmentos gruesos, pegado al suelo, y una nube turbulenta de ceniza que sube por encima [4]. Sus velocidades típicas superan los 80 km/h, y sus temperaturas van en general de 200 °C a 700 °C [4]. Pueden derribar o arrastrar casi todo lo que encuentran y provocar incendios [4]. Son una corriente de densidad, pariente del agua fría que se mete bajo el aire tibio de una habitación (un comentario propio).</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 400" role="img" aria-labelledby="ava3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="ava3-t">Tres laderas dibujadas. Una avalancha de nieve: una placa que resbala sobre una capa débil, de hasta 100 000 metros cúbicos. Un lahar: agua y roca como concreto húmedo, que crece más de 10 veces y supera los 200 km/h en zonas empinadas. Un flujo piroclástico: bloques, ceniza y gas a más de 80 km/h y de 200 a 700 °C, con un flujo basal y una nube de ceniza encima.</title>
+      <rect width="640" height="400" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="26.0" text-anchor="start" fill="#eef2ff" font-size="19">Tres flujos que bajan por una ladera</text>
+        <polygon points="20.0,190.0 210.0,190.0 210.0,110.0" fill="#1c2c55"/>
+        <polygon points="90.0,160.0 170.0,126.0 176.0,134.0 96.0,168.0" fill="#eef2ff"/>
+        <line x1="80.0" y1="172.0" x2="190.0" y2="126.0" stroke="#8892b0" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <text x="115.0" y="220.0" text-anchor="middle" fill="#eef2ff" font-size="16">Avalancha de nieve</text>
+        <text x="115.0" y="246.0" text-anchor="middle" fill="#8892b0" font-size="13">una placa de nieve</text>
+        <text x="115.0" y="264.0" text-anchor="middle" fill="#8892b0" font-size="13">resbala sobre una</text>
+        <text x="115.0" y="282.0" text-anchor="middle" fill="#8892b0" font-size="13">capa débil [1]</text>
+        <text x="115.0" y="310.0" text-anchor="middle" fill="#8892b0" font-size="13">hasta 100 000 m³</text>
+        <text x="115.0" y="328.0" text-anchor="middle" fill="#8892b0" font-size="13">en las más grandes</text>
+        <text x="115.0" y="346.0" text-anchor="middle" fill="#8892b0" font-size="13">de América del Norte [1]</text>
+        <polygon points="225.0,190.0 415.0,190.0 415.0,110.0" fill="#1c2c55"/>
+        <path d="M 285 176 Q 335 148 385 128 L 395 136 Q 345 162 295 186 Z" fill="#f5a623"/>
+        <text x="320.0" y="220.0" text-anchor="middle" fill="#f5a623" font-size="16">Lahar</text>
+        <text x="320.0" y="246.0" text-anchor="middle" fill="#8892b0" font-size="13">agua y roca: como</text>
+        <text x="320.0" y="264.0" text-anchor="middle" fill="#8892b0" font-size="13">concreto húmedo [2]</text>
+        <text x="320.0" y="292.0" text-anchor="middle" fill="#8892b0" font-size="13">crece más de 10 veces</text>
+        <text x="320.0" y="310.0" text-anchor="middle" fill="#8892b0" font-size="13">su tamaño inicial [2]</text>
+        <text x="320.0" y="338.0" text-anchor="middle" fill="#8892b0" font-size="13">más de 200 km/h en</text>
+        <text x="320.0" y="356.0" text-anchor="middle" fill="#8892b0" font-size="13">zonas empinadas [2]</text>
+        <polygon points="430.0,190.0 620.0,190.0 620.0,110.0" fill="#1c2c55"/>
+        <path d="M 480 182 L 580 138 L 590 146 L 490 188 Z" fill="#ff7a7a"/>
+        <circle cx="490.0" cy="160.0" r="10" fill="#8892b0"/>
+        <circle cx="508.0" cy="146.0" r="13" fill="#8892b0"/>
+        <circle cx="526.0" cy="144.0" r="16" fill="#8892b0"/>
+        <circle cx="544.0" cy="130.0" r="10" fill="#8892b0"/>
+        <circle cx="562.0" cy="128.0" r="13" fill="#8892b0"/>
+        <circle cx="580.0" cy="114.0" r="16" fill="#8892b0"/>
+        <text x="525.0" y="220.0" text-anchor="middle" fill="#ff7a7a" font-size="16">Flujo piroclástico</text>
+        <text x="525.0" y="246.0" text-anchor="middle" fill="#8892b0" font-size="13">bloques, ceniza y gas</text>
+        <text x="525.0" y="264.0" text-anchor="middle" fill="#8892b0" font-size="13">volcánico [4]</text>
+        <text x="525.0" y="292.0" text-anchor="middle" fill="#8892b0" font-size="13">más de 80 km/h [4]</text>
+        <text x="525.0" y="310.0" text-anchor="middle" fill="#8892b0" font-size="13">de 200 °C a 700 °C [4]</text>
+        <text x="525.0" y="338.0" text-anchor="middle" fill="#8892b0" font-size="13">un flujo basal y una</text>
+        <text x="525.0" y="356.0" text-anchor="middle" fill="#8892b0" font-size="13">nube de ceniza encima [4]</text>
+      </g>
+    </svg>
+    <figcaption>Los tres flujos del artículo con los datos de sus fuentes [1, 2, 4]. Las formas de los dibujos son ilustrativas, no están a escala.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Un fluido que no es un fluido:</strong> ninguno de estos flujos tiene una viscosidad única. Son mezclas cuya resistencia cambia con la concentración de sólidos y con la velocidad, como los <a href="fluidos-no-newtonianos.html">fluidos no newtonianos</a> y las suspensiones. Eso los hace difíciles de modelar y hace muy valiosos los sistemas de alerta (un comentario propio).</p>

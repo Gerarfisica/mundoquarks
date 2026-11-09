@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -55,6 +59,44 @@
   <h2>El agua que corre de costado</h2>
   <p>En un río, la velocidad no es la misma en toda la sección: la fricción la frena en el fondo y en las orillas. La <a href="hidraulica-rios-manning.html">fórmula de Manning</a> resume esa fricción en un promedio, pero el promedio esconde algo importante. En una curva, el agua no solo avanza: también gira en la sección, en lo que se llama <strong>flujo secundario</strong>.</p>
   <p>Einstein lo explicó con la misma idea de la <a href="paradoja-hojas-te.html">paradoja de las hojas de té</a>. En una curva aparece una fuerza centrífuga hacia el exterior, pero es menor en el fondo, donde la fricción frena la corriente [1]. El resultado es una circulación: el agua rápida de arriba y del centro va hacia la orilla exterior, y la orilla interior recibe agua lenta que viene del fondo [1]. Por eso la erosión es más intensa en la orilla exterior [1].</p>
+  <figure class="figura" id="mea">
+    <canvas id="mea-c" width="1280" height="520" role="img" aria-label="Un río visto desde arriba, que empieza casi recto y forma curvas cada vez más marcadas. En cada curva, la orilla exterior se marca en naranja, donde el agua erosiona, y la interior en arena, donde deposita. Las curvas se corren de a poco aguas abajo."></canvas>
+    <div class="int-botones" role="group" aria-label="Animación"><button type="button" data-b="p">pausar</button><button type="button" data-b="r">empezar de nuevo</button></div>
+    <p class="int-estado" id="mea-e" aria-live="polite"></p>
+    <figcaption>En cada curva, el agua rápida va hacia la orilla exterior y la erosiona, y en la interior se deposita sedimento [1]. Por eso la curva crece. La erosión máxima queda un poco aguas abajo del punto más curvo, y los meandros avanzan en el sentido de la corriente [1]. El dibujo es ilustrativo: las curvas siguen una forma elegida, no una simulación del río.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('mea-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 260, es = document.getElementById('mea-e'), bs = document.querySelectorAll('#mea .int-botones button'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', t = 0, play = true, txt = '', K = 2 * Math.PI / 260, YC = 125, P = [];
+    for (var i = 0; i < 40; i++) P.push(Math.random() * W);
+    function A() { return 8 + 72 * Math.min(1, t / 900); }
+    function phi() { return t * 0.0012; }
+    function pt(x) { var a = A(), th = K * x - phi(), y = YC + a * Math.sin(th), d = a * K * Math.cos(th), n = Math.sqrt(1 + d * d); return { x: x, y: y, nx: -d / n, ny: 1 / n, th: th }; }
+    function frame() {
+      var x, p, k, s, L = 0, q, n;
+      if (vis) {
+        if (play) { t++; if (t > 1500) t = 0; }
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#0f2a1f'; g.fillRect(0, 0, W, H);
+        for (x = 0; x <= W; x += 2) { p = pt(x); s = Math.sin(p.th - 0.35);
+          if (Math.abs(s) > 0.75) { var sg = s > 0 ? 1 : -1; g.fillStyle = NA; g.fillRect(p.x + p.nx * sg * 11 - 1.5, p.y + p.ny * sg * 11 - 1.5, 3, 3); }
+          s = Math.sin(p.th); if (Math.abs(s) > 0.7 && A() > 20) { var sg2 = s > 0 ? -1 : 1, w = 8 + 14 * (Math.abs(s) - 0.7) / 0.3 * A() / 80; g.fillStyle = 'rgba(214,190,140,0.8)'; g.beginPath(); g.arc(p.x + p.nx * sg2 * (8 + w / 2), p.y + p.ny * sg2 * (8 + w / 2), w / 2, 0, 6.3); g.fill(); } }
+        g.strokeStyle = '#1e6fa8'; g.lineWidth = 16; g.lineJoin = 'round'; g.beginPath();
+        for (x = -10; x <= W + 10; x += 3) { p = pt(x); if (x === -10) g.moveTo(p.x, p.y); else { g.lineTo(p.x, p.y); if (x > 0 && x <= W) L += Math.hypot(p.x - q.x, p.y - q.y); } q = p; } g.stroke();
+        g.fillStyle = 'rgba(238,242,255,0.8)'; for (k = 0; k < P.length; k++) { if (play) P[k] = (P[k] + 1.2) % W; p = pt(P[k]); g.beginPath(); g.arc(p.x, p.y, 1.6, 0, 6.3); g.fill(); }
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('■ erosión (orilla exterior)', 10, 20); g.fillStyle = 'rgb(214,190,140)'; g.fillText('● depósito (orilla interior)', 10, 38);
+        g.fillStyle = '#eef2ff'; g.textAlign = 'right'; g.fillText('corriente →', W - 10, 20);
+        n = 'Largo del río sobre la distancia en línea recta: <strong>' + (L / W).toFixed(1).replace('.', ',') + '</strong>' + (play ? '' : ' (en pausa)') + '.';
+        if (n !== txt) { txt = n; es.innerHTML = n; }
+      }
+      requestAnimationFrame(frame);
+    }
+    bs[0].setAttribute('aria-pressed', 'false');
+    bs[0].addEventListener('click', function () { play = !play; bs[0].setAttribute('aria-pressed', play ? 'false' : 'true'); bs[0].textContent = play ? 'pausar' : 'seguir'; });
+    bs[1].addEventListener('click', function () { t = 0; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    es.innerHTML = 'El río empieza casi recto.'; requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Una curva con autos:</strong> en una curva cerrada, los autos más rápidos se abren hacia afuera, y los lentos se quedan adentro. En el río, el agua más rápida se abre, golpea la orilla exterior y la va comiendo. El agua lenta del interior deja caer lo que lleva. Una orilla pierde, la otra gana, y la curva crece.</p>
@@ -62,6 +104,25 @@
 
   <h2>Una curva que se agranda</h2>
   <p>Ahí está el mecanismo de crecimiento: cualquier pequeña curva tiende a acentuarse. Einstein agregó detalles finos [1]. El flujo secundario tarda en armarse, así que la erosión máxima no se da en el punto de mayor curvatura, sino un poco aguas abajo, y por eso los meandros avanzan en el sentido de la corriente. Además, cuanto mayor es la sección del río, más lentamente apaga la fricción ese flujo, y por eso la longitud de onda de los meandros crece con el tamaño del río [1].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 412" role="img" aria-labelledby="rio3-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="rio3-t">Un río dibujado con varias curvas entre dos puntos, y debajo la línea recta que los une. El cociente entre el largo del río y la distancia en línea recta es de alrededor de 1,7 en este dibujo.</title>
+      <rect width="640" height="412" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="26.0" text-anchor="start" fill="#eef2ff" font-size="19">Cuánto serpentea un río</text>
+        <polyline points="60.0,210.0 61.3,209.3 62.6,208.2 63.9,206.9 65.2,205.6 66.5,204.1 67.8,202.5 69.1,200.9 70.4,199.2 71.7,197.5 73.0,195.7 74.3,193.9 75.6,192.1 76.9,190.3 78.2,188.5 79.5,186.6 80.8,184.8 82.1,183.0 83.4,181.1 84.7,179.3 86.0,177.6 87.3,175.8 88.6,174.1 89.9,172.5 91.2,170.8 92.5,169.3 93.8,167.7 95.1,166.3 96.4,164.9 97.7,163.5 99.0,162.2 100.3,161.0 101.6,159.9 102.9,158.8 104.2,157.8 105.5,156.9 106.8,156.1 108.1,155.4 109.4,154.8 110.7,154.2 112.0,153.8 113.3,153.4 114.6,153.1 115.9,153.0 117.2,152.9 118.5,152.9 119.8,153.1 121.1,153.3 122.4,153.6 123.7,154.1 125.0,154.6 126.3,155.2 127.6,156.0 128.9,156.8 130.2,157.7 131.5,158.8 132.8,159.9 134.1,161.1 135.4,162.4 136.7,163.9 138.0,165.4 139.3,167.0 140.6,168.6 141.9,170.4 143.2,172.2 144.5,174.1 145.8,176.1 147.1,178.2 148.4,180.3 149.7,182.5 151.0,184.8 152.3,187.1 153.6,189.5 154.9,191.9 156.2,194.4 157.5,196.9 158.8,199.5 160.1,202.1 161.4,204.7 162.7,207.3 164.0,210.0 165.3,212.7 166.6,215.4 167.9,218.1 169.2,220.8 170.5,223.5 171.8,226.2 173.1,228.9 174.4,231.6 175.7,234.3 177.0,236.9 178.3,239.5 179.6,242.1 180.9,244.6 182.2,247.1 183.5,249.6 184.8,252.0 186.1,254.3 187.4,256.6 188.7,258.8 190.0,261.0 191.3,263.1 192.6,265.1 193.9,267.0 195.2,268.9 196.5,270.6 197.8,272.3 199.1,273.9 200.4,275.4 201.7,276.8 203.0,278.1 204.3,279.3 205.6,280.4 206.9,281.3 208.2,282.2 209.5,283.0 210.8,283.6 212.1,284.2 213.4,284.6 214.7,284.9 216.0,285.1 217.3,285.1 218.6,285.1 219.9,284.9 221.2,284.6 222.5,284.2 223.8,283.7 225.1,283.1 226.4,282.3 227.7,281.4 229.0,280.5 230.3,279.4 231.6,278.1 232.9,276.8 234.2,275.4 235.5,273.9 236.8,272.2 238.1,270.5 239.4,268.6 240.7,266.7 242.0,264.6 243.3,262.5 244.6,260.3 245.9,258.0 247.2,255.6 248.5,253.2 249.8,250.7 251.1,248.1 252.4,245.4 253.7,242.7 255.0,239.9 256.3,237.1 257.6,234.2 258.9,231.3 260.2,228.3 261.5,225.3 262.8,222.3 264.1,219.2 265.4,216.2 266.7,213.1 268.0,210.0 269.3,206.9 270.6,203.8 271.9,200.7 273.2,197.6 274.5,194.6 275.8,191.5 277.1,188.5 278.4,185.5 279.7,182.6 281.0,179.6 282.3,176.8 283.6,173.9 284.9,171.2 286.2,168.5 287.5,165.8 288.8,163.2 290.1,160.7 291.4,158.3 292.7,155.9 294.0,153.6 295.3,151.5 296.6,149.4 297.9,147.3 299.2,145.4 300.5,143.6 301.8,141.9 303.1,140.3 304.4,138.8 305.7,137.4 307.0,136.2 308.3,135.0 309.6,134.0 310.9,133.0 312.2,132.2 313.5,131.6 314.8,131.0 316.1,130.6 317.4,130.2 318.7,130.1 320.0,130.0 321.3,130.1 322.6,130.2 323.9,130.6 325.2,131.0 326.5,131.6 327.8,132.2 329.1,133.0 330.4,134.0 331.7,135.0 333.0,136.2 334.3,137.4 335.6,138.8 336.9,140.3 338.2,141.9 339.5,143.6 340.8,145.4 342.1,147.3 343.4,149.4 344.7,151.5 346.0,153.6 347.3,155.9 348.6,158.3 349.9,160.7 351.2,163.2 352.5,165.8 353.8,168.5 355.1,171.2 356.4,173.9 357.7,176.8 359.0,179.6 360.3,182.6 361.6,185.5 362.9,188.5 364.2,191.5 365.5,194.6 366.8,197.6 368.1,200.7 369.4,203.8 370.7,206.9 372.0,210.0 373.3,213.1 374.6,216.2 375.9,219.2 377.2,222.3 378.5,225.3 379.8,228.3 381.1,231.3 382.4,234.2 383.7,237.1 385.0,239.9 386.3,242.7 387.6,245.4 388.9,248.1 390.2,250.7 391.5,253.2 392.8,255.6 394.1,258.0 395.4,260.3 396.7,262.5 398.0,264.6 399.3,266.7 400.6,268.6 401.9,270.5 403.2,272.2 404.5,273.9 405.8,275.4 407.1,276.8 408.4,278.1 409.7,279.4 411.0,280.5 412.3,281.4 413.6,282.3 414.9,283.1 416.2,283.7 417.5,284.2 418.8,284.6 420.1,284.9 421.4,285.1 422.7,285.1 424.0,285.1 425.3,284.9 426.6,284.6 427.9,284.2 429.2,283.6 430.5,283.0 431.8,282.2 433.1,281.3 434.4,280.4 435.7,279.3 437.0,278.1 438.3,276.8 439.6,275.4 440.9,273.9 442.2,272.3 443.5,270.6 444.8,268.9 446.1,267.0 447.4,265.1 448.7,263.1 450.0,261.0 451.3,258.8 452.6,256.6 453.9,254.3 455.2,252.0 456.5,249.6 457.8,247.1 459.1,244.6 460.4,242.1 461.7,239.5 463.0,236.9 464.3,234.3 465.6,231.6 466.9,228.9 468.2,226.2 469.5,223.5 470.8,220.8 472.1,218.1 473.4,215.4 474.7,212.7 476.0,210.0 477.3,207.3 478.6,204.7 479.9,202.1 481.2,199.5 482.5,196.9 483.8,194.4 485.1,191.9 486.4,189.5 487.7,187.1 489.0,184.8 490.3,182.5 491.6,180.3 492.9,178.2 494.2,176.1 495.5,174.1 496.8,172.2 498.1,170.4 499.4,168.6 500.7,167.0 502.0,165.4 503.3,163.9 504.6,162.4 505.9,161.1 507.2,159.9 508.5,158.8 509.8,157.7 511.1,156.8 512.4,156.0 513.7,155.2 515.0,154.6 516.3,154.1 517.6,153.6 518.9,153.3 520.2,153.1 521.5,152.9 522.8,152.9 524.1,153.0 525.4,153.1 526.7,153.4 528.0,153.8 529.3,154.2 530.6,154.8 531.9,155.4 533.2,156.1 534.5,156.9 535.8,157.8 537.1,158.8 538.4,159.9 539.7,161.0 541.0,162.2 542.3,163.5 543.6,164.9 544.9,166.3 546.2,167.7 547.5,169.3 548.8,170.8 550.1,172.5 551.4,174.1 552.7,175.8 554.0,177.6 555.3,179.3 556.6,181.1 557.9,183.0 559.2,184.8 560.5,186.6 561.8,188.5 563.1,190.3 564.4,192.1 565.7,193.9 567.0,195.7 568.3,197.5 569.6,199.2 570.9,200.9 572.2,202.5 573.5,204.1 574.8,205.6 576.1,206.9 577.4,208.2 578.7,209.3 580.0,210.0" fill="none" stroke="#00d4ff" stroke-width="10" stroke-linejoin="round"/>
+        <line x1="60.0" y1="330.0" x2="580.0" y2="330.0" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="8 6"/>
+        <circle cx="60.0" cy="210.0" r="6" fill="#eef2ff"/>
+        <circle cx="580.0" cy="210.0" r="6" fill="#eef2ff"/>
+        <line x1="60.0" y1="210.0" x2="60.0" y2="330.0" stroke="#8892b0" stroke-width="1" stroke-dasharray="3 4"/>
+        <line x1="580.0" y1="210.0" x2="580.0" y2="330.0" stroke="#8892b0" stroke-width="1" stroke-dasharray="3 4"/>
+        <text x="320.0" y="110.0" text-anchor="middle" fill="#00d4ff" font-size="15">largo del río, L</text>
+        <text x="320.0" y="356.0" text-anchor="middle" fill="#f5a623" font-size="15">distancia en línea recta, d</text>
+        <text x="320.0" y="396.0" text-anchor="middle" fill="#eef2ff" font-size="17">L / d ≈ 1,7 en este dibujo</text>
+      </g>
+    </svg>
+    <figcaption>Una manera de medir cuánto serpentea un río: dividir su largo, siguiendo las curvas, por la distancia en línea recta entre sus extremos. Un río recto da 1, y cuanto más crecen los meandros, más grande es el cociente. El valor es un cálculo propio sobre este dibujo, no el de un río real.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
   <p>Victor Ponce, de la Universidad Estatal de San Diego, destaca que la atribución de corrientes secundarias a la fuerza de Coriolis por parte de Einstein fue una de las primeras, y su explicación de la formación de meandros por un equilibrio entre fuerzas de inercia y de fricción [2]. Einstein también recordaba la ley de Baer: los ríos del hemisferio norte tienden a erosionar la orilla derecha y los del sur, la izquierda [1]. El hijo de Einstein, Hans Albert, se dedicó justamente a la hidráulica fluvial y a la ingeniería de sedimentos [2].</p>
 
   <h2>Por qué hay deltas</h2>
@@ -69,6 +130,10 @@
 
   <h2>El Delta del Paraná</h2>
   <p>El Paraná es uno de los ríos más grandes del mundo, y su caudal es el tercero de Sudamérica [3]. Según Julián Cortese, del Instituto Nacional del Agua, su delta ha estado avanzando sobre las aguas del Río de la Plata durante siglos, modificando sustancialmente el ambiente de la región [4]. Las simulaciones de ese trabajo muestran que, en un escenario de base, el frente sigue avanzando mucho hasta el año 2100, sobre todo frente a la costa argentina, aunque su crecimiento parece aminorar desde 2070, excepto en esa región [4].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/rios-meandros-deltas-delta.jpg" width="1100" height="1147" loading="lazy" style="width:min(620px,100%);margin:0 auto" alt="Imagen satelital en colores falsos del Delta del Paraná: brazos de río azules que se abren sobre una llanura de tonos verdes, rojos y violetas, y a la derecha el Río de la Plata.">
+    <figcaption>El Delta del Paraná visto por el satélite Landsat 7 el 26 de mayo de 2000, en colores falsos (infrarrojo y verde): el bosque y los pajonales toman tonos distintos, y el agua se ve azul. Los brazos del río se abren en abanico hacia el Río de la Plata.<span class="credito">Imagen: <a href="https://commons.wikimedia.org/wiki/File:Delta_del_Río_Paraná_landsat_art_parana_lrg.jpg" target="_blank" rel="noopener">NASA, Landsat 7</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Dibujar un paisaje con un fluido:</strong> en un meandro y en un delta, lo que importa no es solo cómo se mueve el agua, sino cómo su movimiento cambia el borde que la contiene. El contorno del río no está dado: lo escribe el propio flujo. Por eso, estos problemas se resuelven acoplando la hidráulica con el transporte de sedimentos (un comentario propio).</p>

@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -54,6 +58,46 @@
 
   <h2>Una escalera de capas</h2>
   <p>El viento mueve el agua de la superficie. Esa capa arrastra por fricción a la de abajo, y esta a la siguiente, cada una más lenta que la anterior, hasta que el movimiento desaparece a unos 100 metros de profundidad [1]. Pero el agua también se desvía por el <a href="fuerzas-ficticia-coriolis.html">efecto de Coriolis</a>: a la derecha en el hemisferio norte y a la izquierda en el sur [1]. Cada capa se desvía un poco más que la anterior, y así se forma una espiral, que lleva el nombre del científico sueco Vagn Walfrid Ekman, que la propuso en 1902 [1]. Las capas profundas se giran tanto que tienden a fluir en sentido opuesto a la corriente superficial [1].</p>
+  <figure class="figura" id="ekm">
+    <canvas id="ekm-c" width="1280" height="600" role="img" aria-label="A la izquierda, flechas de la corriente a distintas profundidades: la de la superficie forma 45 grados con el viento y las de abajo giran y se achican. A la derecha, la vista desde arriba: las puntas de las flechas forman una espiral, y el transporte total va en ángulo recto con el viento."></canvas>
+    <div class="int-botones" role="group" aria-label="Hemisferio"><button type="button" data-h="1">hemisferio norte</button><button type="button" data-h="-1">hemisferio sur</button></div>
+    <div class="int-control"><label for="ekm-l">Latitud</label><input type="range" id="ekm-l" min="5" max="60" step="1" value="15"><output id="ekm-lo" for="ekm-l">15°</output></div>
+    <div class="int-control"><label for="ekm-k">Viscosidad turbulenta</label><input type="range" id="ekm-k" min="0.01" max="0.05" step="0.005" value="0.03"><output id="ekm-ko" for="ekm-k">0,03 m²/s</output></div>
+    <p class="int-estado" id="ekm-e" aria-live="polite"></p>
+    <figcaption>La solución clásica de Ekman, con viscosidad turbulenta constante, entre 0,01 y 0,05 m²/s [2]: la corriente de la superficie forma 45° con el viento, y hacia abajo gira y se debilita [1, 2]. La profundidad de Ekman, D<sub>E</sub> = π √(2K/|f|), es donde la corriente ya giró 180° [2]. El viento ejerce 0,1 Pa, el valor del ejemplo del artículo. En el mar real la espiral suele ser más achatada y variable [2].<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('ekm-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 300, sl = document.getElementById('ekm-l'), sk = document.getElementById('ekm-k'), es = document.getElementById('ekm-e'), bs = document.querySelectorAll('#ekm .int-botones button'), HS = 1, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', TAU = 0.1, RHO = 1025;
+    function nf(v, d) { return v.toFixed(d).replace('.', ','); }
+    function fl(x1, y1, x2, y2, c, w) { var a = Math.atan2(y2 - y1, x2 - x1), h = 5 + 2 * w; g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - h * Math.cos(a), y2 - h * Math.sin(a)); g.stroke(); g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - h * Math.cos(a) - h * 0.45 * Math.sin(a), y2 - h * Math.sin(a) + h * 0.45 * Math.cos(a)); g.lineTo(x2 - h * Math.cos(a) + h * 0.45 * Math.sin(a), y2 - h * Math.sin(a) - h * 0.45 * Math.cos(a)); g.fill(); }
+    function dibujar() {
+      var lat = +sl.value, K = +sk.value, f = 2 * 7.292e-5 * Math.sin(lat * Math.PI / 180), D = Math.PI * Math.sqrt(2 * K / f), u0 = Math.SQRT2 * Math.PI * TAU / (RHO * f * D), M = TAU / (RHO * f), i, z, e, u, v, S = 800, cx = 120, y, px = 470, py = 160, pts = [];
+      g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+      g.font = "13px 'Space Mono',monospace"; g.textAlign = 'left';
+      fl(cx, 30, cx + 90, 30, '#eef2ff', 3); g.fillStyle = '#eef2ff'; g.fillText('viento', cx + 96, 34);
+      g.fillStyle = 'rgba(0,212,255,0.08)'; g.fillRect(20, 46, 290, 240);
+      for (i = 0; i <= 8; i++) { z = -D * i / 8; e = Math.exp(Math.PI * z / D); u = u0 * Math.cos(-Math.PI / 4 + Math.PI * z / D) * e; v = HS * u0 * Math.sin(-Math.PI / 4 + Math.PI * z / D) * e; y = 62 + i * 27;
+        g.strokeStyle = 'rgba(136,146,176,0.3)'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 90, y); g.lineTo(cx + 150, y); g.stroke();
+        fl(cx, y, cx + u * S, y - v * S * 0.45, i === 0 ? NA : CI, 2); pts.push([u, v]);
+        g.fillStyle = GR; g.textAlign = 'right'; g.fillText(Math.round(-z) + ' m', 300, y + 4); }
+      g.textAlign = 'left'; g.fillStyle = GR; g.fillText('profundidad', 210, 296);
+      // vista desde arriba
+      g.fillStyle = GR; g.textAlign = 'center'; g.fillText('vista desde arriba', px, 26); g.fillText('N', px, 44); g.strokeStyle = 'rgba(136,146,176,0.3)'; g.beginPath(); g.moveTo(px, 50); g.lineTo(px, 280); g.moveTo(px - 140, py); g.lineTo(px + 140, py); g.stroke();
+      fl(px, py, px + 110, py, '#eef2ff', 3);
+      g.strokeStyle = CI; g.lineWidth = 1.5; g.beginPath(); for (i = 0; i <= 80; i++) { z = -D * i / 40; e = Math.exp(Math.PI * z / D); u = u0 * Math.cos(-Math.PI / 4 + Math.PI * z / D) * e; v = HS * u0 * Math.sin(-Math.PI / 4 + Math.PI * z / D) * e; if (i) g.lineTo(px + u * S, py - v * S); else g.moveTo(px + u * S, py - v * S); } g.stroke();
+      fl(px, py, px + pts[0][0] * S, py - pts[0][1] * S, NA, 2);
+      var TL = Math.max(30, Math.min(110, M * 40)); fl(px, py, px, py + HS * TL, '#5ee0a0', 4);
+      g.fillStyle = '#5ee0a0'; g.textAlign = 'left'; g.fillText('transporte', px + 10, py + HS * (TL - 4) + (HS > 0 ? 0 : 10));
+      g.fillStyle = NA; g.fillText('superficie', px + pts[0][0] * S + 6, py - pts[0][1] * S + (HS > 0 ? 14 : -4));
+      es.innerHTML = 'D<sub>E</sub> = <strong>' + Math.round(D) + ' m</strong> · corriente en la superficie: ' + nf(u0, 2) + ' m/s · transporte: <strong>' + nf(M, 1) + ' m²/s</strong>, ' + (HS > 0 ? 'a la derecha' : 'a la izquierda') + ' del viento.';
+      document.getElementById('ekm-lo').textContent = lat + '°'; document.getElementById('ekm-ko').textContent = nf(K, 3).replace(/0$/, '') + ' m²/s';
+    }
+    function modo(b0) { HS = +b0.getAttribute('data-h'); bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); dibujar(); }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(b); }); }); sl.addEventListener('input', dibujar); sk.addEventListener('input', dibujar);
+    modo(bs[0]);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Un mazo de naipes:</strong> empujá un mazo por encima y las cartas se deslizan una sobre otra, cada vez menos. Ahora imaginá que cada carta, además, gira un poquito respecto de la de arriba. Visto desde arriba, el mazo forma una escalera en espiral.</p>
@@ -67,7 +111,42 @@
   <h2>Cuando el agua sube</h2>
   <p>El <strong>afloramiento</strong> o <strong>surgencia</strong> ocurre cuando el viento empuja el agua superficial y otra sube desde abajo para reemplazarla [3]. Las condiciones son óptimas cuando el viento sopla a lo largo de la costa [3]. Ahí es donde entra Ekman, y conviene verlo con un caso.</p>
   <p>Frente a Perú, la costa corre aproximadamente de sudeste a noroeste, y el mar queda al oeste. Si el viento sopla hacia el noroeste, siguiendo la costa, el transporte de Ekman va hacia la izquierda del viento, es decir, hacia el sudoeste: mar adentro (un razonamiento propio a partir de [1] y [2]). El agua de la superficie se aleja de la costa, y el agua profunda sube a reemplazarla.</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 410" role="img" aria-labelledby="ekm2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="ekm2-t">Mapa esquemático de la costa de Perú, que corre de sudeste a noroeste con el mar al oeste. El viento sopla hacia el noroeste siguiendo la costa. El transporte de Ekman va a la izquierda del viento, hacia el sudoeste, mar adentro. Junto a la costa, flechas hacia arriba: sube agua fría con nutrientes.</title>
+      <rect width="640" height="410" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="26.0" text-anchor="start" fill="#eef2ff" font-size="19">Surgencia frente a Perú (hemisferio sur)</text>
+        <polygon points="640.0,60.0 640.0,400.0 420.0,400.0 300.0,60.0" fill="#1c2c55"/>
+        <text x="560.0" y="200.0" text-anchor="middle" fill="#eef2ff" font-size="18">PERÚ</text>
+        <text x="150.0" y="370.0" text-anchor="middle" fill="#00d4ff" font-size="15">océano Pacífico</text>
+        <text x="520.0" y="90.0" text-anchor="start" fill="#8892b0" font-size="14">N ↑</text>
+        <line x1="282.0" y1="340.0" x2="213.7" y2="146.2" stroke="#eef2ff" stroke-width="4"/>
+        <polygon points="209.0,133.0 219.6,144.1 207.7,148.3" fill="#eef2ff"/>
+        <text x="222.0" y="200.0" text-anchor="end" fill="#eef2ff" font-size="14">viento hacia el noroeste,</text>
+        <text x="222.0" y="218.0" text-anchor="end" fill="#eef2ff" font-size="14">a lo largo de la costa</text>
+        <line x1="240.0" y1="244.0" x2="123.1" y2="285.6" stroke="#f5a623" stroke-width="5"/>
+        <polygon points="108.0,291.0 120.7,278.9 125.5,292.4" fill="#f5a623"/>
+        <text x="150.0" y="322.0" text-anchor="middle" fill="#f5a623" font-size="14">transporte de Ekman:</text>
+        <text x="150.0" y="340.0" text-anchor="middle" fill="#f5a623" font-size="14">a la izquierda del viento</text>
+        <line x1="316.0" y1="160.0" x2="316.0" y2="147.0" stroke="#00d4ff" stroke-width="2.5"/>
+        <polygon points="316.0,136.0 320.9,147.0 311.1,147.0" fill="#00d4ff"/>
+        <line x1="340.0" y1="222.0" x2="340.0" y2="209.0" stroke="#00d4ff" stroke-width="2.5"/>
+        <polygon points="340.0,198.0 344.9,209.0 335.1,209.0" fill="#00d4ff"/>
+        <line x1="364.0" y1="284.0" x2="364.0" y2="271.0" stroke="#00d4ff" stroke-width="2.5"/>
+        <polygon points="364.0,260.0 368.9,271.0 359.1,271.0" fill="#00d4ff"/>
+        <line x1="388.0" y1="346.0" x2="388.0" y2="333.0" stroke="#00d4ff" stroke-width="2.5"/>
+        <polygon points="388.0,322.0 392.9,333.0 383.1,333.0" fill="#00d4ff"/>
+        <text x="470.0" y="392.0" text-anchor="middle" fill="#00d4ff" font-size="13">sube agua fría con nutrientes [3]</text>
+      </g>
+    </svg>
+    <figcaption>En el hemisferio sur, el transporte de Ekman va a la izquierda del viento [1, 2]. Con viento hacia el noroeste a lo largo de la costa, el agua de la superficie se va mar adentro y sube agua fría y rica en nutrientes a reemplazarla [3] (un razonamiento propio a partir de [1] y [2], el mismo del artículo). La forma de la costa está simplificada.<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
   <p>Esa agua es más fría y rica en nutrientes [3]. Los nutrientes «fertilizan» la superficie, con alta productividad biológica, y por eso las buenas zonas de pesca suelen estar donde hay surgencia [3]. En el Pacífico, la NOAA lo dice directamente: el agua fría frente a Sudamérica es rica en nutrientes, sostiene altos niveles de producción primaria, ecosistemas marinos diversos y grandes pesquerías [4].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/espiral-ekman-surgencia-clorofila.png" width="1083" height="1320" loading="lazy" style="width:min(560px,100%);margin:0 auto" alt="Mapa del mar frente a Ecuador y Perú: una franja celeste y naranja pegada a la costa, con mucha clorofila, y el océano abierto azul oscuro, con poca.">
+    <figcaption>La clorofila en la superficie del mar frente a Perú, medida por el satélite S-NPP (sensor VIIRS): promedio de 11 meses de 2022, en escala logarítmica (un cálculo propio con los datos mensuales). Junto a la costa hay decenas de veces más clorofila que mar adentro (una lectura propia del mapa): ahí sube el agua rica en nutrientes [3, 4]. En gris, la tierra.<span class="credito">Mapa: Mundo Quarks · datos provistos por el Centro de Aplicaciones Satelitales e Investigación (STAR) de la NOAA y el programa CoastWatch</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Qué la apaga:</strong> durante <a href="el-nino.html">El Niño</a>, la capa cálida se hace más profunda frente a Sudamérica, la surgencia pierde eficacia para enfriar la superficie y se corta el aporte de agua rica en nutrientes [4]. El viento sigue, pero lo que sube ya no es lo mismo. La ciencia pesquera y la mecánica de fluidos terminan siendo el mismo problema.</p>

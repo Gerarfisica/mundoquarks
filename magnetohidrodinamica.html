@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -56,6 +58,37 @@
   <p>Cuando un fluido conductor se mueve en un campo magnético, aparecen corrientes, y esas corrientes modifican el campo. La ecuación que describe la evolución del campo <strong>B</strong> tiene dos términos: uno arrastra el campo con el fluido, y otro lo hace difundirse a través del material [1]:</p>
   <div class="math-block">∂<strong>B</strong>/∂t = ∇ × (<strong>u</strong> × <strong>B</strong>) + η ∇²<strong>B</strong><br><strong>B</strong>: campo magnético · <strong>u</strong>: velocidad del fluido · η: difusividad magnética</div>
   <p>La competencia entre ambos términos se mide con el <strong>número de Reynolds magnético</strong>, parecido al <a href="numero-reynolds.html">número de Reynolds</a>, y la aproximación es buena cuando es grande [1]. En ese límite, sin difusión, la ecuación toma la misma forma que la de la <a href="teoremas-kelvin-helmholtz.html">vorticidad</a> en un fluido ideal, y por eso se llega a la misma conclusión: el campo magnético queda <strong>congelado</strong> en el fluido [1].</p>
+  <figure class="figura" id="frz">
+    <canvas id="frz-c" width="1280" height="480" role="img" aria-label="Líneas de campo magnético horizontales dentro de un remolino de fluido conductor. Con número de Reynolds magnético alto, las líneas giran con el fluido y se enroscan. Con número bajo, se deslizan a través del fluido y vuelven a quedar casi rectas."></canvas>
+    <div class="int-control"><label for="frz-r">Reynolds magnético</label><input type="range" id="frz-r" min="-1" max="3" step="0.05" value="2"><output id="frz-o" for="frz-r">100</output></div>
+    <div class="int-botones" role="group" aria-label="Campo"><button type="button">empezar de nuevo</button></div>
+    <p class="int-estado" id="frz-e" aria-live="polite"></p>
+    <figcaption>La ecuación de inducción tiene dos términos: uno arrastra el campo con el fluido y otro lo hace difundirse a través del material; el número de Reynolds magnético mide cuál gana [1]. Si es grande, el campo queda congelado en el fluido [1]. El remolino y la manera de mostrar la difusión son ilustrativos: no es una solución de la ecuación.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('frz-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 240, sl = document.getElementById('frz-r'), es = document.getElementById('frz-e'), bt = document.querySelector('#frz .int-botones button'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', Ls, txt = '', CX = 320, CY = 120;
+    function ini() { Ls = []; for (var j = 0; j < 9; j++) { var y0 = 24 + j * 24, l = []; for (var x = 0; x <= W; x += 6) l.push({ x: x, y: y0, y0: y0, x0: x }); Ls.push(l); } }
+    function frame() {
+      var rm = Math.pow(10, +sl.value), k, l, p, dx, dy, r2, om, rel = 0.02 / rm;
+      if (vis) {
+        for (k = 0; k < Ls.length; k++) { l = Ls[k]; for (var i = 0; i < l.length; i++) { p = l[i]; dx = p.x - CX; dy = p.y - CY; r2 = dx * dx + dy * dy; om = 0.025 * Math.exp(-r2 / 7000);
+          p.x += -om * dy; p.y += om * dx; p.x += (p.x0 - p.x) * Math.min(1, rel); p.y += (p.y0 - p.y) * Math.min(1, rel); } }
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        var gr = g.createRadialGradient(CX, CY, 0, CX, CY, 110); gr.addColorStop(0, 'rgba(245,166,35,0.18)'); gr.addColorStop(1, 'rgba(245,166,35,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        g.strokeStyle = CI; g.lineWidth = 2; for (k = 0; k < Ls.length; k++) { l = Ls[k]; g.beginPath(); for (i = 0; i < l.length; i++) { if (i) g.lineTo(l[i].x, l[i].y); else g.moveTo(l[i].x, l[i].y); } g.stroke(); }
+        g.font = "13px 'Space Mono',monospace"; g.fillStyle = NA; g.textAlign = 'left'; g.fillText('remolino del fluido ↺', 10, 18); g.fillStyle = CI; g.fillText('líneas de campo', 10, 234);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var rm = Math.pow(10, +sl.value), n; document.getElementById('frz-o').textContent = rm < 1 ? rm.toFixed(1).replace('.', ',') : Math.round(rm).toLocaleString('es-AR');
+      n = rm > 30 ? 'Reynolds magnético alto: el campo queda <strong>congelado</strong> y gira con el fluido.' : rm < 3 ? 'Reynolds magnético bajo: el campo <strong>se difunde</strong> a través del fluido y casi no se deforma.' : 'Un caso intermedio: el fluido arrastra el campo, pero el campo se escapa en parte.';
+      if (n !== txt) { txt = n; es.innerHTML = n; } }
+    sl.addEventListener('input', poner); bt.addEventListener('click', ini);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    ini(); poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Hilos en una masa:</strong> imaginá hilos de colores metidos en una masa de pan. Si estirás la masa, los hilos se estiran con ella. Las líneas de campo en un plasma conductor hacen algo parecido, con una diferencia: los hilos también tiran de la masa.</p>
@@ -68,6 +101,10 @@
 
   <h2>El viento solar</h2>
   <p>El viento solar sale continuamente del Sol. Es principalmente un plasma de protones y electrones, y lleva consigo el campo magnético solar [4]: un ejemplo directo de campo congelado. Viaja a unos 400 km/s en el plano donde orbitan los planetas, y a entre 500 y 800 km/s si viene de los agujeros coronales [4]. Con un campo de 5 nanoteslas y 5 protones por centímetro cúbico, valores de ejemplo, la velocidad de Alfvén da unos 50 km/s (un cálculo propio): mucho menos que la del viento.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/magnetohidrodinamica-sol.jpg" width="1000" height="1027" loading="lazy" style="width:min(600px,100%);margin:0 auto" alt="El Sol en luz ultravioleta, de color dorado, con una gran mancha oscura irregular en su mitad superior: un agujero coronal.">
+    <figcaption>El Sol fotografiado por el Observatorio de Dinámica Solar (SDO) de la NASA el 10 de octubre de 2015, en luz ultravioleta. La zona oscura de arriba es un agujero coronal: de ahí sale viento solar rápido, a entre 500 y 800 km/s [4], y lleva consigo el campo magnético del Sol [4].<span class="credito">Imagen: <a href="https://commons.wikimedia.org/wiki/File:Coronal_Hole_Front_and_Center.jpg" target="_blank" rel="noopener">NASA/SDO</a> · Dominio público</span></figcaption>
+  </figure>
 
   <h2>El dínamo terrestre</h2>
   <p>El campo de la Tierra no es el de un imán permanente. El núcleo externo es líquido, y el centro de la Tierra está a unos 6000 K [5]. El campo lo generan corrientes eléctricas producidas como en una dínamo autoexcitada: un conductor que se mueve en un campo magnético [5]. Este <strong>geodínamo</strong> está impulsado por la <a href="conveccion-rayleigh-benard.html">convección térmica</a> del hierro líquido [5]. La misma física está detrás de los campos del Sol, las estrellas de neutrones y los campos cósmicos [5].</p>

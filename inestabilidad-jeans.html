@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -62,12 +64,97 @@
   <div class="analogy-box">
     <p><strong>Un globo y su peso:</strong> pensá en la presión como aire que empuja hacia afuera y en la gravedad como una goma que aprieta. La goma se vuelve más fuerte cuanta más masa hay en juego. Con poca masa, gana el aire; a partir de cierta masa, gana la goma, y todo se hunde.</p>
   </div>
+  <figure class="figura" id="jea">
+    <canvas id="jea-c" width="1280" height="500" role="img" aria-label="Una nube de gas dibujada como puntos. Si su masa supera la masa de Jeans, se contrae y se parte en grumos; si no, se dispersa. Dos barras comparan la masa de la nube con la masa de Jeans."></canvas>
+    <div class="int-control"><label for="jea-m">Masa de la nube</label><input type="range" id="jea-m" min="-1" max="2" step="0.05" value="1"><output id="jea-mo" for="jea-m">10 masas solares</output></div>
+    <div class="int-control"><label for="jea-t">Temperatura</label><input type="range" id="jea-t" min="5" max="100" step="1" value="10"><output id="jea-to" for="jea-t">10 K</output></div>
+    <p class="int-estado" id="jea-e" aria-live="polite"></p>
+    <figcaption>La masa de Jeans con la fórmula del artículo, para una densidad fija de 10 000 moléculas por centímetro cúbico y μ = 2,3 (cálculos propios). Si la nube tiene más masa, la gravedad gana y colapsa; si no, gana la presión [1]. El colapso puede partir la nube en pedazos, como dice el artículo. El movimiento de los puntos es ilustrativo, no una simulación.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('jea-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 250, sm = document.getElementById('jea-m'), st = document.getElementById('jea-t'), es = document.getElementById('jea-e'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', P = [], s = 1, txt = '', k, CX = 210, CY = 125;
+    for (k = 0; k < 220; k++) { var a = Math.random() * 6.283, r = Math.sqrt(Math.random()); P.push({ x: r * Math.cos(a), y: r * Math.sin(a), c: k % 4 }); }
+    var CL = [[-0.35, -0.2], [0.3, -0.25], [0, 0.35], [0.4, 0.3]];
+    function mj(T) { var rho = 1e10 * 2.3 * 1.674e-27; return Math.pow(5 * 1.381e-23 * T / (6.674e-11 * 2.3 * 1.674e-27), 1.5) * Math.sqrt(3 / (4 * Math.PI * rho)) / 1.989e30; }
+    function frame() {
+      var M = Math.pow(10, +sm.value), J = mj(+st.value), col = M > J, p, x, y, f, h;
+      if (vis) {
+        s += col ? (0.35 - s) * 0.01 : (1.6 - s) * 0.008;
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        f = col ? Math.max(0, (1 - s) / 0.65) : 0;
+        for (k = 0; k < P.length; k++) { p = P[k]; x = p.x * (1 - f) + (CL[p.c][0] + p.x * 0.25) * f; y = p.y * (1 - f) + (CL[p.c][1] + p.y * 0.25) * f;
+          g.fillStyle = col ? 'rgba(245,166,35,0.85)' : 'rgba(0,212,255,0.7)'; g.beginPath(); g.arc(CX + x * 95 * s, CY + y * 95 * s, 2, 0, 6.3); g.fill(); }
+        h = function (m) { return Math.min(200, 40 * (Math.log(m) / Math.LN10 + 1.5)); };
+        g.fillStyle = '#1c2c55'; g.fillRect(440, 20, 50, 200); g.fillRect(540, 20, 50, 200);
+        g.fillStyle = col ? NA : CI; g.fillRect(440, 220 - h(M), 50, h(M)); g.fillStyle = '#eef2ff'; g.fillRect(540, 220 - h(J), 50, h(J));
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = GR; g.fillText('nube', 465, 238); g.fillText('masa de Jeans', 565, 238);
+        g.fillStyle = '#eef2ff'; g.fillText(M < 1 ? M.toFixed(1).replace('.', ',') : Math.round(M), 465, 214 - h(M)); g.fillText(J < 1 ? J.toFixed(1).replace('.', ',') : Math.round(J), 565, 214 - h(J));
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var M = Math.pow(10, +sm.value), T = +st.value, J = mj(T), n;
+      document.getElementById('jea-mo').textContent = (M < 1 ? M.toFixed(1).replace('.', ',') : Math.round(M)) + (M === 1 ? ' masa solar' : ' masas solares'); document.getElementById('jea-to').textContent = T + ' K';
+      n = 'Masa de Jeans: <strong>' + (J < 10 ? J.toFixed(1).replace('.', ',') : Math.round(J)) + ' masas solares</strong>. ' + (M > J ? 'La nube tiene más: <strong>colapsa</strong> y se parte en grumos.' : 'La nube tiene menos: la presión gana y <strong>se dispersa</strong>.');
+      if (n !== txt) { txt = n; es.innerHTML = n; } }
+    sm.addEventListener('input', poner); st.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Un cálculo con números</h2>
   <p>Tomemos una nube molecular fría, con valores de ejemplo: T = 10 K, una densidad de 10⁴ moléculas por centímetro cúbico y μ = 2,3. Da M<sub>J</sub> ≈ 1 × 10³¹ kilogramos, unas 5 masas solares, en una región de unos 0,1 pársec de radio (cálculos propios). Si la misma nube se comprimiera hasta tener cuatro veces más densidad, sin calentarse, la masa de Jeans se reduciría a la mitad. Por eso, una nube que colapsa puede fragmentarse en pedazos más chicos: cada trozo vuelve a superar el umbral.</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 360" role="img" aria-labelledby="jea2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="jea2-t">Tres rectas en escalas logarítmicas: la masa de Jeans crece con la temperatura, y es menor cuanto más densa es la nube. Con 10 000 moléculas por centímetro cúbico y 10 K, da unas 5 masas solares.</title>
+      <rect width="640" height="360" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="26.0" text-anchor="start" fill="#eef2ff" font-size="19">La masa de Jeans: el umbral del colapso</text>
+        <line x1="90.0" y1="300.0" x2="600.0" y2="300.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="305.0" text-anchor="end" fill="#8892b0" font-size="13">0,1</text>
+        <line x1="90.0" y1="254.0" x2="600.0" y2="254.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="259.0" text-anchor="end" fill="#8892b0" font-size="13">1</text>
+        <line x1="90.0" y1="208.0" x2="600.0" y2="208.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="213.0" text-anchor="end" fill="#8892b0" font-size="13">10</text>
+        <line x1="90.0" y1="162.0" x2="600.0" y2="162.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="167.0" text-anchor="end" fill="#8892b0" font-size="13">100</text>
+        <line x1="90.0" y1="116.0" x2="600.0" y2="116.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="121.0" text-anchor="end" fill="#8892b0" font-size="13">1000</text>
+        <line x1="90.0" y1="70.0" x2="600.0" y2="70.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="82.0" y="75.0" text-anchor="end" fill="#8892b0" font-size="13">10 000</text>
+        <text x="14.0" y="56.0" text-anchor="start" fill="#8892b0" font-size="13">masas solares</text>
+        <line x1="90.0" y1="300.0" x2="90.0" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="90.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">5 K</text>
+        <line x1="208.0" y1="300.0" x2="208.0" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="208.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">10 K</text>
+        <line x1="326.0" y1="300.0" x2="326.0" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="326.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">20 K</text>
+        <line x1="482.0" y1="300.0" x2="482.0" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="482.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">50 K</text>
+        <line x1="600.0" y1="300.0" x2="600.0" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="600.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">100 K</text>
+        <polyline points="90.0,194.7 100.2,192.9 110.4,191.1 120.6,189.3 130.8,187.5 141.0,185.7 151.2,183.9 161.4,182.1 171.6,180.3 181.8,178.5 192.0,176.7 202.2,174.9 212.4,173.1 222.6,171.3 232.8,169.5 243.0,167.7 253.2,165.9 263.4,164.1 273.6,162.3 283.8,160.5 294.0,158.8 304.2,157.0 314.4,155.2 324.6,153.4 334.8,151.6 345.0,149.8 355.2,148.0 365.4,146.2 375.6,144.4 385.8,142.6 396.0,140.8 406.2,139.0 416.4,137.2 426.6,135.4 436.8,133.6 447.0,131.8 457.2,130.0 467.4,128.2 477.6,126.4 487.8,124.6 498.0,122.8 508.2,121.0 518.4,119.3 528.6,117.5 538.8,115.7 549.0,113.9 559.2,112.1 569.4,110.3 579.6,108.5 589.8,106.7 600.0,104.9" fill="none" stroke="#00d4ff" stroke-width="3" stroke-linejoin="round"/>
+        <text x="596.0" y="96.9" text-anchor="end" fill="#00d4ff" font-size="13">100 por cm³</text>
+        <polyline points="90.0,240.7 100.2,238.9 110.4,237.1 120.6,235.3 130.8,233.5 141.0,231.7 151.2,229.9 161.4,228.1 171.6,226.3 181.8,224.5 192.0,222.7 202.2,220.9 212.4,219.1 222.6,217.3 232.8,215.5 243.0,213.7 253.2,211.9 263.4,210.1 273.6,208.3 283.8,206.5 294.0,204.8 304.2,203.0 314.4,201.2 324.6,199.4 334.8,197.6 345.0,195.8 355.2,194.0 365.4,192.2 375.6,190.4 385.8,188.6 396.0,186.8 406.2,185.0 416.4,183.2 426.6,181.4 436.8,179.6 447.0,177.8 457.2,176.0 467.4,174.2 477.6,172.4 487.8,170.6 498.0,168.8 508.2,167.0 518.4,165.3 528.6,163.5 538.8,161.7 549.0,159.9 559.2,158.1 569.4,156.3 579.6,154.5 589.8,152.7 600.0,150.9" fill="none" stroke="#f5a623" stroke-width="3" stroke-linejoin="round"/>
+        <text x="596.0" y="142.9" text-anchor="end" fill="#f5a623" font-size="13">10 000 por cm³</text>
+        <polyline points="90.0,286.7 100.2,284.9 110.4,283.1 120.6,281.3 130.8,279.5 141.0,277.7 151.2,275.9 161.4,274.1 171.6,272.3 181.8,270.5 192.0,268.7 202.2,266.9 212.4,265.1 222.6,263.3 232.8,261.5 243.0,259.7 253.2,257.9 263.4,256.1 273.6,254.3 283.8,252.5 294.0,250.8 304.2,249.0 314.4,247.2 324.6,245.4 334.8,243.6 345.0,241.8 355.2,240.0 365.4,238.2 375.6,236.4 385.8,234.6 396.0,232.8 406.2,231.0 416.4,229.2 426.6,227.4 436.8,225.6 447.0,223.8 457.2,222.0 467.4,220.2 477.6,218.4 487.8,216.6 498.0,214.8 508.2,213.0 518.4,211.3 528.6,209.5 538.8,207.7 549.0,205.9 559.2,204.1 569.4,202.3 579.6,200.5 589.8,198.7 600.0,196.9" fill="none" stroke="#b48cff" stroke-width="3" stroke-linejoin="round"/>
+        <text x="596.0" y="188.9" text-anchor="end" fill="#b48cff" font-size="13">un millón por cm³</text>
+        <circle cx="208.0" cy="219.9" r="6" fill="#eef2ff"/>
+        <text x="220.0" y="243.9" text-anchor="start" fill="#eef2ff" font-size="13">el ejemplo: unas 6 masas solares</text>
+        <text x="98.0" y="86.0" text-anchor="start" fill="#8892b0" font-size="12">más caliente: hace falta más masa ↗</text>
+        <text x="345.0" y="346.0" text-anchor="middle" fill="#8892b0" font-size="13">temperatura de la nube (escala logarítmica)</text>
+      </g>
+    </svg>
+    <figcaption>La fórmula del artículo, M<sub>J</sub> = (5k<sub>B</sub>T/(Gμm<sub>H</sub>))<sup>3/2</sup> (3/(4πρ))<sup>1/2</sup>, con μ = 2,3 y tres densidades en moléculas por centímetro cúbico (cálculos propios). Las nubes con más masa que la de su recta colapsan. El factor numérico depende de la convención, pero no la forma: M<sub>J</sub> crece como T<sup>3/2</sup> y baja como ρ<sup>−1/2</sup>.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <h2>De verdad se forman</h2>
   <p>Una imagen famosa muestra el proceso. Los Pilares de la Creación son columnas de gas y polvo interestelar frío, fotografiadas por el Hubble en 1995 y por el telescopio James Webb en 2022 [2]. Cuando grumos con suficiente masa se forman dentro de esas columnas, comienzan a colapsar por su propia gravedad, se calientan de a poco y terminan formando estrellas nuevas [2]. Webb ayuda a contar con más precisión las estrellas recién nacidas y las cantidades de gas y polvo, y con eso mejorar los modelos de formación estelar [2].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/inestabilidad-jeans-pilares.jpg" width="800" height="1386" loading="lazy" style="width:min(440px,100%);margin:0 auto" alt="Columnas altas de gas y polvo de tonos naranjas y marrones, con bordes rojizos, sobre un fondo azulado lleno de estrellas.">
+    <figcaption>Los Pilares de la Creación fotografiados en infrarrojo cercano por el telescopio James Webb en 2022: columnas de gas y polvo frío donde se forman estrellas nuevas [2].<span class="credito">Imagen: <a href="https://commons.wikimedia.org/wiki/File:Pillars_of_Creation_(NIRCam_Image).jpg" target="_blank" rel="noopener">NASA, ESA, CSA, STScI; procesamiento: J. DePasquale, A. Koekemoer y A. Pagan</a> · Dominio público</span></figcaption>
+  </figure>
 
   <div class="tech-note">
     <p><strong>Un criterio simple para un problema complejo:</strong> el cálculo de Jeans es una idealización. Una nube real tiene rotación, campos magnéticos, turbulencia y formas irregulares, y las estrellas ya formadas la perturban con sus chorros [2]. Aun así, su forma de pensar sigue siendo el punto de partida, y la misma lógica vale en una escala mucho mayor para la <a href="formacion-galaxias.html">formación de galaxias</a> (un comentario propio).</p>

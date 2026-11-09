@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -55,6 +57,38 @@
   <h2>El problema del momento angular</h2>
   <p>Cuando un gas con momento angular se acerca a un objeto compacto, no puede caer directamente [1]. En un disco en rotación kepleriana, el momento angular específico aumenta con el radio. Por eso, una partícula solo puede caer si se le quita ese momento angular o se le transfiere a partículas más alejadas [2]. Un disco es la forma de hacerlo: parte del gas cae y otra parte se lleva el giro hacia afuera.</p>
   <p>El mecanismo básico es la fricción. Los anillos vecinos giran a distinta velocidad, y esa diferencia produce un torque que intercambia momento angular entre ellos [1]. Es el mismo roce entre capas de un <a href="flujo-couette.html">flujo de Couette</a>. Un anillo que pierde momento angular se acerca al centro [1].</p>
+  <figure class="figura" id="dis">
+    <canvas id="dis-c" width="1280" height="520" role="img" aria-label="Un anillo de gas que gira alrededor de un objeto central, más rápido cerca del centro. Con viscosidad, el anillo se ensancha: el gas de adentro pierde momento angular y cae hacia el centro, y el de afuera lo gana y se aleja."></canvas>
+    <div class="int-control"><label for="dis-v">Viscosidad efectiva</label><input type="range" id="dis-v" min="0" max="1" step="0.05" value="0.5"><output id="dis-o" for="dis-v">media</output></div>
+    <div class="int-botones" role="group" aria-label="Anillo"><button type="button">empezar de nuevo</button></div>
+    <p class="int-estado" id="dis-e" aria-live="polite"></p>
+    <figcaption>Cada anillo gira a la velocidad de una órbita, más rápido cuanto más cerca del centro. El roce entre anillos vecinos intercambia momento angular: el que lo pierde se acerca al centro y el que lo gana se aleja [1, 2]. Sin viscosidad, el gas orbita para siempre. Las velocidades y el ritmo con que se ensancha el anillo son ilustrativos.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('dis-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 260, sl = document.getElementById('dis-v'), es = document.getElementById('dis-e'), bt = document.querySelector('#dis .int-botones button'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', P, cayo, txt = '', CX = 220, CY = 130;
+    function ini() { P = []; cayo = 0; for (var k = 0; k < 260; k++) P.push({ r: 1 + (Math.random() - 0.5) * 0.08, a: Math.random() * 6.283 }); }
+    function gs() { var u = 0, v = 0; for (var k = 0; k < 3; k++) { u += Math.random(); } return u / 3 - 0.5; }
+    function frame() {
+      var nu = +sl.value, k, p, x, y, c, S = 70;
+      if (vis) {
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#000'; g.beginPath(); g.arc(CX, CY, 9, 0, 6.3); g.fill(); g.strokeStyle = NA; g.lineWidth = 1.5; g.stroke();
+        for (k = P.length - 1; k >= 0; k--) { p = P[k]; p.a += 0.03 * Math.pow(p.r, -1.5); p.r += nu * 0.004 * gs() * Math.sqrt(p.r) ; if (p.r < 0.14) { P.splice(k, 1); cayo++; continue; } if (p.r > 3.3) p.r = 3.3;
+          x = CX + S * p.r * Math.cos(p.a); y = CY + S * 0.45 * p.r * Math.sin(p.a); c = Math.min(1, 0.5 / p.r); g.fillStyle = 'rgba(' + Math.round(245) + ',' + Math.round(166 + 80 * c) + ',' + Math.round(35 + 200 * c) + ',0.9)'; g.beginPath(); g.arc(x, y, 1.8, 0, 6.3); g.fill(); }
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = GR; g.fillText('cayeron al centro: ' + cayo, 430, 40); g.fillText('en el disco: ' + P.length, 430, 60);
+        g.fillStyle = '#eef2ff'; g.fillText('más cerca, más rápido', 430, 100); g.fillText('y más caliente', 430, 118);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var nu = +sl.value, n; document.getElementById('dis-o').textContent = nu < 0.05 ? 'nula' : nu < 0.4 ? 'baja' : nu < 0.75 ? 'media' : 'alta';
+      n = nu < 0.05 ? 'Sin viscosidad, el gas <strong>orbita para siempre</strong>: no puede perder momento angular.' : 'Con viscosidad, el anillo <strong>se ensancha</strong>: parte del gas cae al centro y parte se lleva el giro hacia afuera.';
+      if (n !== txt) { txt = n; es.innerHTML = n; } }
+    sl.addEventListener('input', poner); bt.addEventListener('click', ini);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    ini(); poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Patinadores que se pasan el giro:</strong> imaginá patinadores en círculos, tomados de la mano con los vecinos. Los de adentro van más rápido, y tiran de los de afuera. Los de afuera se aceleran y se alejan; los de adentro se frenan y caen hacia el centro.</p>
@@ -74,8 +108,46 @@
 
   <h2>Por qué brilla</h2>
   <p>Un gas que cae desde lejos hasta un radio <em>r</em> gana energía del orden de GMm/r. La mitad queda como energía orbital, y lo demás se disipa [1]. Si, a modo de ejemplo, el disco llegara hasta r = 6GM/c², este cálculo newtoniano daría alrededor de un 8 % de la energía en reposo liberada (un cálculo propio). Por eso, el gas alrededor de un <a href="agujeros-negros.html">agujero negro</a> puede brillar tanto. La imagen del Event Horizon Telescope de M87* muestra la emisión de ese gas alrededor de la sombra del agujero negro [4].</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 360" role="img" aria-labelledby="acr2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="acr2-t">La temperatura de la superficie del disco, en porcentaje de la máxima, según la distancia al centro. Es cero en el borde interno, sube a un máximo cerca de 1,4 veces ese radio y después baja despacio, como r a la menos 3/4.</title>
+      <rect width="640" height="360" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="26.0" text-anchor="start" fill="#eef2ff" font-size="19">La temperatura de un disco de acreción</text>
+        <line x1="80.0" y1="300.0" x2="600.0" y2="300.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="72.0" y="305.0" text-anchor="end" fill="#8892b0" font-size="13">0 %</text>
+        <line x1="80.0" y1="242.5" x2="600.0" y2="242.5" stroke="#1c2c55" stroke-width="1"/>
+        <text x="72.0" y="247.5" text-anchor="end" fill="#8892b0" font-size="13">25 %</text>
+        <line x1="80.0" y1="185.0" x2="600.0" y2="185.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="72.0" y="190.0" text-anchor="end" fill="#8892b0" font-size="13">50 %</text>
+        <line x1="80.0" y1="127.5" x2="600.0" y2="127.5" stroke="#1c2c55" stroke-width="1"/>
+        <text x="72.0" y="132.5" text-anchor="end" fill="#8892b0" font-size="13">75 %</text>
+        <line x1="80.0" y1="70.0" x2="600.0" y2="70.0" stroke="#1c2c55" stroke-width="1"/>
+        <text x="72.0" y="75.0" text-anchor="end" fill="#8892b0" font-size="13">100 %</text>
+        <line x1="80.0" y1="300.0" x2="80.0" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="80.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">r<tspan dy="5" font-size="70%">i</tspan><tspan dy="-5">​</tspan></text>
+        <line x1="253.3" y1="300.0" x2="253.3" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="253.3" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">10 r<tspan dy="5" font-size="70%">i</tspan><tspan dy="-5">​</tspan></text>
+        <line x1="426.7" y1="300.0" x2="426.7" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="426.7" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">100 r<tspan dy="5" font-size="70%">i</tspan><tspan dy="-5">​</tspan></text>
+        <line x1="600.0" y1="300.0" x2="600.0" y2="306.0" stroke="#8892b0" stroke-width="1.5"/>
+        <text x="600.0" y="322.0" text-anchor="middle" fill="#8892b0" font-size="13">1000 r<tspan dy="5" font-size="70%">i</tspan><tspan dy="-5">​</tspan></text>
+        <polyline points="80.0,260.4 85.2,107.9 90.4,84.0 95.6,74.0 100.8,70.3 106.0,70.4 111.2,72.8 116.4,76.7 121.6,81.7 126.8,87.4 132.0,93.6 137.2,100.1 142.4,106.8 147.6,113.6 152.8,120.4 158.0,127.2 163.2,133.9 168.4,140.5 173.6,147.0 178.8,153.3 184.0,159.4 189.2,165.4 194.4,171.2 199.6,176.8 204.8,182.2 210.0,187.4 215.2,192.4 220.4,197.3 225.6,201.9 230.8,206.4 236.0,210.7 241.2,214.8 246.4,218.8 251.6,222.5 256.8,226.2 262.0,229.6 267.2,232.9 272.4,236.1 277.6,239.1 282.8,242.0 288.0,244.8 293.2,247.4 298.4,249.9 303.6,252.4 308.8,254.6 314.0,256.8 319.2,258.9 324.4,260.9 329.6,262.8 334.8,264.6 340.0,266.3 345.2,268.0 350.4,269.5 355.6,271.0 360.8,272.4 366.0,273.8 371.2,275.1 376.4,276.3 381.6,277.5 386.8,278.6 392.0,279.6 397.2,280.6 402.4,281.6 407.6,282.5 412.8,283.4 418.0,284.2 423.2,285.0 428.4,285.7 433.6,286.4 438.8,287.1 444.0,287.7 449.2,288.4 454.4,288.9 459.6,289.5 464.8,290.0 470.0,290.5 475.2,291.0 480.4,291.4 485.6,291.9 490.8,292.3 496.0,292.6 501.2,293.0 506.4,293.4 511.6,293.7 516.8,294.0 522.0,294.3 527.2,294.6 532.4,294.9 537.6,295.1 542.8,295.4 548.0,295.6 553.2,295.8 558.4,296.0 563.6,296.2 568.8,296.4 574.0,296.6 579.2,296.8 584.4,296.9 589.6,297.1 594.8,297.2 600.0,297.4" fill="none" stroke="#f5a623" stroke-width="3" stroke-linejoin="round"/>
+        <polyline points="132.0,19.2 136.7,32.0 141.4,44.2 146.0,55.8 150.7,67.0 155.4,77.6 160.1,87.7 164.8,97.4 169.4,106.6 174.1,115.4 178.8,123.8 183.5,131.9 188.2,139.5 192.8,146.8 197.5,153.8 202.2,160.5 206.9,166.8 211.6,172.9 216.2,178.7 220.9,184.2 225.6,189.5 230.3,194.5 235.0,199.3 239.6,203.9 244.3,208.3 249.0,212.5 253.7,216.5 258.4,220.3 263.0,223.9 267.7,227.4 272.4,230.7 277.1,233.8 281.8,236.8 286.4,239.7 291.1,242.5 295.8,245.1 300.5,247.6 305.2,250.0 309.8,252.3 314.5,254.4 319.2,256.5 323.9,258.5 328.6,260.4 333.2,262.2 337.9,263.9 342.6,265.6 347.3,267.1 352.0,268.6 356.6,270.0 361.3,271.4 366.0,272.7 370.7,274.0 375.4,275.1 380.0,276.3 384.7,277.4 389.4,278.4 394.1,279.4 398.8,280.3 403.4,281.2 408.1,282.1 412.8,282.9 417.5,283.7 422.2,284.4 426.8,285.1 431.5,285.8 436.2,286.4 440.9,287.1 445.6,287.6 450.2,288.2 454.9,288.7 459.6,289.3 464.3,289.8 469.0,290.2 473.6,290.7 478.3,291.1 483.0,291.5 487.7,291.9 492.4,292.3 497.0,292.6 501.7,292.9 506.4,293.3 511.1,293.6 515.8,293.9 520.4,294.1 525.1,294.4 529.8,294.7 534.5,294.9 539.2,295.1 543.8,295.4 548.5,295.6 553.2,295.8 557.9,296.0 562.6,296.2 567.2,296.3 571.9,296.5 576.6,296.7 581.3,296.8 586.0,297.0 590.6,297.1 595.3,297.2 600.0,297.3" fill="none" stroke="#8892b0" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="5 5"/>
+        <circle cx="103.2" cy="70.0" r="5" fill="#eef2ff"/>
+        <text x="143.2" y="92.0" text-anchor="start" fill="#eef2ff" font-size="13">máximo cerca de 1,4 r<tspan dy="5" font-size="70%">i</tspan><tspan dy="-5">​</tspan></text>
+        <text x="357.7" y="244.8" text-anchor="start" fill="#8892b0" font-size="13">T ∝ r<tspan dy="-7" font-size="70%">−3/4</tspan><tspan dy="7"> </tspan> lejos del borde</text>
+        <text x="340.0" y="346.0" text-anchor="middle" fill="#8892b0" font-size="13">distancia al centro, en radios del borde interno (escala logarítmica)</text>
+      </g>
+    </svg>
+    <figcaption>La temperatura de la superficie de un disco estacionario, de la ecuación 35 de Spruit: σT⁴ = (GM/r³)(3Ṁ/8π)[1 − (r<sub>i</sub>/r)<sup>1/2</sup>] [1]. Lejos del borde interno r<sub>i</sub> baja como r<sup>−3/4</sup> [1], y no depende de la viscosidad [1]. La curva y la posición del máximo son cálculos propios con esa fórmula; las temperaturas están en porcentaje de la máxima porque dependen de la masa y del ritmo de acreción.<span class="credito">Gráfico: Mundo Quarks</span></figcaption>
+  </figure>
 
   <p>El gas no cae en un agujero negro: orbita, y para acercarse tiene que entregar su momento angular. La viscosidad común no alcanza; lo que hace el trabajo es una turbulencia sostenida por campos magnéticos. El roce calienta el disco hasta que brilla. Es mecánica de fluidos en un lugar donde todavía importan la relatividad, el magnetismo y la luz.</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/discos-acrecion-m87.jpg" width="1000" height="1000" loading="lazy" style="width:min(560px,100%);margin:0 auto" alt="Un anillo naranja y amarillo, más brillante abajo, alrededor de un centro oscuro, sobre fondo negro.">
+    <figcaption>La primera imagen de un agujero negro: M87*, en el centro de la galaxia Messier 87, publicada por el Event Horizon Telescope en 2019. El anillo brillante es la emisión del gas alrededor de la sombra del agujero negro [4].<span class="credito">Imagen: <a href="https://commons.wikimedia.org/wiki/File:Black_hole_-_Messier_87_crop_max_res.jpg" target="_blank" rel="noopener">Event Horizon Telescope Collaboration</a> · <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank" rel="noopener">CC BY 4.0</a></span></figcaption>
+  </figure>
 
   <div class="question-box">
     <p><strong>Pregunta para la comunidad:</strong> Si el momento angular no se puede destruir, ¿a dónde va el que pierde el gas que cae? ¿Qué le pasa al borde exterior de un disco? Hay una pista en los chorros que salen de algunos agujeros negros.</p>

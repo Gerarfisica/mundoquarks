@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -59,6 +61,41 @@
   <h2>Un analizador de frecuencias</h2>
   <p>La cóclea es un tubo lleno de líquido, enrollado. Parte de la ventana oval por la rampa vestibular, da la vuelta en la punta y regresa por la rampa timpánica [1]. En el medio corre el conducto coclear, cuya pared es la <strong>membrana basilar</strong>, sobre la que están las células ciliadas [1].</p>
   <p>Cuando las ondas de líquido avanzan, la membrana basilar se mueve en un lugar específico, según la frecuencia [1]. Las frecuencias altas mueven la región cercana a la base de la cóclea; las bajas, la región de la punta [1]. Así, cada tono activa un grupo distinto de células [1]: sonidos de 20 Hz se detectan en la punta, y los de 20 kHz, en la base, cerca de las ventanas [1]. Como un líquido casi no se comprime, cuando el estribo empuja, algo tiene que ceder: la ventana redonda, en el otro extremo del recorrido, se abomba hacia afuera (un razonamiento propio a partir de la incompresibilidad).</p>
+  <figure class="figura" id="coc">
+    <canvas id="coc-c" width="1280" height="460" role="img" aria-label="La cóclea desenrollada como una franja, con la base y las ventanas a la izquierda y la punta a la derecha. Una onda viaja por la membrana basilar y crece hasta un máximo en un lugar que depende de la frecuencia: cerca de la base para los agudos, cerca de la punta para los graves."></canvas>
+    <div class="int-control"><label for="coc-f">Frecuencia del sonido</label><input type="range" id="coc-f" min="1.301" max="4.301" step="0.01" value="3"><output id="coc-o" for="coc-f">1000 Hz</output></div>
+    <p class="int-estado" id="coc-e" aria-live="polite"></p>
+    <figcaption>Las frecuencias altas mueven la membrana basilar cerca de la base de la cóclea, y las bajas, cerca de la punta: 20 kHz en la base y 20 Hz en la punta [1]. Ubicamos las frecuencias intermedias en escala logarítmica, una elección para el dibujo; la forma de la onda también es ilustrativa.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('coc-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 230, sl = document.getElementById('coc-f'), es = document.getElementById('coc-e'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', ph = 0, txt = '';
+    var X0 = 60, X1 = 600, YM = 115;
+    function frame() {
+      var lf = +sl.value, s = (4.301 - lf) / 3, xp = X0 + (X1 - X0) * s, x, a, k, u;
+      if (vis) {
+        ph += 0.15; g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = 'rgba(0,212,255,0.12)'; g.beginPath(); g.moveTo(X0, YM - 70); g.lineTo(X1, YM - 45); g.lineTo(X1, YM + 45); g.lineTo(X0, YM + 70); g.fill();
+        g.strokeStyle = GR; g.lineWidth = 1; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(X0, YM); g.lineTo(X1, YM); g.stroke(); g.setLineDash([]);
+        g.strokeStyle = NA; g.lineWidth = 3; g.beginPath();
+        for (x = X0; x <= X1; x += 2) { u = (x - X0) / (X1 - X0); a = x <= xp ? 30 * Math.pow(Math.max(0.02, (x - X0) / (xp - X0 + 1)), 2) : 30 * Math.exp(-Math.pow((x - xp) / 18, 2)); k = 0.06 + 0.25 * (x - X0) / (xp - X0 + 30);
+          var y = YM + a * Math.sin(ph - k * (x - X0)); if (x === X0) g.moveTo(x, y); else g.lineTo(x, y); }
+        g.stroke();
+        g.fillStyle = '#eef2ff'; g.beginPath(); g.moveTo(xp, YM - 40); g.lineTo(xp - 6, YM - 52); g.lineTo(xp + 6, YM - 52); g.fill();
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = GR; g.fillText('base: 20 kHz', X0, YM + 96); g.textAlign = 'right'; g.fillText('punta: 20 Hz', X1, YM + 96);
+        g.textAlign = 'left'; g.fillStyle = CI; g.fillText('ventana oval', 6, YM - 78); g.fillStyle = '#eef2ff'; g.fillText('máximo', xp - 26, YM - 58);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var f = Math.pow(10, +sl.value), s = (4.301 - +sl.value) / 3, n, t = f < 1000 ? Math.round(f) + ' Hz' : (f / 1000).toFixed(1).replace('.', ',').replace(',0', '') + ' kHz';
+      document.getElementById('coc-o').textContent = t;
+      n = 'Con ' + t + ', la membrana se mueve más a un <strong>' + Math.round(s * 100) + ' %</strong> del recorrido desde la base: ' + (s < 0.33 ? 'cerca de la base, un agudo.' : s > 0.67 ? 'cerca de la punta, un grave.' : 'en la zona media.');
+      if (n !== txt) { txt = n; es.innerHTML = n; } }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>Un piano al revés:</strong> en un piano, apretar una tecla hace sonar un lugar determinado. En la cóclea, un sonido complejo llega y «aprieta» muchas teclas a la vez, cada frecuencia en su lugar. Lo que el cerebro recibe es, literalmente, una lista de frecuencias.</p>
@@ -67,6 +104,37 @@
   <h2>El sensor de giro</h2>
   <p>Los <strong>canales semicirculares</strong> son tres anillos llenos de líquido, en distintos planos [1]. En la base de cada uno hay una zona ensanchada, la ampolla, con células ciliadas cuyas prolongaciones se meten en una membrana llamada <strong>cúpula</strong> [1].</p>
   <p>Cuando girás la cabeza, el canal gira con vos, pero el líquido se atrasa, y eso dobla la cúpula en sentido opuesto al movimiento [1]. Es <a href="balde-newton.html">inercia pura</a>: lo mismo que cuando girás una taza de café y el líquido se queda quieto al principio. Con tres canales orientados de distintas formas, el cerebro puede reconstruir el eje del giro. Si después de dar vueltas te frenás de golpe, el líquido sigue girando un rato, y eso explica el mareo (un razonamiento propio).</p>
+  <figure class="figura" id="can">
+    <canvas id="can-c" width="1280" height="480" role="img" aria-label="Un canal semicircular visto desde arriba, como un anillo con líquido y una cúpula en la ampolla. Al girar la cabeza, el anillo gira pero el líquido se atrasa y dobla la cúpula. Si el giro sigue, el líquido lo alcanza; al frenar, el líquido sigue un rato y la dobla al revés."></canvas>
+    <div class="int-botones" role="group" aria-label="Cabeza"><button type="button" data-g="1">girar la cabeza</button><button type="button" data-g="0">frenar</button></div>
+    <p class="int-estado" id="can-e" aria-live="polite"></p>
+    <figcaption>Cuando girás la cabeza, el canal gira con vos pero el líquido se atrasa, y eso dobla la cúpula en sentido opuesto al movimiento [1]. Si después de girar frenás de golpe, el líquido sigue girando un rato: el mareo (el razonamiento del artículo). El tiempo que tarda el líquido en alcanzar al canal es un valor elegido para el dibujo.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('can-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 240, es = document.getElementById('can-e'), bs = document.querySelectorAll('#can .int-botones button'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', wc = 0, wf = 0, ac = 0, af = 0, tw = 0, txt = '', k;
+    function frame() {
+      var dev, n, cx = 230, cy = 120, R = 80, a;
+      if (vis) {
+        wc += (tw - wc) * 0.12; wf += (wc - wf) * 0.012; ac += wc; af += wf; dev = Math.max(-1, Math.min(1, (wc - wf) / 0.05));
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.strokeStyle = 'rgba(0,212,255,0.3)'; g.lineWidth = 26; g.beginPath(); g.arc(cx, cy, R, 0, 6.3); g.stroke();
+        g.fillStyle = '#eef2ff'; for (k = 0; k < 18; k++) { a = af + k * Math.PI / 9; g.beginPath(); g.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), 2.5, 0, 6.3); g.fill(); }
+        a = ac - Math.PI / 2; g.save(); g.translate(cx + R * Math.cos(a), cy + R * Math.sin(a)); g.rotate(a); g.strokeStyle = NA; g.lineWidth = 4; g.beginPath(); g.moveTo(-13, 0); g.quadraticCurveTo(0, -dev * 18, 13, 0); g.stroke(); g.restore();
+        g.fillStyle = '#ff7a7a'; g.beginPath(); g.arc(cx + (R - 24) * Math.cos(ac), cy + (R - 24) * Math.sin(ac), 4, 0, 6.3); g.fill();
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('cúpula', 360, 60); g.fillStyle = '#eef2ff'; g.fillText('● líquido', 360, 84); g.fillStyle = '#ff7a7a'; g.fillText('● marca del canal', 360, 108);
+        g.fillStyle = GR; g.fillText('cúpula doblada: ' + Math.round(Math.abs(dev) * 100) + ' %', 360, 150);
+        n = Math.abs(dev) < 0.15 ? (tw ? 'El líquido ya gira con el canal: la cúpula vuelve a su lugar y <strong>no se siente el giro</strong>.' : 'Todo quieto: la cúpula está derecha.') : tw ? 'El canal gira y el líquido se atrasa: la cúpula se dobla y <strong>se siente el giro</strong>.' : 'Frenaste: el líquido sigue girando y dobla la cúpula al revés. <strong>Mareo</strong>.';
+        if (n !== txt) { txt = n; es.innerHTML = n; }
+      }
+      requestAnimationFrame(frame);
+    }
+    function modo(b0) { tw = +b0.getAttribute('data-g') * 0.05; bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); }); }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    bs[1].setAttribute('aria-pressed', 'true'); bs[0].setAttribute('aria-pressed', 'false'); es.innerHTML = txt = 'Todo quieto: la cúpula está derecha.'; requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>El sensor de inclinación</h2>
   <p>El utrículo y el sáculo detectan la posición de la cabeza [1]. Las células ciliadas se meten en un gel, la membrana otolítica, que lleva encima cristales de carbonato de calcio, los otolitos [1]. Esos cristales la hacen más pesada arriba [1]. Al inclinar la cabeza, la membrana se desliza en la dirección de la gravedad y dobla las células [1]. Es un acelerómetro: la diferencia de inercia entre las células y la membrana también detecta la aceleración lineal [1].</p>

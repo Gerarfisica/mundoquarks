@@ -38,7 +38,9 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -58,6 +60,39 @@
 
   <h2>El teorema del vieira</h2>
   <p>De ahí sale una consecuencia famosa. Pensá en un vieira, una almeja que nada abriendo y cerrando sus valvas. A número de Reynolds alto, puede cerrarse rápido y abrirse lento, y avanzar. A número de Reynolds bajo, no: como el flujo no depende de la velocidad, la ida y la vuelta se cancelan exactamente, sin importar con qué rapidez se hagan. Es el <strong>teorema del vieira</strong> de Purcell: un nadador a bajo número de Reynolds que repite una deformación recíproca, igual hacia adelante que hacia atrás, no avanza nada [1][2].</p>
+  <figure class="figura" id="vie">
+    <canvas id="vie-c" width="1280" height="460" role="img" aria-label="Dos nadadores microscópicos. Arriba, un vieira que abre y cierra sus valvas: cierra rápido y abre lento, pero a bajo número de Reynolds vuelve siempre al mismo lugar. Abajo, un sacacorchos que gira y avanza sin parar. Un botón cambia a número de Reynolds alto, donde el vieira sí avanza."></canvas>
+    <div class="int-botones" role="group" aria-label="Régimen"><button type="button" data-r="0">Reynolds bajo</button><button type="button" data-r="1">Reynolds alto</button></div>
+    <p class="int-estado" id="vie-e" aria-live="polite"></p>
+    <figcaption>El teorema del vieira de Purcell: a bajo número de Reynolds, un movimiento recíproco no hace avanzar, aunque la ida sea rápida y la vuelta lenta [1, 2]. Una hélice que gira no se deshace al revés, y avanza [2]. A Reynolds alto, cerrar rápido y abrir lento sí empuja [1]. Las distancias recorridas son ilustrativas.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('vie-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 230, es = document.getElementById('vie-e'), bs = document.querySelectorAll('#vie .int-botones button'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', RE = 0, t = 0, xs = 120, xh = 120, ang = 0, prev = 0, tr = [];
+    function op(t) { var f = t % 1; return f < 0.25 ? 1 - f / 0.25 : (f - 0.25) / 0.75; }
+    function frame() {
+      var o, d, k;
+      if (vis) {
+        t += 1 / 120; o = op(t); d = o - prev; prev = o;
+        xs += RE ? (d < 0 ? -d * 30 : -d * 6) : -d * 18; if (xs > 600) xs = 120;
+        xh += 0.35; if (xh > 600) xh = 120; ang += 0.3;
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.strokeStyle = 'rgba(136,146,176,0.3)'; g.lineWidth = 1; g.beginPath(); g.moveTo(120, 20); g.lineTo(120, 220); g.stroke();
+        var a = 0.15 + 0.5 * o; g.strokeStyle = NA; g.lineWidth = 4; g.beginPath(); g.moveTo(xs, 70); g.lineTo(xs - 40 * Math.cos(a), 70 - 40 * Math.sin(a)); g.moveTo(xs, 70); g.lineTo(xs - 40 * Math.cos(a), 70 + 40 * Math.sin(a)); g.stroke();
+        g.fillStyle = CI; g.beginPath(); g.ellipse(xh, 170, 22, 9, 0, 0, 6.3); g.fill(); g.strokeStyle = CI; g.lineWidth = 2; g.beginPath();
+        for (k = 0; k <= 50; k++) { var x = xh - 22 - k * 1.5, y = 170 + 8 * Math.sin(ang - k * 0.35); if (k) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = NA; g.fillText('vieira: cierra rápido, abre lento', 20, 20); g.fillStyle = CI; g.fillText('sacacorchos: gira siempre igual', 20, 128);
+        g.fillStyle = GR; g.fillText('punto de partida', 126, 222);
+      }
+      requestAnimationFrame(frame);
+    }
+    function modo(b0) { RE = +b0.getAttribute('data-r'); xs = 120; xh = 120; bs.forEach(function (b) { b.setAttribute('aria-pressed', b === b0 ? 'true' : 'false'); });
+      es.innerHTML = RE ? 'A <strong>Reynolds alto</strong>, la inercia ayuda: cerrar rápido empuja más de lo que abrir lento retrocede, y el vieira <strong>avanza</strong>.' : 'A <strong>Reynolds bajo</strong>, el vieira vuelve siempre al punto de partida: <strong>no avanza</strong>. El sacacorchos sí.'; }
+    bs.forEach(function (b) { b.addEventListener('click', function () { modo(b); }); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    modo(bs[0]); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="analogy-box">
     <p><strong>La película al revés:</strong> en la melaza, si filmás a alguien moviendo una mano y pasás la película al revés, se ve igual de natural. Lo que hiciste de ida se deshace de vuelta. Para avanzar, necesitás un movimiento que al revés se vea distinto.</p>
@@ -65,7 +100,43 @@
 
   <h2>La solución: romper la simetría</h2>
   <p>Los microorganismos rompen esa simetría temporal con hélices que rotan y con cilios que hacen batidas flexibles, tipo remo [2]. Un <strong>flagelo</strong> de bacteria gira como un sacacorchos: el giro continuo no se deshace, a diferencia de un vaivén (un comentario propio). Los espermatozoides propagan una onda a lo largo de su flagelo, y esa onda tiene un sentido: tampoco se ve igual al revés (un comentario propio).</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/flagelos-cilios-pylori.jpg" width="600" height="400" loading="lazy" style="width:min(600px,100%);margin:0 auto" alt="Imagen de microscopio electrónico: una bacteria alargada y oscura con varios filamentos largos y ondulados que salen de un extremo.">
+    <figcaption>La bacteria Helicobacter pylori vista con microscopio electrónico, con varios flagelos en un extremo. Cada flagelo es una hélice que gira como un sacacorchos: un movimiento que no se deshace al revés.<span class="credito">Imagen: <a href="https://commons.wikimedia.org/wiki/File:EMpylori.jpg" target="_blank" rel="noopener">Yutaka Tsutsumi, Universidad de Salud Fujita</a> · uso libre</span></figcaption>
+  </figure>
   <p>Los <strong>cilios</strong> hacen algo parecido, con batidas flexibles parecidas a las de un remo [2]. En las vías aéreas, los cilios barren el moco y la suciedad hacia afuera [3], como cuenta <a href="respirar-vias-aereas.html">Respirar</a>.</p>
+  <figure class="figura" id="cil">
+    <canvas id="cil-c" width="1280" height="440" role="img" aria-label="Una fila de cilios que baten uno después del otro, formando una onda. Cada cilio empuja estirado y vuelve doblado, pegado a la pared. Arriba, una capa de moco con partículas avanza en el sentido del batido."></canvas>
+    <div class="int-control"><label for="cil-f">Ritmo del batido</label><input type="range" id="cil-f" min="0" max="2" step="0.05" value="1"><output id="cil-o" for="cil-f">normal</output></div>
+    <p class="int-estado" id="cil-e" aria-live="polite"></p>
+    <figcaption>Los cilios hacen batidas flexibles, parecidas a las de un remo, que no se ven iguales al revés [2], y en las vías aéreas barren el moco y la suciedad [3]. Que los cilios vecinos batan con un desfase, formando una onda, y las velocidades del dibujo son ilustrativos.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('cil-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 220, sl = document.getElementById('cil-f'), es = document.getElementById('cil-e'), vis = true, NA = '#f5a623', GR = '#8892b0', ph = 0, M = [], txt = '', k;
+    for (k = 0; k < 30; k++) M.push({ x: Math.random() * W, y: 106 + Math.random() * 28 });
+    function frame() {
+      var f = +sl.value, i, p, th, bend, x0, j, x, y, a, L = 44;
+      if (vis) {
+        ph += 0.06 * f; g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#c99a7a'; g.fillRect(0, 180, W, 40); g.fillStyle = 'rgba(94,224,160,0.25)'; g.fillRect(0, 100, W, 40);
+        for (i = 0; i < 26; i++) { x0 = 15 + i * 24; p = (ph - i * 0.35) % (2 * Math.PI); if (p < 0) p += 2 * Math.PI;
+          var stroke = p < 2.2; th = stroke ? -1.1 + 2.2 * p / 2.2 : 1.1 - 2.2 * (p - 2.2) / (2 * Math.PI - 2.2); bend = stroke ? 0 : 0.9;
+          g.strokeStyle = stroke ? NA : 'rgba(245,166,35,0.55)'; g.lineWidth = 3; g.beginPath(); x = x0; y = 180; g.moveTo(x, y); a = th;
+          for (j = 0; j < 10; j++) { a += (stroke ? 0 : bend * 0.12); x += L / 10 * Math.sin(a); y -= L / 10 * Math.cos(a) * (stroke ? 1 : 0.45); g.lineTo(x, y); } g.stroke(); }
+        g.fillStyle = '#eef2ff'; for (k = 0; k < M.length; k++) { M[k].x = (M[k].x + 0.6 * f) % W; g.beginPath(); g.arc(M[k].x, M[k].y, 2.5, 0, 6.3); g.fill(); }
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'left'; g.fillStyle = '#5ee0a0'; g.fillText('moco →', 8, 94); g.fillStyle = GR; g.fillText('pared de la vía aérea', 8, 212);
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var f = +sl.value, n; document.getElementById('cil-o').textContent = f < 0.05 ? 'quietos' : f < 0.7 ? 'lento' : f > 1.4 ? 'rápido' : 'normal';
+      n = f < 0.05 ? 'Con los cilios quietos, el moco <strong>no avanza</strong>.' : 'Cada cilio empuja <strong>estirado</strong> y vuelve <strong>doblado</strong>: el moco avanza en el sentido del empuje.';
+      if (n !== txt) { txt = n; es.innerHTML = n; } }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <div class="tech-note">
     <p><strong>Un teorema con condiciones:</strong> el resultado vale para fluidos newtonianos. Muchos fluidos biológicos no lo son [2]. En 2014, T. Qiu y sus colegas construyeron un micronadador con una sola bisagra, una especie de almeja, que sí avanzó en un fluido no newtoniano, modulando la viscosidad al cambiar la velocidad de corte [2]. Esto sirve para diseñar microrrobots para el cuerpo, y es un recordatorio de que un teorema dice lo que sus hipótesis dicen.</p>

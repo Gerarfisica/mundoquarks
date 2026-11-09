@@ -38,7 +38,11 @@
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
     .article-meta{flex-wrap:wrap;row-gap:0.35rem;}
     @media(max-width:600px){nav{gap:1rem;}.nav-logo{flex-shrink:0;font-size:1.1rem;}.nav-back{font-size:0.65rem;letter-spacing:0.05em;text-align:right;}}
-  </style>
+      .figura{margin:2.5rem 0;}.figura img,.figura svg{display:block;width:100%;height:auto;border:1px solid var(--border);}.figura figcaption{font-size:0.95rem;font-style:italic;color:var(--gray);line-height:1.5;margin-top:0.75rem;}.figura .credito{display:block;font-family:'Space Mono',monospace;font-style:normal;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.4rem;}.figura .credito a{color:inherit;}
+    .figura canvas{display:block;width:100%;height:auto;border:1px solid var(--border);background:#070d22;touch-action:none;}.int-control[hidden]{display:none;}.int-control{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.5rem 1rem;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cyan);}.int-control input[type=range]{width:min(18rem,60%);accent-color:var(--cyan);}.int-control output{display:inline-block;min-width:4.5em;}.int-botones{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:0.75rem;}.int-botones button{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.05em;padding:0.5rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--gray);cursor:pointer;transition:all 0.2s;}.int-botones button:hover,.int-botones button:focus-visible,.int-botones button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan);}.article-container p.int-estado{font-size:1rem;line-height:1.6;color:var(--white);text-align:center;margin:0.75rem 0 0;min-height:3.2em;}.int-estado strong{color:var(--cyan);}
+    .esq{background:#070d22;border:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}.esq-fila{display:flex;align-items:stretch;gap:0.6rem;}.esq-caja{flex:1 1 0;min-width:0;border:1px solid var(--border);border-top:2px solid var(--cyan);background:var(--card-bg);padding:0.75rem 0.6rem;text-align:center;color:var(--white);font-size:0.95rem;line-height:1.7;overflow-x:auto;}.esq-ok{border-top-color:#5ee0a0;}.esq-mal{border-top-color:#ff7a7a;}.esq-tit{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;color:var(--gray);margin:0.5rem 0 0.15rem;}.esq-tit:first-child{margin-top:0;}.esq-sub{display:block;font-size:0.8rem;color:var(--gray);}.esq-veredicto{display:block;margin-top:0.6rem;font-family:'Space Mono',monospace;font-size:0.8rem;}.esq-si{color:#5ee0a0;}.esq-no{color:#ff7a7a;}.esq-flecha{align-self:center;color:var(--cyan);font-size:1.3rem;}.esq-v{display:none;}.article-container p.esq-nota{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--gray);text-align:center;margin:0;line-height:1.6;}
+    @media(max-width:600px){.esq-fila{flex-direction:column;}.esq-caja{flex:none;}.esq-h{display:none;}.esq-v{display:inline;}}
+</style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
@@ -57,9 +61,66 @@
   <p>El nivel de la solución sube, aumenta su <a href="ley-hidrostatica.html">presión hidrostática</a>, y eso acelera el paso de agua en sentido contrario. Cuando los dos flujos se igualan, el paso neto se detiene. La presión de ese momento es la <strong>presión osmótica</strong> Π [2]. Para soluciones diluidas, vale [2]:</p>
   <div class="math-block">Π = i M R T<br>Π: presión osmótica · i: factor de Van 't Hoff (partículas por unidad disuelta) · M: molaridad · R: constante de los gases · T: temperatura absoluta</div>
   <p>La fórmula se parece a la de un gas ideal, y la similitud es útil: las partículas disueltas son las que cuentan, no qué partículas son.</p>
+  <figure class="figura" id="osm">
+    <canvas id="osm-c" width="1280" height="520" role="img" aria-label="Un tubo en U con una membrana en el medio: agua pura a la izquierda y una solución a la derecha. El agua pasa a través de la membrana hacia la solución, y la columna de la derecha sube hasta que su presión frena el paso. Cuanto más concentrada la solución, más alta la columna."></canvas>
+    <div class="int-control"><label for="osm-m">Concentración de la solución</label><input type="range" id="osm-m" min="0" max="20" step="0.5" value="5"><output id="osm-o" for="osm-m">5 mmol/L</output></div>
+    <p class="int-estado" id="osm-e" aria-live="polite"></p>
+    <figcaption>La presión osmótica Π = i M R T [2], para una sustancia que no se separa en iones (i = 1), como el azúcar, a 25 °C. La columna sube hasta que su presión hidrostática iguala a Π: h = Π / (ρ g) (un cálculo propio con la densidad del agua). El dibujo no está a escala: con concentraciones mayores la columna se iría de la pantalla.<span class="credito">Gráfico interactivo: Mundo Quarks</span></figcaption>
+  </figure>
+  <script>
+  (function () {
+    var cv = document.getElementById('osm-c'), g = cv.getContext('2d'), E = 2, W = 640, H = 260, sl = document.getElementById('osm-m'), es = document.getElementById('osm-e'), vis = true, CI = '#00d4ff', NA = '#f5a623', GR = '#8892b0', lv = 0, P = [], txt = '', k;
+    for (k = 0; k < 40; k++) P.push({ x: 160 + Math.random() * 60, y: 150 + Math.random() * 80, d: Math.random() < 0.5 });
+    function hm(m) { return m / 1000 * 1000 * 8.314 * 298 / (1000 * 9.8); }
+    function frame() {
+      var m = +sl.value, h = hm(m), tgt = Math.min(1, h / 5), yL, yR, p;
+      if (vis) {
+        lv += (tgt - lv) * 0.02; yR = 140 - 110 * lv; yL = 140 + 30 * lv;
+        g.setTransform(E, 0, 0, E, 0, 0); g.fillStyle = '#070d22'; g.fillRect(0, 0, W, H);
+        g.fillStyle = 'rgba(0,212,255,0.35)'; g.fillRect(150, yL, 60, 240 - yL); g.fillRect(150, 200, 260, 40); g.fillStyle = 'rgba(245,166,35,0.35)'; g.fillRect(350, yR, 60, 240 - yR); g.fillRect(280, 200, 70, 40);
+        g.strokeStyle = GR; g.lineWidth = 2; g.beginPath(); g.moveTo(150, 20); g.lineTo(150, 240); g.lineTo(410, 240); g.lineTo(410, 20); g.moveTo(210, 20); g.lineTo(210, 200); g.lineTo(350, 200); g.lineTo(350, 20); g.stroke();
+        g.strokeStyle = '#eef2ff'; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(280, 200); g.lineTo(280, 240); g.stroke(); g.setLineDash([]);
+        g.fillStyle = NA; for (k = 0; k < Math.round(m * 1.5); k++) { g.beginPath(); g.arc(300 + (k * 37) % 45, 206 + (k * 23) % 30, 3.5, 0, 6.3); g.fill(); }
+        g.fillStyle = '#eef2ff'; for (k = 0; k < 14; k++) { p = (Date.now() / 900 + k / 14) % 1; if (m > 0 && lv < tgt - 0.01) { g.beginPath(); g.arc(230 + p * 70, 212 + (k * 11) % 24, 1.8, 0, 6.3); g.fill(); } }
+        g.font = "13px 'Space Mono',monospace"; g.textAlign = 'center'; g.fillStyle = CI; g.fillText('agua pura', 180, 256 - 0); g.fillStyle = NA; g.fillText('solución', 380, 256); g.fillStyle = '#eef2ff'; g.fillText('membrana', 280, 254);
+        if (lv > 0.02) { g.strokeStyle = '#eef2ff'; g.lineWidth = 1; g.beginPath(); g.moveTo(420, yR); g.lineTo(440, yR); g.moveTo(420, yL); g.lineTo(440, yL); g.moveTo(430, yR); g.lineTo(430, yL); g.stroke(); g.textAlign = 'left'; g.fillText('h ≈ ' + (h < 10 ? h.toFixed(2) : h.toFixed(0)).replace('.', ',') + ' m', 448, (yR + yL) / 2 + 4); }
+      }
+      requestAnimationFrame(frame);
+    }
+    function poner() { var m = +sl.value, pi = m / 1000 * 1000 * 8.314 * 298, h = hm(m), n; document.getElementById('osm-o').textContent = String(m).replace('.', ',') + ' mmol/L';
+      n = m === 0 ? 'Agua pura de los dos lados: <strong>no hay paso neto</strong>.' : 'Π ≈ <strong>' + (pi / 1000).toFixed(1).replace('.', ',') + ' kPa</strong>: la columna de la solución sube unos <strong>' + h.toFixed(2).replace('.', ',') + ' m</strong>.';
+      if (n !== txt) { txt = n; es.innerHTML = n; } }
+    sl.addEventListener('input', poner);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { vis = e[0].isIntersecting; }).observe(cv);
+    poner(); requestAnimationFrame(frame);
+  })();
+  </script>
 
   <h2>Cuánto vale en el mar</h2>
   <p>La concentración de iones del agua de mar es similar a la de 4,2 gramos de cloruro de sodio en 125 gramos de agua [2], unos 0,57 mol por litro, si tomamos 1 litro de agua por kilo. Como la sal se separa en dos iones, i ≈ 2. A 25 °C, Π ≈ 28 atmósferas: unos 2,8 MPa (cálculos propios, con solución ideal). Equivale a una columna de agua de unos 290 metros.</p>
+  <figure class="figura">
+    <svg viewBox="0 0 640 350" role="img" aria-labelledby="osm2-t" xmlns="http://www.w3.org/2000/svg">
+      <title id="osm2-t">La cuenta paso a paso: 4,2 gramos de sal en 125 gramos de agua dan 0,57 mol por litro; con dos iones por unidad, Π = i M R T da unas 28 atmósferas. Al costado, una columna de agua de 290 metros, que ejerce esa misma presión.</title>
+      <rect width="640" height="350" fill="#070d22"/>
+      <g font-family="'Space Mono',monospace">
+        <text x="20.0" y="26.0" text-anchor="start" fill="#eef2ff" font-size="19">La presión osmótica del agua de mar</text>
+        <text x="40.0" y="74.0" text-anchor="start" fill="#eef2ff" font-size="15">4,2 g de sal en 125 g de agua [2]</text>
+        <text x="40.0" y="108.0" text-anchor="start" fill="#8892b0" font-size="15">↓</text>
+        <text x="40.0" y="142.0" text-anchor="start" fill="#eef2ff" font-size="15">M ≈ 0,57 mol por litro</text>
+        <text x="40.0" y="176.0" text-anchor="start" fill="#8892b0" font-size="15">↓  la sal se separa en dos iones: i ≈ 2</text>
+        <text x="40.0" y="210.0" text-anchor="start" fill="#00d4ff" font-size="15">Π = i M R T</text>
+        <text x="40.0" y="244.0" text-anchor="start" fill="#00d4ff" font-size="15">= 2 × 0,57 × 0,082 × 298</text>
+        <text x="40.0" y="278.0" text-anchor="start" fill="#f5a623" font-size="18">≈ 28 atm ≈ 2,8 MPa</text>
+        <rect x="550.0" y="40.0" width="50.0" height="270.0" fill="#00d4ff" fill-opacity="0.35"/>
+        <line x1="540.0" y1="310.0" x2="610.0" y2="310.0" stroke="#8892b0" stroke-width="2"/>
+        <text x="575.0" y="330.0" text-anchor="middle" fill="#00d4ff" font-size="15">290 m</text>
+        <text x="536.0" y="284.0" text-anchor="end" fill="#8892b0" font-size="13">la misma presión</text>
+        <text x="536.0" y="302.0" text-anchor="end" fill="#8892b0" font-size="13">que una columna</text>
+        <text x="536.0" y="320.0" text-anchor="end" fill="#8892b0" font-size="13">de agua de</text>
+      </g>
+    </svg>
+    <figcaption>La concentración del agua de mar es la de [2], y las cuentas son propias, con solución ideal a 25 °C y R = 0,082 L·atm/(mol·K). Para desalinizar por ósmosis inversa hay que aplicar una presión mayor que esta [2].<span class="credito">Esquema: Mundo Quarks</span></figcaption>
+  </figure>
   <p>Por eso, para sacarle la sal al mar hay que hacer fuerza. Si se aplica una presión mayor que la osmótica, el proceso se invierte: es la <strong>ósmosis inversa</strong>, que se usa para desalinizar a gran escala [2].</p>
 
   <div class="analogy-box">
@@ -68,6 +129,10 @@
 
   <h2>Tus células en tres soluciones</h2>
   <p>Las soluciones que se inyectan en el cuerpo tienen que tener la misma presión osmótica que el suero: ser <strong>isotónicas</strong> [2]. Si la solución es menos concentrada (hipotónica), el agua entra a los glóbulos rojos y estos se hinchan y pueden romperse: es la hemólisis [2]. Si es más concentrada (hipertónica), los glóbulos pierden agua y se arrugan [2].</p>
+  <figure class="figura">
+    <img src="img/mecanica-fluidos/presion-osmotica-globulos.jpg" width="1280" height="580" loading="lazy" alt="Tres fotos de microscopio de glóbulos rojos. A la izquierda, en solución hipertónica, se ven arrugados y con puntas; en el medio, isotónica, con su forma normal de disco; a la derecha, hipotónica, más redondos e hinchados.">
+    <figcaption>Glóbulos rojos humanos vistos con microscopio de contraste de fase, con los rótulos en inglés. Hypertonic, hipertónica: pierden agua y se arrugan. Isotonic, isotónica: forma normal. Hypotonic, hipotónica: entra agua y se hinchan [2]. La barra mide 20 micrómetros.<span class="credito">Fotos: <a href="https://commons.wikimedia.org/wiki/File:Human_Erythrocytes_OsmoticPressure_PhaseContrast_Plain.svg" target="_blank" rel="noopener">Zephyris</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.es" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></figcaption>
+  </figure>
 
   <h2>Por qué no se puede beber</h2>
   <p>La NOAA lo explica en dos pasos. Los riñones humanos solo pueden producir orina menos salada que el agua de mar. Por eso, para eliminar toda la sal que entra al beberla, habría que orinar más agua de la que se tomó [3]. El resultado es deshidratarse mientras la sed aumenta [3]. Beber agua de mar da sal, y sacarse esa sal cuesta agua.</p>
